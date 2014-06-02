@@ -1,0 +1,21 @@
+format: full_html
+name: 'Full HTML'
+status: true
+weight: 1
+roles:
+  - administrator
+cache: true
+filters:
+  filter_caption:
+    id: filter_caption
+    provider: filter
+    status: true
+    weight: 9
+    settings: {  }
+  filter_htmlcorrector:
+    id: filter_htmlcorrector
+    provider: filter
+    status: true
+    weight: 10
+    settings: {  }
+langcode: en

@@ -1,0 +1,118 @@
+/**
+ * @file
+ * Stark layout method
+ *
+ * To avoid obscuring CSS added to the page by Drupal or a contrib module, the
+ * Stark theme itself has no styling, except just enough CSS to arrange the page
+ * in a traditional "Header, sidebars, content, and footer" layout.
+ *
+ * This layout method works reasonably well, but shouldn't be used on a
+ * production site because it can break. For example, if an over-large image
+ * (one that is wider than 20% of the viewport) is in the left sidebar, the
+ * image will overlap with the .l-content to the right.
+ */
+img {
+  height: auto;
+  max-width: 100%;
+}
+main:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.l-content,
+.l-sidebar-first,
+.l-sidebar-second {
+  display: inline;
+  position: relative;
+}
+
+@media all and (min-width: 480px) and (max-width: 959px) {
+  .l-content {
+    width: 67%;
+    float: right; /* LTR */
+  }
+  [dir="rtl"] .l-content {
+    float: left;
+  }
+
+  .l-sidebar-first {
+    width: 33%;
+    float: left; /* LTR */
+  }
+  [dir="rtl"] .l-sidebar-first {
+    float: right;
+  }
+
+  .l-sidebar-second {
+    float: right; /* LTR */
+    clear: both;
+    width: 100%;
+  }
+  [dir="rtl"] .l-sidebar-second {
+    float: right;
+    clear: right;
+  }
+
+  .l-sidebar-second .block {
+    float: left; /* LTR */
+    width: 33%;
+  }
+  [dir="rtl"] .l-sidebar-second .block {
+    float: right;
+  }
+  .l-sidebar-second .block:nth-child(3n+1) {
+    clear: both;
+  }
+}
+
+@media all and (min-width: 960px) {
+  .l-content {
+    width: 60%;
+    float: left; /* LTR */
+    left: 20%; /* LTR */
+  }
+  [dir="rtl"] .l-content {
+    float: right;
+    left: 0;
+    right: 20%;
+  }
+
+  .l-sidebar-first {
+    width: 20%;
+    float: left; /* LTR */
+    left: -60%; /* LTR */
+  }
+  [dir="rtl"] .l-sidebar-first {
+    float: right;
+    left: 0;
+    right: -60%;
+  }
+
+  .l-sidebar-second {
+    float: right; /* LTR */
+    width: 20%;
+  }
+  [dir="rtl"] .l-sidebar-second {
+    float: left;
+  }
+}
+
+/**
+ * Responsive tables.
+ */
+@media screen and (max-width:28.125em) { /* 450px */
+  th.priority-low,
+  td.priority-low,
+  th.priority-medium,
+  td.priority-medium {
+    display: none;
+  }
+}
+@media screen and (max-width:45em) { /* 720px */
+  th.priority-low,
+  td.priority-low {
+    display: none;
+  }
+}

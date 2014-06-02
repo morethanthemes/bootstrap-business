@@ -1,0 +1,4 @@
+mobile: '(min-width: 0px)'
+tablet: 'all and (min-width: 768px) and (max-width: 991px)'
+desktop: 'all and (min-width: 992px) and (max-width: 1199px)'
+wide: 'all and (min-width: 1200px)'

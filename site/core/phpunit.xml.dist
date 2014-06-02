@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<phpunit bootstrap="tests/bootstrap.php" colors="true">
+  <php>
+    <!-- Set error reporting to E_ALL. -->
+    <ini name="error_reporting" value="32767"/>
+    <!-- Do not limit the amount of memory tests take to run. -->
+    <ini name="memory_limit" value="-1"/>
+  </php>
+  <testsuites>
+    <testsuite name="Drupal Unit Test Suite">
+      <directory>./tests</directory>
+      <directory>./modules/*/tests</directory>
+      <directory>../modules</directory>
+      <directory>../sites/*/modules</directory>
+      <!-- Exclude Composer's vendor directory so we don't run tests there. -->
+      <exclude>./vendor</exclude>
+      <!-- Exclude Drush tests. -->
+      <exclude>./drush/tests</exclude>
+      <!-- Exclude special-case files from config's test modules. -->
+      <!-- @todo Remove /lib/Drupal/config_test after the transition to PSR-4. -->
+      <exclude>./modules/config/tests/config_test/lib/Drupal/config_test</exclude>
+      <exclude>./modules/config/tests/config_test/src</exclude>
+    </testsuite>
+  </testsuites>
+  <!-- Filter for coverage reports. -->
+  <filter>
+    <blacklist>
+      <directory>./vendor</directory>
+    </blacklist>
+  </filter>
+</phpunit>

@@ -1,0 +1,317 @@
+# Schema for configuration files of the Field module.
+
+field.settings:
+  type: mapping
+  label: 'Field settings'
+  mapping:
+    purge_batch_size:
+      type: integer
+      label: 'Maximum number of field data records to purge'
+
+field.field.*.*:
+  type: mapping
+  label: 'Field'
+  mapping:
+    id:
+      type: string
+      label: 'Machine name'
+    uuid:
+      type: string
+      label: 'UUID'
+    status:
+      type: boolean
+      label: 'Status'
+    langcode:
+      type: string
+      label: 'Default language'
+    name:
+      type: string
+      label: 'Name'
+    entity_type:
+      type: string
+      label: 'Entity type'
+    type:
+      type: string
+      label: 'Type'
+    settings:
+      type: field.[%parent.type].settings
+    module:
+      type: string
+      label: 'Module'
+    locked:
+      type: boolean
+      label: 'Locked'
+    cardinality:
+      type: integer
+      label: 'Maximum number of values users can enter'
+    translatable:
+      type: boolean
+      label: 'Translatable'
+    indexes:
+      type: sequence
+      label: 'Indexes'
+      sequence:
+        - type: sequence
+          label: 'Indexes'
+          sequence:
+            - type: string
+              label: 'Column'
+    dependencies:
+      type: config_dependencies
+      label: 'Dependencies'
+
+field.instance.*.*.*:
+  type: mapping
+  label: 'Field instance'
+  mapping:
+    id:
+      type: string
+      label: 'ID'
+    uuid:
+      type: string
+      label: 'UUID'
+    status:
+      type: boolean
+      label: 'Status'
+    langcode:
+      type: string
+      label: 'Default language'
+    field_uuid:
+      type: string
+      label: 'Field UUID'
+    field_name:
+      type: string
+      label: 'Field name'
+    entity_type:
+      type: string
+      label: 'Entity type'
+    bundle:
+      type: string
+      label: 'Bundle'
+    label:
+      type: label
+      label: 'Label'
+    description:
+      type: text
+      label: 'Help text'
+    required:
+      type: boolean
+      label: 'Required field'
+    default_value:
+      type: field.[%parent.field_type].value
+    default_value_function:
+      type: string
+      label: 'Default value function'
+    settings:
+      type: field.[%parent.field_type].instance_settings
+    field_type:
+      type: string
+      label: 'Field type'
+    dependencies:
+      type: config_dependencies
+      label: 'Dependencies'
+
+entity_form_display.field.hidden:
+  type: entity_field_form_display_base
+  label: '- Hidden - format settings'
+  mapping:
+    settings:
+      type: sequence
+      label: 'Settings'
+      sequence:
+        - type: string
+
+# Schema for the configuration files of the Email field type.
+
+field.email.settings:
+  type: sequence
+  label: 'E-mail settings'
+  sequence:
+    - type: string
+
+field.email.instance_settings:
+  type: sequence
+  label: 'E-mail settings'
+  sequence:
+    - type: string
+      label: 'Setting'
+
+field.email.value:
+  type: sequence
+  label: 'Default value'
+  sequence:
+    - type: mapping
+      label: 'Default'
+      mapping:
+        value:
+          type: email
+          label: 'Value'
+
+# Schema for configuration files of a numeric field types.
+
+field.integer.settings:
+  type: sequence
+  label: 'Integer settings'
+  sequence:
+    - type: string
+      label: 'setting'
+
+field.integer.instance_settings:
+  type: mapping
+  label: 'Integer'
+  mapping:
+    min:
+      type: integer
+      label: 'Minimum'
+    max:
+      type: integer
+      label: 'Maximum'
+    prefix:
+      type: string
+      label: 'Prefix'
+    suffix:
+      type: string
+      label: 'Suffix'
+
+field.integer.value:
+  type: sequence
+  label: 'Default value'
+  sequence:
+    - type: mapping
+      label: 'Default value'
+      mapping:
+        value:
+          type: integer
+          label: 'Value'
+
+field.decimal.settings:
+  type: mapping
+  label: 'Decimal settings'
+  mapping:
+    precision:
+      type: integer
+      label: 'Precision'
+    scale:
+      type: integer
+      label: 'Scale'
+
+field.decimal.instance_settings:
+  type: mapping
+  label: 'Decimal'
+  mapping:
+    min:
+      type: float
+      label: 'Minimum'
+    max:
+      type: float
+      label: 'Maximum'
+    prefix:
+      type: string
+      label: 'Prefix'
+    suffix:
+      type: string
+      label: 'Suffix'
+
+field.decimal.value:
+   type: sequence
+   label: 'Default value'
+   sequence:
+     - type: mapping
+       label: 'Default value'
+       mapping:
+         value:
+           type: float
+           label: 'Value'
+
+field.float.settings:
+  type: sequence
+  label: 'Float settings'
+  sequence:
+    - type: string
+      label: 'setting'
+
+field.float.instance_settings:
+  type: mapping
+  label: 'Float'
+  mapping:
+    min:
+      type: float
+      label: 'Minimum'
+    max:
+      type: float
+      label: 'Maximum'
+    prefix:
+      type: string
+      label: 'Prefix'
+    suffix:
+      type: string
+      label: 'Suffix'
+
+field.float.value:
+  type: sequence
+  label: 'Default value'
+  sequence:
+    - type: mapping
+      label: 'Default value'
+      mapping:
+        value:
+          type: float
+          label: 'Value'
+
+entity_view_display.field.number_decimal:
+  type: entity_field_view_display_base
+  label: 'Number decimal display format settings'
+  mapping:
+    settings:
+      type: mapping
+      label: 'Settings'
+      mapping:
+        thousand_separator:
+          type: string
+          label: 'Thousand marker'
+        decimal_separator:
+          type: string
+          label: 'Decimal marker'
+        scale:
+          type: integer
+          label: 'Scale'
+        prefix_suffix:
+          type: boolean
+          label: 'Display prefix and suffix.'
+
+entity_view_display.field.number_integer:
+  type: entity_field_view_display_base
+  label: 'Number interger display format settings'
+  mapping:
+    settings:
+      type: mapping
+      label: 'Settings'
+      mapping:
+        thousand_separator:
+          type: string
+          label: 'Thousand marker'
+        prefix_suffix:
+          type: boolean
+          label: 'Display prefix and suffix.'
+
+entity_view_display.field.number_unformatted:
+  type: entity_field_view_display_base
+  label: 'Number unformatted display format settings'
+  mapping:
+    settings:
+      type: sequence
+      label: 'Settings'
+      sequence:
+        - type: string
+
+entity_form_display.field.number:
+  type: entity_field_form_display_base
+  label: 'Number default display format settings'
+  mapping:
+    settings:
+      type: mapping
+      label: 'Settings'
+      mapping:
+        placeholder:
+          type: label
+          label: 'Placeholder'

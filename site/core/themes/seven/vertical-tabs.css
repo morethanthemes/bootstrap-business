@@ -1,0 +1,109 @@
+/**
+ * Override of misc/vertical-tabs.css.
+ */
+.vertical-tabs {
+  position: relative;
+  overflow: hidden;
+  margin: 10px 0;
+  border: 1px solid #bdbdbd;
+  border-radius: 4px;
+  background: #e6e5e1;
+}
+.vertical-tabs-list {
+  float: left; /* LTR */
+  width: 240px;
+  margin: 0 -100% -1px 0; /* LTR */
+  padding: 0;
+  border-bottom: 1px solid #ccc;
+  line-height: 1;
+}
+[dir="rtl"] .vertical-tabs-list {
+  float: right;
+  margin: 0 0 -1px -100%;
+}
+.vertical-tab-button {
+  position: relative;
+  margin: 0;
+  list-style: none;
+  list-style-image: none;
+}
+.vertical-tab-button.selected {
+  z-index: 1;
+  overflow-x: hidden;
+  width: 100%;
+  border-right: 1px solid #fcfcfa; /* LTR */
+  box-shadow: 0 5px 5px -5px hsla(0, 0%, 0%, 0.3);
+}
+[dir="rtl"] .vertical-tab-button.selected {
+  border-left: 1px solid #fcfcfa;
+  border-right: none;
+}
+.vertical-tab-button:focus,
+.vertical-tab-button:active {
+  z-index: 2;
+}
+.vertical-tab-button a {
+  display: block;
+  padding: 10px 15px 15px;
+  border-bottom: 1px solid #b3b2ad;
+  background-color: #f2f2f0;
+  text-shadow: 0 1px hsla(0, 0%, 100%, 0.6);
+  text-decoration: none;
+}
+.vertical-tab-button:last-child a {
+  border-bottom: 0;
+}
+.vertical-tab-button.selected a,
+.vertical-tab-button a:hover,
+.vertical-tab-button a:focus {
+  background: #fcfcfa;
+  text-shadow: none;
+  text-decoration: none;
+}
+.vertical-tab-button.selected a {
+  border-bottom-color: #b3b2ad;
+  color: #004f80;
+}
+.vertical-tab-button.selected a:hover,
+.vertical-tab-button.selected a:focus {
+  color: #007ecc;
+}
+[data-vertical-tabs-panes] {
+  background-color: #fcfcfa;
+}
+.vertical-tabs-panes {
+  margin: 0 0 0 240px; /* LTR */
+  padding: 10px 15px 10px 15px;
+  border-left: 1px solid #a6a5a1; /* LTR */
+}
+[dir="rtl"] .vertical-tabs-panes {
+  margin: 0 240px 0 0;
+  border-left: none;
+  border-right: 1px solid #a6a5a1;
+}
+.vertical-tabs-panes:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+.vertical-tabs-pane {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: #595959;
+}
+.vertical-tab-button strong {
+  font-size: 0.923em;
+}
+.vertical-tab-button .summary {
+  display: block;
+  padding-top: 0.4em;
+  color: #666;
+  font-size: 0.846em;
+}
+.vertical-tab-button.selected a:focus strong {
+  text-decoration: underline;
+}
+.vertical-tabs-pane > summary {
+  display: none;
+}

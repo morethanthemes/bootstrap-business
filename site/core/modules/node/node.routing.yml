@@ -1,0 +1,140 @@
+node.content_overview:
+  path: '/admin/content'
+  defaults:
+    _title: 'Content'
+    _entity_list: 'node'
+  requirements:
+    _permission: 'access content overview'
+
+node.multiple_delete_confirm:
+  path: '/admin/content/node/delete'
+  defaults:
+    _form: '\Drupal\node\Form\DeleteMultiple'
+  requirements:
+    _permission: 'administer nodes'
+
+node.page_edit:
+  path: '/node/{node}/edit'
+  defaults:
+    _entity_form: 'node.edit'
+  requirements:
+    _entity_access: 'node.update'
+  options:
+    _node_operation_route: TRUE
+
+node.add_page:
+  path: '/node/add'
+  defaults:
+    _title: 'Add content'
+    _content: '\Drupal\node\Controller\NodeController::addPage'
+  options:
+    _access_mode: 'ANY'
+    _node_operation_route: TRUE
+  requirements:
+    _permission: 'administer content types'
+    _node_add_access: 'node'
+
+node.add:
+  path: '/node/add/{node_type}'
+  defaults:
+    _content: '\Drupal\node\Controller\NodeController::add'
+    _title_callback: '\Drupal\node\Controller\NodeController::addPageTitle'
+  requirements:
+    _node_add_access: 'node:{node_type}'
+  options:
+    _node_operation_route: TRUE
+
+node.view:
+  path: '/node/{node}'
+  defaults:
+    _content: '\Drupal\node\Controller\NodeViewController::view'
+    _title_callback: '\Drupal\node\Controller\NodeViewController::title'
+  requirements:
+    _entity_access: 'node.view'
+
+node.delete_confirm:
+  path: '/node/{node}/delete'
+  defaults:
+    _entity_form: 'node.delete'
+    _title: 'Delete'
+  requirements:
+    _entity_access: 'node.delete'
+  options:
+    _node_operation_route: TRUE
+
+node.revision_overview:
+  path: '/node/{node}/revisions'
+  defaults:
+    _title: 'Revisions'
+    _content: '\Drupal\node\Controller\NodeController::revisionOverview'
+  requirements:
+    _access_node_revision: 'view'
+  options:
+    _node_operation_route: TRUE
+
+node.revision_show:
+  path: '/node/{node}/revisions/{node_revision}/view'
+  defaults:
+    _content: '\Drupal\node\Controller\NodeController::revisionShow'
+    _title_callback: '\Drupal\node\Controller\NodeController::revisionPageTitle'
+  requirements:
+    _access_node_revision: 'view'
+
+node.revision_revert_confirm:
+  path: '/node/{node}/revisions/{node_revision}/revert'
+  defaults:
+    _form: '\Drupal\node\Form\NodeRevisionRevertForm'
+    _title: 'Revert to earlier revision'
+  requirements:
+    _access_node_revision: 'update'
+  options:
+    _node_operation_route: TRUE
+
+node.revision_delete_confirm:
+  path: '/node/{node}/revisions/{node_revision}/delete'
+  defaults:
+    _form: '\Drupal\node\Form\NodeRevisionDeleteForm'
+    _title: 'Delete earlier revision'
+  requirements:
+    _access_node_revision: 'delete'
+  options:
+    _node_operation_route: TRUE
+
+node.overview_types:
+  path: '/admin/structure/types'
+  defaults:
+    _content: '\Drupal\Core\Entity\Controller\EntityListController::listing'
+    entity_type: 'node_type'
+    _title: 'Content types'
+  requirements:
+    _permission: 'administer content types'
+
+node.type_add:
+  path: '/admin/structure/types/add'
+  defaults:
+    _entity_form: 'node_type.add'
+    _title: 'Add content type'
+  requirements:
+    _permission: 'administer content types'
+
+node.type_edit:
+  path: '/admin/structure/types/manage/{node_type}'
+  defaults:
+    _entity_form: 'node_type.edit'
+  requirements:
+    _permission: 'administer content types'
+
+node.type_delete_confirm:
+  path: '/admin/structure/types/manage/{node_type}/delete'
+  defaults:
+    _entity_form: 'node_type.delete'
+    _title: 'Delete'
+  requirements:
+    _entity_access: 'node_type.delete'
+
+node.configure_rebuild_confirm:
+  path: '/admin/reports/status/rebuild'
+  defaults:
+    _form: 'Drupal\node\Form\RebuildPermissionsForm'
+  requirements:
+    _permission: 'access administration pages'

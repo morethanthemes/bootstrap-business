@@ -1,0 +1,176 @@
+<?php
+
+/**
+ * @file
+ * Used to aggregate syndicated content (RSS, RDF, and Atom).
+ */
+
+use Drupal\aggregator\Entity\Feed;
+use Drupal\aggregator\FeedInterface;
+use Drupal\Component\Utility\Xss;
+use Symfony\Component\HttpFoundation\Request;
+
+/**
+ * Denotes that a feed's items should never expire.
+ */
+const AGGREGATOR_CLEAR_NEVER = 0;
+
+/**
+ * Implements hook_help().
+ */
+function aggregator_help($route_name, Request $request) {
+  switch ($route_name) {
+    case 'help.page.aggregator':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('The Aggregator module is an on-site syndicator and news reader that gathers and displays fresh content from RSS-, RDF-, and Atom-based feeds made available across the web. Thousands of sites (particularly news sites and blogs) publish their latest headlines in feeds, using a number of standardized XML-based formats. For more information, see the <a href="!aggregator-module">online documentation for the Aggregator module</a>.', array('!aggregator-module' => 'https://drupal.org/documentation/modules/aggregator')) . '</p>';
+      $output .= '<h3>' . t('Uses') . '</h3>';
+      $output .= '<dl>';
+      $output .= '<dt>' . t('Viewing feeds') . '</dt>';
+      $output .= '<dd>' . t('Users view feed content in the <a href="!aggregator">main aggregator display</a>, or by <a href="!aggregator-sources">their source</a> (usually via an RSS feed reader). The most recent content in a feed can be displayed as a block through the <a href="!admin-block">Blocks administration page</a>.', array('!aggregator' => \Drupal::url('aggregator.page_last'), '!aggregator-sources' => \Drupal::url('aggregator.sources'), '!admin-block' => \Drupal::url('block.admin_display'))) . '</dd>';
+      $output .= '<dt>' . t('Adding, editing, and deleting feeds') . '</dt>';
+      $output .= '<dd>' . t('Administrators can add, edit, and delete feeds, and choose how often to check each feed for newly updated items on the <a href="!feededit">Feed aggregator administration page</a>.', array('!feededit' => \Drupal::url('aggregator.admin_overview'))) . '</dd>';
+      $output .= '<dt>' . t('<abbr title="Outline Processor Markup Language">OPML</abbr> integration') . '</dt>';
+      $output .= '<dd>' . t('A <a href="!aggregator-opml">machine-readable OPML file</a> of all feeds is available. OPML is an XML-based file format used to share outline-structured information such as a list of RSS feeds. Feeds can also be <a href="!import-opml">imported via an OPML file</a>.', array('!aggregator-opml' => \Drupal::url('aggregator.opml_page'), '!import-opml' => \Drupal::url('aggregator.opml_add'))) . '</dd>';
+      $output .= '<dt>' . t('Configuring cron') . '</dt>';
+      $output .= '<dd>' . t('A correctly configured <a href="!cron">cron maintenance task</a> is required to update feeds automatically.', array('!cron' => \Drupal::url('system.cron_settings'))) . '</dd>';
+      $output .= '</dl>';
+      return $output;
+
+    case 'aggregator.admin_overview':
+      // Don't use placeholders for possibility to change URLs for translators.
+      $output = '<p>' . t('Thousands of sites (particularly news sites and blogs) publish their latest headlines and posts in feeds, using a number of standardized XML-based formats. Formats supported by the aggregator include <a href="http://cyber.law.harvard.edu/rss/">RSS</a>, <a href="http://www.w3.org/RDF/">RDF</a>, and <a href="http://www.atomenabled.org">Atom</a>.') . '</p>';
+      $output .= '<p>' . t('Current feeds are listed below, and <a href="!addfeed">new feeds may be added</a>. At the <a href="!block">blocks administration page</a> you can enable for each feed the block <em>Aggregator feed</em> that contains the <em>latest items</em> .', array('!addfeed' => \Drupal::url('aggregator.feed_add'), '!block' => \Drupal::url('block.admin_display'))) . '</p>';
+      return $output;
+
+    case 'aggregator.feed_add':
+      return '<p>' . t('Add a feed in RSS, RDF or Atom format. A feed may only have one entry.') . '</p>';
+
+    case 'aggregator.opml_add':
+      return '<p>' . t('<abbr title="Outline Processor Markup Language">OPML</abbr> is an XML format used to exchange multiple feeds between aggregators. A single OPML document may contain a collection of many feeds. Drupal can parse such a file and import all feeds at once, saving you the effort of adding them manually. You may either upload a local file from your computer or enter a URL where Drupal can download it.') . '</p>';
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function aggregator_theme() {
+  return array(
+    'aggregator_feed_source' => array(
+      'variables' => array('aggregator_feed' => NULL, 'view_mode' => NULL),
+      'file' => 'aggregator.theme.inc',
+      'template' => 'aggregator-feed-source',
+    ),
+    'aggregator_block_item' => array(
+      'variables' => array('item' => NULL, 'feed' => 0),
+      'file' => 'aggregator.theme.inc',
+      'template' => 'aggregator-block-item',
+    ),
+    'aggregator_summary_items' => array(
+      'variables' => array('summary_items' => NULL, 'source' => NULL),
+      'file' => 'aggregator.theme.inc',
+      'template' => 'aggregator-summary-items',
+    ),
+    'aggregator_summary_item' => array(
+      'variables' => array('aggregator_item' => NULL, 'view_mode' => NULL),
+      'file' => 'aggregator.theme.inc',
+      'template' => 'aggregator-summary-item',
+    ),
+    'aggregator_item' => array(
+      'variables' => array('aggregator_item' => NULL, 'view_mode' => NULL),
+      'file' => 'aggregator.theme.inc',
+      'template' => 'aggregator-item',
+    ),
+    'aggregator_page_opml' => array(
+      'variables' => array('feeds' => NULL),
+      'file' => 'aggregator.theme.inc',
+    ),
+    'aggregator_page_rss' => array(
+      'variables' => array('feeds' => NULL),
+      'file' => 'aggregator.theme.inc',
+    ),
+  );
+}
+
+/**
+ * Implements hook_permission().
+ */
+function aggregator_permission() {
+  return array(
+    'administer news feeds' => array(
+      'title' => t('Administer news feeds'),
+    ),
+    'access news feeds' => array(
+      'title' => t('View news feeds'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_cron().
+ *
+ * Queues news feeds for updates once their refresh interval has elapsed.
+ */
+function aggregator_cron() {
+  $queue = \Drupal::queue('aggregator_feeds');
+
+  $ids = \Drupal::entityManager()->getStorage('aggregator_feed')->getFeedIdsToRefresh();
+  foreach (Feed::loadMultiple($ids) as $feed) {
+    if ($queue->createItem($feed)) {
+      // Add timestamp to avoid queueing item more than once.
+      $feed->setQueuedTime(REQUEST_TIME);
+      $feed->save();
+    }
+  }
+
+  // Delete queued timestamp after 6 hours assuming the update has failed.
+  $ids = \Drupal::entityQuery('aggregator_feed')
+    ->condition('queued', REQUEST_TIME - (3600 * 6), '<')
+    ->execute();
+
+  if ($ids) {
+    $feeds = Feed::loadMultiple($ids);
+    foreach ($feeds as $feed) {
+      $feed->setQueuedTime(0);
+      $feed->save();
+    }
+  }
+}
+
+/**
+ * Implements hook_queue_info().
+ */
+function aggregator_queue_info() {
+  $queues['aggregator_feeds'] = array(
+    'title' => t('Aggregator refresh'),
+    'worker callback' => function (FeedInterface $feed) {
+      $feed->refreshItems();
+    },
+    'cron' => array(
+      'time' => 60,
+    ),
+  );
+  return $queues;
+}
+
+/**
+ * Renders the HTML content safely, as allowed.
+ *
+ * @param $value
+ *   The content to be filtered.
+ *
+ * @return
+ *   The filtered content.
+ */
+function aggregator_filter_xss($value) {
+  return Xss::filter($value, preg_split('/\s+|<|>/', \Drupal::config('aggregator.settings')->get('items.allowed_html'), -1, PREG_SPLIT_NO_EMPTY));
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for block templates.
+ */
+function aggregator_preprocess_block(&$variables) {
+  if ($variables['configuration']['provider'] == 'aggregator') {
+    $variables['attributes']['role'] = 'complementary';
+  }
+}

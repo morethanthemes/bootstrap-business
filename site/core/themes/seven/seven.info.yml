@@ -1,0 +1,29 @@
+name: Seven
+type: theme
+description: 'A clean and friendly administration theme.'
+package: Core
+version: VERSION
+core: 8.x
+stylesheets:
+  screen:
+    - seven.base.css
+    - style.css
+    - css/components/buttons.css
+    - css/components/buttons.theme.css
+    - css/components/tour.theme.css
+stylesheets-override:
+  - vertical-tabs.css
+  - jquery.ui.theme.css
+quickedit_stylesheets:
+  - quickedit.css
+regions:
+  content: Content
+  help: Help
+  page_top: 'Page top'
+  page_bottom: 'Page bottom'
+  sidebar_first: 'First sidebar'
+regions_hidden:
+  - sidebar_first
+
+settings:
+  shortcut_module_link: true

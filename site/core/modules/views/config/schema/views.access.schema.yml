@@ -1,0 +1,7 @@
+# Schema for the views access plugins.
+
+views.access.none:
+  type: sequence
+  label: 'None'
+  sequence:
+    - type: string

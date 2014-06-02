@@ -4,7 +4,12 @@
 
 # Protect files and directories from prying eyes.
 <FilesMatch "\.(engine|inc|info|install|make|module|profile|test|po|sh|.*sql|theme|tpl(\.php)?|xtmpl)(~|\.sw[op]|\.bak|\.orig|\.save)?$|^(\..*|Entries.*|Repository|Root|Tag|Template)$|^#.*#$|\.php(~|\.sw[op]|\.bak|\.orig\.save)$">
-  Order allow,deny
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+  </IfModule>
 </FilesMatch>
 
 # Don't show directory listings for URLs which map to a directory.
@@ -21,13 +26,10 @@ DirectoryIndex index.php index.html index.htm
 
 # Override PHP settings that cannot be changed at runtime. See
 # sites/default/default.settings.php and drupal_environment_initialize() in
-# includes/bootstrap.inc for settings that can be changed at runtime.
+# core/includes/bootstrap.inc for settings that can be changed at runtime.
 
 # PHP 5, Apache 1 and 2.
 <IfModule mod_php5.c>
-  php_flag magic_quotes_gpc                 off
-  php_flag magic_quotes_sybase              off
-  php_flag register_globals                 off
   php_flag session.auto_start               off
   php_value mbstring.http_input             pass
   php_value mbstring.http_output            pass
@@ -74,7 +76,7 @@ DirectoryIndex index.php index.html index.htm
   # above.
   #
   # NOTE: This only works when mod_rewrite is loaded. Without mod_rewrite, it is
-  # not possible to block access to entire directories from .htaccess, because
+  # not possible to block access to entire directories from .htaccess because
   # <DirectoryMatch> is not allowed here.
   #
   # If you do not have mod_rewrite installed, you should remove these
@@ -109,12 +111,31 @@ DirectoryIndex index.php index.html index.htm
   # uncomment the following line:
   # RewriteBase /
 
+  # Redirect common PHP files to their new locations.
+  RewriteCond %{REQUEST_URI} ^(.*)?/(update.php) [OR]
+  RewriteCond %{REQUEST_URI} ^(.*)?/(install.php) [OR]
+  RewriteCond %{REQUEST_URI} ^(.*)?/(rebuild.php)
+  RewriteCond %{REQUEST_URI} !core
+  RewriteRule ^ %1/core/%2 [L,QSA,R=301]
+
   # Pass all requests not referring directly to files in the filesystem to
   # index.php. Clean URLs are handled in drupal_environment_initialize().
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteCond %{REQUEST_URI} !=/favicon.ico
   RewriteRule ^ index.php [L]
+
+  # If this is a production site you may want to forbid access to PHP files in
+  # subfolders for security reasons. If you need to directly execute PHP files
+  # in a module or want to run another PHP application somewhere in your
+  # docroot tree you might want to modify this. Uncomment the following two
+  # lines to only allow PHP files in the webroot and in "/core":
+  # RewriteCond %{REQUEST_URI} !^/core/[^/]*\.php$
+  # RewriteRule "^.+/.*\.php$" - [F]
+  # Example for allowing just one PHP file of statistics module:
+  # RewriteCond %{REQUEST_URI} !^/core/[^/]*\.php$
+  # RewriteCond %{REQUEST_URI} !^/core/modules/statistics/statistics.php$
+  # RewriteRule "^.+/.*\.php$" - [F]
 
   # Rules to correctly serve gzip compressed CSS and JS files.
   # Requires both mod_rewrite and mod_headers to be enabled.

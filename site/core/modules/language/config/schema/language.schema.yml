@@ -1,0 +1,137 @@
+# Schema for the configuration files of the Language module.
+
+language_type_negotiation:
+  type: mapping
+  label: 'Language negotiation per type setting'
+  mapping:
+    enabled:
+      type: sequence
+      label: 'Enabled negotiators'
+      sequence:
+        - type: integer
+          label: Weight
+    method_weights:
+      type: sequence
+      label: 'Negotiator weights'
+      sequence:
+        - type: integer
+          label: Weight
+
+language.types:
+  type: mapping
+  label: 'Language types'
+  mapping:
+    all:
+      type: sequence
+      label: 'All language types'
+      sequence:
+        - type: string
+          label: 'Language type'
+    configurable:
+      type: sequence
+      label: 'Configurable language types'
+      sequence:
+        - type: string
+          label: 'Language type'
+    negotiation:
+      type: sequence
+      label: 'Language negotiation per type settings'
+      sequence:
+        - type: language_type_negotiation
+          label: 'Language negotiation per type setting'
+
+language.negotiation:
+  type: mapping
+  label: 'Language detection methods'
+  mapping:
+    session:
+      type: mapping
+      label: 'Session'
+      mapping:
+        parameter:
+          type: string
+          label: 'Request/session parameter'
+    url:
+      type: mapping
+      label: 'Language from the URL (Path prefix or domain).'
+      mapping:
+        source:
+          type: string
+          label: 'Part of the URL that determines language'
+        prefixes:
+          type: sequence
+          label: 'Path prefix configuration'
+          sequence:
+            - type: string
+              label: 'Path prefix'
+        domains:
+          type: sequence
+          label: 'Domain configuration'
+          sequence:
+            - type: string
+              label: 'Domain'
+
+language.mappings:
+  type: sequence
+  label: 'Language mapping'
+  sequence:
+    - type: string
+      label: 'Language'
+
+language.entity.*:
+  type: mapping
+  label: 'Language'
+  mapping:
+    id:
+      type: string
+      label: 'ID'
+    uuid:
+      type: string
+      label: 'UUID'
+    label:
+      type: label
+      label: 'Language name'
+    direction:
+      type: integer
+      label: 'Direction'
+    weight:
+      type: integer
+      label: 'Weight'
+    locked:
+      type: boolean
+      label: 'Locked'
+    status:
+      type: boolean
+      label: 'Status'
+    langcode:
+      type: string
+      label: 'Default language'
+
+language.settings:
+  type: mapping
+  label: 'Language settings'
+  mapping:
+    entities:
+      type: sequence
+      label: 'Entity type'
+      sequence:
+        - type: sequence
+          label: 'Bundle'
+          sequence:
+            - type: mapping
+              label: 'Custom language settings'
+              mapping:
+                language:
+                  type: mapping
+                  label: 'Custom language settings'
+                  mapping:
+                    default_configuration:
+                      type: mapping
+                      label: 'Default language'
+                      mapping:
+                        langcode:
+                          type: string
+                          label: 'Default language'
+                        language_show:
+                          type: boolean
+                          label: 'Show language selector on create and edit pages'

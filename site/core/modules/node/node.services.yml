@@ -1,0 +1,19 @@
+services:
+  node.grant_storage:
+    class: Drupal\node\NodeGrantDatabaseStorage
+    arguments: ['@database', '@module_handler']
+  access_check.node.revision:
+    class: Drupal\node\Access\NodeRevisionAccessCheck
+    arguments: ['@entity.manager', '@database']
+    tags:
+      - { name: access_check, applies_to: _access_node_revision }
+  access_check.node.add:
+    class: Drupal\node\Access\NodeAddAccessCheck
+    arguments: ['@entity.manager']
+    tags:
+      - { name: access_check, applies_to: _node_add_access }
+  node.admin_path.route_subscriber:
+    class: Drupal\node\EventSubscriber\NodeAdminRouteSubscriber
+    arguments: ['@config.factory']
+    tags:
+      - { name: event_subscriber }

@@ -1,0 +1,117 @@
+<?php
+
+/**
+ * @file
+ * Main functions of the module.
+ */
+use Drupal\Core\Cache\CacheBackendInterface;
+use Symfony\Cmf\Component\Routing\RouteObjectInterface;
+use Symfony\Component\HttpFoundation\Request;
+
+/**
+ * Implements hook_help().
+ */
+function tour_help($route_name, Request $request) {
+  switch ($route_name) {
+    case 'help.page.tour':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t("The Tour module provides users with guided tours of the site interface. Each tour consists of several tips that highlight elements of the user interface, guide the user through a workflow, or explain key concepts of the website. For more information, see <a href='!tour'>the online documentation for the Tour module</a>.", array('!tour' => 'https://drupal.org/documentation/modules/tour')) . '</p>';
+      $output .= '<h3>' . t('Uses') . '</h3>';
+      $output .= '<dl>';
+      $output .= '<dt>' . t('Viewing tours') . '</dt>';
+      $output .= '<dd>' . t("If a tour is available on a page, a <em>Tour</em> button will be visible in the toolbar. If you click this button the first tip of the tour will appear. The tour continues after clicking the <em>Next</em> button in the tip. To see a tour users must have the permission <em>Access tour</em> and JavaScript must be enabled in the browser") . '</dd>';
+      $output .= '<dt>' . t('Creating tours') . '</dt>';
+      $output .= '<dd>' . t("Tours can be written as YAML-documents with a text editor, or using the contributed <a href='!tour_ui'>Tour UI</a> module. For more information, see <a href='!doc_url'>the online documentation for writing tours</a>.", array('!doc_url' => 'https://drupal.org/developing/api/tour', '!tour_ui' => 'https://drupal.org/project/tour_ui')) . '</dd>';
+      $output .= '</dl>';
+      return $output;
+  }
+}
+
+/**
+ * Implements hook_permission().
+ */
+function tour_permission() {
+  return array(
+    'access tour' => array(
+      'title' => t('Access tour'),
+      'description' => t('View tour tips.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_toolbar().
+ */
+function tour_toolbar() {
+  if (!\Drupal::currentUser()->hasPermission('access tour')) {
+    return;
+  }
+
+  $tab['tour'] = array(
+    '#type' => 'toolbar_item',
+    'tab' => array(
+      '#type' => 'html_tag',
+      '#tag' => 'button',
+      '#value' => t('Tour'),
+      '#attributes' => array(
+        'class' => array('toolbar-icon', 'toolbar-icon-help'),
+        'role' => 'button',
+        'aria-pressed' => 'false',
+      ),
+    ),
+    '#wrapper_attributes' => array(
+      'class' => array('tour-toolbar-tab', 'hidden'),
+      'id' => 'toolbar-tab-tour',
+    ),
+    '#attached' => array(
+      'library' => array(
+        'tour/tour',
+      ),
+    ),
+  );
+
+  return $tab;
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for page templates.
+ */
+function tour_preprocess_page(&$variables) {
+  if (!\Drupal::currentUser()->hasPermission('access tour')) {
+    return;
+  }
+
+  // Load all of the items and match on route name.
+  $request = \Drupal::request();
+  $route_name = $request->attributes->get(RouteObjectInterface::ROUTE_NAME);
+
+  $results = \Drupal::entityQuery('tour')
+    ->condition('routes.*.route_name', $route_name)
+    ->execute();
+  if (!empty($results) && $tours = entity_load_multiple('tour', array_keys($results))) {
+    foreach ($tours as $id => $tour) {
+      // Match on params.
+      if (!$tour->hasMatchingRoute($route_name, $request->attributes->get('_raw_variables')->all())) {
+        unset($tours[$id]);
+      }
+    }
+    if (!empty($tours)) {
+      $variables['page']['help']['tour'] = entity_view_multiple($tours, 'full');
+    }
+  }
+}
+
+/**
+ * Implements hook_tour_insert().
+ */
+function tour_tour_insert($entity) {
+  \Drupal::service('plugin.manager.tour.tip')->clearCachedDefinitions();
+}
+
+/**
+ * Implements hook_tour_update().
+ */
+function tour_tour_update($entity) {
+  \Drupal::service('plugin.manager.tour.tip')->clearCachedDefinitions();
+}

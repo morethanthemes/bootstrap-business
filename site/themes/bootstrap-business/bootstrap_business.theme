@@ -1,0 +1,99 @@
+<?php 
+
+use Drupal\Component\Utility\Xss;
+use Drupal\Core\Template\RenderWrapper;
+use Drupal\Core\Template\Attribute;
+use Drupal\Core\Theme\ThemeSettings;
+
+/**
+ * Implements hook_preprocess_html().
+ */
+function bootstrap_business_preprocess_html(&$variables) {
+
+    // Add conditional stylesheet for IE
+    $ie8 = array(
+    '#attached' => array(
+      'css' => array(
+        drupal_get_path('theme', 'bootstrap_business') . '/css/ie8.css' => array(
+          'type' => 'file',
+          'group' => CSS_AGGREGATE_THEME,
+          'browsers' => array(
+            'IE' => 'IE 8',
+            '!IE' => false,
+            'preprocess' => FALSE),
+           'weight' => CSS_COMPONENT,
+        ),
+      ),
+    ),
+    );
+    drupal_render($ie8);
+
+    // Add conditional stylesheet for IE
+    $local = array(
+    '#attached' => array(
+      'css' => array(
+        drupal_get_path('theme', 'bootstrap_business') . '/css/local.css' => array(
+          'type' => 'file',
+          'group' => CSS_AGGREGATE_THEME,
+          'weight' => CSS_COMPONENT,
+        ),
+      ),
+    ),
+    );
+    drupal_render($local);
+
+  }
+
+/**
+ * Preprocess variables for page template.
+ */
+function bootstrap_business_preprocess_page(&$vars) {
+
+	/**
+	 * insert variables into page template.
+	 */
+	if($vars['page']['sidebar_first'] && $vars['page']['sidebar_second']) { 
+		$vars['sidebar_grid_class'] = 'col-md-3';
+		$vars['main_grid_class'] = 'col-md-6';
+	} elseif ($vars['page']['sidebar_first'] || $vars['page']['sidebar_second']) {
+		$vars['sidebar_grid_class'] = 'col-md-4';
+		$vars['main_grid_class'] = 'col-md-8';		
+	} else {
+		$vars['main_grid_class'] = 'col-md-12';			
+	}
+
+	if($vars['page']['header_top_left'] && $vars['page']['header_top_right']) { 
+		$vars['header_top_left_grid_class'] = 'col-md-8';
+		$vars['header_top_right_grid_class'] = 'col-md-4';
+	} elseif ($vars['page']['header_top_right'] || $vars['page']['header_top_left']) {
+		$vars['header_top_left_grid_class'] = 'col-md-12';
+		$vars['header_top_right_grid_class'] = 'col-md-12';		
+	}
+
+}
+
+/**
+ * Implements hook_page_alter().
+ */
+function bootstrap_business_page_alter(&$page) {
+
+	/**
+	* Add Javascript for enable/disable Bootstrap 3 Javascript
+	*/
+	if (theme_get_setting('bootstrap_js_include', 'bootstrap_business')) {
+	$page['#attached']['library'][] = 'bootstrap_business/bootstrap_javascript';
+	}
+
+    /**
+	* Add Javascript for toggle action 
+	*/
+    $page['#attached']['library'][] = 'bootstrap_business/toggle';
+    
+	/**
+	* Add Javascript for enable/disable scrollTop action
+	*/
+	if (theme_get_setting('scrolltop_display', 'bootstrap_business')) {
+	$page['#attached']['library'][] = 'bootstrap_business/scroll';
+	}
+        
+}

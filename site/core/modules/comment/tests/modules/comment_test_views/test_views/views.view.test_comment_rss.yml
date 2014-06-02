@@ -1,0 +1,67 @@
+base_field: cid
+base_table: comment
+core: 8.x
+description: ''
+status: true
+display:
+  feed_1:
+    display_plugin: feed
+    id: feed_1
+    display_title: Feed
+    position: null
+    display_options:
+      path: test-comment-rss
+  default:
+    display_plugin: default
+    id: default
+    display_title: Master
+    position: null
+    display_options:
+      access:
+        type: perm
+      cache:
+        type: none
+      query:
+        type: views_query
+      exposed_form:
+        type: basic
+      pager:
+        type: full
+      style:
+        type: default
+      row:
+        type: fields
+      relationships:
+        node:
+          field: node
+          id: node
+          required: true
+          table: comment
+          provider: views
+      fields:
+        subject:
+          id: subject
+          table: comment
+          field: subject
+          plugin_id: comment
+          label: ''
+          alter:
+            alter_text: false
+            make_link: false
+            absolute: false
+            trim: false
+            word_boundary: false
+            ellipsis: false
+            strip_tags: false
+            html: false
+          hide_empty: false
+          empty_zero: false
+          link_to_comment: true
+          provider: comment
+      filters: {  }
+      sorts: {  }
+label: test_comment_rss
+module: views
+id: test_comment_rss
+tag: ''
+langcode: und

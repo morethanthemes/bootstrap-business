@@ -1,0 +1,45 @@
+services:
+  serializer:
+    class: Symfony\Component\Serializer\Serializer
+    arguments: [{  }, {  }]
+  serializer.normalizer.config_entity:
+    class: Drupal\serialization\Normalizer\ConfigEntityNormalizer
+    tags:
+      - { name: normalizer }
+    arguments: ['@entity.manager']
+  serializer.normalizer.entity:
+    class: Drupal\serialization\Normalizer\EntityNormalizer
+    tags:
+      - { name: normalizer }
+    arguments: ['@entity.manager']
+  serializer.normalizer.complex_data:
+    class: Drupal\serialization\Normalizer\ComplexDataNormalizer
+    tags:
+      - { name: normalizer }
+  serializer.normalizer.list:
+    class: Drupal\serialization\Normalizer\ListNormalizer
+    tags:
+      - { name: normalizer }
+  serializer.normalizer.typed_data:
+    class: Drupal\serialization\Normalizer\TypedDataNormalizer
+    tags:
+      - { name: normalizer }
+  serializer.encoder.json:
+    class: Drupal\serialization\Encoder\JsonEncoder
+    tags:
+      - { name: encoder, format: json }
+  serializer.encoder.xml:
+    class: Drupal\serialization\Encoder\XmlEncoder
+    tags:
+      - { name: encoder, format: xml }
+  serializer.entity_resolver:
+    class: Drupal\serialization\EntityResolver\ChainEntityResolver
+    arguments: [{  }]
+  serializer.entity_resolver.uuid:
+    class: Drupal\serialization\EntityResolver\UuidResolver
+    tags:
+      - { name: entity_resolver}
+  serialization.entity_resolver.target_id:
+    class: Drupal\serialization\EntityResolver\TargetIdResolver
+    tags:
+      - { name: entity_resolver}

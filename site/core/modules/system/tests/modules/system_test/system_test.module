@@ -1,0 +1,204 @@
+<?php
+
+use Drupal\Core\Extension\Extension;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+
+/**
+ * Sets a header.
+ *
+ * @deprecated \Drupal\system_test\Controller\SystemTestController::setHeader()
+ */
+function system_test_set_header() {
+  $query = \Drupal::request()->query->all();
+  drupal_add_http_header($query['name'], $query['value']);
+  return t('The following header was set: %name: %value', array('%name' => $query['name'], '%value' => $query['value']));
+}
+
+/**
+ * Implements hook_modules_installed().
+ */
+function system_test_modules_installed($modules) {
+  if (\Drupal::state()->get('system_test.verbose_module_hooks')) {
+    foreach ($modules as $module) {
+      drupal_set_message(t('hook_modules_installed fired for @module', array('@module' => $module)));
+    }
+  }
+}
+
+/**
+ * Implements hook_modules_uninstalled().
+ */
+function system_test_modules_uninstalled($modules) {
+  if (\Drupal::state()->get('system_test.verbose_module_hooks')) {
+    foreach ($modules as $module) {
+      drupal_set_message(t('hook_modules_uninstalled fired for @module', array('@module' => $module)));
+    }
+  }
+}
+
+/**
+ * Implements hook_system_info_alter().
+ */
+function system_test_system_info_alter(&$info, Extension $file, $type) {
+  // We need a static otherwise the last test will fail to alter common_test.
+  static $test;
+  if (($dependencies = \Drupal::state()->get('system_test.dependencies')) || $test) {
+    if ($file->getName() == 'module_test') {
+      $info['hidden'] = FALSE;
+      $info['dependencies'][] = array_shift($dependencies);
+      \Drupal::state()->set('system_test.dependencies', $dependencies);
+      $test = TRUE;
+    }
+    if ($file->getName() == 'common_test') {
+      $info['hidden'] = FALSE;
+      $info['version'] = '8.x-2.4-beta3';
+    }
+  }
+
+  // Make the system_dependencies_test visible by default.
+  if ($file->getName() == 'system_dependencies_test') {
+    $info['hidden'] = FALSE;
+  }
+  if (in_array($file->getName(), array(
+    'system_incompatible_module_version_dependencies_test',
+    'system_incompatible_core_version_dependencies_test',
+    'system_incompatible_module_version_test',
+    'system_incompatible_core_version_test',
+  ))) {
+    $info['hidden'] = FALSE;
+  }
+  if ($file->getName() == 'requirements1_test' || $file->getName() == 'requirements2_test') {
+    $info['hidden'] = FALSE;
+  }
+  if ($file->getName() == 'system_test') {
+    $info['hidden'] = \Drupal::state()->get('system_test.module_hidden', TRUE);
+  }
+}
+
+/**
+ * Try to acquire a named lock and report the outcome.
+ *
+ * @deprecated \Drupal\system_test\Controller\SystemTestController::lockAcquire()
+ */
+function system_test_lock_acquire() {
+  if (\Drupal::lock()->acquire('system_test_lock_acquire')) {
+    \Drupal::lock()->release('system_test_lock_acquire');
+    return 'TRUE: Lock successfully acquired in system_test_lock_acquire()';
+  }
+  else {
+    return 'FALSE: Lock not acquired in system_test_lock_acquire()';
+  }
+}
+
+/**
+ * Try to acquire a specific lock, and then exit.
+ *
+ * @deprecated \Drupal\system_test\Controller\SystemTestController::lockExit()
+ */
+function system_test_lock_exit() {
+  if (\Drupal::lock()->acquire('system_test_lock_exit', 900)) {
+    echo 'TRUE: Lock successfully acquired in system_test_lock_exit()';
+    // The shut-down function should release the lock.
+    exit();
+  }
+  else {
+    return 'FALSE: Lock not acquired in system_test_lock_exit()';
+  }
+}
+
+/**
+ * Implements hook_page_build().
+ */
+function system_test_page_build(&$page) {
+  $menu_item['path'] = \Drupal::request()->attributes->get('_system_path');
+  $main_content_display = &drupal_static('system_main_content_added', FALSE);
+
+  if ($menu_item['path'] == 'system-test/main-content-handling') {
+    $page['footer'] = drupal_set_page_content();
+    $page['footer']['main']['#markup'] = '<div id="system-test-content">' . $page['footer']['main']['#markup'] . '</div>';
+  }
+  elseif ($menu_item['path'] == 'system-test/main-content-fallback') {
+    drupal_set_page_content();
+    $main_content_display = FALSE;
+  }
+  elseif ($menu_item['path'] == 'system-test/main-content-duplication') {
+    drupal_set_page_content();
+  }
+  // Used by FrontPageTestCase to get the results of drupal_is_front_page().
+  $frontpage = \Drupal::state()->get('system_test.front_page_output') ?: 0;
+  if ($frontpage && drupal_is_front_page()) {
+    drupal_set_message(t('On front page.'));
+  }
+}
+
+/**
+ * A simple page callback which adds a register shutdown function.
+ *
+ * @deprecated \Drupal\system_test\Controller\SystemTestController::shutdownFunctions()
+ */
+function system_test_page_shutdown_functions($arg1, $arg2) {
+  drupal_register_shutdown_function('_system_test_first_shutdown_function', $arg1, $arg2);
+}
+
+/**
+ * Dummy shutdown function which registers another shutdown function.
+ */
+function _system_test_first_shutdown_function($arg1, $arg2) {
+  // Set something to ensure that this function got called.
+  \Drupal::state()->set('_system_test_first_shutdown_function', array($arg1, $arg2));
+  drupal_register_shutdown_function('_system_test_second_shutdown_function', $arg1, $arg2);
+}
+
+/**
+ * Dummy shutdown function.
+ */
+function _system_test_second_shutdown_function($arg1, $arg2) {
+  // Set something to ensure that this function got called.
+  \Drupal::state()->set('_system_test_second_shutdown_function', array($arg1, $arg2));
+
+  // Throw an exception with an HTML tag. Since this is called in a shutdown
+  // function, it will not bubble up to the default exception handler but will
+  // be caught in _drupal_shutdown_function() and be displayed through
+  // \Drupal\Core\Utility\Error::renderExceptionSafe() if possible.
+  throw new Exception('Drupal is <blink>awesome</blink>.');
+}
+
+/**
+ * Implements hook_filetransfer_info().
+ */
+function system_test_filetransfer_info() {
+  return array(
+    'system_test' => array(
+      'title' => t('System Test FileTransfer'),
+      'class' => 'Drupal\system_test\MockFileTransfer',
+      'weight' => -10,
+    ),
+  );
+}
+
+/**
+ * Page callback to initialize authorize.php during testing.
+ *
+ * @see system_authorized_init().
+ *
+ * @deprecated \Drupal\system_test\Controller\SystemTestController::authorizeInit()
+ */
+function system_test_authorize_init_page($page_title) {
+  $authorize_url = $GLOBALS['base_url'] . '/core/authorize.php';
+  system_authorized_init('system_test_authorize_run', drupal_get_path('module', 'system_test') . '/system_test.module', array(), $page_title);
+  return new RedirectResponse($authorize_url);
+}
+
+/**
+ * Implements hook_module_preinstall().
+ */
+function system_test_module_preinstall($module) {
+  \Drupal::state()->set('system_test_preinstall_module', $module);
+}
+
+/**
+ * Implements hook_module_preuninstall().
+ */
+function system_test_module_preuninstall($module) {
+  \Drupal::state()->set('system_test_preuninstall_module', $module);
+}

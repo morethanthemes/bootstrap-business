@@ -1,0 +1,431 @@
+<?php
+
+/**
+ * @file
+ * Controls the visual building blocks a page is constructed with.
+ */
+
+use Drupal\block\BlockInterface;
+use Drupal\language\Entity\Language;
+use Drupal\system\Entity\Menu;
+use Symfony\Cmf\Component\Routing\RouteObjectInterface;
+use Symfony\Component\HttpFoundation\Request;
+
+/**
+ * Shows this block on every page except the listed pages.
+ */
+const BLOCK_VISIBILITY_NOTLISTED = 0;
+
+/**
+ * Shows this block on only the listed pages.
+ */
+const BLOCK_VISIBILITY_LISTED = 1;
+
+/**
+ * Shows this block if the associated PHP code returns TRUE.
+ */
+const BLOCK_VISIBILITY_PHP = 2;
+
+
+/**
+ * Implements hook_help().
+ */
+function block_help($route_name, Request $request) {
+  switch ($route_name) {
+    case 'help.page.block':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('The Block module allows you to place blocks in regions and to configure their settings. For more information, see <a href="!blocks-documentation">the online documentation for the Blocks module</a>.', array('!blocks-documentation' => 'https://drupal.org/documentation/modules/block/')) . '</p>';
+      $output .= '<h3>' . t('Uses') . '</h3>';
+      $output .= '<dl>';
+      $output .= '<dt>' . t('Placing and moving blocks') . '</dt>';
+      $output .= '<dd>' . t('You can place a block by clicking on its title in the in the <em>Place blocks</em> list on the <a href="!blocks">Block layout page</a>. You can then choose the appropriate region from the <em>Region</em> dropdown menu. Once a block has been placed, it can also be moved to a different region by chosing a region from the <em>Region</em> dropdown menu on the Block layout page, or by dragging and dropping it to the right posititon.', array('!blocks' => \Drupal::url('block.admin_display'))) . '</dd>';
+      $output .= '<dt>' . t('Demonstrating block regions for a theme') . '</dt>';
+      $output .= '<dd>' . t('You can see which region is where in a theme by clicking an the <em>Demonstrate block regions</em> link on the <a href="!blocks">Block layout page</a>. Regions are specific to each theme, so you need to toggle to a different theme first to demonstrate its block regions.', array('!blocks' => \Drupal::url('block.admin_display'))) . '</dd>';
+      $output .= '<dt>' . t('Toggling between different themes') . '</dt>';
+      $output .= '<dd>' . t('Blocks are placed and configured specifically for each theme. The Block layout page opens with the default theme, but you can toggle to other enabled themes.') . '</dd>';
+      $output .= '<dt>' . t('Configuring block settings') . '</dt>';
+      $output .= '<dd>' . t('To change the settings of an individual block click on the <em>Configure</em> link on the <a href="!blocks">Block layout page</a>. The available options vary depending on the module that provides the block. For all blocks you can change the block title and toggle whether to display it.', array('!blocks' => Drupal::url('block.admin_display'))) . '</dd>';
+      $output .= '<dt>' . t('Controlling visibility') . '</dt>';
+      $output .= '<dd>' . t('You can control the visibility of a block by restricting it to specific pages, content types, and/or roles by setting the appropriate options under <em>Visibility settings</em> of the block configuration.') . '</dd>';
+      $output .= '<dt>' . t('Adding custom blocks') . '</dt>';
+      $output .= '<dd>' . t('You can add custom blocks, if the the <em>Custom Block</em> module is enabled on the <a href="!extend">Extend page</a>. For more information, see the <a href="!customblock-help">Custom Block help page</a>.', array('!extend' => \Drupal::url('system.modules_list'), '!customblock-help' => \Drupal::url('help.page', array('name' => 'custom_block')))) . '</dd>';
+      $output .= '</dl>';
+      return $output;
+  }
+  if ($route_name == 'block.admin_display' || $route_name == 'block.admin_display_theme') {
+    $demo_theme = $request->attributes->get('theme', \Drupal::config('system.theme')->get('default'));
+    $themes = list_themes();
+    $output = '<p>' . t('This page provides a drag-and-drop interface for adding a block to a region, and for controlling the order of blocks within regions. To add a block to a region, or to configure its specific title and visibility settings, click the block title under <em>Place blocks</em>. Since not all themes implement the same regions, or display regions in the same way, blocks are positioned on a per-theme basis. Remember that your changes will not be saved until you click the <em>Save blocks</em> button at the bottom of the page.') . '</p>';
+    $output .= '<p>' . l(t('Demonstrate block regions (!theme)', array('!theme' => $themes[$demo_theme]->info['name'])), 'admin/structure/block/demo/' . $demo_theme) . '</p>';
+    return $output;
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function block_theme() {
+  return array(
+    'block' => array(
+      'render element' => 'elements',
+      'template' => 'block',
+    ),
+    'block_list' => array(
+      'render element' => 'form',
+      'template' => 'block-list',
+    ),
+  );
+}
+
+/**
+ * Implements hook_permission().
+ */
+function block_permission() {
+  return array(
+    'administer blocks' => array(
+      'title' => t('Administer blocks'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_page_build().
+ *
+ * Renders blocks into their regions.
+ */
+function block_page_build(&$page) {
+  global $theme;
+
+  // The theme system might not yet be initialized. We need $theme.
+  drupal_theme_initialize();
+
+  // Fetch a list of regions for the current theme.
+  $all_regions = system_region_list($theme);
+  if (\Drupal::request()->attributes->get(RouteObjectInterface::ROUTE_NAME) != 'block.admin_demo') {
+    // Load all region content assigned via blocks.
+    foreach (array_keys($all_regions) as $region) {
+      // Assign blocks to region.
+      if ($blocks = block_get_blocks_by_region($region)) {
+        $page[$region] = $blocks;
+      }
+    }
+    // Once we've finished attaching all blocks to the page, clear the static
+    // cache to allow modules to alter the block list differently in different
+    // contexts. For example, any code that triggers hook_page_build() more
+    // than once in the same page request may need to alter the block list
+    // differently each time, so that only certain parts of the page are
+    // actually built. We do not clear the cache any earlier than this, though,
+    // because it is used each time block_get_blocks_by_region() gets called
+    // above.
+    drupal_static_reset('block_list');
+  }
+  else {
+    // Append region description if we are rendering the regions demo page.
+    $visible_regions = array_keys(system_region_list($theme, REGIONS_VISIBLE));
+    foreach ($visible_regions as $region) {
+      $description = '<div class="block-region">' . $all_regions[$region] . '</div>';
+      $page[$region]['block_description'] = array(
+        '#markup' => $description,
+        '#weight' => 15,
+      );
+    }
+    $page['page_top']['backlink'] = array(
+      '#type' => 'link',
+      '#title' => t('Exit block region demonstration'),
+      '#href' => 'admin/structure/block' . (\Drupal::config('system.theme')->get('default') == $theme ? '' : '/list/' . $theme),
+      '#options' => array('attributes' => array('class' => array('block-demo-backlink'))),
+      '#weight' => -10,
+    );
+  }
+}
+
+/**
+ * Gets a renderable array of a region containing all enabled blocks.
+ *
+ * @param $region
+ *   The requested region.
+ *
+ * @return
+ *   A renderable array of a region containing all enabled blocks.
+ */
+function block_get_blocks_by_region($region) {
+  $build = array();
+  if ($list = block_list($region)) {
+    foreach ($list as $key => $block) {
+      if ($block->access('view')) {
+        $build[$key] = entity_view($block, 'block');
+      }
+    }
+    // If none of the blocks in this region are visible, then don't set anything
+    // else in the render array, because that would cause the region to show up.
+    if (!empty($build)) {
+      // block_list() already returned the blocks in sorted order.
+      $build['#sorted'] = TRUE;
+    }
+  }
+  return $build;
+}
+
+/**
+ * Returns an array of block class instances by theme.
+ *
+ * @param $theme
+ *   The theme to rehash blocks for. If not provided, defaults to the currently
+ *   used theme.
+ *
+ * @return
+ *   Blocks currently exported by modules.
+ */
+function _block_rehash($theme = NULL) {
+  $theme = $theme ? $theme : \Drupal::config('system.theme')->get('default');
+  $regions = system_region_list($theme);
+  $blocks = entity_load_multiple_by_properties('block', array('theme' => $theme));
+  foreach ($blocks as $block_id => $block) {
+    // Remove any invalid block from the list.
+    // @todo Remove this check as part of https://drupal.org/node/1776830.
+    if (!$block->getPlugin()) {
+      unset($blocks[$block_id]);
+      continue;
+    }
+    $region = $block->get('region');
+    $status = $block->status();
+    // Disable blocks in invalid regions.
+    if (!empty($region) && $region != BlockInterface::BLOCK_REGION_NONE && !isset($regions[$region]) && $status) {
+      drupal_set_message(t('The block %info was assigned to the invalid region %region and has been disabled.', array('%info' => $block_id, '%region' => $region)), 'warning');
+      // Disabled modules are moved into the BlockInterface::BLOCK_REGION_NONE
+      // later so no need to move the block to another region.
+      $block->disable()->save();
+    }
+    // Set region to none if not enabled.
+    if (!$status && $region != BlockInterface::BLOCK_REGION_NONE) {
+      $block->set('region', BlockInterface::BLOCK_REGION_NONE);
+      $block->save();
+    }
+  }
+  return $blocks;
+}
+
+/**
+ * Initializes blocks for enabled themes.
+ *
+ * @param $theme_list
+ *   An array of theme names.
+ */
+function block_themes_enabled($theme_list) {
+  foreach ($theme_list as $theme) {
+    block_theme_initialize($theme);
+  }
+}
+
+/**
+ * Assigns an initial, default set of blocks for a theme.
+ *
+ * This function is called the first time a new theme is enabled. The new theme
+ * gets a copy of the default theme's blocks, with the difference that if a
+ * particular region isn't available in the new theme, the block is assigned
+ * to the new theme's default region.
+ *
+ * @param $theme
+ *   The name of a theme.
+ */
+function block_theme_initialize($theme) {
+  // Initialize theme's blocks if none already registered.
+  $has_blocks = entity_load_multiple_by_properties('block', array('theme' => $theme));
+  if (!$has_blocks) {
+    $default_theme = \Drupal::config('system.theme')->get('default');
+    // Apply only to new theme's visible regions.
+    $regions = system_region_list($theme, REGIONS_VISIBLE);
+    $default_theme_blocks = entity_load_multiple_by_properties('block', array('theme' => $default_theme));
+    foreach ($default_theme_blocks as $default_theme_block_id => $default_theme_block) {
+      if (strpos($default_theme_block_id, $default_theme . '_') === 0) {
+        $id = str_replace($default_theme, $theme, $default_theme_block_id);
+      }
+      else {
+        $id = $theme . '_' . $default_theme_block_id;
+      }
+      $block = $default_theme_block->createDuplicate();
+      $block->set('id', $id);
+      $block->set('theme', $theme);
+      // If the region isn't supported by the theme, assign the block to the
+      // theme's default region.
+      if (!isset($regions[$block->get('region')])) {
+        $block->set('region', system_default_region($theme));
+      }
+      $block->save();
+    }
+  }
+}
+
+/**
+ * Returns all blocks in the specified region for the current user.
+ *
+ * @param $region
+ *   The name of a region.
+ *
+ * @return
+ *   An array of block objects, indexed with the configuration object name
+ *   that represents the configuration. If you are displaying your blocks in
+ *   one or two sidebars, you may check whether this array is empty to see
+ *   how many columns are going to be displayed.
+ */
+function block_list($region) {
+  $blocks = &drupal_static(__FUNCTION__);
+
+  if (!isset($blocks)) {
+    global $theme;
+    $blocks = array();
+    foreach (entity_load_multiple_by_properties('block', array('theme' => $theme)) as $block_id => $block) {
+      // Onlye include valid blocks in the list.
+      // @todo Remove this check as part of https://drupal.org/node/1776830.
+      if ($block->getPlugin()) {
+        $blocks[$block->get('region')][$block_id] = $block;
+      }
+    }
+  }
+
+  // Create an empty array if there are no entries.
+  if (!isset($blocks[$region])) {
+    $blocks[$region] = array();
+  }
+
+  uasort($blocks[$region], 'Drupal\block\Entity\Block::sort');
+
+  return $blocks[$region];
+}
+
+/**
+ * Implements hook_rebuild().
+ */
+function block_rebuild() {
+  foreach (list_themes() as $name => $data) {
+    if ($data->status) {
+      _block_rehash($name);
+    }
+  }
+}
+
+/**
+ * Implements hook_theme_suggestions_HOOK().
+ */
+function block_theme_suggestions_block(array $variables) {
+  $suggestions = array();
+
+  $suggestions[] = 'block__' . $variables['elements']['#configuration']['provider'];
+  // Hyphens (-) and underscores (_) play a special role in theme suggestions.
+  // Theme suggestions should only contain underscores, because within
+  // drupal_find_theme_templates(), underscores are converted to hyphens to
+  // match template file names, and then converted back to underscores to match
+  // pre-processing and other function names. So if your theme suggestion
+  // contains a hyphen, it will end up as an underscore after this conversion,
+  // and your function names won't be recognized. So, we need to convert
+  // hyphens to underscores in block deltas for the theme suggestions.
+
+  // We can safely explode on : because we know the Block plugin type manager
+  // enforces that delimiter for all derivatives.
+  $parts = explode(':', $variables['elements']['#plugin_id']);
+  $suggestion = 'block';
+  while ($part = array_shift($parts)) {
+    $suggestions[] = $suggestion .= '__' . strtr($part, '-', '_');
+  }
+
+  if ($id = $variables['elements']['#block']->id()) {
+    $config_id = explode('.', $id);
+    $machine_name = array_pop($config_id);
+    $suggestions[] = 'block__' . $machine_name;
+  }
+
+  return $suggestions;
+}
+
+/**
+ * Prepares variables for block templates.
+ *
+ * Default template: block.html.twig.
+ *
+ * Prepares the values passed to the theme_block function to be passed
+ * into a pluggable template engine. Uses block properties to generate a
+ * series of template file suggestions. If none are found, the default
+ * block.html.twig is used.
+ *
+ * Most themes use their own copy of block.html.twig. The default is located
+ * inside "core/modules/block/templates/block.html.twig". Look in there for the
+ * full list of available variables.
+ *
+ * @param array $variables
+ *   An associative array containing:
+ *   - elements: An associative array containing the properties of the element.
+ *     Properties used: #block, #configuration, #children, #plugin_id.
+ */
+function template_preprocess_block(&$variables) {
+  $block_counter = &drupal_static(__FUNCTION__, array());
+
+  $variables['configuration'] = $variables['elements']['#configuration'];
+  $variables['plugin_id'] = $variables['elements']['#plugin_id'];
+  $variables['base_plugin_id'] = $variables['elements']['#base_plugin_id'];
+  $variables['derivative_plugin_id'] = $variables['elements']['#derivative_plugin_id'];
+  $variables['label'] = !empty($variables['configuration']['label_display']) ? $variables['configuration']['label'] : '';
+  $variables['content'] = $variables['elements']['content'];
+  // A block's label is configuration: it is static. Allow dynamic labels to be
+  // set in the render array.
+  if (isset($variables['elements']['content']['#title']) && !empty($variables['configuration']['label_display'])) {
+    $variables['label'] = $variables['elements']['content']['#title'];
+  }
+
+  $variables['attributes']['class'][] = 'block';
+  $variables['attributes']['class'][] = drupal_html_class('block-' . $variables['configuration']['provider']);
+
+  // Add default class for block content.
+  $variables['content_attributes']['class'][] = 'content';
+
+  // Create a valid HTML ID and make sure it is unique.
+  if ($id = $variables['elements']['#block']->id()) {
+    $variables['attributes']['id'] = drupal_html_id('block-' . $id);
+  }
+}
+
+/**
+ * Implements hook_user_role_delete().
+ *
+ * Removes deleted role from blocks that use it.
+ */
+function block_user_role_delete($role) {
+  foreach (entity_load_multiple('block') as $block) {
+    $visibility = $block->get('visibility');
+    if (isset($visibility['roles']['roles'][$role->id()])) {
+      unset($visibility['roles']['roles'][$role->id()]);
+      $block->set('visibility', $visibility);
+      $block->save();
+    }
+  }
+}
+
+/**
+ * Implements hook_menu_delete().
+ */
+function block_menu_delete(Menu $menu) {
+  if (!$menu->isSyncing()) {
+    foreach (entity_load_multiple('block') as $block) {
+      if ($block->get('plugin') == 'system_menu_block:' . $menu->id()) {
+        $block->delete();
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_delete() for 'language_entity'.
+ *
+ * Delete the potential block visibility settings of the deleted language.
+ */
+function block_language_entity_delete(Language $language) {
+  // Remove the block visibility settings for the deleted language.
+  foreach (entity_load_multiple('block') as $block) {
+    $visibility = $block->get('visibility');
+    if (isset($visibility['language']['langcodes'][$language->id()])) {
+      unset($visibility['language']['langcodes'][$language->id()]);
+      $block->set('visibility', $visibility);
+      $block->save();
+    }
+  }
+}

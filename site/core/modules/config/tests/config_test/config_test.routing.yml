@@ -1,0 +1,60 @@
+config_test.list_page:
+  path: '/admin/structure/config_test'
+  defaults:
+    _entity_list: 'config_test'
+    _title: 'Test configuration'
+  requirements:
+    _access: 'TRUE'
+
+config_test.entity_add:
+  path: '/admin/structure/config_test/add'
+  defaults:
+    _entity_form: 'config_test'
+  requirements:
+    _access: 'TRUE'
+
+config_test.entity:
+  path: '/admin/structure/config_test/manage/{config_test}'
+  defaults:
+    _entity_form: config_test
+    _title_callback: '\Drupal\config_test\ConfigTestController::editTitle'
+  requirements:
+    _access: 'TRUE'
+
+config_test.entity_config_test_no_status:
+  path: '/admin/structure/config_test/manage/{config_test_no_status}'
+  defaults:
+    _entity_form: config_test_no_status
+    _title_callback: '\Drupal\config_test\ConfigTestController::editTitle'
+  requirements:
+    _access: 'TRUE'
+
+config_test.entity_enable:
+  path: '/admin/structure/config_test/manage/{config_test}/enable'
+  defaults:
+    _content: '\Drupal\config_test\ConfigTestController::enable'
+    entity_type: 'config_test'
+  requirements:
+    _access: 'TRUE'
+
+config_test.entity_disable:
+  path: '/admin/structure/config_test/manage/{config_test}/disable'
+  defaults:
+    _content: '\Drupal\config_test\ConfigTestController::disable'
+    entity_type: 'config_test'
+  requirements:
+    _access: 'TRUE'
+
+config_test.entity_delete:
+  path: '/admin/structure/config_test/manage/{config_test}/delete'
+  defaults:
+    _entity_form: 'config_test.delete'
+  requirements:
+    _access: 'TRUE'
+
+config_test.entity_delete_config_test_no_status:
+  path: '/admin/structure/config_test/manage/{config_test_no_status}/delete'
+  defaults:
+    _entity_form: 'config_test_no_status.delete'
+  requirements:
+    _access: 'TRUE'

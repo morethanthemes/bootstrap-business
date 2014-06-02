@@ -1,0 +1,119 @@
+#permissions td.module {
+  font-weight: bold;
+}
+#permissions td.permission {
+  padding-left: 1.5em; /* LTR */
+}
+[dir="rtl"] #permissions td.permission {
+  padding-left: 0;
+  padding-right: 1.5em;
+}
+#permissions tr.odd .form-item,
+#permissions tr.even .form-item {
+  white-space: normal;
+}
+#user-admin-settings .details-description {
+  font-size: 0.85em;
+  padding-bottom: .5em;
+}
+
+/**
+ * Password strength indicator.
+ */
+.password-strength {
+  width: 13em;
+  float: right;  /* LTR */
+}
+[dir="rtl"] .password-strength {
+  float: left;
+}
+.password-strength-title {
+  display: inline;
+}
+.password-strength-text {
+  float: right; /* LTR */
+  font-weight: bold;
+}
+[dir="rtl"] .password-strength-text {
+  float: left;
+}
+.password-indicator {
+  background-color: #c4c4c4;
+  height: 0.3em;
+  width: 100%;
+}
+.password-indicator div {
+  height: 100%;
+  width: 0%;
+  background-color: #47c965;
+}
+input.password-confirm,
+input.password-field {
+  width: 13.7em;
+  margin-bottom: 0.4em;
+  float: left; /* LTR */
+}
+div.password-confirm {
+  float: right;  /* LTR */
+  visibility: hidden;
+  width: 13em;
+}
+[dir="rtl"] input.password-confirm,
+[dir="rtl"] input.password-field {
+  float: right;
+}
+[dir="rtl"] div.password-confirm {
+  float: left;
+}
+div.form-item div.password-suggestions {
+  padding: 0.2em 0.5em;
+  margin: 0.7em 0;
+  max-width: 34.7em;
+  border: 1px solid #b4b4b4;
+}
+div.password-suggestions ul {
+  margin-bottom: 0;
+}
+.confirm-parent,
+.password-parent {
+  clear: left; /* LTR */
+  margin: 0;
+  max-width: 33em;
+  overflow: hidden;
+}
+[dir="rtl"] .confirm-parent,
+[dir="rtl"] .password-parent {
+  clear: right;
+}
+
+/**
+ * Password strength indicator on narrow viewport.
+ */
+@media screen and (max-width: 600px) {
+  .password-strength,
+  div.password-confirm {
+    float: none;
+    width: auto;
+    max-width: 100%;
+  }
+  .password-indicator {
+    margin-bottom: 0.4em;
+  }
+  input.password-confirm,
+  input.password-field {
+    margin-bottom: 0;
+    width: 100%;
+    max-width: none;
+  }
+  div.form-item div.password-suggestions {
+    width: auto;
+    max-width: 100%;
+  }
+  .confirm-parent,
+  .password-parent {
+    clear: none;
+    width: 100%;
+    max-width: none;
+    overflow: hidden;
+  }
+}

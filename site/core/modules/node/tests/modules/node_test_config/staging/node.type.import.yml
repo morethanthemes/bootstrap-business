@@ -1,0 +1,17 @@
+type: import
+name: Import
+description: 'Import description.'
+help: ''
+has_title: true
+title_label: Title
+settings:
+  node:
+    preview: 1
+    options:
+      status: status
+      promote: promote
+      sticky: false
+      revision: false
+    submitted: true
+status: true
+langcode: en

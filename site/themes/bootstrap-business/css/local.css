@@ -1,0 +1,15 @@
+/* Custom CSS overrides */
+/*
+ * Fira Sans 
+ */
+@import url(http://fonts.googleapis.com/css?family=Fira+Sans:300,400,700,300italic,400italic,700italic&subset=latin,latin-ext);
+
+body {
+font-family:fira sans, sans-serif;
+    text-rendering: optimizeLegibility
+}
+
+h1, h2, h3, h4, h5, h6 {
+font-family:fira sans, sans-serif;
+    text-rendering: optimizeLegibility
+}

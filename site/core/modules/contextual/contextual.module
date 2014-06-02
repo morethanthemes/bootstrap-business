@@ -1,0 +1,304 @@
+<?php
+
+/**
+ * @file
+ * Adds contextual links to perform actions related to elements on a page.
+ */
+
+use Drupal\Component\Serialization\Json;
+use Drupal\Component\Utility\UrlHelper;
+use Drupal\Core\Template\Attribute;
+use Symfony\Component\HttpFoundation\Request;
+
+/**
+ * Implements hook_toolbar().
+ */
+function contextual_toolbar() {
+
+  if (!\Drupal::currentUser()->hasPermission('access contextual links')) {
+    return;
+  }
+
+  $tab['contextual'] = array(
+    '#type' => 'toolbar_item',
+    'tab' => array(
+      '#type' => 'html_tag',
+      '#tag' => 'button',
+      '#value' => t('Edit'),
+      '#attributes' => array(
+        'class' => array('toolbar-icon', 'toolbar-icon-edit'),
+        'role' => 'button',
+        'aria-pressed' => 'false',
+      ),
+    ),
+    '#wrapper_attributes' => array(
+      'class' => array('hidden', 'contextual-toolbar-tab'),
+    ),
+    '#attached' => array(
+      'library' => array(
+        'contextual/drupal.contextual-toolbar',
+      ),
+    ),
+  );
+
+  return $tab;
+}
+
+/**
+ * Implements hook_page_build().
+ *
+ * Adds the drupal.contextual-links library to the page for any user who has the
+ * 'access contextual links' permission.
+ *
+ * @see contextual_preprocess()
+ */
+function contextual_page_build(&$page) {
+
+  if (!\Drupal::currentUser()->hasPermission('access contextual links')) {
+    return;
+  }
+
+  $page['#attached']['library'][] = 'contextual/drupal.contextual-links';
+}
+
+/**
+ * Implements hook_help().
+ */
+function contextual_help($route_name, Request $request) {
+  switch ($route_name) {
+    case 'help.page.contextual':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('The Contextual Links module displays links related to regions of pages on your site to users with <em>access contextual links</em> permission. For more information, see the online handbook entry for <a href="@contextual">Contextual Links module</a>.', array('@contextual' => 'http://drupal.org/documentation/modules/contextual')) . '</p>';
+      $output .= '<h3>' . t('Uses') . '</h3>';
+      $output .= '<dl>';
+      $output .= '<dt>' . t('Displaying contextual links') . '</dt>';
+      $output .= '<dd>' . t('Contextual links are supplied by modules, to give you quick access to tasks associated with regions of pages on your site. For instance, if you have a custom menu block displayed in a sidebar of your site, the Blocks and Menu UI modules will supply links to configure the block and edit the menu. The Contextual Links module collects these links into a list for display by your theme, and also adds JavaScript code to the page to hide the links initially, and display them when your mouse hovers over the block.') . '</dd>';
+      $output .= '</dl>';
+      return $output;
+  }
+}
+
+/**
+ * Implements hook_permission().
+ */
+function contextual_permission() {
+  return array(
+    'access contextual links' => array(
+      'title' => t('Use contextual links'),
+      'description' => t('Use contextual links to perform actions related to elements on a page.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_element_info().
+ */
+function contextual_element_info() {
+  $types['contextual_links_placeholder'] = array(
+    '#pre_render' => array('contextual_pre_render_placeholder'),
+    '#id' => NULL,
+  );
+  $types['contextual_links'] = array(
+    '#pre_render' => array('contextual_pre_render_links'),
+    '#theme' => 'links__contextual',
+    '#links' => array(),
+    '#attributes' => array('class' => array('contextual-links')),
+    '#attached' => array(
+      'library' => array(
+        'contextual/drupal.contextual-links',
+      ),
+    ),
+  );
+  return $types;
+}
+
+/**
+ * Implements hook_preprocess().
+ *
+ * @see contextual_pre_render_placeholder()
+ * @see contextual_page_build()
+ * @see \Drupal\contextual\ContextualController::render()
+ */
+function contextual_preprocess(&$variables, $hook, $info) {
+  // Determine the primary theme function argument.
+  if (!empty($info['variables'])) {
+    $keys = array_keys($info['variables']);
+    $key = $keys[0];
+  }
+  elseif (!empty($info['render element'])) {
+    $key = $info['render element'];
+  }
+  if (!empty($key) && isset($variables[$key])) {
+    $element = $variables[$key];
+  }
+
+  if (isset($element) && is_array($element) && !empty($element['#contextual_links'])) {
+    // Mark this element as potentially having contextual links attached to it.
+    $variables['attributes']['class'][] = 'contextual-region';
+
+    // Renders a contextual links placeholder unconditionally, thus not breaking
+    // the render cache. Although the empty placeholder is rendered for all
+    // users, contextual_page_build() only adds the drupal.contextual-links
+    // library for users with the 'access contextual links' permission, thus
+    // preventing unnecessary HTTP requests for users without that permission.
+    $variables['title_suffix']['contextual_links'] = array(
+      '#type' => 'contextual_links_placeholder',
+      '#id' => _contextual_links_to_id($element['#contextual_links']),
+    );
+  }
+}
+
+/**
+ * Pre-render callback: Renders a contextual links placeholder into #markup.
+ *
+ * Renders an empty (hence invisible) placeholder div with a data-attribute that
+ * contains an identifier ("contextual id"), which allows the JavaScript of the
+ * drupal.contextual-links library to dynamically render contextual links.
+ *
+ * @param $element
+ *   A structured array with #id containing a "contextual id".
+ *
+ * @return
+ *   The passed-in element with a contextual link placeholder in '#markup'.
+ *
+ * @see _contextual_links_to_id()
+ * @see contextual_element_info()
+ */
+function contextual_pre_render_placeholder($element) {
+  $element['#markup'] = '<div' . new Attribute(array('data-contextual-id' => $element['#id'])) . '></div>';
+  return $element;
+}
+
+/**
+ * Pre-render callback: Builds a renderable array for contextual links.
+ *
+ * @param $element
+ *   A renderable array containing a #contextual_links property, which is a
+ *   keyed array. Each key is the name of the group of contextual links to
+ *   render (based on the 'group' key in the *.contextual_links.yml files for
+ *   all enabled modules). The value contains an associative array containing
+ *   the following keys:
+ *   - route_parameters: The route parameters passed to the url generator.
+ *   - metadata: Any additional data needed in order to alter the link.
+ *   @code
+ *     array('#contextual_links' => array(
+ *       'block' => array(
+ *         'route_parameters' => array('block' => 'system.menu-tools'),
+ *       ),
+ *       'menu' => array(
+ *         'route_parameters' => array('menu' => 'tools'),
+ *       ),
+ *     ))
+ *   @endcode
+ *
+ * @return
+ *   A renderable array representing contextual links.
+ *
+ * @see contextual_element_info()
+ */
+function contextual_pre_render_links($element) {
+  // Retrieve contextual menu links.
+  $items = array();
+
+  /** @var $contextual_links_manager \Drupal\Core\Menu\ContextualLinkManager */
+  $contextual_links_manager = \Drupal::service('plugin.manager.menu.contextual_link');
+  foreach ($element['#contextual_links'] as $group => $args) {
+    $args += array(
+      'route_parameters' => array(),
+      'metadata' => array(),
+    );
+    $items += $contextual_links_manager->getContextualLinksArrayByGroup($group, $args['route_parameters'], $args['metadata']);
+  }
+
+  // Transform contextual links into parameters suitable for links.html.twig.
+  $links = array();
+  foreach ($items as $class => $item) {
+    $class = drupal_html_class($class);
+    $links[$class] = array(
+      'title' => $item['title'],
+      'route_name' => isset($item['route_name']) ? $item['route_name'] : '',
+      'route_parameters' => isset($item['route_parameters']) ? $item['route_parameters'] : array(),
+    );
+  }
+  $element['#links'] = $links;
+
+  // Allow modules to alter the renderable contextual links element.
+  \Drupal::moduleHandler()->alter('contextual_links_view', $element, $items);
+
+  // If there are no links, tell drupal_render() to abort rendering.
+  if (empty($element['#links'])) {
+    $element['#printed'] = TRUE;
+  }
+
+  return $element;
+}
+
+/**
+ * Implements hook_contextual_links_view_alter().
+ *
+ * @see \Drupal\contextual\Plugin\views\field\ContextualLinks::render()
+ */
+function contextual_contextual_links_view_alter(&$element, $items) {
+  if (isset($element['#contextual_links']['contextual'])) {
+    $encoded_links = $element['#contextual_links']['contextual']['metadata']['contextual-views-field-links'];
+    $element['#links'] = Json::decode(rawurldecode($encoded_links));
+  }
+}
+
+/**
+ * Serializes #contextual_links property value array to a string.
+ *
+ * Examples:
+ *  - node:node=1:
+ *  - views_ui_edit:view=frontpage:location=page&view_name=frontpage&view_display_id=page_1
+ *  - menu:menu=tools:|block:block=bartik.tools:
+ *
+ * So, expressed in a pattern:
+ *  <group>:<route parameters>:<metadata>
+ *
+ * The route parameters and options are encoded as query strings.
+ *
+ * @param array $contextual_links
+ *   The $element['#contextual_links'] value for some render element.
+ *
+ * @return string
+ *   A serialized representation of a #contextual_links property value array for
+ *   use in a data- attribute.
+ */
+function _contextual_links_to_id($contextual_links) {
+  $ids = array();
+  foreach ($contextual_links as $group => $args) {
+    $route_parameters = UrlHelper::buildQuery($args['route_parameters']);
+    $metadata = UrlHelper::buildQuery((isset($args['metadata'])) ? $args['metadata'] : array());
+    $ids[] = "{$group}:{$route_parameters}:{$metadata}";
+  }
+  return implode('|', $ids);
+}
+
+/**
+ * Unserializes the result of _contextual_links_to_id().
+ *
+ * @see _contextual_links_to_id
+ *
+ * @param string $id
+ *   A serialized representation of a #contextual_links property value array.
+ *
+ * @return array
+ *   The value for a #contextual_links property.
+ */
+function _contextual_id_to_links($id) {
+  $contextual_links = array();
+  $contexts = explode('|', $id);
+  foreach ($contexts as $context) {
+    list($group, $route_parameters_raw, $metadata_raw) = explode(':', $context);
+    parse_str($route_parameters_raw, $route_parameters);
+    $metadata = array();
+    parse_str($metadata_raw, $metadata);
+    $contextual_links[$group] = array(
+      'route_parameters' => $route_parameters,
+      'metadata' => $metadata,
+    );
+  }
+  return $contextual_links;
+}

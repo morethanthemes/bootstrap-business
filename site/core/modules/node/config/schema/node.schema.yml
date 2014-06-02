@@ -1,0 +1,140 @@
+# Schema for the configuration files of the node module.
+
+node.settings:
+  type: mapping
+  label: 'Node settings'
+  mapping:
+    items_per_page:
+      type: integer
+      label: 'Number of posts on front page'
+    use_admin_theme:
+      type: boolean
+      label: 'Use admin theme when editing or creating content'
+
+node.type.*:
+  type: mapping
+  label: 'Content type'
+  mapping:
+    type:
+      type: string
+      label: 'Machine-readable name'
+    uuid:
+      type: string
+      label: 'UUID'
+    name:
+      type: label
+      label: 'Name'
+    description:
+      type: text
+      label: 'Description'
+    help:
+      type: text
+      label: 'Explanation or submission guidelines'
+    has_title:
+      type: boolean
+      label: 'Has title'
+    title_label:
+      type: label
+      label: 'Title field label'
+    settings:
+      type: mapping
+      label: 'Settings'
+      mapping:
+        node:
+          type: node.settings.node
+    status:
+      type: boolean
+      label: 'Enabled status of the configuration entity'
+    langcode:
+      type: string
+      label: 'Default language'
+
+node.settings.node:
+  type: mapping
+  label: 'Content type settings'
+  mapping:
+    preview:
+      type: integer
+      label: 'Preview before submitting'
+    options:
+      type: mapping
+      label: 'Publishing options'
+      mapping:
+        status:
+          type: boolean
+          label: 'Published'
+        promote:
+          type: boolean
+          label: 'Promoted to front page'
+        sticky:
+          type: boolean
+          label: 'Sticky at top of lists'
+        revision:
+          type: boolean
+          label: 'Create new revision'
+    submitted:
+      type: boolean
+      label: 'Display setting for author and date Submitted by post information'
+
+# Plugin \Drupal\node\Plugin\Search\NodeSearch
+search.plugin.node_search:
+  type: mapping
+  label: 'Content search'
+  mapping:
+    rankings:
+      type: sequence
+      label: 'Content ranking'
+      sequence:
+        - type: integer
+          label: 'Influence'
+
+action.configuration.node_assign_owner_action:
+  type: mapping
+  label: 'Change the author of content configuration'
+  mapping:
+    owner_uid:
+      type: text
+      label: 'Username'
+
+action.configuration.node_unpromote_action:
+  type: action_configuration_default
+  label: 'Demote selected content from front page configuration'
+
+action.configuration.node_promote_action:
+  type: action_configuration_default
+  label: 'Promote selected content from front page configuration'
+
+action.configuration.node_publish_action:
+  type: action_configuration_default
+  label: 'Publish selected content configuration'
+
+action.configuration.node_unpublish_action:
+  type: action_configuration_default
+  label: 'Unpublish selected content configuration'
+
+action.configuration.node_save_action:
+  type: action_configuration_default
+  label: 'Save content configuration'
+
+action.configuration.node_delete_action:
+  type: action_configuration_default
+  label: 'Delete content configuration'
+
+action.configuration.node_make_sticky_action:
+  type: action_configuration_default
+  label: 'Make selected content sticky configuration'
+
+action.configuration.node_make_unsticky_action:
+  type: action_configuration_default
+  label: 'Make selected content unsticky configuration'
+
+action.configuration.node_unpublish_by_keyword_action:
+  type: mapping
+  label: 'Unpublish content containing keyword(s) configuration'
+  mapping:
+    keyword:
+      type: sequence
+      label: 'Keywords'
+      sequence:
+        - type: sequence
+          label: 'Keyword'

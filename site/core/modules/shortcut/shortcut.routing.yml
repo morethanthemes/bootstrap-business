@@ -1,0 +1,82 @@
+shortcut.set_delete:
+  path: '/admin/config/user-interface/shortcut/manage/{shortcut_set}/delete'
+  defaults:
+    _entity_form: 'shortcut_set.delete'
+    _title: 'Delete shortcut set'
+  requirements:
+    _entity_access: 'shortcut_set.delete'
+
+shortcut.set_admin:
+  path: '/admin/config/user-interface/shortcut'
+  defaults:
+    _entity_list: 'shortcut_set'
+    _title: 'Shortcuts'
+  requirements:
+    _permission: 'administer shortcuts'
+
+shortcut.set_add:
+  path: '/admin/config/user-interface/shortcut/add-set'
+  defaults:
+    _entity_form: 'shortcut_set.add'
+    _title: 'Add shortcut set'
+  requirements:
+    _entity_create_access: 'shortcut_set'
+
+shortcut.set_edit:
+  path: '/admin/config/user-interface/shortcut/manage/{shortcut_set}'
+  defaults:
+    _entity_form: 'shortcut_set.edit'
+    _title: 'Edit shortcut set'
+  requirements:
+    _entity_access: 'shortcut_set.update'
+
+shortcut.link_add_inline:
+  path: '/admin/config/user-interface/shortcut/manage/{shortcut_set}/add-link-inline'
+  defaults:
+    _controller: 'Drupal\shortcut\Controller\ShortcutSetController::addShortcutLinkInline'
+  requirements:
+    _entity_access: 'shortcut_set.update'
+    _csrf_token: 'TRUE'
+
+shortcut.set_customize:
+  path: '/admin/config/user-interface/shortcut/manage/{shortcut_set}/customize'
+  defaults:
+    _entity_form: 'shortcut_set.customize'
+    _title: 'List links'
+  requirements:
+    _entity_access: 'shortcut_set.update'
+
+shortcut.link_add:
+  path: '/admin/config/user-interface/shortcut/manage/{shortcut_set}/add-link'
+  defaults:
+    _content: '\Drupal\shortcut\Controller\ShortcutController::addForm'
+    _title: 'Add link'
+  requirements:
+    _entity_create_access: 'shortcut:{shortcut_set}'
+
+shortcut.link_edit:
+  path: '/admin/config/user-interface/shortcut/link/{shortcut}'
+  defaults:
+    _entity_form: 'shortcut.default'
+    _title: 'Edit'
+  requirements:
+    _entity_access: 'shortcut.update'
+
+shortcut.link_delete:
+  path: '/admin/config/user-interface/shortcut/link/{shortcut}/delete'
+  defaults:
+    _entity_form: 'shortcut.delete'
+    _title: 'Delete'
+  requirements:
+    _entity_access: 'shortcut.delete'
+
+shortcut.overview:
+  path: '/user/{user}/shortcuts'
+  defaults:
+    _content: '\Drupal\shortcut\Form\ShortcutForm::overview'
+    _title: 'Shortcuts'
+  requirements:
+    _access_shortcut_set_switch: 'TRUE'
+  options:
+    _admin_route: TRUE
+

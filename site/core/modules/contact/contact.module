@@ -1,0 +1,243 @@
+<?php
+use Symfony\Component\HttpFoundation\Request;
+
+/**
+ * @file
+ * Enables the use of personal and site-wide contact forms.
+ */
+
+/**
+ * Implements hook_help().
+ */
+function contact_help($route_name, Request $request) {
+  switch ($route_name) {
+    case 'help.page.contact':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('The Contact module allows visitors to contact site administrators and other users. Users specify a subject, write their message, and can have a copy of their message sent to their own e-mail address. For more information, see the online handbook entry for <a href="@contact">Contact module</a>.', array('@contact' => 'http://drupal.org/documentation/modules/contact')) . '</p>';
+      $output .= '<h3>' . t('Uses') . '</h3>';
+      $output .= '<dl>';
+      $output .= '<dt>' . t('User contact forms') . '</dt>';
+      $output .= '<dd>' . t('Site users can be contacted with a user contact form that keeps their e-mail address private. Users may enable or disable their personal contact forms by editing their <em>My account</em> page. If enabled, a <em>Contact</em> tab leads to a personal contact form displayed on their user profile. Site administrators are still able to use the contact form, even if has been disabled. The <em>Contact</em> tab is not shown when you view your own profile.') . '</dd>';
+      $output .= '<dt>' . t('Site-wide contact forms') . '</dt>';
+      $output .= '<dd>' . t('The <a href="@contact">Contact page</a> provides a simple form for users with the <em>Use the site-wide contact form</em> permission to send comments, feedback, or other requests. You can create categories for directing the contact form messages to a set of defined recipients. Common categories for a business site, for example, might include "Website feedback" (messages are forwarded to website administrators) and "Product information" (messages are forwarded to members of the sales department). E-mail addresses defined within a category are not displayed publicly.', array('@contact' => url('contact'))) . '</p>';
+      $output .= '<dt>' . t('Navigation') . '</dt>';
+      $output .= '<dd>' . t('When the site-wide contact form is enabled, a link in the <em>Footer</em> menu is created, which you can modify on the <a href="@menu">Menus administration page</a>.', array('@menu' => url('admin/structure/menu'))) . '</dd>';
+      $output .= '<dt>' . t('Customization') . '</dt>';
+      $output .= '<dd>' . t('If you would like additional text to appear on the site-wide or personal contact page, use a block. You can create and edit blocks on the <a href="@blocks">Blocks administration page</a>.', array('@blocks' => url('admin/structure/block'))) . '</dd>';
+      $output .= '</dl>';
+      return $output;
+
+    case 'contact.category_list':
+      $output = '<p>' . t('Add one or more categories on this page to set up your site-wide <a href="@form">contact form</a>.', array('@form' => url('contact'))) . '</p>';
+      $output .= '<p>' . t('A <em>Contact</em> menu item is added to the <em>Footer</em> menu, which you can modify on the <a href="@menu-settings">Menus administration page</a>.', array('@menu-settings' => url('admin/structure/menu'))) . '</p>';
+      $output .= '<p>' . t('If you would like additional text to appear on the site-wide contact page, use a block. You can create and edit blocks on the <a href="@blocks">Blocks administration page</a>.', array('@blocks' => url('admin/structure/block'))) . '</p>';
+      return $output;
+  }
+}
+
+/**
+ * Implements hook_permission().
+ */
+function contact_permission() {
+  return array(
+    'administer contact forms' => array(
+      'title' => t('Administer contact forms and contact form settings'),
+    ),
+    'access site-wide contact form' => array(
+      'title' => t('Use the site-wide contact form'),
+    ),
+    'access user contact forms' => array(
+      'title' => t("Use users' personal contact forms"),
+    ),
+  );
+}
+
+/**
+ * Implements hook_entity_type_alter().
+ */
+function contact_entity_type_alter(array &$entity_types) {
+  /** @var $entity_types \Drupal\Core\Entity\EntityTypeInterface[] */
+  $entity_types['user']->setLinkTemplate('contact-form', 'contact.personal_page');
+}
+
+/**
+ * Implements hook_entity_extra_field_info().
+ */
+function contact_entity_extra_field_info() {
+  $fields = array();
+  foreach (array_keys(entity_get_bundles('contact_message')) as $bundle) {
+    $fields['contact_message'][$bundle]['form']['name'] = array(
+      'label' => t('Sender name'),
+      'description' => t('Text'),
+      'weight' => -50,
+    );
+    $fields['contact_message'][$bundle]['form']['mail'] = array(
+      'label' => t('Sender e-mail'),
+      'description' => t('E-mail'),
+      'weight' => -40,
+    );
+    if ($bundle == 'personal') {
+      $fields['contact_message'][$bundle]['form']['recipient'] = array(
+        'label' => t('Recipient user name'),
+        'description' => t('User'),
+        'weight' => -30,
+      );
+    }
+    $fields['contact_message'][$bundle]['form']['subject'] = array(
+      'label' => t('Subject'),
+      'description' => t('Text'),
+      'weight' => -10,
+    );
+    $fields['contact_message'][$bundle]['form']['message'] = array(
+      'label' => t('Message'),
+      'description' => t('Long text'),
+      'weight' => 0,
+    );
+    $fields['contact_message'][$bundle]['form']['copy'] = array(
+      'label' => t('Send copy to sender'),
+      'description' => t('Option'),
+      'weight' => 50,
+    );
+
+    $fields['contact_message'][$bundle]['display']['message'] = array(
+      'label' => t('Message'),
+      'description' => t('The main contact message'),
+      'weight' => 0,
+    );
+  }
+
+  $fields['user']['user']['form']['contact'] = array(
+    'label' => t('Contact settings'),
+    'description' => t('Contact module form element.'),
+    'weight' => 5,
+  );
+  return $fields;
+}
+
+/**
+ * Implements hook_mail().
+ */
+function contact_mail($key, &$message, $params) {
+  $contact_message = $params['contact_message'];
+  /** @var $sender \Drupal\user\UserInterface */
+  $sender = $params['sender'];
+  $language = language_load($message['langcode']);
+
+  $variables = array(
+    '!site-name' => \Drupal::config('system.site')->get('name'),
+    '!subject' => $contact_message->getSubject(),
+    '!category' => !empty($params['contact_category']) ? $params['contact_category']->label() : NULL,
+    '!form-url' => url(current_path(), array('absolute' => TRUE, 'language' => $language)),
+    '!sender-name' => user_format_name($sender),
+  );
+  if ($sender->isAuthenticated()) {
+    $variables['!sender-url'] = $sender->url('canonical', array('absolute' => TRUE, 'language' => $language));
+  }
+  else {
+    $variables['!sender-url'] = $params['sender']->getEmail();
+  }
+
+  $options = array('langcode' => $language->id);
+
+  switch ($key) {
+    case 'page_mail':
+    case 'page_copy':
+      $message['subject'] .= t('[!category] !subject', $variables, $options);
+      $message['body'][] = t("!sender-name (!sender-url) sent a message using the contact form at !form-url.", $variables, $options);
+      $build = entity_view($contact_message, 'mail', $language->id);
+      $message['body'][] = drupal_render($build);
+      break;
+
+    case 'page_autoreply':
+      $message['subject'] .= t('[!category] !subject', $variables, $options);
+      $message['body'][] = $params['contact_category']->reply;
+      break;
+
+    case 'user_mail':
+    case 'user_copy':
+      $variables += array(
+        '!recipient-name' => user_format_name($params['recipient']),
+        '!recipient-edit-url' => url('user/' . $params['recipient']->id() . '/edit', array('absolute' => TRUE, 'language' => $language)),
+      );
+      $message['subject'] .= t('[!site-name] !subject', $variables, $options);
+      $message['body'][] = t('Hello !recipient-name,', $variables, $options);
+      $message['body'][] = t("!sender-name (!sender-url) has sent you a message via your contact form at !site-name.", $variables, $options);
+      $message['body'][] = t("If you don't want to receive such e-mails, you can change your settings at !recipient-edit-url.", $variables, $options);
+      $build = entity_view($contact_message, 'mail', $language->id);
+      $message['body'][] = drupal_render($build);
+      break;
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Add the enable personal contact form to an individual user's account page.
+ *
+ * @see \Drupal\user\ProfileForm::form()
+ */
+function contact_form_user_form_alter(&$form, &$form_state) {
+  $form['contact'] = array(
+    '#type' => 'details',
+    '#title' => t('Contact settings'),
+    '#open' => TRUE,
+    '#weight' => 5,
+  );
+  $account = $form_state['controller']->getEntity();
+  if (!\Drupal::currentUser()->isAnonymous() && $account->id()) {
+    $account_data = \Drupal::service('user.data')->get('contact', $account->id(), 'enabled');
+  }
+  $form['contact']['contact'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Personal contact form'),
+    '#default_value' => isset($account_data) ? $account_data : \Drupal::config('contact.settings')->get('user_default_enabled'),
+    '#description' => t('Allow other users to contact you via a personal contact form which keeps your e-mail address hidden. Note that some privileged users such as site administrators are still able to contact you even if you choose to disable this feature.'),
+  );
+  $form['actions']['submit']['#submit'][] = 'contact_user_profile_form_submit';
+}
+
+/**
+ * Submit callback for the user profile form to save the contact page setting.
+ */
+function contact_user_profile_form_submit($form, &$form_state) {
+  $account = $form_state['controller']->getEntity();
+  if ($account->id() && isset($form_state['values']['contact'])) {
+    \Drupal::service('user.data')->set('contact', $account->id(), 'enabled', (int) $form_state['values']['contact']);
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Add the default personal contact setting on the user settings page.
+ *
+ * @see user_admin_settings()
+ */
+function contact_form_user_admin_settings_alter(&$form, &$form_state) {
+  $form['contact'] = array(
+    '#type' => 'details',
+    '#title' => t('Contact settings'),
+    '#open' => TRUE,
+    '#weight' => 0,
+  );
+  $form['contact']['contact_default_status'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable the personal contact form by default for new users.'),
+    '#description' => t('Changing this setting will not affect existing users.'),
+    '#default_value' => \Drupal::config('contact.settings')->get('user_default_enabled'),
+  );
+  // Add submit handler to save contact configuration.
+  $form['#submit'][] = 'contact_form_user_admin_settings_submit';
+}
+
+/**
+ * Form submission handler for user_admin_settings().
+ *
+ * @see contact_form_user_admin_settings_alter()
+ */
+function contact_form_user_admin_settings_submit($form, &$form_state) {
+  \Drupal::config('contact.settings')
+    ->set('user_default_enabled', $form_state['values']['contact_default_status'])
+    ->save();
+}

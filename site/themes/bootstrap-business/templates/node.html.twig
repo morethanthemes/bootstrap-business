@@ -1,0 +1,30 @@
+<article id="node-{{ node.id }}" class="{{ attributes.class }} clearfix" role="article"{{ attributes|without('id', 'class', 'role') }}>
+
+  <header>
+    {{ title_prefix }}
+    {% if not page %}
+      <h2{{ title_attributes }}>
+        <a href="{{ node_url }}">{{ label }}</a>
+      </h2>
+    {% endif %}
+    {{ title_suffix }}
+
+    {% if display_submitted %}
+      <div class="meta submitted">
+        {{ user_picture }}
+        <span class="glyphicon glyphicon-calendar"></span> {{ submitted }}
+      </div>
+    {% endif %}
+  </header>
+
+  <div class="content clearfix"{{ content_attributes }}>
+    {{ content|without('links') }}
+  </div>
+
+  {% if content.links %}
+    <footer class="link-wrapper">
+      {{ content.links }}
+    </footer>
+  {% endif %}
+
+</article>

@@ -1,0 +1,13 @@
+id: entity_test.entity_test.field_test_import_2
+langcode: und
+field_name: field_test_import_2
+entity_type: entity_test
+bundle: entity_test
+label: 'Test import field 2 on entity_test bundle'
+description: ''
+required: false
+default_value: {  }
+default_value_function: ''
+settings:
+  text_processing: 0
+field_type: text

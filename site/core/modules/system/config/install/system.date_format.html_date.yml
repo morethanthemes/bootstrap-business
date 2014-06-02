@@ -1,0 +1,8 @@
+id: html_date
+label: 'HTML Date'
+status: true
+langcode: en
+locked: true
+pattern:
+  php: Y-m-d
+  intl: yyyy-MM-dd

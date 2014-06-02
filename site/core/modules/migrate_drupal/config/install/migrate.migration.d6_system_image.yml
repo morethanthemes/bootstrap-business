@@ -1,0 +1,11 @@
+id: d6_system_image
+label: Drupal 6 image toolkit configuration
+source:
+  plugin: variable
+  variables:
+    - image_toolkit
+process:
+  toolkit: image_toolkit
+destination:
+  plugin: config
+  config_name: system.image

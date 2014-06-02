@@ -1,0 +1,21 @@
+{#
+/**
+ * @file
+ * Default theme implementation for a text format-enabled form element.
+ *
+ * Available variables:
+ * - children: Text format element children.
+ * - description: Text format element description.
+ * - attributes: HTML attributes for the containing element.
+ *
+ * @see template_preprocess_text_format_wrapper()
+ *
+ * @ingroup themeable
+ */
+#}
+<div class="text-format-wrapper form-item">
+  {{ children }}
+  {% if description %}
+    <div{{ attributes }}>{{ description }}</div>
+  {% endif %}
+</div>

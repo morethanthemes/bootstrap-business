@@ -1,0 +1,100 @@
+update.settings:
+  path: '/admin/reports/updates/settings'
+  defaults:
+    _form: '\Drupal\update\UpdateSettingsForm'
+    _title: 'Settings'
+  requirements:
+    _permission: 'administer site configuration'
+
+update.status:
+  path: '/admin/reports/updates'
+  defaults:
+    _content: '\Drupal\update\Controller\UpdateController::updateStatus'
+    _title: 'Available updates'
+  requirements:
+    _permission: 'administer site configuration'
+
+update.manual_status:
+  path: '/admin/reports/updates/check'
+  defaults:
+    _title: 'Manual update check'
+    _content: '\Drupal\update\Controller\UpdateController::updateStatusManually'
+  requirements:
+    _permission: 'administer site configuration'
+
+update.report_install:
+  path: '/admin/reports/updates/install'
+  defaults:
+    _content: '\Drupal\update\Form\UpdateForm::reportInstall'
+    _title: 'Install'
+  options:
+    _access_mode: 'ALL'
+  requirements:
+    _permission: 'administer software updates'
+    _access_update_manager: 'TRUE'
+
+update.report_update:
+  path: '/admin/reports/updates/update'
+  defaults:
+    _content: '\Drupal\update\Form\UpdateForm::reportUpdate'
+    _title: 'Update'
+  options:
+    _access_mode: 'ALL'
+  requirements:
+    _permission: 'administer software updates'
+    _access_update_manager: 'TRUE'
+
+update.module_install:
+  path: '/admin/modules/install'
+  defaults:
+    _content: '\Drupal\update\Form\UpdateForm::moduleInstall'
+    _title: 'Install new module'
+  options:
+    _access_mode: 'ALL'
+  requirements:
+    _permission: 'administer software updates'
+    _access_update_manager: 'TRUE'
+
+update.module_update:
+  path: '/admin/modules/update'
+  defaults:
+    _content: '\Drupal\update\Form\UpdateForm::moduleUpdate'
+    _title: 'Update'
+  options:
+    _access_mode: 'ALL'
+  requirements:
+    _permission: 'administer software updates'
+    _access_update_manager: 'TRUE'
+
+update.theme_install:
+  path: '/admin/theme/install'
+  defaults:
+    _content: '\Drupal\update\Form\UpdateForm::themeInstall'
+    _title: 'Install new theme'
+  options:
+    _access_mode: 'ALL'
+  requirements:
+    _permission: 'administer software updates'
+    _access_update_manager: 'TRUE'
+
+update.theme_update:
+  path: '/admin/theme/update'
+  defaults:
+    _content: '\Drupal\update\Form\UpdateForm::themeUpdate'
+    _title: 'Update'
+  options:
+    _access_mode: 'ALL'
+  requirements:
+    _permission: 'administer software updates'
+    _access_update_manager: 'TRUE'
+
+update.confirmation_page:
+  path: '/admin/update/ready'
+  defaults:
+    _content: '\Drupal\update\Form\UpdateForm::confirmUpdates'
+    _title: 'Ready to update'
+  options:
+    _access_mode: 'ALL'
+  requirements:
+    _permission: 'administer software updates'
+    _access_update_manager: 'TRUE'

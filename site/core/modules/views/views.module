@@ -1,0 +1,1088 @@
+<?php
+
+/**
+ * @file
+ * Primarily Drupal hooks and global API functions to manipulate views.
+ *
+ * This is the main module file for Views. The main entry points into
+ * this module are views_page() and views_block(), where it handles
+ * incoming page and block requests.
+ */
+
+use Drupal\Component\Utility\String;
+use Drupal\Core\Cache\Cache;
+use Drupal\Core\Database\Query\AlterableInterface;
+use Drupal\Core\Language\Language;
+use Drupal\Core\Render\Element;
+use Drupal\views\Plugin\Derivative\ViewsLocalTask;
+use Drupal\Core\Template\AttributeArray;
+use Drupal\views\ViewExecutable;
+use Drupal\Component\Plugin\Exception\PluginException;
+use Drupal\views\Entity\View;
+use Drupal\views\Views;
+use Drupal\field\FieldInstanceConfigInterface;
+use Symfony\Component\HttpFoundation\Request;
+
+/**
+ * Implements hook_help().
+ */
+function views_help($route_name, Request $request) {
+  switch ($route_name) {
+    case 'help.page.views':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('The Views module provides a back end to fetch information from content, user accounts, taxonomy terms, and other entities from the database and present it to the user as a grid, HTML list, table, unformatted list, etc. The resulting displays are known generally as <em>views</em>.') . '</p>';
+      $output .= '<p>' . t('For more information, see the <a href="!views">online documentation for the Views module</a>.', array('!views' => 'https://drupal.org/documentation/modules/views')) . '</p>';
+      $output .= '<p>' . t('In order to create and modify your own views using the administration and configuration user interface, you will need to enable either the Views UI module in core or a contributed module that provides a user interface for Views. See the <a href="!views-ui">Views UI module help page</a> for more information.', array('!views-ui' => \Drupal::url('help.page', array('name' => 'views_ui')))) . '</p>';
+      $output .= '<h3>' . t('Uses') . '</h3>';
+      $output .= '<dl>';
+      $output .= '<dt>' . t('Adding functionality to administrative pages') . '</dt>';
+      $output .= '<dd>' . t('The Views module adds functionality to some core administration pages. For example, <em>admin/content</em> uses Views to filter and sort content. With Views uninstalled, <em>admin/content</em> is more limited.') . '</dd>';
+      $output .= '<dt>' . t('Expanding Views functionality') . '</dt>';
+      $output .= '<dd>' . t('Contributed projects that support the Views module can be found in the <a href="!node">online documentation for Views-related contributed modules</a>.', array('!node' => 'https://drupal.org/documentation/modules/views/add-ons')) . '</dd>';
+      $output .= '</dl>';
+      return $output;
+  }
+}
+
+/**
+ * Implements hook_element_info().
+ */
+function views_element_info() {
+  $types['view'] = array(
+    '#theme_wrappers' => array('container'),
+    '#pre_render' => array('views_pre_render_view_element'),
+    '#name' => NULL,
+    '#display_id' => 'default',
+    '#arguments' => array(),
+  );
+  return $types;
+}
+
+/**
+ * Implements hook_views_pre_render().
+ */
+function views_views_pre_render($view) {
+  // If using AJAX, send identifying data about this view.
+  if ($view->ajaxEnabled() && empty($view->is_attachment) && empty($view->live_preview)) {
+    $settings = array(
+      'views' => array(
+        'ajax_path' => url('views/ajax'),
+        'ajaxViews' => array(
+          'views_dom_id:' . $view->dom_id => array(
+            'view_name' => $view->storage->id(),
+            'view_display_id' => $view->current_display,
+            'view_args' => String::checkPlain(implode('/', $view->args)),
+            'view_path' => String::checkPlain(current_path()),
+            'view_base_path' => $view->getPath(),
+            'view_dom_id' => $view->dom_id,
+            // To fit multiple views on a page, the programmer may have
+            // overridden the display's pager_element.
+            'pager_element' => isset($view->pager) ? $view->pager->getPagerId() : 0,
+          ),
+        ),
+      ),
+    );
+    $view->element['#attached']['js'][] = array('type' => 'setting', 'data' => $settings);
+    $view->element['#attached']['library'][] = 'views/views.ajax';
+  }
+
+  return $view;
+}
+
+/**
+ * View element pre render callback.
+ */
+function views_pre_render_view_element($element) {
+  $element['#attributes']['class'][] = 'views-element-container';
+
+  $view = Views::getView($element['#name']);
+  if ($view && $view->access($element['#display_id'])) {
+    $element['view'] = $view->preview($element['#display_id'], $element['#arguments']);
+  }
+
+  return $element;
+}
+
+/**
+ * Implements hook_theme().
+ *
+ * Register views theming functions and those that are defined via views plugin
+ * definitions.
+ */
+function views_theme($existing, $type, $theme, $path) {
+  \Drupal::moduleHandler()->loadInclude('views', 'inc', 'views.theme');
+
+  // Some quasi clever array merging here.
+  $base = array(
+    'file' => 'views.theme.inc',
+  );
+
+  // Our extra version of pager from pager.inc
+  $hooks['views_mini_pager'] = $base + array(
+    'variables' => array('tags' => array(), 'quantity' => 10, 'element' => 0, 'parameters' => array()),
+    'template' => 'views-mini-pager',
+  );
+
+  $variables = array(
+    // For displays, we pass in a dummy array as the first parameter, since
+    // $view is an object but the core contextual_preprocess() function only
+    // attaches contextual links when the primary theme argument is an array.
+    'display' => array('view_array' => array(), 'view' => NULL),
+    'style' => array('view' => NULL, 'options' => NULL, 'rows' => NULL, 'title' => NULL),
+    'row' => array('view' => NULL, 'options' => NULL, 'row' => NULL, 'field_alias' => NULL),
+    'exposed_form' => array('view' => NULL, 'options' => NULL),
+    'pager' => array(
+      'view' => NULL, 'options' => NULL,
+      'tags' => array(), 'quantity' => 10, 'element' => 0, 'parameters' => array()
+    ),
+  );
+
+  // Default view themes
+  $hooks['views_view_field'] = $base + array(
+    'variables' => array('view' => NULL, 'field' => NULL, 'row' => NULL),
+  );
+  $hooks['views_view_grouping'] = $base + array(
+    'variables' => array('view' => NULL, 'grouping' => NULL, 'grouping_level' => NULL, 'rows' => NULL, 'title' => NULL),
+    'template' => 'views-view-grouping',
+  );
+
+  $plugins = Views::getPluginDefinitions();
+  $module_handler = \Drupal::moduleHandler();
+
+  // Register theme functions for all style plugins. It provides a basic auto
+  // implementation of theme functions or template files by using the plugin
+  // definitions (theme, theme_file, module, register_theme). Template files are
+  // assumed to be located in the templates folder.
+  foreach ($plugins as $type => $info) {
+    foreach ($info as $def) {
+      // Not all plugins have theme functions, and they can also explicitly
+      // prevent a theme function from being registered automatically.
+      if (!isset($def['theme']) || empty($def['register_theme'])) {
+        continue;
+      }
+      // For each theme registration we a base directory to look for the
+      // templates folder. This will be in any case the root of the given module
+      // so we always need a module definition.
+      // @todo: watchdog or exception?
+      if (!isset($def['provider']) || !$module_handler->moduleExists($def['provider'])) {
+        continue;
+      }
+
+      $hooks[$def['theme']] = array(
+        'variables' => $variables[$type],
+      );
+
+      // For the views module we ensure views.theme.inc is included.
+      if ($def['provider'] == 'views') {
+        $def['theme_file'] = 'views.theme.inc';
+      }
+      // We always use the module directory as base dir.
+      $module_dir = drupal_get_path('module', $def['provider']);
+
+      // The theme_file definition is always relative to the modules directory.
+      if (isset($def['theme_file'])) {
+        $hooks[$def['theme']]['path'] = $module_dir;
+        $hooks[$def['theme']]['file'] = $def['theme_file'];
+      }
+      // Whenever we got a theme file, we include it directly so we can
+      // auto-detect the theme function.
+      if (isset($def['theme_file'])) {
+        $include = DRUPAL_ROOT . '/' . $module_dir. '/' . $def['theme_file'];
+        if (is_file($include)) {
+          require_once $include;
+        }
+      }
+     // If there is no theme function for the given theme definition, we assume
+     // a template file shall be used. By default this file is located in the
+     // /templates directory of the module's folder.
+     // If a module wants to define its own location it has to set
+     // register_theme of the plugin to FALSE and implement hook_theme() by
+     // itself.
+      if (!function_exists('theme_' . $def['theme'])) {
+        $hooks[$def['theme']]['path'] = $module_dir;
+        $hooks[$def['theme']]['template'] = 'templates/' . drupal_clean_css_identifier($def['theme']);
+      }
+    }
+  }
+
+  $hooks['views_form_views_form'] = $base + array(
+    'render element' => 'form',
+  );
+
+  $hooks['views_exposed_form'] = $base + array(
+    'template' => 'views-exposed-form',
+    'render element' => 'form',
+  );
+
+  $hooks['views_more'] = $base + array(
+    'variables' => array('more_url' => NULL, 'link_text' => 'more', 'view' => NULL),
+    'template' => 'views-more',
+  );
+
+  return $hooks;
+}
+
+/**
+ * A theme preprocess function to automatically allow view-based node
+ * templates if called from a view.
+ *
+ * The 'modules/node.views.inc' file is a better place for this, but
+ * we haven't got a chance to load that file before Drupal builds the
+ * node portion of the theme registry.
+ */
+function views_preprocess_node(&$variables) {
+  \Drupal::moduleHandler()->loadInclude('node', 'views.inc');
+  // The 'view' attribute of the node is added in
+  // \Drupal\views\Plugin\views\row\EntityRow::preRender().
+  if (!empty($variables['node']->view) && $variables['node']->view->storage->id()) {
+    $variables['view'] = $variables['node']->view;
+    // If a node is being rendered in a view, and the view does not have a path,
+    // prevent drupal from accidentally setting the $page variable:
+    if (!empty($variables['view']->current_display)
+        && $variables['page']
+        && $variables['view_mode'] == 'full'
+        && !$variables['view']->display_handler->hasPath()) {
+      $variables['page'] = FALSE;
+    }
+  }
+
+  // Allow to alter comments and links based on the settings in the row plugin.
+  if (!empty($variables['view']->rowPlugin) && $variables['view']->rowPlugin->getPluginId() == 'entity:node') {
+    node_row_node_view_preprocess_node($variables);
+  }
+}
+
+/**
+ * Implements hook_theme_suggestions_HOOK_alter().
+ */
+function views_theme_suggestions_node_alter(array &$suggestions, array $variables) {
+  $node = $variables['elements']['#node'];
+  if (!empty($node->view) && $node->view->storage->id()) {
+    $suggestions[] = 'node__view__' . $node->view->storage->id();
+    if (!empty($node->view->current_display)) {
+      $suggestions[] = 'node__view__' . $node->view->storage->id() . '__' . $node->view->current_display;
+    }
+  }
+}
+
+/**
+ * A theme preprocess function to automatically allow view-based node
+ * templates if called from a view.
+ */
+function views_preprocess_comment(&$variables) {
+  // The view data is added to the comment in
+  // \Drupal\views\Plugin\views\row\EntityRow::preRender().
+  if (!empty($variables['comment']->view) && $variables['comment']->view->storage->id()) {
+    $variables['view'] = $variables['comment']->view;
+  }
+}
+
+/**
+ * Implements hook_theme_suggestions_HOOK_alter().
+ */
+function views_theme_suggestions_comment_alter(array &$suggestions, array $variables) {
+  $comment = $variables['elements']['#comment'];
+  if (!empty($comment->view) && $comment->view->storage->id()) {
+    $suggestions[] = 'comment__view__' . $comment->view->storage->id();
+    if (!empty($comment->view->current_display)) {
+      $suggestions[] = 'comment__view__' . $comment->view->storage->id() . '__' . $comment->view->current_display;
+    }
+  }
+}
+
+/**
+ * Implements hook_permission().
+ */
+function views_permission() {
+  return array(
+    'access all views' => array(
+      'title' => t('Bypass views access control'),
+      'description' => t('Bypass access control when accessing views.'),
+      'restrict access' => TRUE,
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu_link_defaults_alter().
+ */
+function views_menu_link_defaults_alter(array &$links) {
+  // @todo Decide what to do with all the crazy logic in views_menu_alter() in
+  // https://drupal.org/node/2107533.
+  $views = Views::getApplicableViews('uses_hook_menu');
+  foreach ($views as $data) {
+    /** @var \Drupal\views\ViewExecutable $view */
+    list($view, $display_id) = $data;
+    $result = $view->executeHookMenuLinkDefaults($display_id, $links);
+    foreach ($result as $link_id => $link) {
+      $links[$link_id] = $link;
+    }
+  }
+}
+
+/**
+ * Implements hook_page_alter().
+ */
+function views_page_alter(&$page) {
+  // If the main content of this page contains a view, attach its contextual
+  // links to the overall page array. This allows them to be rendered directly
+  // next to the page title.
+  if ($view = views_get_page_view()) {
+    views_add_contextual_links($page, 'page', $view, $view->current_display);
+  }
+}
+
+/**
+ * Implements MODULE_preprocess_HOOK().
+ */
+function views_preprocess_page(&$variables) {
+  // Early-return to prevent adding unnecessary JavaScript.
+  if (!user_access('access contextual links')) {
+    return;
+  }
+
+  // If the page contains a view as its main content, contextual links may have
+  // been attached to the page as a whole; for example, by views_page_alter().
+  // This allows them to be associated with the page and rendered by default
+  // next to the page title (which we want). However, it also causes the
+  // Contextual Links module to treat the wrapper for the entire page (i.e.,
+  // the <body> tag) as the HTML element that these contextual links are
+  // associated with. This we don't want; for better visual highlighting, we
+  // prefer a smaller region to be chosen. The region we prefer differs from
+  // theme to theme and depends on the details of the theme's markup in
+  // page.html.twig, so we can only find it using JavaScript. We therefore
+  // remove the "contextual-region" class from the <body> tag here and add
+  // JavaScript that will insert it back in the correct place.
+  if (!empty($variables['page']['#views_contextual_links']) && isset($variables['attributes']['class'])) {
+    /** @var \Drupal\Core\Page\HtmlPage $page_object */
+    $page_object = $variables['page']['#page'];
+    $attributes = $page_object->getBodyAttributes();
+    $class = $attributes['class'] ?: array();
+
+    $key = array_search('contextual-region', $variables['attributes']['class'] instanceof AttributeArray ? $variables['attributes']['class']->value() : $variables['attributes']['class']);
+    if ($key !== FALSE) {
+      /** @var \Drupal\Core\Page\HtmlPage $page_object */
+      unset($class[$key]);
+      $attributes['class'] = $class;
+      $attributes['data-views-page-contextual-id'] = $variables['title_suffix']['contextual_links']['#id'];
+      $attached['#attached']['library'][] = 'views/views.contextual-links';
+      drupal_render($attached);
+    }
+  }
+}
+
+/**
+ * Adds contextual links associated with a view display to a renderable array.
+ *
+ * This function should be called when a view is being rendered in a particular
+ * location and you want to attach the appropriate contextual links (e.g.,
+ * links for editing the view) to it.
+ *
+ * The function operates by checking the view's display plugin to see if it has
+ * defined any contextual links that are intended to be displayed in the
+ * requested location; if so, it attaches them. The contextual links intended
+ * for a particular location are defined by the 'contextual links' and
+ * 'contextual_links_locations' properties in the plugin annotation; as a
+ * result, these hook implementations have full control over where and how
+ * contextual links are rendered for each display.
+ *
+ * In addition to attaching the contextual links to the passed-in array (via
+ * the standard #contextual_links property), this function also attaches
+ * additional information via the #views_contextual_links_info property. This
+ * stores an array whose keys are the names of each module that provided
+ * views-related contextual links (same as the keys of the #contextual_links
+ * array itself) and whose values are themselves arrays whose keys ('location',
+ * 'view_name', and 'view_display_id') store the location, name of the view,
+ * and display ID that were passed in to this function. This allows you to
+ * access information about the contextual links and how they were generated in
+ * a variety of contexts where you might be manipulating the renderable array
+ * later on (for example, alter hooks which run later during the same page
+ * request).
+ *
+ * @param $render_element
+ *   The renderable array to which contextual links will be added. This array
+ *   should be suitable for passing in to drupal_render() and will normally
+ *   contain a representation of the view display whose contextual links are
+ *   being requested.
+ * @param $location
+ *   The location in which the calling function intends to render the view and
+ *   its contextual links. The core system supports three options for this
+ *   parameter:
+ *   - 'block': Used when rendering a block which contains a view. This
+ *     retrieves any contextual links intended to be attached to the block
+ *     itself.
+ *   - 'page': Used when rendering the main content of a page which contains a
+ *     view. This retrieves any contextual links intended to be attached to the
+ *     page itself (for example, links which are displayed directly next to the
+ *     page title).
+ *   - 'view': Used when rendering the view itself, in any context. This
+ *     retrieves any contextual links intended to be attached directly to the
+ *     view.
+ *   If you are rendering a view and its contextual links in another location,
+ *   you can pass in a different value for this parameter. However, you will
+ *   also need to set 'contextual_links_locations' in your plugin annotation to
+ *   indicate which view displays support having their contextual links
+ *   rendered in the location you have defined.
+ * @param $view
+ *   The view whose contextual links will be added.
+ * @param $display_id
+ *   The ID of the display within $view whose contextual links will be added.
+ *
+ * @see \Drupal\views\Plugin\block\block\ViewsBlock::addContextualLinks()
+ * @see views_page_alter()
+ * @see template_preprocess_views_view()
+ */
+function views_add_contextual_links(&$render_element, $location, ViewExecutable $view, $display_id) {
+  // Do not do anything if the view is configured to hide its administrative
+  // links.
+  if ($view->getShowAdminLinks()) {
+    // Also do not do anything if the display plugin has not defined any
+    // contextual links that are intended to be displayed in the requested
+    // location.
+    $plugin_id = $view->displayHandlers->get($display_id)->getPluginId();
+    $plugin = Views::pluginManager('display')->getDefinition($plugin_id);
+    // If contextual_links_locations are not set, provide a sane default. (To
+    // avoid displaying any contextual links at all, a display plugin can still
+    // set 'contextual_links_locations' to, e.g., {""}.)
+
+    if (!isset($plugin['contextual_links_locations'])) {
+      $plugin['contextual_links_locations'] = array('view');
+    }
+    elseif ($plugin['contextual_links_locations'] == array() || $plugin['contextual_links_locations'] == array('')) {
+      $plugin['contextual_links_locations'] = array();
+    }
+    else {
+      $plugin += array('contextual_links_locations' => array('view'));
+    }
+
+    // On exposed_forms blocks contextual links should always be visible.
+    $plugin['contextual_links_locations'][] = 'exposed_filter';
+    $has_links = !empty($plugin['contextual links']) && !empty($plugin['contextual_links_locations']);
+    if ($has_links && in_array($location, $plugin['contextual_links_locations'])) {
+      foreach ($plugin['contextual links'] as $group => $link) {
+        $args = array();
+        $valid = TRUE;
+        if (!empty($link['route_parameters_names'])) {
+          foreach ($link['route_parameters_names'] as $parameter_name => $property) {
+            // If the plugin is trying to create an invalid contextual link
+            // (for example, "path/to/{$view->storage->property}", where
+            // $view->storage->{property} does not exist), we cannot construct
+            // the link, so we skip it.
+            if (!property_exists($view->storage, $property)) {
+              $valid = FALSE;
+              break;
+            }
+            else {
+              $args[$parameter_name] = $view->storage->{$property};
+            }
+          }
+        }
+        // If the link was valid, attach information about it to the renderable
+        // array.
+        if ($valid) {
+          $render_element['#views_contextual_links'] = TRUE;
+          $render_element['#contextual_links'][$group] = array(
+            'route_parameters' => $args,
+            'metadata' => array(
+              'location' => $location,
+              'name' => $view->storage->id(),
+              'display_id' => $display_id,
+            ),
+          );
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Prepares a list of language names.
+ *
+ * This is a wrapper around \Drupal::languageManager()->getLanguages() to return
+ * a plain key value array.
+ *
+ * @param string $field
+ *   The field of the language object which should be used as the value of the
+ *   array.
+ * @param int $flags
+ *   (optional) Specifies the state of the languages that have to be returned.
+ *   It can be: Language::STATE_CONFIGURABLE, Language::STATE_LOCKED,
+ *   Language::STATE_ALL.
+ *
+ * @return array
+ *   An array of language names (or $field) keyed by the langcode.
+ *
+ * @see locale_language_list()
+ */
+function views_language_list($field = 'name', $flags = Language::STATE_ALL) {
+  $languages = \Drupal::languageManager()->getLanguages($flags);
+  $list = array();
+  foreach ($languages as $language) {
+    $list[$language->id] = ($field == 'name') ? t($language->name) : $language->$field;
+  }
+  return $list;
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_create() for 'field_instance_config'.
+ */
+function views_field_instance_config_create(FieldInstanceConfigInterface $field_instance) {
+  // @todo: Is this necessary? Use cache tags to only delete Views' cache data?
+  \Drupal::cache('discovery')->deleteAll();
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_update() for 'field_instance_config'.
+ */
+function views_field_instance_config_update(FieldInstanceConfigInterface $field_instance) {
+  Cache::deleteTags(array('extension' => 'views'));
+  \Drupal::cache('render')->deleteAll();
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_delete() for 'field_instance_config'.
+ */
+function views_field_instance_config_delete(FieldInstanceConfigInterface $field_instance) {
+  Cache::deleteTags(array('extension' => 'views'));
+  \Drupal::cache('render')->deleteAll();
+}
+
+/**
+ * Invalidate the views cache, forcing a rebuild on the next grab of table data.
+ */
+function views_invalidate_cache() {
+  // Clear the page and block cache and Views' info cache entries.
+  Cache::deleteTags(array('content' => TRUE, 'extension' => 'views'));
+
+  // Set the menu as needed to be rebuilt.
+  \Drupal::service('router.builder')->setRebuildNeeded();
+
+  $module_handler = \Drupal::moduleHandler();
+
+  // Reset the RouteSubscriber from views.
+  \Drupal::getContainer()->get('views.route_subscriber')->reset();
+
+  // Invalidate the block cache to update views block derivatives.
+  if ($module_handler->moduleExists('block')) {
+    \Drupal::service('plugin.manager.block')->clearCachedDefinitions();
+  }
+
+  // Allow modules to respond to the Views cache being cleared.
+  $module_handler->invokeAll('views_invalidate_cache');
+}
+
+/**
+ * Set the current 'page view' that is being displayed so that it is easy
+ * for other modules or the theme to identify.
+ */
+function &views_set_page_view($view = NULL) {
+  static $cache = NULL;
+  if (isset($view)) {
+    $cache = $view;
+  }
+
+  return $cache;
+}
+
+/**
+ * Find out what, if any, page view is currently in use.
+ *
+ * Note that this returns a reference, so be careful! You can unintentionally
+ * modify the $view object.
+ *
+ * @return \Drupal\views\ViewExecutable
+ *   A fully formed, empty $view object.
+ */
+function &views_get_page_view() {
+  return views_set_page_view();
+}
+
+/**
+ * Set the current 'current view' that is being built/rendered so that it is
+ * easy for other modules or items in drupal_eval to identify
+ *
+ * @return \Drupal\views\ViewExecutable
+ */
+function &views_set_current_view($view = NULL) {
+  static $cache = NULL;
+  if (isset($view)) {
+    $cache = $view;
+  }
+
+  return $cache;
+}
+
+/**
+ * Find out what, if any, current view is currently in use.
+ *
+ * Note that this returns a reference, so be careful! You can unintentionally
+ * modify the $view object.
+ *
+ * @return \Drupal\views\ViewExecutable
+ *   The current view object.
+ */
+function &views_get_current_view() {
+  return views_set_current_view();
+}
+
+/**
+ * Implements hook_hook_info().
+ */
+function views_hook_info() {
+  $hooks = array();
+
+  $hooks += array_fill_keys(array(
+    'views_data',
+    'views_data_alter',
+    'views_analyze',
+    'views_invalidate_cache',
+  ), array('group' => 'views'));
+
+  // Register a views_plugins alter hook for all plugin types.
+  foreach (ViewExecutable::getPluginTypes() as $type) {
+    $hooks['views_plugins_' . $type . '_alter'] = array(
+      'group' => 'views',
+    );
+  }
+
+  $hooks += array_fill_keys(array(
+    'views_query_substitutions',
+    'views_form_substitutions',
+    'views_pre_view',
+    'views_pre_build',
+    'views_post_build',
+    'views_pre_execute',
+    'views_post_execute',
+    'views_pre_render',
+    'views_post_render',
+    'views_query_alter',
+  ), array('group' => 'views_execution'));
+
+  return $hooks;
+}
+
+/**
+ * Fetch a list of all base tables available
+ *
+ * @param $type
+ *   Either 'display', 'style' or 'row'
+ * @param $key
+ *   For style plugins, this is an optional type to restrict to. May be 'normal',
+ *   'summary', 'feed' or others based on the neds of the display.
+ * @param $base
+ *   An array of possible base tables.
+ *
+ * @return
+ *   A keyed array of in the form of 'base_table' => 'Description'.
+ *
+ * @deprecated in Drupal 8.x-dev, will be removed before Drupal 8.0.
+ *   Use \Drupal\views\Views::fetchPluginNames().
+ */
+function views_fetch_plugin_names($type, $key = NULL, $base = array()) {
+  return Views::fetchPluginNames($type, $key, $base);
+}
+
+/**
+ * Gets all the views plugin definitions.
+ *
+ * @return array
+ *   An array of plugin definitions for all types.
+ *
+ * @deprecated in Drupal 8.x-dev, will be removed before Drupal 8.0.
+ *   Use \Drupal\views\Views::getPluginDefinitions().
+ */
+function views_get_plugin_definitions() {
+  return Views::getPluginDefinitions();
+}
+
+/**
+ * Returns a list of plugins and metadata about them.
+ *
+ * @return array
+ *   An array keyed by PLUGIN_TYPE:PLUGIN_NAME, like 'display:page' or
+ *   'pager:full', containing an array with the following keys:
+ *   - title: The plugin's title.
+ *   - type: The plugin type.
+ *   - module: The module providing the plugin.
+ *   - views: An array of enabled Views that are currently using this plugin,
+ *     keyed by machine name.
+ *
+ * @deprecated in Drupal 8.x-dev, will be removed before Drupal 8.0.
+ *   Use \Drupal\views\Views::pluginList().
+ */
+function views_plugin_list() {
+  return Views::pluginList();
+}
+
+/**
+ * Get enabled display extenders.
+ *
+ * @deprecated in Drupal 8.x-dev, will be removed before Drupal 8.0.
+ *   Use \Drupal\views\Views::getEnabledDisplayExtenders().
+ */
+function views_get_enabled_display_extenders() {
+  return Views::getEnabledDisplayExtenders();
+}
+
+/**
+ * Return a list of all views and display IDs that have a particular
+ * setting in their display's plugin settings.
+ *
+ * @param string $type
+ *   A flag from the display plugin definitions (e.g, 'uses_hook_menu').
+ *
+ * @return array
+ *   A list of arrays containing the $view and $display_id.
+ * @code
+ * array(
+ *   array($view, $display_id),
+ *   array($view, $display_id),
+ * );
+ * @endcode
+ *
+ * @deprecated in Drupal 8.x-dev, will be removed before Drupal 8.0.
+ *   Use \Drupal\views\Views::getApplicableViews().
+ */
+function views_get_applicable_views($type) {
+  return Views::getApplicableViews($type);
+}
+
+/**
+ * Returns an array of all views as fully loaded $view objects.
+ *
+ * @deprecated in Drupal 8.x-dev, will be removed before Drupal 8.0.
+ *   Use \Drupal\views\Views::getAllViews().
+ */
+function views_get_all_views() {
+  return Views::getAllViews();
+}
+
+/**
+ * Returns an array of all enabled views, as fully loaded $view objects.
+ *
+ * @deprecated in Drupal 8.x-dev, will be removed before Drupal 8.0.
+ *   Use \Drupal\views\Views::getEnabledViews().
+ */
+function views_get_enabled_views() {
+  return Views::getEnabledViews();
+}
+
+/**
+ * Returns an array of all disabled views, as fully loaded $view objects.
+ *
+ * @deprecated in Drupal 8.x-dev, will be removed before Drupal 8.0.
+ *   Use \Drupal\views\Views::getDisabledViews().
+ */
+function views_get_disabled_views() {
+  return Views::getDisabledViews();
+}
+
+/**
+ * Return an array of view as options array, that can be used by select,
+ * checkboxes and radios as #options.
+ *
+ * @param bool $views_only
+ *  If TRUE, only return views, not displays.
+ * @param string $filter
+ *  Filters the views on status. Can either be 'all' (default), 'enabled' or
+ *  'disabled'
+ * @param  mixed $exclude_view
+ *  view or current display to exclude
+ *  either a
+ *  - views object (containing $exclude_view->storage->name and $exclude_view->current_display)
+ *  - views name as string:  e.g. my_view
+ *  - views name and display id (separated by ':'): e.g. my_view:default
+ * @param bool $optgroup
+ *  If TRUE, returns an array with optgroups for each view (will be ignored for
+ *  $views_only = TRUE). Can be used by select
+ * @param bool $sort
+ *  If TRUE, the list of views is sorted ascending.
+ *
+ * @return array
+ *  an associative array for use in select.
+ *  - key: view name and display id separated by ':', or the view name only
+ *
+ * @deprecated in Drupal 8.x-dev, will be removed before Drupal 8.0.
+ *   Use \Drupal\views\Views::getViewsAsOptions().
+ */
+function views_get_views_as_options($views_only = FALSE, $filter = 'all', $exclude_view = NULL, $optgroup = FALSE, $sort = FALSE) {
+  return Views::getViewsAsOptions($views_only, $filter, $exclude_view, $optgroup, $sort);
+}
+
+/**
+ * Returns whether the view is enabled.
+ *
+ * @param \Drupal\views\Entity\View $view
+ *   The view object to check.
+ *
+ * @return bool
+ *   Returns TRUE if a view is enabled, FALSE otherwise.
+ */
+function views_view_is_enabled(View $view) {
+  return $view->status();
+}
+
+/**
+ * Returns whether the view is disabled.
+ *
+ * @param \Drupal\views\Entity\View $view
+ *   The view object to check.
+ *
+ * @return bool
+ *   Returns TRUE if a view is disabled, FALSE otherwise.
+ */
+function views_view_is_disabled(View $view) {
+  return !$view->status();
+}
+
+/**
+ * Enables and saves a view.
+ *
+ * @param \Drupal\views\Entity\View $view
+ *   The View object to disable.
+ */
+function views_enable_view(View $view) {
+  $view->enable()->save();
+}
+
+/**
+ * Disables and saves a view.
+ *
+ * @param \Drupal\views\Entity\View $view
+ *   The View object to disable.
+ */
+function views_disable_view(View $view) {
+  $view->disable()->save();
+}
+
+/**
+ * Loads a view from configuration.
+ *
+ * @param string $name
+ *   The name of the view.
+ *
+ * @return \Drupal\views\ViewExecutable
+ *   A reference to the $view object.
+ *
+ * @deprecated in Drupal 8.x-dev, will be removed before Drupal 8.0.
+ *   Use \Drupal\views\Views::getView().
+ */
+function views_get_view($name) {
+  return Views::getView($name);
+}
+
+/**
+ * Replaces views substitution placeholders.
+ *
+ * @param array $element
+ *   An associative array containing the properties of the element.
+ *   Properties used: #substitutions, #children.
+ * @return array
+ *   The $element with prepared variables ready for #theme 'form'
+ *   in views_form_views_form.
+ */
+function views_pre_render_views_form_views_form($element) {
+  // Placeholders and their substitutions (usually rendered form elements).
+  $search = array();
+  $replace = array();
+
+  // Add in substitutions provided by the form.
+  foreach ($element['#substitutions']['#value'] as $substitution) {
+    $field_name = $substitution['field_name'];
+    $row_id = $substitution['row_id'];
+
+    $search[] = $substitution['placeholder'];
+    $replace[] = isset($element[$field_name][$row_id]) ? drupal_render($element[$field_name][$row_id]) : '';
+  }
+  // Add in substitutions from hook_views_form_substitutions().
+  $substitutions = \Drupal::moduleHandler()->invokeAll('views_form_substitutions');
+  foreach ($substitutions as $placeholder => $substitution) {
+    $search[] = $placeholder;
+    $replace[] = $substitution;
+  }
+
+  // Apply substitutions to the rendered output.
+  $element['output']['#markup'] = str_replace($search, $replace, $element['output']['#markup']);
+
+  // Sort, render and add remaining form fields.
+  $children = Element::children($element, TRUE);
+  $element['#children'] = drupal_render_children($element, $children);
+  return $element;
+}
+
+/**
+ * Implement hook_form_alter for the exposed form.
+ *
+ * Since the exposed form is a GET form, we don't want it to send a wide
+ * variety of information.
+ */
+function views_form_views_exposed_form_alter(&$form, &$form_state) {
+  $form['form_build_id']['#access'] = FALSE;
+  $form['form_token']['#access'] = FALSE;
+  $form['form_id']['#access'] = FALSE;
+}
+
+/**
+ * Implements hook_query_TAG_alter().
+ *
+ * This is the hook_query_alter() for queries tagged by Views and is used to
+ * add in substitutions from hook_views_query_substitutions().
+ */
+function views_query_views_alter(AlterableInterface $query) {
+  $substitutions = $query->getMetaData('views_substitutions');
+  $tables = &$query->getTables();
+  $where = &$query->conditions();
+
+  // Replaces substitions in tables.
+  foreach ($tables as $table_name => $table_metadata) {
+    foreach ($table_metadata['arguments'] as $replacement_key => $value) {
+      if (isset($substitutions[$value])) {
+        $tables[$table_name]['arguments'][$replacement_key] = $substitutions[$value];
+      }
+    }
+  }
+
+  // Replaces substitions in filter criteria.
+  _views_query_tag_alter_condition($query, $where, $substitutions);
+}
+
+/**
+ * Replaces the substitutions recursive foreach condition.
+ */
+function _views_query_tag_alter_condition(AlterableInterface $query, &$conditions, $substitutions) {
+  foreach ($conditions as $condition_id => &$condition) {
+    if (is_numeric($condition_id)) {
+      if (is_string($condition['field'])) {
+        $condition['field'] = str_replace(array_keys($substitutions), array_values($substitutions), $condition['field']);
+      }
+      elseif (is_object($condition['field'])) {
+        $sub_conditions = &$condition['field']->conditions();
+        _views_query_tag_alter_condition($query, $sub_conditions, $substitutions);
+      }
+      // $condition['value'] is a subquery so alter the subquery recursive.
+      // Therefore make sure to get the metadata of the main query.
+      if (is_object($condition['value'])) {
+        $subquery = $condition['value'];
+        $subquery->addMetaData('views_substitutions', $query->getMetaData('views_substitutions'));
+        views_query_views_alter($condition['value']);
+      }
+      elseif (isset($condition['value'])) {
+        $condition['value'] = str_replace(array_keys($substitutions), array_values($substitutions), $condition['value']);
+      }
+    }
+  }
+}
+
+/**
+ * Embed a view using a PHP snippet.
+ *
+ * This function is meant to be called from PHP snippets, should one wish to
+ * embed a view in a node or something. It's meant to provide the simplest
+ * solution and doesn't really offer a lot of options, but breaking the function
+ * apart is pretty easy, and this provides a worthwhile guide to doing so.
+ *
+ * Note that this function does NOT display the title of the view. If you want
+ * to do that, you will need to do what this function does manually, by
+ * loading the view, getting the preview and then getting $view->getTitle().
+ *
+ * @param $name
+ *   The name of the view to embed.
+ * @param $display_id
+ *   The display id to embed. If unsure, use 'default', as it will always be
+ *   valid. But things like 'page' or 'block' should work here.
+ * @param ...
+ *   Any additional parameters will be passed as arguments.
+ */
+function views_embed_view($name, $display_id = 'default') {
+  $args = func_get_args();
+  // Remove $name and $display_id from the arguments.
+  unset($args[0], $args[1]);
+
+  $view = Views::getView($name);
+  if (!$view || !$view->access($display_id)) {
+    return;
+  }
+
+  return $view->preview($display_id, $args);
+}
+
+/**
+ * Get the result of a view.
+ *
+ * @param string $name
+ *   The name of the view to retrieve the data from.
+ * @param string $display_id
+ *   The display id. On the edit page for the view in question, you'll find
+ *   a list of displays at the left side of the control area. "Master"
+ *   will be at the top of that list. Hover your cursor over the name of the
+ *   display you want to use. An URL will appear in the status bar of your
+ *   browser. This is usually at the bottom of the window, in the chrome.
+ *   Everything after #views-tab- is the display ID, e.g. page_1.
+ * @param ...
+ *   Any additional parameters will be passed as arguments.
+ * @return array
+ *   An array containing an object for each view item.
+ */
+function views_get_view_result($name, $display_id = NULL) {
+  $args = func_get_args();
+  // Remove $name and $display_id from the arguments.
+  unset($args[0], $args[1]);
+
+  $view = Views::getView($name);
+  if (is_object($view)) {
+    if (is_array($args)) {
+      $view->setArguments($args);
+    }
+    if (is_string($display_id)) {
+      $view->setDisplay($display_id);
+    }
+    else {
+      $view->initDisplay();
+    }
+    $view->preExecute();
+    $view->execute();
+    return $view->result;
+  }
+  else {
+    return array();
+  }
+}
+
+/**
+ * #process callback to see if we need to String::checkPlain() the options.
+ *
+ * Since FAPI is inconsistent, the #options are sanitized for you in all cases
+ * _except_ checkboxes. We have form elements that are sometimes 'select' and
+ * sometimes 'checkboxes', so we need decide late in the form rendering cycle
+ * if the options need to be sanitized before they're rendered. This callback
+ * inspects the type, and if it's still 'checkboxes', does the sanitation.
+ */
+function views_process_check_options($element, &$form_state) {
+  if ($element['#type'] == 'checkboxes' || $element['#type'] == 'checkbox') {
+    $element['#options'] = array_map('\Drupal\Component\Utility\String::checkPlain', $element['#options']);
+  }
+  return $element;
+}
+
+/**
+ * Validation callback for query tags.
+ */
+function views_element_validate_tags($element, &$form_state) {
+  $values = array_map('trim', explode(',', $element['#value']));
+  foreach ($values as $value) {
+    if (preg_match("/[^a-z_]/", $value)) {
+      form_error($element, $form_state, t('The query tags may only contain lower-case alphabetical characters and underscores.'));
+      return;
+    }
+  }
+}
+
+/**
+ * Implements hook_local_tasks_alter().
+ */
+function views_local_tasks_alter(&$local_tasks) {
+  $container = \Drupal::getContainer();
+  $local_task = ViewsLocalTask::create($container, 'views_view');
+  $local_task->alterLocalTasks($local_tasks);
+}

@@ -1,0 +1,13 @@
+id: d6_system_maintenance
+label: Drupal 6 maintainence page configuration
+source:
+  plugin: variable
+  variables:
+    - site_offline
+    - site_offline_message
+process:
+  enable: site_offline
+  message: site_offline_message
+destination:
+  plugin: config
+  config_name: system.maintenance

@@ -1,0 +1,392 @@
+# Schema for the configuration files of the System module.
+
+system.site:
+  type: mapping
+  label: 'Site information'
+  mapping:
+    uuid:
+      type: string
+      label: 'Site UUID'
+    name:
+      type: label
+      label: 'Site name'
+    mail:
+      type: email
+      label: 'E-mail address'
+    slogan:
+      type: label
+      label: 'Slogan'
+    page:
+      type: mapping
+      label: 'Pages'
+      mapping:
+        403:
+          type: path
+          label: 'Default 403 (access denied) page'
+        404:
+          type: path
+          label: 'Default 404 (not found) page'
+        front:
+          type: path
+          label: 'Default front page'
+    admin_compact_mode:
+      type: boolean
+      label: 'Compact mode'
+    weight_select_max:
+      type: integer
+      label: 'Weight element maximum value'
+    langcode:
+      type: string
+      label: 'Default language'
+
+system.maintenance:
+  type: mapping
+  label: 'Maintenance mode'
+  mapping:
+    message:
+      type: text
+      label: 'Message to display when in maintenance mode'
+    langcode:
+      type: string
+      label: 'Default language'
+
+system.authorize:
+  type: mapping
+  label: 'Authorize settings'
+  mapping:
+    filetransfer_default:
+      type: string
+      label: 'Default file transfer protocol'
+
+system.cron:
+  type: mapping
+  label: 'Cron settings'
+  mapping:
+    threshold:
+      type: mapping
+      label: 'Thresholds'
+      mapping:
+        autorun:
+          type: integer
+          label: 'Run cron every'
+        requirements_warning:
+          type: integer
+          label: 'Requirements warning period'
+        requirements_error:
+          type: integer
+          label: 'Requirements error period'
+
+system.date:
+  type: mapping
+  label: 'Date settings'
+  mapping:
+    first_day:
+      type: integer
+      label: 'First day of week'
+    country:
+      type: mapping
+      label: 'Country'
+      mapping:
+        default:
+          type: string
+          label: 'Default country'
+    langcode:
+      type: string
+      label: 'Default language'
+    timezone:
+      type: mapping
+      label: 'Time zone settings'
+      mapping:
+        default:
+          type: string
+          label: 'Default time zone'
+        user:
+          type: mapping
+          label: 'User'
+          mapping:
+            configurable:
+              type: boolean
+              label: 'Users may set their own time zone'
+            default:
+              type: integer
+              label: 'Time zone for new users'
+            warn:
+              type: boolean
+              label: 'Remind users at login if their time zone is not set'
+
+system.date_format.*:
+  type: mapping
+  label: 'Date format'
+  mapping:
+    id:
+      type: string
+      label: 'Date format identifier'
+    uuid:
+      type: string
+      label: 'UUID'
+    label:
+      type: label
+      label: 'Date format label'
+    status:
+      type: boolean
+      label: 'Enabled'
+    locked:
+      type: boolean
+      label: 'Locked'
+    pattern:
+      type: mapping
+      label: 'Format string'
+      mapping:
+        php:
+          type: date_format
+          label: 'PHP date format'
+        intl:
+          type: string
+          label: 'Intl date format'
+    langcode:
+      type: string
+      label: 'Default language'
+
+system.filter:
+  type: mapping
+  label: 'Filter settings'
+  mapping:
+    protocols:
+      type: sequence
+      label: 'Allowed protocols'
+      sequence:
+        - type: string
+          label: 'Protocol'
+
+system.logging:
+  type: mapping
+  label: 'Logging settings'
+  mapping:
+    error_level:
+      type: string
+      label: 'Error messages to display'
+
+system.menu:
+  type: mapping
+  label: 'Menu settings'
+  mapping:
+    active_menus_default:
+      type: sequence
+      label: 'Active menus'
+      sequence:
+        - type: string
+          label: 'Menu'
+
+system.performance:
+  type: mapping
+  label: 'Performance settings'
+  mapping:
+    cache:
+      type: mapping
+      label: 'Caching'
+      mapping:
+        page:
+          type: mapping
+          label: 'Page cache'
+          mapping:
+            use_internal:
+              type: boolean
+              label: 'Use internal page cache'
+            max_age:
+              type: integer
+              label: 'Max age of page cache'
+    css:
+      type: mapping
+      label: 'CSS performance settings'
+      mapping:
+        preprocess:
+          type: boolean
+          label: 'Aggregate CSS files'
+        gzip:
+          type: boolean
+          label: 'Compress CSS files'
+    fast_404:
+      type: mapping
+      label: 'Fast 404 settings'
+      mapping:
+        enabled:
+          type: boolean
+          label: 'Fast 404 enabled'
+        paths:
+          type: string
+          label: 'Regular expression to match'
+        exclude_paths:
+          type: string
+          label: 'Regular expression to not match'
+        html:
+          type: string
+          label: 'Fast 404 page html'
+    js:
+      type: mapping
+      label: 'JavaScript performance settings'
+      mapping:
+        preprocess:
+          type: boolean
+          label: 'JavaScript preprocess'
+        gzip:
+          type: boolean
+          label: 'Compress JavaScript files.'
+    response:
+      type: mapping
+      label: 'Response performance settings'
+      mapping:
+        gzip:
+          type: boolean
+          label: 'Compress cached pages'
+    stale_file_threshold:
+      type: integer
+      label: 'Stale file threshold'
+
+system.rss:
+  type: mapping
+  label: 'Feed settings'
+  mapping:
+    channel:
+      type: mapping
+      label: 'Feed channel'
+      mapping:
+        description:
+          type: text
+          label: 'Feed description'
+    items:
+      type: mapping
+      label: 'Feed items'
+      mapping:
+        limit:
+          type: integer
+          label: 'Feed item limit'
+        view_mode:
+          type: string
+          label: 'Feed content'
+    langcode:
+      type: string
+      label: 'Default language'
+
+system.theme:
+  type: mapping
+  label: 'Theme settings'
+  mapping:
+    admin:
+      type: string
+      label: 'Administration theme'
+    default:
+      type: string
+      label: 'Default theme'
+
+system.menu.*:
+  type: mapping
+  label: 'Menu'
+  mapping:
+    id:
+      type: string
+      label: 'Menu identifier'
+    uuid:
+      type: string
+      label: 'UUID'
+    label:
+      type: label
+      label: 'Menu label'
+    description:
+      type: label
+      label: 'Menu description'
+    langcode:
+      type: string
+      label: 'Default language'
+    locked:
+      type: boolean
+      label: ''
+    status:
+      type: boolean
+      label: ''
+
+system.action.*:
+  type: mapping
+  label: 'System action'
+  mapping:
+    id:
+      type: string
+      label: 'ID'
+    uuid:
+      type: string
+      label: 'UUID'
+    label:
+      type: label
+      label: 'Label'
+    status:
+      type: boolean
+      label: 'Status'
+    langcode:
+      type: string
+      label: 'Default language'
+    type:
+      type: string
+      label: 'Type'
+    plugin:
+      type: string
+      label: 'Plugin'
+    configuration:
+      type: action.configuration.[%parent.plugin]
+    dependencies:
+      type: config_dependencies
+      label: 'Dependencies'
+
+system.file:
+  type: mapping
+  label: 'File system'
+  mapping:
+    allow_insecure_uploads:
+      type: boolean
+      label: 'Allow insecure uploads'
+    default_scheme:
+      type: string
+      label: 'Default download method'
+    path:
+      type: mapping
+      label: 'Path settings'
+      mapping:
+        private:
+          type: string
+          label: 'Private file system path'
+        temporary:
+          type: string
+          label: 'Temporary directory'
+    temporary_maximum_age:
+      type: integer
+      label: 'Maximum age for temporary files'
+
+system.image:
+  type: mapping
+  label: 'Image settings'
+  mapping:
+    toolkit:
+      type: string
+      label: 'Toolkit'
+
+system.image.gd:
+  type: mapping
+  label: 'Image settings'
+  mapping:
+    jpeg_quality:
+      type: integer
+      label: 'JPEG quality'
+
+system.mail:
+  type: mapping
+  label: 'Image settings'
+  mapping:
+    interface:
+      type: mapping
+      label: 'Interface'
+      mapping:
+        default:
+          type: string
+          label: 'Default'
+
+system.theme.global:
+  type: theme_settings
+  label: 'Theme global settings'

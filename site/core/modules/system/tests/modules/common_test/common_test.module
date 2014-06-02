@@ -1,0 +1,228 @@
+<?php
+
+/**
+ * @file
+ * Helper module for the Common tests.
+ */
+
+/**
+ * Applies #printed to an element to help test #pre_render.
+ */
+function common_test_drupal_render_printing_pre_render($elements) {
+  $elements['#printed'] = TRUE;
+  return $elements;
+}
+
+/**
+ * Implements hook_TYPE_alter().
+ */
+function common_test_drupal_alter_alter(&$data, &$arg2 = NULL, &$arg3 = NULL) {
+  // Alter first argument.
+  if (is_array($data)) {
+    $data['foo'] = 'Drupal';
+  }
+  elseif (is_object($data)) {
+    $data->foo = 'Drupal';
+  }
+  // Alter second argument, if present.
+  if (isset($arg2)) {
+    if (is_array($arg2)) {
+      $arg2['foo'] = 'Drupal';
+    }
+    elseif (is_object($arg2)) {
+      $arg2->foo = 'Drupal';
+    }
+  }
+  // Try to alter third argument, if present.
+  if (isset($arg3)) {
+    if (is_array($arg3)) {
+      $arg3['foo'] = 'Drupal';
+    }
+    elseif (is_object($arg3)) {
+      $arg3->foo = 'Drupal';
+    }
+  }
+}
+
+/**
+ * Implements hook_TYPE_alter() on behalf of Bartik theme.
+ *
+ * Same as common_test_drupal_alter_alter(), but here, we verify that themes
+ * can also alter and come last.
+ */
+function bartik_drupal_alter_alter(&$data, &$arg2 = NULL, &$arg3 = NULL) {
+  // Alter first argument.
+  if (is_array($data)) {
+    $data['foo'] .= ' theme';
+  }
+  elseif (is_object($data)) {
+    $data->foo .= ' theme';
+  }
+  // Alter second argument, if present.
+  if (isset($arg2)) {
+    if (is_array($arg2)) {
+      $arg2['foo'] .= ' theme';
+    }
+    elseif (is_object($arg2)) {
+      $arg2->foo .= ' theme';
+    }
+  }
+  // Try to alter third argument, if present.
+  if (isset($arg3)) {
+    if (is_array($arg3)) {
+      $arg3['foo'] .= ' theme';
+    }
+    elseif (is_object($arg3)) {
+      $arg3->foo .= ' theme';
+    }
+  }
+}
+
+/**
+ * Implements hook_TYPE_alter() on behalf of block module.
+ *
+ * This is to verify that
+ * \Drupal::moduleHandler()->alter(array(TYPE1, TYPE2), ...) allows
+ * hook_module_implements_alter() to affect the order in which module
+ * implementations are executed.
+ */
+function block_drupal_alter_foo_alter(&$data, &$arg2 = NULL, &$arg3 = NULL) {
+  $data['foo'] .= ' block';
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ *
+ * @see block_drupal_alter_foo_alter()
+ */
+function common_test_module_implements_alter(&$implementations, $hook) {
+  // For
+  // \Drupal::moduleHandler()->alter(array('drupal_alter', 'drupal_alter_foo'), ...),
+  // make the block module implementations run after all the other modules. Note
+  // that when \Drupal::moduleHandler->alter() is called with an array of types,
+  // the first type is considered primary and controls the module order.
+  if ($hook == 'drupal_alter_alter' && isset($implementations['block'])) {
+    $group = $implementations['block'];
+    unset($implementations['block']);
+    $implementations['block'] = $group;
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function common_test_theme() {
+  return array(
+    'common_test_foo' => array(
+      'variables' => array('foo' => 'foo', 'bar' => 'bar'),
+      'template' => 'common-test-foo',
+    ),
+    'common_test_empty' => array(
+      'variables' => array('foo' => 'foo'),
+    ),
+  );
+}
+
+/**
+ * Provides a theme function for drupal_render().
+ */
+function theme_common_test_foo($variables) {
+  return $variables['foo'] . $variables['bar'];
+}
+
+/**
+ * Always returns an empty string.
+ */
+function theme_common_test_empty($variables) {
+  return '';
+}
+
+/**
+ * Implements hook_library_info_alter().
+ */
+function common_test_library_info_alter(&$libraries, $module) {
+  if ($module == 'core' && isset($libraries['jquery.farbtastic'])) {
+    // Change the version of Farbtastic to 0.0.
+    $libraries['jquery.farbtastic']['version'] = '0.0';
+    // Make Farbtastic depend on jQuery Form to test library dependencies.
+    $libraries['jquery.farbtastic']['dependencies'][] = 'core/jquery.form';
+  }
+}
+
+/**
+ * Implements hook_cron().
+ *
+ * System module should handle if a module does not catch an exception and keep
+ * cron going.
+ *
+ * @see common_test_cron_helper()
+ *
+ */
+function common_test_cron() {
+  throw new Exception(t('Uncaught exception'));
+}
+
+/**
+ * #post_render_cache callback; modifies #markup, #attached and #context_test.
+ *
+ * @param array $element
+ *  A render array with the following keys:
+ *    - #markup
+ *    - #attached
+ * @param array $context
+ *  An array with the following keys:
+ *    - foo: contains a random string.
+ *
+ * @return array $element
+ *   The updated $element.
+ */
+function common_test_post_render_cache(array $element, array $context) {
+  // Override #markup.
+  $element['#markup'] = '<p>overridden</p>';
+
+  // Extend #attached.
+  $element['#attached']['js'][] = array(
+    'type' => 'setting',
+    'data' => array(
+      'common_test' => $context
+    ),
+  );
+
+  // Set new property.
+  $element['#context_test'] = $context;
+
+  return $element;
+}
+
+/**
+ * #post_render_cache callback; replaces placeholder, extends #attached.
+ *
+ * @param array $element
+ *   The renderable array that contains the to be replaced placeholder.
+ * @param array $context
+ *  An array with the following keys:
+ *    - bar: contains a random string.
+ *
+ * @return array
+ *   A render array.
+ */
+function common_test_post_render_cache_placeholder(array $element, array $context) {
+  $placeholder = drupal_render_cache_generate_placeholder(__FUNCTION__, $context, $context['token']);
+  $replace_element = array(
+    '#markup' => '<bar>' . $context['bar'] . '</bar>',
+    '#attached' => array(
+      'js' => array(
+        array(
+          'type' => 'setting',
+          'data' => array(
+            'common_test' => $context,
+          ),
+        ),
+      ),
+    ),
+  );
+  $markup = drupal_render($replace_element);
+  $element['#markup'] = str_replace($placeholder, $markup, $element['#markup']);
+
+  return $element;
+}

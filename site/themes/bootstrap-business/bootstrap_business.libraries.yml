@@ -1,0 +1,33 @@
+base:
+  version: VERSION
+  css:
+    theme:
+      bootstrap/css/bootstrap.css: {}
+      css/style.css: {}
+      color/colors.css: {}
+      css/local.css: {}
+      
+toggle:
+  version: VERSION
+  js:
+    js/toggle.js: {}
+  dependencies:
+    - core/jquery
+    - core/jquery.once
+    
+scroll:
+  version: VERSION
+  js:
+    js/scroll.js: {}
+  dependencies:
+    - core/jquery
+    - core/jquery.once
+    
+bootstrap_javascript:
+  version: VERSION
+  js:
+    bootstrap/js/bootstrap.js: {}
+  dependencies:
+    - core/jquery
+    - core/jquery.once
+    - core/drupal

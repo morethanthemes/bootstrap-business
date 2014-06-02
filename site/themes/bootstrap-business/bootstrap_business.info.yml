@@ -1,0 +1,40 @@
+name: Bootstrap Business
+type: theme
+description: An extremely flexible, responsive theme with a wealth of regions. Supported by <a href="http://www.morethanthemes.com/" target="_blank">More than (just) Themes</a>. If you like this theme, feel welcome to also check our other <a href="http://www.morethanthemes.com" target="_blank">Premium</a> and <a href="http://drupalizing.com" target="_blank">Free</a> Drupal themes.
+version: VERSION
+core: 8.x
+# @todo use library version once color module is fixed #2228745
+#libraries:
+#  - bartik/base
+#
+stylesheets:
+  all:
+    - bootstrap/css/bootstrap.css
+    - css/style.css
+    - color/colors.css
+    - css/local.css
+ckeditor_stylesheets:
+    - css/ckeditor-iframe.css
+regions:
+    pre_header_first: 'Pre Header First'
+    pre_header_second: 'Pre Header Second'
+    pre_header_third: 'Pre Header Third'
+    header_top_left: 'Header Top Left'
+    header_top_right: 'Header Top Right'
+    header: Header
+    navigation: 'Navigation'
+    banner: 'Banner'
+    highlighted: Highlighted
+    promoted: 'Promoted'
+    content: Content
+    sidebar_first: 'Sidebar First'
+    sidebar_second: 'Sidebar Second'
+    bottom_content: 'Bottom Content'
+    footer_first: 'Footer First'
+    footer_second: 'Footer Second'
+    footer_third: 'Footer Third'
+    footer_fourth: 'Footer Fourth'
+    footer: Footer
+    help: Help
+    page_top: 'Page top'
+    page_bottom: 'Page bottom'

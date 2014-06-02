@@ -1,0 +1,7 @@
+bootstrap_business.settings:
+  type: theme_settings
+  label: 'Bootstrap Business settings'
+
+bootstrap_business.breakpoints:
+  type: theme_breakpoints_default
+  label: 'Bootstrap breakpoints'
