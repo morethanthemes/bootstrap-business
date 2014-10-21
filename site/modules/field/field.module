@@ -819,9 +819,9 @@ function field_view_value($entity_type, $entity, $field_name, $item, $display = 
  *
  * This function can be used by third-party modules that need to output an
  * isolated field.
- * - Do not use inside node (or other entities) templates, use
+ * - Do not use inside node (or any other entity) templates; use
  *   render($content[FIELD_NAME]) instead.
- * - Do not use to display all fields in an entity, use
+ * - Do not use to display all fields in an entity; use
  *   field_attach_prepare_view() and field_attach_view() instead.
  * - The field_view_value() function can be used to output a single formatted
  *   field value, without label or wrapping field markup.
@@ -960,6 +960,13 @@ function field_has_data($field) {
 
 /**
  * Determine whether the user has access to a given field.
+ *
+ * This function does not determine whether access is granted to the entity
+ * itself, only the specific field. Callers are responsible for ensuring that
+ * entity access is also respected. For example, when checking field access for
+ * nodes, check node_access() before checking field_access(), and when checking
+ * field access for entities using the Entity API contributed module,
+ * check entity_access() before checking field_access().
  *
  * @param $op
  *   The operation to be performed. Possible values:

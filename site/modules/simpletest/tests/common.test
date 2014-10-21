@@ -687,6 +687,31 @@ class CascadingStylesheetsTestCase extends DrupalWebTestCase {
   }
 
   /**
+   * Tests removing charset when rendering stylesheets with preprocessing on.
+   */
+  function testRenderRemoveCharsetPreprocess() {
+    $cases = array(
+      array(
+        'asset' => '@charset "UTF-8";html{font-family:"sans-serif";}',
+        'expected' => 'html{font-family:"sans-serif";}',
+      ),
+      // This asset contains extra \n character.
+      array(
+        'asset' => "@charset 'UTF-8';\nhtml{font-family:'sans-serif';}",
+        'expected' => "\nhtml{font-family:'sans-serif';}",
+      ),
+    );
+
+    foreach ($cases as $case) {
+      $this->assertEqual(
+        $case['expected'],
+        drupal_load_stylesheet_content($case['asset']),
+        'CSS optimizing correctly removes the charset declaration.'
+      );
+    }
+  }
+
+  /**
    * Tests rendering inline stylesheets with preprocessing off.
    */
   function testRenderInlineNoPreprocess() {
@@ -901,26 +926,30 @@ class CascadingStylesheetsUnitTest extends DrupalUnitTestCase {
     $testfiles = array(
       'css_input_without_import.css',
       'css_input_with_import.css',
+      'css_subfolder/css_input_with_import.css',
       'comment_hacks.css'
     );
     $path = drupal_get_path('module', 'simpletest') . '/files/css_test_files';
     foreach ($testfiles as $file) {
-      $expected = file_get_contents("$path/$file.unoptimized.css");
-      $unoptimized_output = drupal_load_stylesheet("$path/$file.unoptimized.css", FALSE);
+      $file_path = $path . '/' . $file;
+      $file_url = $GLOBALS['base_url'] . '/' . $file_path;
+
+      $expected = file_get_contents($file_path . '.unoptimized.css');
+      $unoptimized_output = drupal_load_stylesheet($file_path, FALSE);
       $this->assertEqual($unoptimized_output, $expected, format_string('Unoptimized CSS file has expected contents (@file)', array('@file' => $file)));
 
-      $expected = file_get_contents("$path/$file.optimized.css");
-      $optimized_output = drupal_load_stylesheet("$path/$file", TRUE);
+      $expected = file_get_contents($file_path . '.optimized.css');
+      $optimized_output = drupal_load_stylesheet($file_path, TRUE);
       $this->assertEqual($optimized_output, $expected, format_string('Optimized CSS file has expected contents (@file)', array('@file' => $file)));
 
       // Repeat the tests by accessing the stylesheets by URL.
-      $expected = file_get_contents("$path/$file.unoptimized.css");
-      $unoptimized_output_url = drupal_load_stylesheet($GLOBALS['base_url'] . "/$path/$file.unoptimized.css", FALSE);
-      $this->assertEqual($unoptimized_output, $expected, format_string('Unoptimized CSS file (loaded from an URL) has expected contents (@file)', array('@file' => $file)));
+      $expected = file_get_contents($file_path . '.unoptimized.css');
+      $unoptimized_output_url = drupal_load_stylesheet($file_url, FALSE);
+      $this->assertEqual($unoptimized_output_url, $expected, format_string('Unoptimized CSS file (loaded from an URL) has expected contents (@file)', array('@file' => $file)));
 
-      $expected = file_get_contents("$path/$file.optimized.css");
-      $optimized_output = drupal_load_stylesheet($GLOBALS['base_url'] . "/$path/$file", TRUE);
-      $this->assertEqual($optimized_output, $expected, format_string('Optimized CSS file (loaded from an URL) has expected contents (@file)', array('@file' => $file)));
+      $expected = file_get_contents($file_path . '.optimized.css');
+      $optimized_output_url = drupal_load_stylesheet($file_url, TRUE);
+      $this->assertEqual($optimized_output_url, $expected, format_string('Optimized CSS file (loaded from an URL) has expected contents (@file)', array('@file' => $file)));
     }
   }
 }
@@ -993,8 +1022,8 @@ class DrupalHTTPRequestTestCase extends DrupalWebTestCase {
     $result = drupal_http_request($auth);
 
     $this->drupalSetContent($result->data);
-    $this->assertRaw($username, '$_SERVER["PHP_AUTH_USER"] is passed correctly.');
-    $this->assertRaw($password, '$_SERVER["PHP_AUTH_PW"] is passed correctly.');
+    $this->assertRaw($username, 'Username is passed correctly.');
+    $this->assertRaw($password, 'Password is passed correctly.');
   }
 
   function testDrupalHTTPRequestRedirect() {
@@ -2755,4 +2784,29 @@ class ArrayDiffUnitTest extends DrupalUnitTestCase {
 
     $this->assertIdentical(drupal_array_diff_assoc_recursive($this->array1, $this->array2), $expected);
   }
+}
+
+/**
+ * Tests the functionality of drupal_get_query_array().
+ */
+class DrupalGetQueryArrayTestCase extends DrupalWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Query parsing using drupal_get_query_array()',
+      'description' => 'Tests that drupal_get_query_array() correctly parses query parameters.',
+      'group' => 'System',
+    );
+  }
+
+  /**
+   * Tests that drupal_get_query_array() correctly explodes query parameters.
+   */
+  public function testDrupalGetQueryArray() {
+    $url = "http://my.site.com/somepath?foo=/content/folder[@name='foo']/folder[@name='bar']";
+    $parsed = parse_url($url);
+    $result = drupal_get_query_array($parsed['query']);
+    $this->assertEqual($result['foo'], "/content/folder[@name='foo']/folder[@name='bar']", 'drupal_get_query_array() should only explode parameters on the first equals sign.');
+  }
+
 }

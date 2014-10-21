@@ -41,14 +41,20 @@ function bootstrap_business_preprocess_html(&$variables) {
 	 * Add IE8 Support
 	 */
 	drupal_add_css(path_to_theme() . '/css/ie8.css', array('group' => CSS_THEME, 'browsers' => array('IE' => '(lt IE 9)', '!IE' => FALSE), 'preprocess' => FALSE));
-	
+    
 	/**
-	* Add Javascript for enable/disable Bootstrap 3 Javascript
+	* Bootstrap CDN
 	*/
-	if (theme_get_setting('bootstrap_js_include', 'bootstrap_business')) {
-	drupal_add_js(drupal_get_path('theme', 'bootstrap_business') . '/bootstrap/js/bootstrap.min.js');
-	}
-	//EOF:Javascript
+    
+    if (theme_get_setting('bootstrap_css_cdn', 'bootstrap_business')) {
+        $cdn = '//maxcdn.bootstrapcdn.com/bootstrap/' . theme_get_setting('bootstrap_css_cdn', 'bootstrap_business')  . '/css/bootstrap.min.css';
+        drupal_add_css($cdn, array('type' => 'external'));
+    }
+    
+    if (theme_get_setting('bootstrap_js_cdn', 'bootstrap_business')) {
+        $cdn = '//maxcdn.bootstrapcdn.com/bootstrap/' . theme_get_setting('bootstrap_js_cdn', 'bootstrap_business')  . '/js/bootstrap.min.js';
+        drupal_add_js($cdn, array('type' => 'external'));
+    }
 	
 	/**
 	* Add Javascript for enable/disable scrollTop action

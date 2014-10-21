@@ -26,13 +26,13 @@
       print render($content);
     ?>
   </div>
-
-  <?php if (!empty($content['field_tags']) || !empty($content['links'])): ?>
+    
+    <?php if (($tags = render($content['field_tags'])) || ($links = render($content['links']))): ?>
     <footer>
     <?php print render($content['field_tags']); ?>
     <?php print render($content['links']); ?>
     </footer>
-  <?php endif; ?>
+    <?php endif; ?> 
 
   <?php print render($content['comments']); ?>
 

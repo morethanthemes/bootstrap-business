@@ -56,7 +56,9 @@ position: absolute; bottom: -15px; left: 0; }
 
 .title-sep .glyphicon { font-size: 13px; padding-right: 18px; }
 
-.page-node #content-wrapper h1.page-title { margin: 0; padding: 20px 40px 0; }
+.page-node #content-wrapper h1.page-title { margin: 0; padding: 20px 40px 0 0; }
+
+.page-node.page-node- #content-wrapper h1.page-title { padding: 20px 40px 0; }
 
 /*tables*/
 table { width: 100%; margin-bottom: 20px; border: 1px solid #dfdfdf; }
@@ -236,7 +238,7 @@ position: absolute; top: 20px; right: 17px; font-size: 11px; font-weight: 400; }
 
 .node header h2 a:hover { text-decoration: none; }
 
-.node .content, #comments, .page-contact #content-wrapper { padding: 20px 40px; }
+.node > .content, #comments, .page-contact #content-wrapper { padding: 20px 40px; }
 
 .node header { padding: 10px 40px 20px; }
 
@@ -266,7 +268,9 @@ position: absolute; top: 20px; right: 17px; font-size: 11px; font-weight: 400; }
 .comment .new { margin: 10px 0; display: inline-block; }
 
 /* Taxonomy term reference */
-.field-type-taxonomy-term-reference { position: relative; float: left; } 
+.field-type-taxonomy-term-reference { position: relative; } 
+
+footer .field-type-taxonomy-term-reference { float: left; }
 
 .field-type-taxonomy-term-reference .field-label { font-weight: 400; }
 
@@ -556,3 +560,12 @@ ul.primary, ul.primary li a, ul.primary li.active a { border-color:#eaeaea; } ul
 .not-logged-in .block-forum .contextual-links-wrapper { display: none; }
 
 a.contextual-links-trigger, #toolbar a, textarea { -webkit-transition: none; -moz-transition: none; -o-transition: none; -ms-transition: none; transition: none; }
+
+/*admin theme style rules*/
+.page-node-edit .region-content { padding:0 40px; }
+
+.page-node-edit .vertical-tabs { clear:both; }
+
+.page-node-edit .vertical-tabs, .page-node-edit .vertical-tabs ul.vertical-tabs-list, .page-node-edit .vertical-tabs ul.vertical-tabs-list li { border-color:#dfdfdf; }
+
+.page-node-edit .vertical-tabs li { list-style:none; }

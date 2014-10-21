@@ -11,6 +11,9 @@ define('SEARCH_TYPE', '_test_');
 define('SEARCH_TYPE_2', '_test2_');
 define('SEARCH_TYPE_JPN', '_test3_');
 
+/**
+ * Indexes content and queries it.
+ */
 class SearchMatchTestCase extends DrupalWebTestCase {
   public static function getInfo() {
     return array(
@@ -307,6 +310,9 @@ class SearchPageText extends DrupalWebTestCase {
   }
 }
 
+/**
+ * Indexes content and tests the advanced search form.
+ */
 class SearchAdvancedSearchForm extends DrupalWebTestCase {
   protected $node;
 
@@ -370,6 +376,9 @@ class SearchAdvancedSearchForm extends DrupalWebTestCase {
   }
 }
 
+/**
+ * Indexes content and tests ranking factors.
+ */
 class SearchRankingTestCase extends DrupalWebTestCase {
   public static function getInfo() {
     return array(
@@ -580,6 +589,9 @@ class SearchRankingTestCase extends DrupalWebTestCase {
   }
 }
 
+/**
+ * Tests the rendering of the search block.
+ */
 class SearchBlockTestCase extends DrupalWebTestCase {
   public static function getInfo() {
     return array(
@@ -727,7 +739,7 @@ class SearchCommentTestCase extends DrupalWebTestCase {
   public static function getInfo() {
     return array(
       'name' => 'Comment Search tests',
-      'description' => 'Verify text formats and filters used elsewhere.',
+      'description' => 'Test integration searching comments.',
       'group' => 'Search',
     );
   }
@@ -1567,7 +1579,7 @@ class SearchConfigSettingsForm extends DrupalWebTestCase {
 /**
  * Tests the search_excerpt() function.
  */
-class SearchExcerptTestCase extends DrupalUnitTestCase {
+class SearchExcerptTestCase extends DrupalWebTestCase {
   public static function getInfo() {
     return array(
       'name' => 'Search excerpt extraction',
@@ -1577,8 +1589,7 @@ class SearchExcerptTestCase extends DrupalUnitTestCase {
   }
 
   function setUp() {
-    drupal_load('module', 'search');
-    parent::setUp();
+    parent::setUp('search');
   }
 
   /**
@@ -1603,7 +1614,7 @@ class SearchExcerptTestCase extends DrupalUnitTestCase {
     $this->assertEqual($result, 'The quick brown <strong>fox</strong> &amp; jumps over the lazy dog ...', 'Found keyword is highlighted');
 
     $longtext = str_repeat($text . ' ', 10);
-    $result = preg_replace('| +|', ' ', search_excerpt('nothing', $text));
+    $result = preg_replace('| +|', ' ', search_excerpt('nothing', $longtext));
     $this->assertTrue(strpos($result, $expected) === 0, 'When keyword is not found in long string, return value starts as expected');
 
     $entities = str_repeat('k&eacute;sz&iacute;t&eacute;se ', 20);
@@ -2034,5 +2045,47 @@ class SearchNodeAccessTest extends DrupalWebTestCase {
     $edit = array('keys' => '"bunny\'s"');
     $this->drupalPost('search/node', $edit, t('Search'));
     $this->assertText($node->title);
+  }
+}
+
+/**
+ * Tests searching with locale values set.
+ */
+class SearchSetLocaleTest extends DrupalWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Search with numeric locale set',
+      'description' => 'Check that search works with numeric locale settings',
+      'group' => 'Search',
+    );
+  }
+
+  function setUp() {
+    parent::setUp('search');
+
+    // Create a simple node so something will be put in the index.
+    $info = array(
+      'body' => array(LANGUAGE_NONE => array(array('value' => 'Tapir'))),
+    );
+    $this->drupalCreateNode($info);
+
+    // Run cron to index.
+    $this->cronRun();
+  }
+
+  /**
+   * Verify that search works with a numeric locale set.
+   */
+  public function testSearchWithNumericLocale() {
+    // French decimal point is comma.
+    setlocale(LC_NUMERIC, 'fr_FR');
+
+    // An exception will be thrown if a float in the wrong format occurs in the
+    // query to the database, so an assertion is not necessary here.
+    db_select('search_index', 'i')
+      ->extend('searchquery')
+      ->searchexpression('tapir', 'node')
+      ->execute();
   }
 }

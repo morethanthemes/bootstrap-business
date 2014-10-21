@@ -607,10 +607,12 @@ function hook_cron() {
  *   An associative array where the key is the queue name and the value is
  *   again an associative array. Possible keys are:
  *   - 'worker callback': The name of the function to call. It will be called
- *     with one argument, the item created via DrupalQueue::createItem() in
- *     hook_cron().
+ *     with one argument, the item created via DrupalQueue::createItem().
  *   - 'time': (optional) How much time Drupal should spend on calling this
  *     worker in seconds. Defaults to 15.
+ *   - 'skip on cron': (optional) Set to TRUE to avoid being processed during
+ *     cron runs (for example, if you want to control all queue execution
+ *     manually).
  *
  * @see hook_cron()
  * @see hook_cron_queue_info_alter()
@@ -873,7 +875,7 @@ function hook_css_alter(&$css) {
  *
  * @see ajax_render()
  */
-function hook_ajax_render_alter($commands) {
+function hook_ajax_render_alter(&$commands) {
   // Inject any new status messages into the content area.
   $commands[] = ajax_command_prepend('#block-system-main .content', theme('status_messages'));
 }
@@ -2108,6 +2110,61 @@ function hook_permission() {
 }
 
 /**
+ * Provide online user help.
+ *
+ * By implementing hook_help(), a module can make documentation available to
+ * the user for the module as a whole, or for specific paths. Help for
+ * developers should usually be provided via function header comments in the
+ * code, or in special API example files.
+ *
+ * The page-specific help information provided by this hook appears as a system
+ * help block on that page. The module overview help information is displayed
+ * by the Help module. It can be accessed from the page at admin/help or from
+ * the Modules page.
+ *
+ * For detailed usage examples of:
+ * - Module overview help, see node_help(). Module overview help should follow
+ *   @link https://drupal.org/node/632280 the standard help template. @endlink
+ * - Page-specific help with simple paths, see dashboard_help().
+ * - Page-specific help using wildcards in path and $arg, see node_help()
+ *   and block_help().
+ *
+ * @param $path
+ *   The router menu path, as defined in hook_menu(), for the help that is
+ *   being requested; e.g., 'admin/people' or 'user/register'.  If the router
+ *   path includes a wildcard, then this will appear in $path as %, even if it
+ *   is a named %autoloader wildcard in the hook_menu() implementation; for
+ *   example, node pages would have $path equal to 'node/%' or 'node/%/view'.
+ *   For the help page for the module as a whole, $path will have the value
+ *   'admin/help#module_name', where 'module_name" is the machine name of your
+ *   module.
+ * @param $arg
+ *   An array that corresponds to the return value of the arg() function, for
+ *   modules that want to provide help that is specific to certain values
+ *   of wildcards in $path. For example, you could provide help for the path
+ *   'user/1' by looking for the path 'user/%' and $arg[1] == '1'. This given
+ *   array should always be used rather than directly invoking arg(), because
+ *   your hook implementation may be called for other purposes besides building
+ *   the current page's help. Note that depending on which module is invoking
+ *   hook_help, $arg may contain only empty strings. Regardless, $arg[0] to
+ *   $arg[11] will always be set.
+ *
+ * @return
+ *   A localized string containing the help text.
+ */
+function hook_help($path, $arg) {
+  switch ($path) {
+    // Main module help for the block module
+    case 'admin/help#block':
+      return '<p>' . t('Blocks are boxes of content rendered into an area, or region, of a web page. The default theme Bartik, for example, implements the regions "Sidebar first", "Sidebar second", "Featured", "Content", "Header", "Footer", etc., and a block may appear in any one of these areas. The <a href="@blocks">blocks administration page</a> provides a drag-and-drop interface for assigning a block to a region, and for controlling the order of blocks within regions.', array('@blocks' => url('admin/structure/block'))) . '</p>';
+
+    // Help for another path in the block module
+    case 'admin/structure/block':
+      return '<p>' . t('This page provides a drag-and-drop interface for assigning a block to a region, and for controlling the order of blocks within regions. Since not all themes implement the same regions, or display regions in the same way, blocks are positioned on a per-theme basis. Remember that your changes will not be saved until you click the <em>Save blocks</em> button at the bottom of the page.') . '</p>';
+  }
+}
+
+/**
  * Register a module (or theme's) theme implementations.
  *
  * The implementations declared by this hook have two purposes: either they
@@ -3098,37 +3155,39 @@ function hook_requirements($phase) {
 /**
  * Define the current version of the database schema.
  *
- * A Drupal schema definition is an array structure representing one or
- * more tables and their related keys and indexes. A schema is defined by
+ * A Drupal schema definition is an array structure representing one or more
+ * tables and their related keys and indexes. A schema is defined by
  * hook_schema() which must live in your module's .install file.
  *
- * This hook is called at install and uninstall time, and in the latter
- * case, it cannot rely on the .module file being loaded or hooks being known.
- * If the .module file is needed, it may be loaded with drupal_load().
+ * This hook is called at install and uninstall time, and in the latter case, it
+ * cannot rely on the .module file being loaded or hooks being known. If the
+ * .module file is needed, it may be loaded with drupal_load().
  *
- * The tables declared by this hook will be automatically created when
- * the module is first enabled, and removed when the module is uninstalled.
- * This happens before hook_install() is invoked, and after hook_uninstall()
- * is invoked, respectively.
+ * The tables declared by this hook will be automatically created when the
+ * module is first enabled, and removed when the module is uninstalled. This
+ * happens before hook_install() is invoked, and after hook_uninstall() is
+ * invoked, respectively.
  *
  * By declaring the tables used by your module via an implementation of
  * hook_schema(), these tables will be available on all supported database
  * engines. You don't have to deal with the different SQL dialects for table
  * creation and alteration of the supported database engines.
  *
- * See the Schema API Handbook at http://drupal.org/node/146843 for
- * details on schema definition structures.
+ * See the Schema API Handbook at http://drupal.org/node/146843 for details on
+ * schema definition structures.
  *
- * @return
+ * @return array
  *   A schema definition structure array. For each element of the
  *   array, the key is a table name and the value is a table structure
  *   definition.
+ *
+ * @see hook_schema_alter()
  *
  * @ingroup schemaapi
  */
 function hook_schema() {
   $schema['node'] = array(
-    // example (partial) specification for table "node"
+    // Example (partial) specification for table "node".
     'description' => 'The base table for nodes.',
     'fields' => array(
       'nid' => array(
@@ -3367,24 +3426,31 @@ function hook_install() {
  * hooks. See @link update_api Update versions of API functions @endlink for
  * details.
  *
- * If your update task is potentially time-consuming, you'll need to implement a
- * multipass update to avoid PHP timeouts. Multipass updates use the $sandbox
- * parameter provided by the batch API (normally, $context['sandbox']) to store
- * information between successive calls, and the $sandbox['#finished'] value
- * to provide feedback regarding completion level.
+ * The $sandbox parameter should be used when a multipass update is needed, in
+ * circumstances where running the whole update at once could cause PHP to
+ * timeout. Each pass is run in a way that avoids PHP timeouts, provided each
+ * pass remains under the timeout limit. To signify that an update requires
+ * at least one more pass, set $sandbox['#finished'] to a number less than 1
+ * (you need to do this each pass). The value of $sandbox['#finished'] will be
+ * unset between passes but all other data in $sandbox will be preserved. The
+ * system will stop iterating this update when $sandbox['#finished'] is left
+ * unset or set to a number higher than 1. It is recommended that
+ * $sandbox['#finished'] is initially set to 0, and then updated each pass to a
+ * number between 0 and 1 that represents the overall % completed for this
+ * update, finishing with 1.
  *
- * See the batch operations page for more information on how to use the
- * @link http://drupal.org/node/180528 Batch API. @endlink
+ * See the @link batch Batch operations topic @endlink for more information on
+ * how to use the Batch API.
  *
- * @param $sandbox
+ * @param array $sandbox
  *   Stores information for multipass updates. See above for more information.
  *
- * @throws DrupalUpdateException, PDOException
+ * @throws DrupalUpdateException|PDOException
  *   In case of error, update hooks should throw an instance of DrupalUpdateException
  *   with a meaningful message for the user. If a database query fails for whatever
  *   reason, it will throw a PDOException.
  *
- * @return
+ * @return string|null
  *   Optionally, update hooks may return a translated string that will be
  *   displayed to the user after the update has completed. If no message is
  *   returned, no message will be presented to the user.
@@ -4095,7 +4161,7 @@ function hook_date_format_types_alter(&$types) {
  *     declared in an implementation of hook_date_format_types().
  *   - 'format': A PHP date format string to use when formatting dates. It
  *     can contain any of the formatting options described at
- *     http://php.net/manual/en/function.date.php
+ *     http://php.net/manual/function.date.php
  *   - 'locales': (optional) An array of 2 and 5 character locale codes,
  *     defining which locales this format applies to (for example, 'en',
  *     'en-us', etc.). If your date format is not language-specific, leave this
