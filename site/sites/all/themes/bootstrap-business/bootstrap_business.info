@@ -8,6 +8,8 @@ stylesheets[all][] = css/style.css
 stylesheets[all][] = color/colors.css
 stylesheets[all][] = css/local.css
 
+scripts[] = js/jquery.browser.min.js
+
 regions[pre_header_first] = Pre Header First
 regions[pre_header_second] = Pre Header Second
 regions[pre_header_third] = Pre Header Third
