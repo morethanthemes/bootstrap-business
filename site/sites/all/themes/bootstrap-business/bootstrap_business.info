@@ -4,7 +4,6 @@ description = An extremely flexible, responsive theme with a wealth of regions. 
 version = VERSION
 core = 7.x
 
-stylesheets[all][] = bootstrap/css/bootstrap.css
 stylesheets[all][] = css/style.css
 stylesheets[all][] = color/colors.css
 stylesheets[all][] = css/local.css
