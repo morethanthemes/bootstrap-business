@@ -1,0 +1,8 @@
+core/assets/vendor/**/*
+core/modules/locale/tests/locale_test.js
+vendor/**/*
+libraries/**/*
+sites/**/libraries/**/*
+profiles/**/libraries/**/*
+**/js_test_files/**/*
+sites/*/settings*.php
