@@ -8,7 +8,7 @@
 /**
  * The current system version.
  */
-define('VERSION', '7.32');
+define('VERSION', '7.41');
 
 /**
  * Core API compatibility.
@@ -247,6 +247,15 @@ define('REGISTRY_WRITE_LOOKUP_CACHE', 2);
  * @see http://php.net/manual/language.functions.php
  */
 define('DRUPAL_PHP_FUNCTION_PATTERN', '[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*');
+
+/**
+ * A RFC7231 Compliant date.
+ *
+ * http://tools.ietf.org/html/rfc7231#section-7.1.1.1
+ *
+ * Example: Sun, 06 Nov 1994 08:49:37 GMT
+ */
+define('DATE_RFC7231', 'D, d M Y H:i:s \G\M\T');
 
 /**
  * Provides a caching wrapper to be used in place of large array structures.
@@ -520,9 +529,8 @@ function timer_stop($name) {
  * Returns the appropriate configuration directory.
  *
  * Returns the configuration path based on the site's hostname, port, and
- * pathname. Uses find_conf_path() to find the current configuration directory.
- * See default.settings.php for examples on how the URL is converted to a
- * directory.
+ * pathname. See default.settings.php for examples on how the URL is converted
+ * to a directory.
  *
  * @param bool $require_settings
  *   Only configuration directories with an existing settings.php file
@@ -852,7 +860,7 @@ function drupal_get_filename($type, $name, $filename = NULL) {
     try {
       if (function_exists('db_query')) {
         $file = db_query("SELECT filename FROM {system} WHERE name = :name AND type = :type", array(':name' => $name, ':type' => $type))->fetchField();
-        if (file_exists(DRUPAL_ROOT . '/' . $file)) {
+        if ($file !== FALSE && file_exists(DRUPAL_ROOT . '/' . $file)) {
           $files[$type][$name] = $file;
         }
       }
@@ -1047,7 +1055,7 @@ function drupal_page_get_cache($check_only = FALSE) {
  * Determines the cacheability of the current page.
  *
  * @param $allow_caching
- *   Set to FALSE if you want to prevent this page to get cached.
+ *   Set to FALSE if you want to prevent this page from being cached.
  *
  * @return
  *   TRUE if the current page can be cached, FALSE otherwise.
@@ -1237,23 +1245,10 @@ function drupal_send_headers($default_headers = array(), $only_default = FALSE) 
  * fresh page on every request. This prevents authenticated users from seeing
  * locally cached pages.
  *
- * Also give each page a unique ETag. This will force clients to include both
- * an If-Modified-Since header and an If-None-Match header when doing
- * conditional requests for the page (required by RFC 2616, section 13.3.4),
- * making the validation more robust. This is a workaround for a bug in Mozilla
- * Firefox that is triggered when Drupal's caching is enabled and the user
- * accesses Drupal via an HTTP proxy (see
- * https://bugzilla.mozilla.org/show_bug.cgi?id=269303): When an authenticated
- * user requests a page, and then logs out and requests the same page again,
- * Firefox may send a conditional request based on the page that was cached
- * locally when the user was logged in. If this page did not have an ETag
- * header, the request only contains an If-Modified-Since header. The date will
- * be recent, because with authenticated users the Last-Modified header always
- * refers to the time of the request. If the user accesses Drupal via a proxy
- * server, and the proxy already has a cached copy of the anonymous page with an
- * older Last-Modified date, the proxy may respond with 304 Not Modified, making
- * the client think that the anonymous and authenticated pageviews are
- * identical.
+ * ETag and Last-Modified headers are not set per default for authenticated
+ * users so that browsers do not send If-Modified-Since headers from
+ * authenticated user pages. drupal_serve_page_from_cache() will set appropriate
+ * ETag and Last-Modified headers for cached pages.
  *
  * @see drupal_page_set_cache()
  */
@@ -1266,9 +1261,11 @@ function drupal_page_header() {
 
   $default_headers = array(
     'Expires' => 'Sun, 19 Nov 1978 05:00:00 GMT',
-    'Last-Modified' => gmdate(DATE_RFC1123, REQUEST_TIME),
     'Cache-Control' => 'no-cache, must-revalidate, post-check=0, pre-check=0',
-    'ETag' => '"' . REQUEST_TIME . '"',
+    // Prevent browsers from sniffing a response and picking a MIME type
+    // different from the declared content-type, since that can lead to
+    // XSS and other vulnerabilities.
+    'X-Content-Type-Options' => 'nosniff',
   );
   drupal_send_headers($default_headers);
 }
@@ -1336,7 +1333,7 @@ function drupal_serve_page_from_cache(stdClass $cache) {
     drupal_add_http_header($name, $value);
   }
 
-  $default_headers['Last-Modified'] = gmdate(DATE_RFC1123, $cache->created);
+  $default_headers['Last-Modified'] = gmdate(DATE_RFC7231, $cache->created);
 
   // HTTP/1.0 proxies does not support the Vary header, so prevent any caching
   // by sending an Expires date in the past. HTTP/1.1 clients ignores the
@@ -1559,12 +1556,13 @@ function format_string($string, array $args = array()) {
  * Also validates strings as UTF-8 to prevent cross site scripting attacks on
  * Internet Explorer 6.
  *
- * @param $text
+ * @param string $text
  *   The text to be checked or processed.
  *
- * @return
- *   An HTML safe version of $text, or an empty string if $text is not
- *   valid UTF-8.
+ * @return string
+ *   An HTML safe version of $text. If $text is not valid UTF-8, an empty string
+ *   is returned and, on PHP < 5.4, a warning may be issued depending on server
+ *   configuration (see @link https://bugs.php.net/bug.php?id=47494 @endlink).
  *
  * @see drupal_validate_utf8()
  * @ingroup sanitization
@@ -1649,14 +1647,14 @@ function request_uri() {
  *   information about the passed-in exception is used.
  * @param $variables
  *   Array of variables to replace in the message on display. Defaults to the
- *   return value of drupal_decode_exception().
+ *   return value of _drupal_decode_exception().
  * @param $severity
  *   The severity of the message, as per RFC 3164.
  * @param $link
  *   A link to associate with the message.
  *
  * @see watchdog()
- * @see drupal_decode_exception()
+ * @see _drupal_decode_exception()
  */
 function watchdog_exception($type, Exception $exception, $message = NULL, $variables = array(), $severity = WATCHDOG_ERROR, $link = NULL) {
 
@@ -1782,7 +1780,7 @@ function watchdog($type, $message, $variables = array(), $severity = WATCHDOG_NO
  * @see theme_status_messages()
  */
 function drupal_set_message($message = NULL, $type = 'status', $repeat = TRUE) {
-  if ($message) {
+  if ($message || $message === '0' || $message === 0) {
     if (!isset($_SESSION['messages'][$type])) {
       $_SESSION['messages'][$type] = array();
     }
@@ -2176,7 +2174,7 @@ function drupal_anonymous_user() {
  *   drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);
  * @endcode
  *
- * @param $phase
+ * @param int $phase
  *   A constant telling which phase to bootstrap to. When you bootstrap to a
  *   particular phase, all earlier phases are run automatically. Possible
  *   values:
@@ -2189,11 +2187,11 @@ function drupal_anonymous_user() {
  *   - DRUPAL_BOOTSTRAP_LANGUAGE: Finds out the language of the page.
  *   - DRUPAL_BOOTSTRAP_FULL: Fully loads Drupal. Validates and fixes input
  *     data.
- * @param $new_phase
+ * @param boolean $new_phase
  *   A boolean, set to FALSE if calling drupal_bootstrap from inside a
  *   function called from drupal_bootstrap (recursion).
  *
- * @return
+ * @return int
  *   The most recently completed phase.
  */
 function drupal_bootstrap($phase = NULL, $new_phase = TRUE) {
@@ -2215,12 +2213,13 @@ function drupal_bootstrap($phase = NULL, $new_phase = TRUE) {
   // bootstrap state.
   static $stored_phase = -1;
 
-  // When not recursing, store the phase name so it's not forgotten while
-  // recursing.
-  if ($new_phase) {
-    $final_phase = $phase;
-  }
   if (isset($phase)) {
+    // When not recursing, store the phase name so it's not forgotten while
+    // recursing but take care of not going backwards.
+    if ($new_phase && $phase >= $stored_phase) {
+      $final_phase = $phase;
+    }
+
     // Call a phase if it has not been called before and is below the requested
     // phase.
     while ($phases && $phase > $stored_phase && $final_phase > $stored_phase) {
@@ -2469,6 +2468,9 @@ function _drupal_bootstrap_database() {
   // the install or upgrade process.
   spl_autoload_register('drupal_autoload_class');
   spl_autoload_register('drupal_autoload_interface');
+  if (version_compare(PHP_VERSION, '5.4') >= 0) {
+    spl_autoload_register('drupal_autoload_trait');
+  }
 }
 
 /**
@@ -2486,6 +2488,26 @@ function _drupal_bootstrap_variables() {
   // Load bootstrap modules.
   require_once DRUPAL_ROOT . '/includes/module.inc';
   module_load_all(TRUE);
+
+  // Sanitize the destination parameter (which is often used for redirects) to
+  // prevent open redirect attacks leading to other domains. Sanitize both
+  // $_GET['destination'] and $_REQUEST['destination'] to protect code that
+  // relies on either, but do not sanitize $_POST to avoid interfering with
+  // unrelated form submissions. The sanitization happens here because
+  // url_is_external() requires the variable system to be available.
+  if (isset($_GET['destination']) || isset($_REQUEST['destination'])) {
+    require_once DRUPAL_ROOT . '/includes/common.inc';
+    // If the destination is an external URL, remove it.
+    if (isset($_GET['destination']) && url_is_external($_GET['destination'])) {
+      unset($_GET['destination']);
+      unset($_REQUEST['destination']);
+    }
+    // If there's still something in $_REQUEST['destination'] that didn't come
+    // from $_GET, check it too.
+    if (isset($_REQUEST['destination']) && (!isset($_GET['destination']) || $_REQUEST['destination'] != $_GET['destination']) && url_is_external($_REQUEST['destination'])) {
+      unset($_REQUEST['destination']);
+    }
+  }
 }
 
 /**
@@ -2508,7 +2530,7 @@ function _drupal_bootstrap_page_header() {
  * @see drupal_bootstrap()
  */
 function drupal_get_bootstrap_phase() {
-  return drupal_bootstrap();
+  return drupal_bootstrap(NULL, FALSE);
 }
 
 /**
@@ -2622,7 +2644,7 @@ function drupal_installation_attempted() {
  *
  * This would include implementations of hook_install(), which could run
  * during the Drupal installation phase, and might also be run during
- * non-installation time, such as while installing the module from the the
+ * non-installation time, such as while installing the module from the
  * module administration page.
  *
  * Example usage:
@@ -2937,7 +2959,9 @@ function ip_address() {
  * Gets the schema definition of a table, or the whole database schema.
  *
  * The returned schema will include any modifications made by any
- * module that implements hook_schema_alter().
+ * module that implements hook_schema_alter(). To get the schema without
+ * modifications, use drupal_get_schema_unprocessed().
+ *
  *
  * @param $table
  *   The name of the table. If not given, the schema of all tables is returned.
@@ -3093,6 +3117,22 @@ function drupal_autoload_class($class) {
 }
 
 /**
+ * Confirms that a trait is available.
+ *
+ * This function is rarely called directly. Instead, it is registered as an
+ * spl_autoload() handler, and PHP calls it for us when necessary.
+ *
+ * @param string $trait
+ *   The name of the trait to check or load.
+ *
+ * @return bool
+ *   TRUE if the trait is currently available, FALSE otherwise.
+ */
+function drupal_autoload_trait($trait) {
+  return _registry_check_code('trait', $trait);
+}
+
+/**
  * Checks for a resource in the registry.
  *
  * @param $type
@@ -3110,7 +3150,7 @@ function drupal_autoload_class($class) {
 function _registry_check_code($type, $name = NULL) {
   static $lookup_cache, $cache_update_needed;
 
-  if ($type == 'class' && class_exists($name) || $type == 'interface' && interface_exists($name)) {
+  if ($type == 'class' && class_exists($name) || $type == 'interface' && interface_exists($name) || $type == 'trait' && trait_exists($name)) {
     return TRUE;
   }
 
@@ -3151,10 +3191,13 @@ function _registry_check_code($type, $name = NULL) {
   // This function may get called when the default database is not active, but
   // there is no reason we'd ever want to not use the default database for
   // this query.
-  $file = Database::getConnection('default', 'default')->query("SELECT filename FROM {registry} WHERE name = :name AND type = :type", array(
-      ':name' => $name,
-      ':type' => $type,
-    ))
+  $file = Database::getConnection('default', 'default')
+    ->select('registry', 'r', array('target' => 'default'))
+    ->fields('r', array('filename'))
+    // Use LIKE here to make the query case-insensitive.
+    ->condition('r.name', db_like($name), 'LIKE')
+    ->condition('r.type', $type)
+    ->execute()
     ->fetchField();
 
   // Flag that we've run a lookup query and need to update the cache.
@@ -3328,11 +3371,9 @@ function registry_update() {
  * @param $default_value
  *   Optional default value.
  * @param $reset
- *   TRUE to reset a specific named variable, or all variables if $name is NULL.
- *   Resetting every variable should only be used, for example, for running
- *   unit tests with a clean environment. Should be used only though via
- *   function drupal_static_reset() and the return value should not be used in
- *   this case.
+ *   TRUE to reset one or all variables(s). This parameter is only used
+ *   internally and should not be passed in; use drupal_static_reset() instead.
+ *   (This function's return value should not be used when TRUE is passed in.)
  *
  * @return
  *   Returns a variable by reference.
@@ -3377,6 +3418,8 @@ function &drupal_static($name, $default_value = NULL, $reset = FALSE) {
  *
  * @param $name
  *   Name of the static variable to reset. Omit to reset all variables.
+ *   Resetting all variables should only be used, for example, for running unit
+ *   tests with a clean environment.
  */
 function drupal_static_reset($name = NULL) {
   drupal_static($name, NULL, TRUE);
@@ -3491,4 +3534,35 @@ function drupal_check_memory_limit($required, $memory_limit = NULL) {
   // - The memory limit is set to unlimited (-1).
   // - The memory limit is greater than the memory required for the operation.
   return ((!$memory_limit) || ($memory_limit == -1) || (parse_size($memory_limit) >= parse_size($required)));
+}
+
+/**
+ * Invalidates a PHP file from any active opcode caches.
+ *
+ * If the opcode cache does not support the invalidation of individual files,
+ * the entire cache will be flushed.
+ *
+ * @param string $filepath
+ *   The absolute path of the PHP file to invalidate.
+ */
+function drupal_clear_opcode_cache($filepath) {
+  if (!defined('PHP_VERSION_ID') || PHP_VERSION_ID < 50300) {
+    // Below PHP 5.3, clearstatcache does not accept any function parameters.
+    clearstatcache();
+  }
+  else {
+    clearstatcache(TRUE, $filepath);
+  }
+
+  // Zend OPcache.
+  if (function_exists('opcache_invalidate')) {
+    opcache_invalidate($filepath, TRUE);
+  }
+  // APC.
+  if (function_exists('apc_delete_file')) {
+    // apc_delete_file() throws a PHP warning in case the specified file was
+    // not compiled yet.
+    // @see http://php.net/apc-delete-file
+    @apc_delete_file($filepath);
+  }
 }

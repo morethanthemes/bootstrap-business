@@ -1,0 +1,43 @@
+name = Bootstrap Business
+description = An extremely flexible, responsive theme with a wealth of regions. Supported by <a href="http://www.morethanthemes.com/" target="_blank">More than (just) Themes</a>. If you like this theme, feel welcome to also check our other <a href="http://www.morethanthemes.com" target="_blank">Premium</a> and <a href="http://drupalizing.com" target="_blank">Free</a> Drupal themes.
+
+version = VERSION
+core = 7.x
+
+stylesheets[all][] = css/style.css
+stylesheets[all][] = color/colors.css
+stylesheets[all][] = css/local.css
+
+regions[pre_header_first] = Pre Header First
+regions[pre_header_second] = Pre Header Second
+regions[pre_header_third] = Pre Header Third
+regions[header_top_left] = Header Top Left
+regions[header_top_right] = Header Top Right
+regions[header] = Header
+regions[navigation] = Navigation
+regions[banner] = Banner
+regions[highlighted] = Highlighted
+regions[promoted] = Promoted
+regions[content] = Content
+regions[sidebar_first] = Sidebar First
+regions[sidebar_second] = Sidebar Second
+regions[bottom_content] = Bottom Content
+regions[footer_first] = Footer First
+regions[footer_second] = Footer Second
+regions[footer_third] = Footer Third
+regions[footer_fourth] = Footer Fourth
+regions[footer] = Footer
+regions[help] = Help
+regions[page_top] = Page top
+regions[page_bottom] = Page bottom
+
+settings[breadcrumb_display]= 1
+settings[scrolltop_display]= 1
+settings[responsive_respond]= 0
+settings[bootstrap_css_cdn]= 3.2.0
+; Information added by Drupal.org packaging script on 2014-10-21
+version = "7.x-1.1"
+core = "7.x"
+project = "bootstrap_business"
+datestamp = "1413913868"
+
