@@ -29,4 +29,9 @@ function bootstrap_business_preprocess_page(&$vars) {
 		$vars['header_top_right_grid_class'] = 'col-md-12';		
 	}
 
+	//Load to-top library
+	$to_top = theme_get_setting('scrolltop_display');
+	if ($to_top) {
+		$vars['#attached']['library'][] = 'bootstrap_business/to-top';
+	}
 }

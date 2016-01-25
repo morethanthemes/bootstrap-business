@@ -1,0 +1,5 @@
+# Schema for the configuration files of the News+ Lite theme.
+
+bootstrap_business.settings:
+  type: theme_settings
+  label: 'Bootstrap Business settings'

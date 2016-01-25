@@ -17,6 +17,7 @@ global-styling:
       css/base/local.css: {}
     component:
       css/components/primary-menu.css: {}
+      css/components/to-top.css: {}
 
 color.preview:
   version: VERSION
@@ -28,10 +29,10 @@ color.preview:
   dependencies:
     - color/drupal.color
 
-scroll:
+to-top:
   version: VERSION
   js:
-    js/custom/scroll.js: { scope: 'footer' }
+    js/custom/to-top.js: { scope: 'footer' }
   dependencies:
     - core/jquery
 
@@ -41,3 +42,9 @@ toggle:
     js/custom/toggle.js: { scope: 'footer' }
   dependencies:
     - core/jquery
+
+theme-settings:
+  version: VERSION
+  css:
+    theme:
+      css/components/theme-settings.css: {}
