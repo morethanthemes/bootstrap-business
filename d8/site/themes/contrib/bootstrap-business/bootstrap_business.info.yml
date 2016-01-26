@@ -8,7 +8,6 @@ core: 8.x
 libraries:
 - bootstrap_business/bootstrap
 - bootstrap_business/global-styling
-- bootstrap_business/scroll
 - bootstrap_business/toggle
 
 regions:
