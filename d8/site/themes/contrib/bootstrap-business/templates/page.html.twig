@@ -80,6 +80,7 @@
 <!-- EOF: #header-top -->    
 {% endif %}
 
+{% if page.header %}
 <!-- header -->
 <header id="header" role="banner" class="clearfix">
     <div class="container">
@@ -88,39 +89,7 @@
         <div id="header-inside" class="clearfix">
             <div class="row">
                 <div class="col-md-12">
-                    
-                {% if logo %}
-                <div id="logo">
-                  <a href="{{ front_page }}" title="{{ 'Home'|t }}" rel="home" id="logo">
-                    <img src="{{ logo }}" alt="{{ 'Home'|t }}" />
-                  </a>
-                </div>
-                {% endif %}
-
-                {% if site_name %}
-                  {% if title %}
-                    <div id="site-name"{% if hide_site_name %} class="visually-hidden"{% endif %}>
-                      <strong>
-                        <a href="{{ front_page }}" title="{{ 'Home'|t }}" rel="home"><span>{{ site_name }}</span></a>
-                      </strong>
-                    </div>
-                  {# Use h1 when the content title is empty #}
-                  {% else %}
-                    <h1 id="site-name"{% if hide_site_name %} class="visually-hidden" {% endif %}>
-                      <a href="{{ front_page }}" title="{{ 'Home'|t }}" rel="home"><span>{{ site_name }}</span></a>
-                    </h1>
-                  {% endif %}
-                {% endif %}
-                
-                {% if site_slogan %}
-                <div id="site-slogan"{% if hide_site_slogan %} class="visually-hidden"{% endif %}>
-                {{ site_slogan }}
-                </div>
-                {% endif %}
-                
-                {{ page.header }}
-
-
+                    {{ page.header }}
                 </div>
             </div>
         </div>
@@ -129,6 +98,7 @@
     </div>
 </header>
 <!-- EOF: #header --> 
+{% endif %}
 
 <!-- #main-navigation --> 
 <div id="main-navigation" class="clearfix">
@@ -202,18 +172,6 @@
     <div id="main-content">
         <div class="container">
         
-            <!-- #messages-console -->
-            {% if messages %}
-            <div id="messages-console" class="clearfix">
-                <div class="row">
-                    <div class="col-md-12">
-                    {{messages}}
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-            <!-- EOF: #messages-console -->
-            
             <div class="row">
                 {% if page.sidebar_first %}
                 <aside class="{{sidebar_grid_class}}">  
@@ -224,7 +182,6 @@
                     <!--EOF:#sidebar-first-->
                 </aside>
                 {% endif %}
-
 
                 <section class="{{main_grid_class}}">
 
@@ -254,32 +211,9 @@
                         <!-- EOF:#content-wrapper -->
                         <div id="content-wrapper">
 
-                            {{ title_prefix }}
-                            {% if title %}
-                              <h1 class="title page-title">
-                                {{ title }}
-                              </h1>
+                            {% if page.content %}
+                                {{ page.content }}
                             {% endif %}
-                            {{ title_suffix }}
-                            
-                            {% if tabs %}
-                              <nav class="tabs" role="navigation">
-                                {{ tabs }}
-                              </nav>
-                            {% endif %}
-                            
-                            {{ page.help }}
-
-                            <!-- #action links -->
-                            {% if action_links %}
-                              <ul class="action-links">
-                                {{ action_links }}
-                              </ul>
-                            {% endif %}
-                            <!-- EOF: #action links -->
-
-                          {{ page.content }}
-                          {{ feed_icons }}
 
                         </div>
                         <!-- EOF:#content-wrapper -->
