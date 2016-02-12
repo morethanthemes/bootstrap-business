@@ -1,0 +1,96 @@
+body {
+  padding-top: 50px;
+  font-size: 15px;
+  color: #555555;
+  line-height: 1.55;
+  background-color: #f6f7f7;
+  font-family: "proxima-nova", Helvetica, Arial, sans-serif; }
+
+p {
+  font-weight: 200; }
+
+a {
+  -webkit-transition: all 0.2s;
+  transition: all 0.2s;
+  color: #00a7e6; }
+  a:hover {
+    text-decoration: none;
+    background-color: rgba(0, 187, 255, 0.12);
+    color: #00bbff; }
+
+.starter-template {
+  padding: 40px 15px;
+  text-align: center; }
+
+.navbar-inverse {
+  background-color: #748ca6;
+  border-color: #748ca6;
+  box-shadow: 0 3px 15px rgba(0, 0, 0, 0.5); }
+
+.navbar-inverse .navbar-brand {
+  color: #fff; }
+  .navbar-inverse .navbar-brand a {
+    color: #fff;
+    -webkit-transition: all 0.25s;
+    transition: all 0.25s; }
+
+.navbar-inverse .navbar-nav > li > a {
+  -webkit-transition: all 0.25s;
+  transition: all 0.25s;
+  color: #fff; }
+
+.navbar-inverse .navbar-nav > li > a:hover {
+  background-color: #8da1b6; }
+
+.navbar-inverse .navbar-toggle {
+  border: none; }
+  .navbar-inverse .navbar-toggle:hover {
+    background-color: #8da1b6; }
+
+.logo img {
+  float: left;
+  height: 46px;
+  margin-right: 10px;
+  margin-top: -14px;
+  padding: 5px 0px; }
+  .logo img:hover {
+    opacity: 0.8; }
+
+.maincontent {
+  background: -webkit-linear-gradient(top, rgba(116, 140, 166, 0.5) 0%, rgba(116, 140, 166, 0) 240px);
+  background: linear-gradient(to bottom, rgba(116, 140, 166, 0.5) 0%, rgba(116, 140, 166, 0) 240px); }
+
+.starter-template {
+  margin: auto; }
+
+.jumbotron {
+  float: left;
+  background-color: #f6f7f7;
+  padding-top: 5px;
+  padding-bottom: 10px; }
+  .jumbotron p {
+    font-size: 1.1em; }
+
+.btn-lg {
+  border-radius: 30px;
+  padding: 12px 40px;
+  background-color: #00a7e6;
+  border-color: #00a7e6;
+  -webkit-transition: all 0.25s;
+  transition: all 0.25s; }
+  .btn-lg:hover {
+    background-color: #00bbff;
+    border-color: #00bbff; }
+
+.theme-thumb {
+  margin: auto;
+  text-align: center; }
+  .theme-thumb img {
+    text-align: center;
+    margin: auto;
+    width: 30%; }
+
+.taller {
+  z-index: 100;
+  position: relative;
+  padding-top: 10px; }

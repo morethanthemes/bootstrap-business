@@ -1,0 +1,135 @@
+// ======== vars ========
+$text-color: #555555;
+$bg: #f6f7f7;
+$bg-blue: #748ca6;
+$bg-blue-hover: #8da1b6;
+$link: #00a7e6;
+$link-hover: #00bbff;
+$white: #fff;
+$font-stack: "proxima-nova",
+Helvetica,
+Arial,
+sans-serif;
+// ======== vars ========
+// ======== style ========
+body {
+    padding-top: 50px;
+    font-size: 15px;
+    color: $text-color;
+    line-height: 1.55;
+    background-color: $bg;
+    font-family: $font-stack;
+}
+
+p {
+    font-weight: 200;
+}
+
+a {
+    transition: all 0.2s;
+    color: $link;
+    &:hover {
+        //        border-bottom: 1px solid $bg-blue;
+        text-decoration: none;
+        background-color: rgba(0, 187, 255, 0.12);
+        color: $link-hover;
+    }
+}
+
+.starter-template {
+    padding: 40px 15px;
+    text-align: center;
+}
+
+.navbar-inverse {
+    background-color: $bg-blue;
+    border-color: $bg-blue;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.5);
+}
+
+.navbar-inverse .navbar-brand {
+    color: $white;
+    a {
+        color: $white;
+        transition: all 0.25s;
+    }
+}
+
+.navbar-inverse .navbar-nav>li>a {
+    transition: all 0.25s;
+    color: $white;
+}
+
+.navbar-inverse .navbar-nav>li>a:hover {
+    background-color: $bg-blue-hover;
+}
+
+.navbar-nav {
+//    float: right;
+}
+
+.navbar-inverse .navbar-toggle {
+    border: none;
+    &:hover {
+        background-color: $bg-blue-hover;
+    }
+}
+
+.logo img {
+    float: left;
+    height: 46px;
+    margin-right: 10px;
+    margin-top: -14px;
+    padding: 5px 0px;
+    &:hover {
+        opacity: 0.8;
+    }
+}
+
+.maincontent {
+    background: linear-gradient(to bottom, rgba(116, 140, 166, 0.5) 0%, rgba(116, 140, 166, 0) 240px);
+}
+
+.starter-template {
+    //    width: 50%;
+    margin: auto;
+}
+
+.jumbotron {
+    //    width: 50%;
+    float: left;
+    background-color: $bg;
+    padding-top: 5px;
+    padding-bottom: 10px;
+    p {
+        font-size: 1.1em;
+    }
+}
+
+.btn-lg {
+    border-radius: 30px;
+    padding: 12px 40px;
+    background-color: $link;
+    border-color: $link;
+    transition: all 0.25s;
+    &:hover {
+        background-color: $link-hover;
+        border-color: $link-hover;
+    }
+}
+
+.theme-thumb {
+    margin: auto;
+    text-align: center;
+    img {
+        text-align: center;
+        margin: auto;
+        width: 30%;
+    }
+}
+
+.taller {
+    z-index: 100;
+    position: relative;
+    padding-top: 10px;
+}
