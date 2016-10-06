@@ -1,14 +1,10 @@
 <?php
-
-/**
- * @file
- * Contains \Drupal\Core\DependencyInjection\YamlFileLoader.
- */
+// @codingStandardsIgnoreFile
 
 namespace Drupal\Core\DependencyInjection;
 
 use Drupal\Component\FileCache\FileCacheFactory;
-use Drupal\Component\Serialization\Yaml;
+use Drupal\Core\Serialization\Yaml;
 use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
@@ -56,13 +52,12 @@ class YamlFileLoader
     /**
      * Loads a Yaml file.
      *
-     * @param mixed  $file The resource
+     * @param mixed $file
+     *   The resource
      */
     public function load($file)
     {
         // Load from the file cache, fall back to loading the file.
-        // @todo Refactor this to cache parsed definition objects in
-        //   https://www.drupal.org/node/2464053
         $content = $this->fileCache->get($file);
         if (!$content) {
             $content = $this->loadFile($file);
@@ -103,7 +98,7 @@ class YamlFileLoader
     /**
      * Parses definitions
      *
-     * @param array  $content
+     * @param array $content
      * @param string $file
      */
     private function parseDefinitions($content, $file)
@@ -116,7 +111,16 @@ class YamlFileLoader
             throw new InvalidArgumentException(sprintf('The "services" key should contain an array in %s. Check your YAML syntax.', $file));
         }
 
+        // Some extensions split up their dependencies into multiple files.
+        if (isset($content['_provider'])) {
+            $provider = $content['_provider'];
+        }
+        else {
+            $basename = basename($file);
+            list($provider, ) = explode('.', $basename, 2);
+        }
         foreach ($content['services'] as $id => $service) {
+            $service['tags'][] = ['name' => '_provider', 'provider' => $provider];
             $this->parseDefinition($id, $service, $file);
         }
     }
@@ -125,10 +129,11 @@ class YamlFileLoader
      * Parses a definition.
      *
      * @param string $id
-     * @param array  $service
+     * @param array $service
      * @param string $file
      *
-     * @throws InvalidArgumentException When tags are invalid
+     * @throws InvalidArgumentException
+     *   When tags are invalid.
      */
     private function parseDefinition($id, $service, $file)
     {
@@ -159,8 +164,15 @@ class YamlFileLoader
             $definition->setClass($service['class']);
         }
 
+        if (isset($service['shared'])) {
+            $definition->setShared($service['shared']);
+        }
+
         if (isset($service['scope'])) {
-            $definition->setScope($service['scope']);
+            if ('request' !== $id) {
+                @trigger_error(sprintf('The "scope" key of service "%s" in file "%s" is deprecated since version 2.8 and will be removed in 3.0.', $id, $file), E_USER_DEPRECATED);
+            }
+            $definition->setScope($service['scope'], false);
         }
 
         if (isset($service['synthetic'])) {
@@ -181,6 +193,10 @@ class YamlFileLoader
 
         if (isset($service['abstract'])) {
             $definition->setAbstract($service['abstract']);
+        }
+
+        if (array_key_exists('deprecated', $service)) {
+            $definition->setDeprecated(true, $service['deprecated']);
         }
 
         if (isset($service['factory'])) {
@@ -275,7 +291,30 @@ class YamlFileLoader
 
         if (isset($service['decorates'])) {
             $renameId = isset($service['decoration_inner_name']) ? $service['decoration_inner_name'] : null;
-            $definition->setDecoratedService($service['decorates'], $renameId);
+            $priority = isset($service['decoration_priority']) ? $service['decoration_priority'] : 0;
+            $definition->setDecoratedService($service['decorates'], $renameId, $priority);
+        }
+
+        if (isset($service['autowire'])) {
+            $definition->setAutowired($service['autowire']);
+        }
+
+        if (isset($service['autowiring_types'])) {
+            if (is_string($service['autowiring_types'])) {
+                $definition->addAutowiringType($service['autowiring_types']);
+            } else {
+                if (!is_array($service['autowiring_types'])) {
+                    throw new InvalidArgumentException(sprintf('Parameter "autowiring_types" must be a string or an array for service "%s" in %s. Check your YAML syntax.', $id, $file));
+                }
+
+                foreach ($service['autowiring_types'] as $autowiringType) {
+                    if (!is_string($autowiringType)) {
+                        throw new InvalidArgumentException(sprintf('A "autowiring_types" attribute must be of type string for service "%s" in %s. Check your YAML syntax.', $id, $file));
+                    }
+
+                    $definition->addAutowiringType($autowiringType);
+                }
+            }
         }
 
         $this->container->setDefinition($id, $definition);
@@ -288,7 +327,8 @@ class YamlFileLoader
      *
      * @return array The file content
      *
-     * @throws InvalidArgumentException when the given file is not a local file or when it does not exist
+     * @throws InvalidArgumentException
+     *   When the given file is not a local file or when it does not exist.
      */
     protected function loadFile($file)
     {
@@ -306,12 +346,13 @@ class YamlFileLoader
     /**
      * Validates a YAML file.
      *
-     * @param mixed  $content
+     * @param mixed $content
      * @param string $file
      *
      * @return array
      *
-     * @throws InvalidArgumentException When service file is not valid
+     * @throws InvalidArgumentException
+     *   When service file is not valid.
      */
     private function validate($content, $file)
     {

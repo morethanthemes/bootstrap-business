@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\migrate\Plugin\migrate\process\Iterator.
- */
-
 namespace Drupal\migrate\Plugin\migrate\process;
 
 use Drupal\migrate\ProcessPluginBase;
@@ -14,7 +9,7 @@ use Drupal\migrate\Row;
 /**
  * This plugin iterates and processes an array.
  *
- * @see https://www.drupal.org/node/2135345
+ * @link https://www.drupal.org/node/2135345 Online handbook documentation for iterator process plugin @endlink
  *
  * @MigrateProcessPlugin(
  *   id = "iterator",

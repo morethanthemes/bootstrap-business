@@ -1,12 +1,8 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Module\InstallUninstallTest.
- */
-
 namespace Drupal\system\Tests\Module;
 
+use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Core\Logger\RfcLogLevel;
 
 /**
@@ -100,9 +96,24 @@ class InstallUninstallTest extends ModuleTestBase {
       $edit["modules[$package][$name][enable]"] = TRUE;
       $this->drupalPostForm('admin/modules', $edit, t('Install'));
 
+      // Handle experimental modules, which require a confirmation screen.
+      if ($package == 'Core (Experimental)') {
+        $this->assertText('Are you sure you wish to enable experimental modules?');
+        if (count($modules_to_install) > 1) {
+          // When there are experimental modules, needed dependencies do not
+          // result in the same page title, but there will be expected text
+          // indicating they need to be enabled.
+          $this->assertText('You must enable');
+        }
+        $this->drupalPostForm(NULL, array(), t('Continue'));
+      }
       // Handle the case where modules were installed along with this one and
       // where we therefore hit a confirmation screen.
-      if (count($modules_to_install) > 1) {
+      elseif (count($modules_to_install) > 1) {
+        // Verify that we are on the correct form and that the expected text
+        // about enabling dependencies appears.
+        $this->assertText('Some required modules must be enabled');
+        $this->assertText('You must enable');
         $this->drupalPostForm(NULL, array(), t('Continue'));
       }
 
@@ -178,11 +189,25 @@ class InstallUninstallTest extends ModuleTestBase {
     // - That enabling more than one module at the same time does not lead to
     //   any errors.
     $edit = array();
+    $experimental = FALSE;
     foreach ($all_modules as $name => $module) {
       $edit['modules[' . $module->info['package'] . '][' . $name . '][enable]'] = TRUE;
+      // Track whether there is at least one experimental module.
+      if ($module->info['package'] == 'Core (Experimental)') {
+        $experimental = TRUE;
+      }
     }
     $this->drupalPostForm('admin/modules', $edit, t('Install'));
-    $this->assertText(t('@count modules have been enabled: ', array('@count' => count($all_modules))), 'Modules status has been updated.');
+
+    // If there are experimental modules, click the confirm form.
+    if ($experimental) {
+      $this->assertText('Are you sure you wish to enable experimental modules?');
+      $this->drupalPostForm(NULL, array(), t('Continue'));
+    }
+    // The string tested here is translatable but we are only using a part of it
+    // so using a translated string is wrong. Doing so would create a new string
+    // to translate.
+    $this->assertText(new FormattableMarkup('@count modules have been enabled: ', array('@count' => count($all_modules))), 'Modules status has been updated.');
   }
 
   /**

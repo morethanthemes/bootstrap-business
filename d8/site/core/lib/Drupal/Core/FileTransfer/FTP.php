@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\FileTransfer\FTP.
- */
-
 namespace Drupal\Core\FileTransfer;
 
 /**
@@ -50,4 +45,5 @@ abstract class FTP extends FileTransfer {
     $form['advanced']['port']['#default_value'] = 21;
     return $form;
   }
+
 }

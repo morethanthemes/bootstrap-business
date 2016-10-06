@@ -1,15 +1,11 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Field\Plugin\Field\FieldWidget\EmailDefaultWidget.
- */
-
 namespace Drupal\Core\Field\Plugin\Field\FieldWidget;
 
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\WidgetBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\Element\Email;
 
 /**
  * Plugin implementation of the 'email_default' widget.
@@ -29,6 +25,7 @@ class EmailDefaultWidget extends WidgetBase {
    */
   public static function defaultSettings() {
     return array(
+      'size' => 60,
       'placeholder' => '',
     ) + parent::defaultSettings();
   }
@@ -37,6 +34,13 @@ class EmailDefaultWidget extends WidgetBase {
    * {@inheritdoc}
    */
   public function settingsForm(array $form, FormStateInterface $form_state) {
+    $element['size'] = array(
+      '#type' => 'number',
+      '#title' => $this->t('Textfield size'),
+      '#default_value' => $this->getSetting('size'),
+      '#required' => TRUE,
+      '#min' => 1,
+    );
     $element['placeholder'] = array(
       '#type' => 'textfield',
       '#title' => t('Placeholder'),
@@ -59,6 +63,7 @@ class EmailDefaultWidget extends WidgetBase {
     else {
       $summary[] = t('No placeholder');
     }
+    $summary[] = t('Textfield size: @size', array('@size' => $this->getSetting('size')));
 
     return $summary;
   }
@@ -71,6 +76,8 @@ class EmailDefaultWidget extends WidgetBase {
       '#type' => 'email',
       '#default_value' => isset($items[$delta]->value) ? $items[$delta]->value : NULL,
       '#placeholder' => $this->getSetting('placeholder'),
+      '#size' => $this->getSetting('size'),
+      '#maxlength' => Email::EMAIL_MAX_LENGTH,
     );
     return $element;
   }

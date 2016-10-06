@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\language\Form\LanguageFormBase.
- */
-
 namespace Drupal\language\Form;
 
 use Drupal\Component\Utility\Html;
@@ -29,7 +24,7 @@ abstract class LanguageFormBase extends EntityForm {
   /**
    * Constructs a ContentEntityForm object.
    *
-   * @param  \Drupal\language\ConfigurableLanguageManagerInterface $language_manager
+   * @param \Drupal\language\ConfigurableLanguageManagerInterface $language_manager
    *   The configurable language manager.
    */
   public function __construct(ConfigurableLanguageManagerInterface $language_manager) {

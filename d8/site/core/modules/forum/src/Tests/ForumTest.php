@@ -1,12 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\forum\Tests\ForumTest.
- *
- * Tests for forum.module.
- */
-
 namespace Drupal\forum\Tests;
 
 use Drupal\Core\Entity\Entity\EntityFormDisplay;
@@ -18,6 +11,8 @@ use Drupal\Core\Url;
 use Drupal\taxonomy\Entity\Vocabulary;
 
 /**
+ * Tests for forum.module.
+ *
  * Create, view, edit, delete, and change forum entries and verify its
  * consistency in the database.
  *
@@ -126,8 +121,7 @@ class ForumTest extends WebTestBase {
     //Check that the basic forum install creates a default forum topic
     $this->drupalGet('/forum');
     // Look for the "General discussion" default forum
-    $this->assertRaw(t('<a href="'. Url::fromRoute('forum.page', ['taxonomy_term' => 1])->toString() .'">General discussion</a>'), "Found the default forum at the /forum listing");
-
+    $this->assertRaw(Link::createFromRoute(t('General discussion'), 'forum.page', ['taxonomy_term' => 1])->toString(), "Found the default forum at the /forum listing");
     // Check the presence of expected cache tags.
     $this->assertCacheTag('config:forum.settings');
 
@@ -158,7 +152,7 @@ class ForumTest extends WebTestBase {
 
     $this->generateForumTopics();
 
-    // Login an unprivileged user to view the forum topics and generate an
+    // Log in an unprivileged user to view the forum topics and generate an
     // active forum topics list.
     $this->drupalLogin($this->webUser);
     // Verify that this user is shown a message that they may not post content.
@@ -185,7 +179,7 @@ class ForumTest extends WebTestBase {
     $this->drupalGet('forum/' . $this->forum['tid']);
     $this->assertLink(t('Add new Forum topic'));
 
-    // Login a user with permission to edit any forum content.
+    // Log in a user with permission to edit any forum content.
     $this->drupalLogin($this->editAnyTopicsUser);
     // Verify that this user can edit forum content authored by another user.
     $this->verifyForums($own_topics_user_node, TRUE);
@@ -286,7 +280,7 @@ class ForumTest extends WebTestBase {
    *   The logged-in user.
    */
   private function doAdminTests($user) {
-    // Login the user.
+    // Log in the user.
     $this->drupalLogin($user);
 
     // Add forum to the Tools menu.
@@ -339,13 +333,13 @@ class ForumTest extends WebTestBase {
     // Create a default vocabulary named "Tags".
     $description = 'Use tags to group articles on similar topics into categories.';
     $help = 'Enter a comma-separated list of words to describe your content.';
-    $vocabulary = entity_create('taxonomy_vocabulary', array(
+    $vocabulary = Vocabulary::create([
       'name' => 'Tags',
       'description' => $description,
       'vid' => 'tags',
       'langcode' => \Drupal::languageManager()->getDefaultLanguage()->getId(),
       'help' => $help,
-    ));
+    ]);
     $vocabulary->save();
     // Test tags vocabulary form is not affected.
     $this->drupalGet('admin/structure/taxonomy/manage/tags');
@@ -421,13 +415,17 @@ class ForumTest extends WebTestBase {
     $this->drupalPostForm('admin/structure/forum/add/' . $type, $edit, t('Save'));
     $this->assertResponse(200);
     $type = ($type == 'container') ? 'forum container' : 'forum';
-    $this->assertRaw(
+    $this->assertText(
       t(
-        'Created new @type %term.',
-        array('%term' => $name, '@type' => t($type))
+        'Created new @type @term.',
+        array('@term' => $name, '@type' => t($type))
       ),
       format_string('@type was created', array('@type' => ucfirst($type)))
     );
+
+    // Verify that the creation message contains a link to a term.
+    $view_link = $this->xpath('//div[@class="messages"]//a[contains(@href, :href)]', array(':href' => 'term/'));
+    $this->assert(isset($view_link), 'The message area contains a link to a term');
 
     // Verify forum.
     $term = db_query("SELECT * FROM {taxonomy_term_field_data} t WHERE t.vid = :vid AND t.name = :name AND t.description__value = :desc AND t.default_langcode = 1", array(':vid' => $this->config('forum.settings')->get('vocabulary'), ':name' => $name, ':desc' => $description))->fetchAssoc();
@@ -472,7 +470,7 @@ class ForumTest extends WebTestBase {
    *   User has 'access administration pages' privilege.
    */
   private function doBasicTests($user, $admin) {
-    // Login the user.
+    // Log in the user.
     $this->drupalLogin($user);
     // Attempt to create forum topic under a container.
     $this->createForumTopic($this->forumContainer, TRUE);
@@ -486,7 +484,7 @@ class ForumTest extends WebTestBase {
    * Tests a forum with a new post displays properly.
    */
   function testForumWithNewPost() {
-    // Login as the first user.
+    // Log in as the first user.
     $this->drupalLogin($this->adminUser);
     // Create a forum container.
     $this->forumContainer = $this->createForum('container');
@@ -495,7 +493,7 @@ class ForumTest extends WebTestBase {
     // Create a topic.
     $node = $this->createForumTopic($this->forum, FALSE);
 
-    // Login as a second user.
+    // Log in as a second user.
     $this->drupalLogin($this->postCommentUser);
     // Post a reply to the topic.
     $edit = array();
@@ -509,7 +507,7 @@ class ForumTest extends WebTestBase {
     $this->assertResponse(200);
     $this->assertFieldByName('comment_body[0][value]');
 
-    // Login as the first user.
+    // Log in as the first user.
     $this->drupalLogin($this->adminUser);
     // Check that forum renders properly.
     $this->drupalGet("forum/{$this->forum['tid']}");
@@ -546,13 +544,17 @@ class ForumTest extends WebTestBase {
 
     $type = t('Forum topic');
     if ($container) {
-      $this->assertNoRaw(t('@type %title has been created.', array('@type' => $type, '%title' => $title)), 'Forum topic was not created');
+      $this->assertNoText(t('@type @title has been created.', array('@type' => $type, '@title' => $title)), 'Forum topic was not created');
       $this->assertRaw(t('The item %title is a forum container, not a forum.', array('%title' => $forum['name'])), 'Error message was shown');
       return;
     }
     else {
-      $this->assertRaw(t('@type %title has been created.', array('@type' => $type, '%title' => $title)), 'Forum topic was created');
+      $this->assertText(t('@type @title has been created.', array('@type' => $type, '@title' => $title)), 'Forum topic was created');
       $this->assertNoRaw(t('The item %title is a forum container, not a forum.', array('%title' => $forum['name'])), 'No error message was shown');
+
+      // Verify that the creation message contains a link to a term.
+      $view_link = $this->xpath('//div[@class="messages"]//a[contains(@href, :href)]', array(':href' => 'term/'));
+      $this->assert(isset($view_link), 'The message area contains a link to a term');
     }
 
     // Retrieve node object, ensure that the topic was created and in the proper forum.
@@ -628,7 +630,7 @@ class ForumTest extends WebTestBase {
       $edit['taxonomy_forums'] = $this->rootForum['tid'];
       $edit['shadow'] = TRUE;
       $this->drupalPostForm('node/' . $node->id() . '/edit', $edit, t('Save'));
-      $this->assertRaw(t('Forum topic %title has been updated.', array('%title' => $edit['title[0][value]'])), 'Forum node was edited');
+      $this->assertText(t('Forum topic @title has been updated.', array('@title' => $edit['title[0][value]'])), 'Forum node was edited');
 
       // Verify topic was moved to a different forum.
       $forum_tid = db_query("SELECT tid FROM {forum} WHERE nid = :nid AND vid = :vid", array(
@@ -683,4 +685,5 @@ class ForumTest extends WebTestBase {
       $this->nids[] = $node->id();
     }
   }
+
 }

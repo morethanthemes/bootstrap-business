@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\path\Tests\PathTestBase.
- */
-
 namespace Drupal\path\Tests;
 
 use Drupal\simpletest\WebTestBase;
@@ -30,4 +25,5 @@ abstract class PathTestBase extends WebTestBase {
       $this->drupalCreateContentType(array('type' => 'article', 'name' => 'Article'));
     }
   }
+
 }

@@ -1,18 +1,13 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\config\Controller\ConfigController.
- */
-
 namespace Drupal\config\Controller;
 
 use Drupal\Core\Archiver\ArchiveTar;
-use Drupal\Component\Serialization\Yaml;
 use Drupal\Core\Config\ConfigManagerInterface;
 use Drupal\Core\Config\StorageInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Diff\DiffFormatter;
+use Drupal\Core\Serialization\Yaml;
 use Drupal\Core\Url;
 use Drupal\system\FileDownloadController;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -165,4 +160,5 @@ class ConfigController implements ContainerInjectionInterface {
 
     return $build;
   }
+
 }

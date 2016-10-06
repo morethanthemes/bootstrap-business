@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\Utility\NestedArray.
- */
-
 namespace Drupal\Component\Utility;
 
 /**
@@ -347,6 +342,28 @@ class NestedArray {
       }
     }
     return $result;
+  }
+
+  /**
+   * Filters a nested array recursively.
+   *
+   * @param array $array
+   *   The filtered nested array.
+   * @param callable|null $callable
+   *   The callable to apply for filtering.
+   *
+   * @return array
+   *   The filtered array.
+   */
+  public static function filter(array $array, callable $callable = NULL) {
+    $array = is_callable($callable) ? array_filter($array, $callable) : array_filter($array);
+    foreach ($array as &$element) {
+      if (is_array($element)) {
+        $element = static::filter($element, $callable);
+      }
+    }
+
+    return $array;
   }
 
 }

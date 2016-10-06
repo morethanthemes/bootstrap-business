@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Asset\LibraryDependencyResolverTest.
- */
-
 namespace Drupal\Tests\Core\Asset;
 
 use Drupal\Core\Asset\LibraryDependencyResolver;
@@ -66,7 +61,7 @@ class LibraryDependencyResolverTest extends UnitTestCase {
       ->method('getLibrariesByExtension')
       ->with('test')
       ->will($this->returnValue($this->libraryData));
-    $this->libraryDependencyResolver= new LibraryDependencyResolver($this->libraryDiscovery);
+    $this->libraryDependencyResolver = new LibraryDependencyResolver($this->libraryDiscovery);
   }
 
 

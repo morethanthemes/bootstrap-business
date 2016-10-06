@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\field\Plugin\migrate\source\d6\FieldInstancePerFormDisplay.
- */
-
 namespace Drupal\field\Plugin\migrate\source\d6;
 
 use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
@@ -67,7 +62,7 @@ class FieldInstancePerFormDisplay extends DrupalSqlBase {
         'module',
       ));
     $query->join('content_node_field', 'cnf', 'cnfi.field_name = cnf.field_name');
-    $query->orderBy('weight');
+    $query->orderBy('cnfi.weight');
 
     return $query;
   }

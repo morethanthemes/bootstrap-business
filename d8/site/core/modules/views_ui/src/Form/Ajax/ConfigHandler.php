@@ -1,14 +1,8 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views_ui\Form\Ajax\ConfigHandler.
- */
-
 namespace Drupal\views_ui\Form\Ajax;
 
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Url;
 use Drupal\views\ViewEntityInterface;
 use Drupal\views\ViewExecutable;
 use Drupal\views\Views;
@@ -181,9 +175,6 @@ class ConfigHandler extends ViewsFormBase {
         '#value' => $this->t('Remove'),
         '#submit' => array(array($this, 'remove')),
         '#limit_validation_errors' => array(array('override')),
-        '#ajax' => array(
-          'url' => Url::fromRoute('<current>'),
-        ),
         '#button_type' => 'danger',
       );
     }
@@ -246,7 +237,7 @@ class ConfigHandler extends ViewsFormBase {
 
     // Add the incoming options to existing options because items using
     // the extra form may not have everything in the form here.
-    $options = $form_state->getValue('options') + $handler->options;
+    $options = $handler->submitFormCalculateOptions($handler->options, $form_state->getValue('options', []));
 
     // This unpacks only options that are in the definition, ensuring random
     // extra stuff on the form is not sent through.

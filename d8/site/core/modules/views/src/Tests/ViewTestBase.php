@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Tests\ViewTestBase.
- */
-
 namespace Drupal\views\Tests;
 
 use Drupal\Core\Database\Query\SelectInterface;
@@ -15,10 +10,10 @@ use Drupal\views\ViewExecutable;
  * Defines a base class for Views testing in the full web test environment.
  *
  * Use this base test class if you need to emulate a full Drupal installation.
- * When possible, ViewKernelTestBase should be used instead. Both base classes
+ * When possible, ViewsKernelTestBase should be used instead. Both base classes
  * include the same methods.
  *
- * @see \Drupal\views\Tests\ViewKernelTestBase
+ * @see \Drupal\Tests\views\Kernel\ViewsKernelTestBase
  * @see \Drupal\simpletest\WebTestBase
  */
 abstract class ViewTestBase extends WebTestBase {
@@ -123,7 +118,7 @@ abstract class ViewTestBase extends WebTestBase {
     $view->setDisplay();
     $view->preExecute($args);
     $view->execute();
-    $verbose_message = '<pre>Executed view: ' . ((string) $view->build_info['query']). '</pre>';
+    $verbose_message = '<pre>Executed view: ' . ((string) $view->build_info['query']) . '</pre>';
     if ($view->build_info['query'] instanceof SelectInterface) {
       $verbose_message .= '<pre>Arguments: ' . print_r($view->build_info['query']->getArguments(), TRUE) . '</pre>';
     }

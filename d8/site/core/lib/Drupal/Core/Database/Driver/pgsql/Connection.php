@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Database\Driver\pgsql\Connection.
- */
-
 namespace Drupal\Core\Database\Driver\pgsql;
 
 use Drupal\Core\Database\Database;
@@ -138,7 +133,38 @@ class Connection extends DatabaseConnection {
       }
     }
 
-    return parent::query($query, $args, $options);
+    // We need to wrap queries with a savepoint if:
+    // - Currently in a transaction.
+    // - A 'mimic_implicit_commit' does not exist already.
+    // - The query is not a savepoint query.
+    $wrap_with_savepoint = $this->inTransaction() &&
+      !isset($this->transactionLayers['mimic_implicit_commit']) &&
+      !(is_string($query) && (
+        stripos($query, 'ROLLBACK TO SAVEPOINT ') === 0 ||
+        stripos($query, 'RELEASE SAVEPOINT ') === 0 ||
+        stripos($query, 'SAVEPOINT ') === 0
+      )
+    );
+    if ($wrap_with_savepoint) {
+      // Create a savepoint so we can rollback a failed query. This is so we can
+      // mimic MySQL and SQLite transactions which don't fail if a single query
+      // fails. This is important for tables that are created on demand. For
+      // example, \Drupal\Core\Cache\DatabaseBackend.
+      $this->addSavepoint();
+      try {
+        $return = parent::query($query, $args, $options);
+        $this->releaseSavepoint();
+      }
+      catch (\Exception $e) {
+        $this->rollbackSavepoint();
+        throw $e;
+      }
+    }
+    else {
+      $return = parent::query($query, $args, $options);
+    }
+
+    return $return;
   }
 
   public function prepareQuery($query) {
@@ -184,13 +210,8 @@ class Connection extends DatabaseConnection {
       // need to be escaped.
       $escaped = $this->escapeTable($table) . '.' . $this->escapeAlias($column);
     }
-    elseif (preg_match('/[A-Z]/', $escaped)) {
-      // Quote the field name for case-sensitivity.
-      $escaped = '"' . $escaped . '"';
-    }
-    elseif (in_array(strtolower($escaped), $this->postgresqlReservedKeyWords)) {
-      // Quote the field name for PostgreSQL reserved key words.
-      $escaped = '"' . $escaped . '"';
+    else {
+      $escaped = $this->doEscape($escaped);
     }
 
     return $escaped;
@@ -201,16 +222,7 @@ class Connection extends DatabaseConnection {
    */
   public function escapeAlias($field) {
     $escaped = preg_replace('/[^A-Za-z0-9_]+/', '', $field);
-
-    // Escape the alias in quotes for case-sensitivity.
-    if (preg_match('/[A-Z]/', $escaped)) {
-      $escaped = '"' . $escaped . '"';
-    }
-    elseif (in_array(strtolower($escaped), $this->postgresqlReservedKeyWords)) {
-      // Quote the alias name for PostgreSQL reserved key words.
-      $escaped = '"' . $escaped . '"';
-    }
-
+    $escaped = $this->doEscape($escaped);
     return $escaped;
   }
 
@@ -220,16 +232,33 @@ class Connection extends DatabaseConnection {
   public function escapeTable($table) {
     $escaped = parent::escapeTable($table);
 
-    // Quote identifier to make it case-sensitive.
-    if (preg_match('/[A-Z]/', $escaped)) {
-      $escaped = '"' . $escaped . '"';
-    }
-    elseif (in_array(strtolower($escaped), $this->postgresqlReservedKeyWords)) {
-      // Quote the table name for PostgreSQL reserved key words.
-      $escaped = '"' . $escaped . '"';
-    }
+    // Ensure that each part (database, schema and table) of the table name is
+    // properly and independently escaped.
+    $parts = explode('.', $escaped);
+    $parts = array_map([$this, 'doEscape'], $parts);
+    $escaped = implode('.', $parts);
 
     return $escaped;
+  }
+
+  /**
+   * Escape a string if needed.
+   *
+   * @param $string
+   *   The string to escape.
+   * @return string
+   *   The escaped string.
+   */
+  protected function doEscape($string) {
+    // Quote identifier to make it case-sensitive.
+    if (preg_match('/[A-Z]/', $string)) {
+      $string = '"' . $string . '"';
+    }
+    elseif (in_array(strtolower($string), $this->postgresqlReservedKeyWords)) {
+      // Quote the string for PostgreSQL reserved key words.
+      $string = '"' . $string . '"';
+    }
+    return $string;
   }
 
   public function driver() {
@@ -348,7 +377,7 @@ class Connection extends DatabaseConnection {
    *   A string representing the savepoint name. By default,
    *   "mimic_implicit_commit" is used.
    *
-   * @see Drupal\Core\Database\Connection::pushTransaction().
+   * @see Drupal\Core\Database\Connection::pushTransaction()
    */
   public function addSavepoint($savepoint_name = 'mimic_implicit_commit') {
     if ($this->inTransaction()) {
@@ -363,7 +392,7 @@ class Connection extends DatabaseConnection {
    *   A string representing the savepoint name. By default,
    *   "mimic_implicit_commit" is used.
    *
-   * @see Drupal\Core\Database\Connection::popTransaction().
+   * @see Drupal\Core\Database\Connection::popTransaction()
    */
   public function releaseSavepoint($savepoint_name = 'mimic_implicit_commit') {
     if (isset($this->transactionLayers[$savepoint_name])) {

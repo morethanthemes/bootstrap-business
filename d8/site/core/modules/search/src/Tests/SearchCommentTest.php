@@ -1,16 +1,12 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\search\Tests\SearchCommentTest.
- */
-
 namespace Drupal\search\Tests;
 
 use Drupal\comment\Plugin\Field\FieldType\CommentItemInterface;
 use Drupal\comment\Tests\CommentTestTrait;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\user\RoleInterface;
+use Drupal\filter\Entity\FilterFormat;
 
 /**
  * Tests integration searching comments.
@@ -59,7 +55,7 @@ class SearchCommentTest extends SearchTestBase {
   protected function setUp() {
     parent::setUp();
 
-    $full_html_format = entity_create('filter_format', array(
+    $full_html_format = FilterFormat::create(array(
       'format' => 'full_html',
       'name' => 'Full HTML',
       'weight' => 1,
@@ -90,7 +86,7 @@ class SearchCommentTest extends SearchTestBase {
   function testSearchResultsComment() {
     $node_storage = $this->container->get('entity.manager')->getStorage('node');
     // Create basic_html format that escapes all HTML.
-    $basic_html_format = entity_create('filter_format', array(
+    $basic_html_format = FilterFormat::create(array(
       'format' => 'basic_html',
       'name' => 'Basic HTML',
       'weight' => 1,
@@ -124,7 +120,7 @@ class SearchCommentTest extends SearchTestBase {
     $edit_comment['comment_body[0][value]'] = '<h1>' . $comment_body . '</h1>';
     $full_html_format_id = 'full_html';
     $edit_comment['comment_body[0][format]'] = $full_html_format_id;
-    $this->drupalPostForm('comment/reply/node/' . $node->id() .'/comment', $edit_comment, t('Save'));
+    $this->drupalPostForm('comment/reply/node/' . $node->id() . '/comment', $edit_comment, t('Save'));
 
     // Post a comment with an evil script tag in the comment subject and a
     // script tag nearby a keyword in the comment body. Use the 'FULL HTML' text
@@ -354,4 +350,5 @@ class SearchCommentTest extends SearchTestBase {
     $this->assertText($node->label(), 'Search for keyword worked');
     $this->assertNoText(t('Add new comment'));
   }
+
 }

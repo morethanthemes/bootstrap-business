@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\taxonomy\Tests\VocabularyPermissionsTest.
- */
-
 namespace Drupal\taxonomy\Tests;
 
 /**
@@ -41,7 +36,11 @@ class VocabularyPermissionsTest extends TaxonomyTestBase {
     $edit['name[0][value]'] = $this->randomMachineName();
 
     $this->drupalPostForm(NULL, $edit, t('Save'));
-    $this->assertRaw(t('Created new term %name.', array('%name' => $edit['name[0][value]'])), 'Term created successfully.');
+    $this->assertText(t('Created new term @name.', array('@name' => $edit['name[0][value]'])), 'Term created successfully.');
+
+    // Verify that the creation message contains a link to a term.
+    $view_link = $this->xpath('//div[@class="messages"]//a[contains(@href, :href)]', array(':href' => 'term/'));
+    $this->assert(isset($view_link), 'The message area contains a link to a term');
 
     $terms = taxonomy_term_load_multiple_by_name($edit['name[0][value]']);
     $term = reset($terms);
@@ -53,7 +52,7 @@ class VocabularyPermissionsTest extends TaxonomyTestBase {
 
     $edit['name[0][value]'] = $this->randomMachineName();
     $this->drupalPostForm(NULL, $edit, t('Save'));
-    $this->assertRaw(t('Updated term %name.', array('%name' => $edit['name[0][value]'])), 'Term updated successfully.');
+    $this->assertText(t('Updated term @name.', array('@name' => $edit['name[0][value]'])), 'Term updated successfully.');
 
     // Delete the vocabulary.
     $this->drupalGet('taxonomy/term/' . $term->id() . '/delete');
@@ -81,7 +80,11 @@ class VocabularyPermissionsTest extends TaxonomyTestBase {
 
     $edit['name[0][value]'] = $this->randomMachineName();
     $this->drupalPostForm(NULL, $edit, t('Save'));
-    $this->assertRaw(t('Updated term %name.', array('%name' => $edit['name[0][value]'])), 'Term updated successfully.');
+    $this->assertText(t('Updated term @name.', array('@name' => $edit['name[0][value]'])), 'Term updated successfully.');
+
+    // Verify that the update message contains a link to a term.
+    $view_link = $this->xpath('//div[@class="messages"]//a[contains(@href, :href)]', array(':href' => 'term/'));
+    $this->assert(isset($view_link), 'The message area contains a link to a term');
 
     // Delete the vocabulary.
     $this->drupalGet('taxonomy/term/' . $term->id() . '/delete');
@@ -129,4 +132,5 @@ class VocabularyPermissionsTest extends TaxonomyTestBase {
     $this->drupalGet('taxonomy/term/' . $term->id() . '/delete');
     $this->assertResponse(403, 'Delete taxonomy term form open failed.');
   }
+
 }

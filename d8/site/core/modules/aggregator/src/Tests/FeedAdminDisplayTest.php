@@ -1,14 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\aggregator\Tests\FeedAdminDisplayTest.
- */
-
 namespace Drupal\aggregator\Tests;
 
 /**
- * Tests the display of a feed on the feed aggregator list page.
+ * Tests the display of a feed on the Aggregator list page.
  *
  * @group aggregator
  */
@@ -64,4 +59,5 @@ class FeedAdminDisplayTest extends AggregatorTestBase {
     $this->assertText('ago', 'The non scheduled feed has been updated. It shows "x x ago" as last update.');
     $this->assertNoText('left', 'The feed is not scheduled. It does not show a timeframe "x x left" for next update.');
   }
+
 }

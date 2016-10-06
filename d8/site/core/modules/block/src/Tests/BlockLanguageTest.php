@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\block\Tests\BlockLanguageTest.
- */
-
 namespace Drupal\block\Tests;
 
 use Drupal\simpletest\WebTestBase;
@@ -155,7 +150,8 @@ class BlockLanguageTest extends WebTestBase {
     $this->drupalGet('node', ['query' => ['language' => 'fr']]);
     $this->assertText('Powered by Drupal', 'The body of the block appears on the page.');
 
-    // Re-login in order to clear the interface language stored in the session.
+    // Log in again in order to clear the interface language stored in the
+    // session.
     $this->drupalLogout();
     $this->drupalLogin($this->adminUser);
 

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Updater\Module.
- */
-
 namespace Drupal\Core\Updater;
 
 use Drupal\Core\Url;
@@ -143,4 +138,5 @@ class Module extends Updater implements UpdaterInterface {
     // We don't want to check for DB updates here, we do that once for all
     // updated modules on the landing page.
   }
+
 }

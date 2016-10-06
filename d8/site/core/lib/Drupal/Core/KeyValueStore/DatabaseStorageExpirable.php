@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\KeyValueStore\DatabaseStorageExpirable.
- */
-
 namespace Drupal\Core\KeyValueStore;
 
 use Drupal\Component\Serialization\SerializationInterface;
@@ -121,6 +116,5 @@ class DatabaseStorageExpirable extends DatabaseStorage implements KeyValueStoreE
   public function deleteMultiple(array $keys) {
     parent::deleteMultiple($keys);
   }
-
 
 }

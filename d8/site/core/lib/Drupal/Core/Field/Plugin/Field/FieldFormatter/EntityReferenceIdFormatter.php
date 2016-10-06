@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Field\Plugin\Field\FieldFormatter\EntityReferenceIdFormatter.
- */
-
 namespace Drupal\Core\Field\Plugin\Field\FieldFormatter;
 
 use Drupal\Core\Field\FieldItemListInterface;
@@ -45,4 +40,5 @@ class EntityReferenceIdFormatter extends EntityReferenceFormatterBase {
 
     return $elements;
   }
+
 }

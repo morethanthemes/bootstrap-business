@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Installer\InstallerTranslationMultipleLanguageTest.
- */
-
 namespace Drupal\system\Tests\Installer;
 
 use Drupal\simpletest\InstallerTestBase;
@@ -152,8 +147,8 @@ ENDPO;
     $test_samples = ['Save and continue', 'Anonymous', 'Language'];
     $langcodes = ['de', 'es'];
 
-    foreach($test_samples as $sample) {
-      foreach($langcodes as $langcode) {
+    foreach ($test_samples as $sample) {
+      foreach ($langcodes as $langcode) {
         $edit = array();
         $edit['langcode'] = $langcode;
         $edit['translation'] = 'translated';

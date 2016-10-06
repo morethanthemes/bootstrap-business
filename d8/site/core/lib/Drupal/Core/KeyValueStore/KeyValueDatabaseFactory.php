@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\KeyValueStore\KeyValueDatabaseFactory.
- */
-
 namespace Drupal\Core\KeyValueStore;
 
 use Drupal\Component\Serialization\SerializationInterface;
@@ -48,4 +43,5 @@ class KeyValueDatabaseFactory implements KeyValueFactoryInterface {
   public function get($collection) {
     return new DatabaseStorage($collection, $this->serializer, $this->connection);
   }
+
 }

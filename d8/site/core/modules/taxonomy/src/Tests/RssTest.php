@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\taxonomy\Tests\RssTest.
- */
-
 namespace Drupal\taxonomy\Tests;
 
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
@@ -110,7 +105,7 @@ class RssTest extends TaxonomyTestBase {
 
     // Test that the feed page exists for the term.
     $this->drupalGet("taxonomy/term/{$term1->id()}/feed");
-    $this->assertRaw('<rss version="2.0"', "Feed page is RSS.");
+    $this->assertTrue(!empty($this->cssSelect('rss[version="2.0"]')), "Feed page is RSS.");
 
     // Check that the "Exception value" is disabled by default.
     $this->drupalGet('taxonomy/term/all/feed');
@@ -131,4 +126,5 @@ class RssTest extends TaxonomyTestBase {
     $this->drupalGet('taxonomy/term/all/feed');
     $this->assertNoRaw($raw_xml);
   }
+
 }

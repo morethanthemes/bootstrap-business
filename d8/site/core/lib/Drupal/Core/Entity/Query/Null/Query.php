@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\Query\Null\Query.
- */
-
 namespace Drupal\Core\Entity\Query\Null;
 
 use Drupal\Core\Entity\Query\QueryAggregateInterface;
@@ -47,4 +42,5 @@ class Query extends QueryBase implements QueryInterface, QueryAggregateInterface
   public function conditionAggregateGroupFactory($conjunction = 'AND') {
     return new ConditionAggregate($conjunction, $this);
   }
+
 }

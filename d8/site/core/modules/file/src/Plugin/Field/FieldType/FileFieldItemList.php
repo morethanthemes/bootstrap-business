@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\file\Plugin\Field\FieldType\FileFieldItemList.
- */
-
 namespace Drupal\file\Plugin\Field\FieldType;
 
 use Drupal\Core\Field\EntityReferenceFieldItemList;
@@ -86,9 +81,11 @@ class FileFieldItemList extends EntityReferenceFieldItemList {
     parent::delete();
     $entity = $this->getEntity();
 
-    // Delete all file usages within this entity.
+    // If a translation is deleted only decrement the file usage by one. If the
+    // default translation is deleted remove all file usages within this entity.
+    $count = $entity->isDefaultTranslation() ? 0 : 1;
     foreach ($this->referencedEntities() as $file) {
-      \Drupal::service('file.usage')->delete($file, 'file', $entity->getEntityTypeId(), $entity->id(), 0);
+      \Drupal::service('file.usage')->delete($file, 'file', $entity->getEntityTypeId(), $entity->id(), $count);
     }
   }
 

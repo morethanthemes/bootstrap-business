@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\menu_test\TestControllers.
- */
-
 namespace Drupal\menu_test;
 
 use Drupal\Component\Utility\SafeMarkup;
@@ -87,4 +82,5 @@ class TestControllers {
       ]
     ];
   }
+
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\simpletest\Tests\BrokenSetUpTest.
- */
-
 namespace Drupal\simpletest\Tests;
 
 use Drupal\simpletest\WebTestBase;
@@ -121,4 +116,5 @@ class BrokenSetUpTest extends WebTestBase {
       $this->pass('The test method has run.');
     }
   }
+
 }

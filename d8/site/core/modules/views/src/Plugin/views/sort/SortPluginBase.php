@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Plugin\views\sort\SortPluginBase.
- */
-
 namespace Drupal\views\Plugin\views\sort;
 
 use Drupal\Core\Cache\Cache;
@@ -69,11 +64,10 @@ abstract class SortPluginBase extends HandlerBase implements CacheableDependency
       case 'asc':
       default:
         return $this->t('asc');
-        break;
+
       case 'DESC';
       case 'desc';
         return $this->t('desc');
-        break;
     }
   }
 
@@ -125,7 +119,6 @@ abstract class SortPluginBase extends HandlerBase implements CacheableDependency
         '#type' => 'submit',
         '#value' => $this->t('Expose sort'),
         '#submit' => array(array($this, 'displayExposedForm')),
-        '#attributes' => array('class' => array('use-ajax-submit')),
       );
       $form['expose_button']['checkbox']['checkbox']['#default_value'] = 0;
     }
@@ -138,7 +131,6 @@ abstract class SortPluginBase extends HandlerBase implements CacheableDependency
         '#type' => 'submit',
         '#value' => $this->t('Hide sort'),
         '#submit' => array(array($this, 'displayExposedForm')),
-        '#attributes' => array('class' => array('use-ajax-submit')),
       );
       $form['expose_button']['checkbox']['checkbox']['#default_value'] = 1;
     }

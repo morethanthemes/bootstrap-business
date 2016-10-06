@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Tests\Plugin\DisplayAttachmentTest.
- */
-
 namespace Drupal\views\Tests\Plugin;
 
 use Drupal\views\Views;
@@ -107,4 +102,5 @@ class DisplayAttachmentTest extends PluginTestBase {
     $result = $this->xpath('//div[contains(@class, "attachment-after")]');
     $this->assertEqual(count($result), 0, 'The attachment_2 is not rendered.');
   }
+
 }

@@ -1,18 +1,17 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\link\Plugin\migrate\cckfield\LinkField.
- */
-
 namespace Drupal\link\Plugin\migrate\cckfield;
 
-use Drupal\migrate\Entity\MigrationInterface;
+use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate_drupal\Plugin\migrate\cckfield\CckFieldPluginBase;
 
 /**
  * @MigrateCckField(
- *   id = "link"
+ *   id = "link",
+ *   core = {6},
+ *   type_map = {
+ *     "link_field" = "link"
+ *   }
  * )
  */
 class LinkField extends CckFieldPluginBase {
@@ -39,11 +38,11 @@ class LinkField extends CckFieldPluginBase {
    * {@inheritdoc}
    */
   public function processCckFieldValues(MigrationInterface $migration, $field_name, $data) {
-      $process = [
-        'plugin' => 'd6_cck_link',
-        'source' => $field_name,
-      ];
-      $migration->mergeProcessOfProperty($field_name, $process);
+    $process = [
+      'plugin' => 'd6_cck_link',
+      'source' => $field_name,
+    ];
+    $migration->mergeProcessOfProperty($field_name, $process);
   }
 
 }

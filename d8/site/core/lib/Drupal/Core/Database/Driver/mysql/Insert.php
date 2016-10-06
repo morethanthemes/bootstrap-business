@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Database\Driver\mysql\Insert.
- */
-
 namespace Drupal\Core\Database\Driver\mysql;
 
 use Drupal\Core\Database\Query\Insert as QueryInsert;
@@ -63,4 +58,5 @@ class Insert extends QueryInsert {
 
     return $query;
   }
+
 }

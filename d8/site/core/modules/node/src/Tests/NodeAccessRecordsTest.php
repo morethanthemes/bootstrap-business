@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Tests\NodeAccessRecordsTest.
- */
-
 namespace Drupal\node\Tests;
 
 use Drupal\node\Entity\Node;
@@ -85,4 +80,5 @@ class NodeAccessRecordsTest extends NodeTestBase {
     $records = db_query('SELECT realm, gid FROM {node_access} WHERE nid = :nid', array(':nid' => $node6->id()))->fetchAll();
     $this->assertEqual(count($records), 0, 'Returned no records for unpublished node.');
   }
+
 }

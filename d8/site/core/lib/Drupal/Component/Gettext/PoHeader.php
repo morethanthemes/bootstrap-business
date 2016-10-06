@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\Gettext\PoHeader.
- */
-
 namespace Drupal\Component\Gettext;
 
 /**
@@ -564,4 +559,5 @@ class PoHeader {
     }
     return (int) $element_stack[0];
   }
+
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\Plugin\Validation\Constraint\ReferenceAccessConstraintValidator.
- */
-
 namespace Drupal\Core\Entity\Plugin\Validation\Constraint;
 
 use Symfony\Component\Validator\Constraint;
@@ -38,10 +33,10 @@ class ReferenceAccessConstraintValidator extends ConstraintValidator {
         $referenced_entities = $existing_entity->{$value->getFieldDefinition()->getName()}->referencedEntities();
         // Check permission if we are not already referencing the entity.
         foreach ($referenced_entities as $ref) {
-           if (isset($referenced_entities[$ref->id()])) {
-             $check_permission = FALSE;
-             break;
-           }
+          if (isset($referenced_entities[$ref->id()])) {
+            $check_permission = FALSE;
+            break;
+          }
         }
       }
       // We check that the current user had access to view any newly added
@@ -52,4 +47,5 @@ class ReferenceAccessConstraintValidator extends ConstraintValidator {
       }
     }
   }
+
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\System\ShutdownFunctionsTest.
- */
-
 namespace Drupal\system\Tests\System;
 
 use Drupal\simpletest\WebTestBase;
@@ -57,4 +52,5 @@ class ShutdownFunctionsTest extends WebTestBase {
       $this->assertRaw('Drupal is &lt;blink&gt;awesome&lt;/blink&gt;.');
     }
   }
+
 }

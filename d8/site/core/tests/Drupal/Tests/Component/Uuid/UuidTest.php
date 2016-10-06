@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Component\Uuid\UuidTest.
- */
-
 namespace Drupal\Tests\Component\Uuid;
 
 use Drupal\Component\Uuid\Uuid;
@@ -82,7 +77,7 @@ class UuidTest extends UnitTestCase {
    * Dataprovider for UUID instance tests.
    *
    * @return array
-   *  An array of arrays containing
+   *   An array of arrays containing
    *   - The Uuid to check against.
    *   - (bool) Whether or not the Uuid is valid.
    *   - Failure message.
@@ -98,4 +93,5 @@ class UuidTest extends UnitTestCase {
       array('0ab26e6b-f074-4e44-9daf-1205fa0e9761f', FALSE, 'Invalid length was validated'),
     );
   }
+
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Menu\LocalTaskManager.
- */
-
 namespace Drupal\Core\Menu;
 
 use Drupal\Component\Plugin\Exception\PluginException;
@@ -163,7 +158,7 @@ class LocalTaskManager extends DefaultPluginManager implements LocalTaskManagerI
    */
   public function processDefinition(&$definition, $plugin_id) {
     parent::processDefinition($definition, $plugin_id);
-     // If there is no route name, this is a broken definition.
+    // If there is no route name, this is a broken definition.
     if (empty($definition['route_name'])) {
       throw new PluginException(sprintf('Plugin (%s) definition must include "route_name"', $plugin_id));
     }
@@ -183,7 +178,7 @@ class LocalTaskManager extends DefaultPluginManager implements LocalTaskManagerI
    * {@inheritdoc}
    */
   public function getDefinitions() {
-    $definitions =  parent::getDefinitions();
+    $definitions = parent::getDefinitions();
 
     $count = 0;
     foreach ($definitions as &$definition) {
@@ -223,7 +218,7 @@ class LocalTaskManager extends DefaultPluginManager implements LocalTaskManagerI
             $definitions[$plugin_id]['base_route'] = $definitions[$task_info['parent_id']]['base_route'];
           }
           if ($route_name == $task_info['route_name']) {
-            if(!empty($task_info['base_route'])) {
+            if (!empty($task_info['base_route'])) {
               $base_routes[$task_info['base_route']] = $task_info['base_route'];
             }
             // Tabs that link to the current route are viable parents

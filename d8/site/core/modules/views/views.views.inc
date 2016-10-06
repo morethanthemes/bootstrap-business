@@ -114,7 +114,7 @@ function views_views_data() {
 
   $data['views']['combine'] = array(
    'title' => t('Combine fields filter'),
-    'help' => t('Combine two fields together and search by them.'),
+    'help' => t('Combine multiple fields together and search by them.'),
     'filter' => array(
       'id' => 'combine',
     ),
@@ -295,6 +295,12 @@ function views_field_default_views_data(FieldStorageConfigInterface $field_stora
   if (!$field_storage->getBundles()) {
     return $data;
   }
+
+  // Ignore custom storage too.
+  if ($field_storage->hasCustomStorage()) {
+    return $data;
+  }
+
   // Check whether the entity type storage is supported.
   $storage = _views_field_get_entity_type_storage($field_storage);
   if (!$storage) {
@@ -351,6 +357,7 @@ function views_field_default_views_data(FieldStorageConfigInterface $field_stora
   if ($data_table) {
     // Tell Views how to join to the base table, via the data table.
     $data[$table_alias]['table']['join'][$data_table] = array(
+      'table' => $table_mapping->getDedicatedDataTableName($field_storage),
       'left_field' => $entity_type->getKey('id'),
       'field' => 'entity_id',
       'extra' => array(
@@ -362,6 +369,7 @@ function views_field_default_views_data(FieldStorageConfigInterface $field_stora
   else {
     // If there is no data table, just join directly.
     $data[$table_alias]['table']['join'][$base_table] = array(
+      'table' => $table_mapping->getDedicatedDataTableName($field_storage),
       'left_field' => $entity_type->getKey('id'),
       'field' => 'entity_id',
       'extra' => array(
@@ -375,6 +383,7 @@ function views_field_default_views_data(FieldStorageConfigInterface $field_stora
     if ($entity_revision_data_table) {
       // Tell Views how to join to the revision table, via the data table.
       $data[$table_alias]['table']['join'][$entity_revision_data_table] = array(
+        'table' => $table_mapping->getDedicatedRevisionTableName($field_storage),
         'left_field' => $entity_type->getKey('revision'),
         'field' => 'revision_id',
         'extra' => array(
@@ -386,6 +395,7 @@ function views_field_default_views_data(FieldStorageConfigInterface $field_stora
     else {
       // If there is no data table, just join directly.
       $data[$table_alias]['table']['join'][$entity_revision_table] = array(
+        'table' => $table_mapping->getDedicatedRevisionTableName($field_storage),
         'left_field' => $entity_type->getKey('revision'),
         'field' => 'revision_id',
         'extra' => array(
@@ -426,7 +436,7 @@ function views_field_default_views_data(FieldStorageConfigInterface $field_stora
       'group' => $group,
       'title' => $label,
       'title short' => $label,
-      'help' =>  t('Appears in: @bundles.', array('@bundles' => implode(', ', $bundles_names))),
+      'help' => t('Appears in: @bundles.', array('@bundles' => implode(', ', $bundles_names))),
     );
 
     // Go through and create a list of aliases for all possible combinations of
@@ -501,6 +511,9 @@ function views_field_default_views_data(FieldStorageConfigInterface $field_stora
         $filter = 'numeric';
         $argument = 'numeric';
         $sort = 'standard';
+        if ($field_storage->getType() == 'boolean') {
+          $filter = 'boolean';
+        }
         break;
       case 'text':
       case 'blob':
@@ -542,7 +555,7 @@ function views_field_default_views_data(FieldStorageConfigInterface $field_stora
         'group' => $group,
         'title' => $title,
         'title short' => $title_short,
-        'help' =>  t('Appears in: @bundles.', array('@bundles' => implode(', ', $bundles_names))),
+        'help' => t('Appears in: @bundles.', array('@bundles' => implode(', ', $bundles_names))),
       );
 
       // Go through and create a list of aliases for all possible combinations of
@@ -699,7 +712,7 @@ function core_field_views_data(FieldStorageConfigInterface $field_storage) {
       'title' => t('@label referenced from @field_name', $args),
       'label' => t('@field_name: @label', $args),
       'group' => $entity_type->getLabel(),
-      'help' =>  t('Appears in: @bundles.', array('@bundles' => implode(', ', $field_storage->getBundles()))),
+      'help' => t('Appears in: @bundles.', array('@bundles' => implode(', ', $field_storage->getBundles()))),
       'id' => 'standard',
       'base' => $target_base_table,
       'entity type' => $target_entity_type_id,

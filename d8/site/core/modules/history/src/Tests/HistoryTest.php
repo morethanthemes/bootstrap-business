@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\history\Tests\HistoryTest.
- */
-
 namespace Drupal\history\Tests;
 
 use Drupal\Component\Serialization\Json;
@@ -149,4 +144,5 @@ class HistoryTest extends WebTestBase {
     $this->markNodeAsRead($nid);
     $this->assertResponse(403);
   }
+
 }

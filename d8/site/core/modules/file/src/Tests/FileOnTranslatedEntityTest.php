@@ -1,14 +1,8 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\file\Tests\FileOnTranslatedEntityTest.
- */
-
 namespace Drupal\file\Tests;
 
 use Drupal\file\Entity\File;
-use Drupal\node\Entity\Node;
 
 /**
  * Uploads files to translated nodes.
@@ -36,13 +30,15 @@ class FileOnTranslatedEntityTest extends FileFieldTestBase {
     parent::setUp();
 
     // Create the "Basic page" node type.
-    $this->drupalCreateContentType(array('type' => 'page', 'name' => 'Basic page'));
+    // @todo Remove the disabling of new revision creation in
+    //   https://www.drupal.org/node/1239558.
+    $this->drupalCreateContentType(['type' => 'page', 'name' => 'Basic page', 'new_revision' => FALSE]);
 
     // Create a file field on the "Basic page" node type.
     $this->fieldName = strtolower($this->randomMachineName());
     $this->createFileField($this->fieldName, 'node', 'page');
 
-    // Create and login user.
+    // Create and log in user.
     $permissions = array(
       'access administration pages',
       'administer content translation',
@@ -171,10 +167,6 @@ class FileOnTranslatedEntityTest extends FileFieldTestBase {
     // Ensure the file status of the replaced second file is permanent.
     $file = File::load($replaced_second_fid);
     $this->assertTrue($file->isPermanent());
-
-    // Ensure the file status of the old second file is now temporary.
-    $file = File::load($second_fid);
-    $this->assertTrue($file->isTemporary());
 
     // Delete the third translation.
     $this->drupalPostForm('nl/node/' . $default_language_node->id() . '/delete', array(), t('Delete Dutch translation'));

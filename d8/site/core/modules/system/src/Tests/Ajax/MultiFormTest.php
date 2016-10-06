@@ -1,13 +1,10 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Ajax\MultiFormTest.
- */
-
 namespace Drupal\system\Tests\Ajax;
 
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\field\Entity\FieldStorageConfig;
 
 /**
  * Tests that AJAX-enabled forms work when multiple instances of the same form
@@ -31,22 +28,22 @@ class MultiFormTest extends AjaxTestBase {
 
     // Create a multi-valued field for 'page' nodes to use for Ajax testing.
     $field_name = 'field_ajax_test';
-    entity_create('field_storage_config', array(
+    FieldStorageConfig::create(array(
       'entity_type' => 'node',
       'field_name' => $field_name,
       'type' => 'text',
       'cardinality' => FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED,
     ))->save();
-    entity_create('field_config', array(
+    FieldConfig::create([
       'field_name' => $field_name,
       'entity_type' => 'node',
       'bundle' => 'page',
-    ))->save();
+    ])->save();
     entity_get_form_display('node', 'page', 'default')
       ->setComponent($field_name, array('type' => 'text_textfield'))
       ->save();
 
-    // Login a user who can create 'page' nodes.
+    // Log in a user who can create 'page' nodes.
     $this->drupalLogin ($this->drupalCreateUser(array('create page content')));
   }
 
@@ -91,10 +88,11 @@ class MultiFormTest extends AjaxTestBase {
         $form = $this->xpath($form_xpath)[$offset];
         $field = $form->xpath('.' . $field_xpath);
 
-        $this->assertEqual(count($field[0]->xpath('.' . $field_items_xpath_suffix)), $i+2, 'Found the correct number of field items after an AJAX submission.');
+        $this->assertEqual(count($field[0]->xpath('.' . $field_items_xpath_suffix)), $i + 2, 'Found the correct number of field items after an AJAX submission.');
         $this->assertFieldsByValue($field[0]->xpath('.' . $button_xpath_suffix), NULL, 'Found the "add more" button after an AJAX submission.');
         $this->assertNoDuplicateIds(t('Updated page contains unique IDs'), 'Other');
       }
     }
   }
+
 }

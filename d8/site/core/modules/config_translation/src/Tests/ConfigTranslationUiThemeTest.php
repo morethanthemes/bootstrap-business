@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\config_translation\Tests\ConfigTranslationUiThemeTest.
- */
-
 namespace Drupal\config_translation\Tests;
 
 use Drupal\language\Entity\ConfigurableLanguage;
@@ -47,7 +42,7 @@ class ConfigTranslationUiThemeTest extends WebTestBase {
       'administer site configuration',
       'translate configuration',
     ];
-    // Create and login user.
+    // Create and log in user.
     $this->adminUser = $this->drupalCreateUser($admin_permissions);
 
     // Add languages.

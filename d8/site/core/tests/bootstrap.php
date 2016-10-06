@@ -7,6 +7,8 @@
  * @see phpunit.xml.dist
  */
 
+use Drupal\Component\Assertion\Handle;
+
 /**
  * Finds all valid extension directories recursively within a given directory.
  *
@@ -21,7 +23,9 @@ function drupal_phpunit_find_extension_directories($scan_directory) {
   $dirs = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($scan_directory, \RecursiveDirectoryIterator::FOLLOW_SYMLINKS));
   foreach ($dirs as $dir) {
     if (strpos($dir->getPathname(), '.info.yml') !== FALSE) {
-      // Cut off ".info.yml" from the filename for use as the extension name.
+      // Cut off ".info.yml" from the filename for use as the extension name. We
+      // use getRealPath() so that we can scan extensions represented by
+      // directory aliases.
       $extensions[substr($dir->getFilename(), 0, -9)] = $dir->getPathInfo()
         ->getRealPath();
     }
@@ -32,16 +36,22 @@ function drupal_phpunit_find_extension_directories($scan_directory) {
 /**
  * Returns directories under which contributed extensions may exist.
  *
+ * @param string $root
+ *   (optional) Path to the root of the Drupal installation.
+ *
  * @return array
  *   An array of directories under which contributed extensions may exist.
  */
-function drupal_phpunit_contrib_extension_directory_roots() {
-  $root = dirname(dirname(__DIR__));
+function drupal_phpunit_contrib_extension_directory_roots($root = NULL) {
+  if ($root === NULL) {
+    $root = dirname(dirname(__DIR__));
+  }
   $paths = array(
     $root . '/core/modules',
     $root . '/core/profiles',
     $root . '/modules',
     $root . '/profiles',
+    $root . '/themes',
   );
   $sites_path = $root . '/sites';
   // Note this also checks sites/../modules and sites/../profiles.
@@ -52,6 +62,7 @@ function drupal_phpunit_contrib_extension_directory_roots() {
     $path = "$sites_path/$site";
     $paths[] = is_dir("$path/modules") ? realpath("$path/modules") : NULL;
     $paths[] = is_dir("$path/profiles") ? realpath("$path/profiles") : NULL;
+    $paths[] = is_dir("$path/themes") ? realpath("$path/themes") : NULL;
   }
   return array_filter($paths);
 }
@@ -104,6 +115,8 @@ function drupal_phpunit_populate_class_loader() {
   // Start with classes in known locations.
   $loader->add('Drupal\\Tests', __DIR__);
   $loader->add('Drupal\\KernelTests', __DIR__);
+  $loader->add('Drupal\\FunctionalTests', __DIR__);
+  $loader->add('Drupal\\FunctionalJavascriptTests', __DIR__);
 
   if (!isset($GLOBALS['namespaces'])) {
     // Scan for arbitrary extension namespaces from core and contrib.
@@ -139,5 +152,4 @@ date_default_timezone_set('Australia/Sydney');
 // runtime assertions. By default this setting is on. Here we make a call to
 // make PHP 5 and 7 handle assertion failures the same way, but this call does
 // not turn runtime assertions on if they weren't on already.
-\Drupal\Component\Assertion\Handle::register();
-
+Handle::register();

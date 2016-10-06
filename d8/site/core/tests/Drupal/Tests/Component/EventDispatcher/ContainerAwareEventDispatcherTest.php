@@ -1,18 +1,14 @@
 <?php
-
-/**
- * @file
- * Contains \Drupal\Tests\Component\EventDispatcher\ContainerAwareEventDispatcherTest.
- */
+// @codingStandardsIgnoreFile
 
 namespace Drupal\Tests\Component\EventDispatcher;
 
 use Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\EventDispatcher\Tests\AbstractEventDispatcherTest;
 use Symfony\Component\EventDispatcher\Tests\CallableClass;
 use Symfony\Component\EventDispatcher\Tests\TestEventListener;
+use Symfony\Component\EventDispatcher\Tests\ContainerAwareEventDispatcherTest as SymfonyContainerAwareEventDispatcherTest;
 
 /**
  * Unit tests for the ContainerAwareEventDispatcher.
@@ -27,7 +23,7 @@ use Symfony\Component\EventDispatcher\Tests\TestEventListener;
  *
  * @group EventDispatcher
  */
-class ContainerAwareEventDispatcherTest extends AbstractEventDispatcherTest
+class ContainerAwareEventDispatcherTest extends SymfonyContainerAwareEventDispatcherTest
 {
     protected function createEventDispatcher()
     {
@@ -175,4 +171,25 @@ class ContainerAwareEventDispatcherTest extends AbstractEventDispatcherTest
         $otherService = $container->get('other_listener_service');
         $this->assertTrue($otherService->preFooInvoked);
     }
-}
+
+    public function testGetListenerPriorityWithServices()
+    {
+        $container = new ContainerBuilder();
+        $container->register('listener_service', TestEventListener::class);
+
+        $listeners = array(
+            'test_event' => array(
+                5 => array(
+                    array('service' => array('listener_service', 'preFoo')),
+                ),
+            ),
+        );
+
+        $dispatcher = new ContainerAwareEventDispatcher($container, $listeners);
+        $listenerService = $container->get('listener_service');
+        $actualPriority = $dispatcher->getListenerPriority('test_event', [$listenerService, 'preFoo']);
+
+        $this->assertSame(5, $actualPriority);
+    }
+
+ }

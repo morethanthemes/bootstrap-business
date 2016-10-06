@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\serialization\Encoder\XmlEncoder.
- */
-
 namespace Drupal\serialization\Encoder;
 
 use Symfony\Component\Serializer\Encoder\EncoderInterface;
@@ -83,4 +78,5 @@ class XmlEncoder implements EncoderInterface, DecoderInterface {
   public function supportsDecoding($format) {
     return in_array($format, static::$format);
   }
+
 }

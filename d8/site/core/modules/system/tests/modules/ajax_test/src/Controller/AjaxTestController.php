@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\ajax_test\Controller\AjaxTestController.
- */
-
 namespace Drupal\ajax_test\Controller;
 
 use Drupal\Core\Ajax\AjaxResponse;
@@ -63,6 +58,15 @@ class AjaxTestController {
           'ajax' => 'test',
         ],
       ],
+    ];
+  }
+
+  /**
+   * Returns the used theme.
+   */
+  public function theme() {
+    return [
+      '#markup' => 'Current theme: ' . \Drupal::theme()->getActiveTheme()->getName(),
     ];
   }
 
@@ -189,6 +193,17 @@ class AjaxTestController {
             ))
           ),
         ),
+        'link8' => [
+          'title' => 'Link 8 (ajax)',
+          'url' => Url::fromRoute('ajax_test.admin.theme'),
+          'attributes' => [
+            'class' => ['use-ajax'],
+            'data-dialog-type' => 'modal',
+            'data-dialog-options' => json_encode([
+              'width' => 400,
+            ]),
+          ],
+        ],
       ),
     );
 

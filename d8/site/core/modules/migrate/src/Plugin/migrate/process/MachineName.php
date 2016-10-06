@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\migrate\Plugin\migrate\process\MachineName.
- */
-
 namespace Drupal\migrate\Plugin\migrate\process;
 
 use Drupal\Component\Transliteration\TransliterationInterface;
@@ -21,6 +16,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * The current value gets transliterated, non-alphanumeric characters removed
  * and replaced by an underscore and multiple underscores are collapsed into
  * one.
+ *
+ * @link https://www.drupal.org/node/2135323 Online handbook documentation for machine_name process plugin @endlink
  *
  * @MigrateProcessPlugin(
  *   id = "machine_name"

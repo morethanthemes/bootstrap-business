@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Field\FieldItemList.
- */
-
 namespace Drupal\Core\Field;
 
 use Drupal\Core\Access\AccessResult;
@@ -262,7 +257,7 @@ class FieldItemList extends ItemList implements FieldItemListInterface {
   /**
    * {@inheritdoc}
    */
-   public function generateSampleItems($count = 1) {
+  public function generateSampleItems($count = 1) {
     $field_definition = $this->getFieldDefinition();
     $field_type_class = \Drupal::service('plugin.manager.field.field_type')->getPluginClass($field_definition->getType());
     for ($delta = 0; $delta < $count; $delta++) {

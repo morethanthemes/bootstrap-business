@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\EventSubscriber\MaintenanceModeSubscriber.
- */
-
 namespace Drupal\user\EventSubscriber;
 
 use Drupal\Core\Routing\RouteMatch;
@@ -16,7 +11,7 @@ use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
- * Maintenance mode subscriber to logout users.
+ * Maintenance mode subscriber to log out users.
  */
 class MaintenanceModeSubscriber implements EventSubscriberInterface {
 

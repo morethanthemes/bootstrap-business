@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Common\AlterTest.
- */
-
 namespace Drupal\system\Tests\Common;
 
 use Drupal\simpletest\WebTestBase;
@@ -73,4 +68,5 @@ class AlterTest extends WebTestBase {
     \Drupal::theme()->alter(array('drupal_alter', 'drupal_alter_foo'), $array_copy);
     $this->assertEqual($array_copy, $array_expected, 'hook_TYPE_alter() implementations ran in correct order.');
   }
+
 }

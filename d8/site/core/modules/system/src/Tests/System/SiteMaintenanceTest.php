@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\System\SiteMaintenanceTest.
- */
-
 namespace Drupal\system\Tests\System;
 
 use Drupal\Core\Url;
@@ -41,7 +36,7 @@ class SiteMaintenanceTest extends WebTestBase {
   }
 
   /**
-   * Verify site maintenance mode functionality.
+   * Verifies site maintenance mode functionality.
    */
   protected function testSiteMaintenance() {
     $this->drupalGet(Url::fromRoute('user.page'));
@@ -119,7 +114,7 @@ class SiteMaintenanceTest extends WebTestBase {
     );
     $this->drupalPostForm('user/password', $edit, t('Submit'));
     $mails = $this->drupalGetMails();
-    $start = strpos($mails[0]['body'], 'user/reset/'. $this->user->id());
+    $start = strpos($mails[0]['body'], 'user/reset/' . $this->user->id());
     $path = substr($mails[0]['body'], $start, 66 + strlen($this->user->id()));
 
     // Log in with temporary login link.
@@ -135,4 +130,21 @@ class SiteMaintenanceTest extends WebTestBase {
     $this->drupalGet('');
     $this->assertEqual('Site under maintenance', $this->cssSelect('main h1')[0]);
   }
+
+  /**
+   * Tests responses to non-HTML requests when in maintenance mode.
+   */
+  public function testNonHtmlRequest() {
+    $this->drupalLogout();
+    \Drupal::state()->set('system.maintenance_mode', TRUE);
+    $formats = ['json', 'xml', 'non-existing'];
+    foreach ($formats as $format) {
+      $this->pass('Testing format ' . $format);
+      $this->drupalGet('<front>', ['query' => ['_format' => $format]]);
+      $this->assertResponse(503);
+      $this->assertRaw('Drupal is currently under maintenance. We should be back shortly. Thank you for your patience.');
+      $this->assertHeader('Content-Type', 'text/plain; charset=UTF-8');
+    }
+  }
+
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\config_events_test\EventSubscriber.
- */
-
 namespace Drupal\config_events_test;
 
 
@@ -59,4 +54,5 @@ class EventSubscriber implements EventSubscriberInterface {
     $events[ConfigEvents::RENAME][] = array('configEventRecorder');
     return $events;
   }
+
 }

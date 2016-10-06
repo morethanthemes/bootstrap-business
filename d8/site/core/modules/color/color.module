@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Allows users to change the color scheme of themes.
@@ -71,12 +72,12 @@ function color_form_system_theme_settings_alter(&$form, FormStateInterface $form
  * Replaces style sheets declared in libraries with color-altered style sheets.
  */
 function color_library_info_alter(&$libraries, $extension) {
-  $themes =  array_keys(\Drupal::service('theme_handler')->listInfo());
+  $themes = array_keys(\Drupal::service('theme_handler')->listInfo());
   if (in_array($extension, $themes)) {
     $color_paths = \Drupal::config('color.theme.' . $extension)->get('stylesheets');
     if (!empty($color_paths)) {
       foreach (array_keys($libraries) as $name) {
-        if(isset($libraries[$name]['css'])) {
+        if (isset($libraries[$name]['css'])) {
           // Override stylesheets.
           foreach ($libraries[$name]['css'] as $category => $css_assets) {
             foreach ($css_assets as $path  => $metadata) {
@@ -413,7 +414,7 @@ function color_scheme_form_submit($form, FormStateInterface $form_state) {
     $memory_limit = ini_get('memory_limit');
     $size = Bytes::toInt($memory_limit);
     if (!Environment::checkMemoryLimit($usage + $required, $memory_limit)) {
-      drupal_set_message(t('There is not enough memory available to PHP to change this theme\'s color scheme. You need at least %size more. Check the <a href=":url">PHP documentation</a> for more information.', array('%size' => format_size($usage + $required - $size), ':url' => 'http://www.php.net/manual/ini.core.php#ini.sect.resource-limits')), 'error');
+      drupal_set_message(t('There is not enough memory available to PHP to change this theme\'s color scheme. You need at least %size more. Check the <a href="http://php.net/manual/ini.core.php#ini.sect.resource-limits">PHP documentation</a> for more information.', array('%size' => format_size($usage + $required - $size))), 'error');
       return;
     }
   }
@@ -780,7 +781,7 @@ function _color_hsl2rgb($hsl) {
   $h = $hsl[0];
   $s = $hsl[1];
   $l = $hsl[2];
-  $m2 = ($l <= 0.5) ? $l * ($s + 1) : $l + $s - $l*$s;
+  $m2 = ($l <= 0.5) ? $l * ($s + 1) : $l + $s - $l * $s;
   $m1 = $l * 2 - $m2;
 
   return array(

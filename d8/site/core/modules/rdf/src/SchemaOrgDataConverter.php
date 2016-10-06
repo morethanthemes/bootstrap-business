@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\rdf\SchemaOrgDataConverter.
- */
 
 namespace Drupal\rdf;
 
@@ -30,4 +26,5 @@ class SchemaOrgDataConverter {
     $interaction_type = $arguments['interaction_type'];
     return "$interaction_type:$count";
   }
+
 }

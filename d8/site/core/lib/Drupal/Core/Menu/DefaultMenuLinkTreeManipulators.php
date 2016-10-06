@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Menu\DefaultMenuLinkTreeManipulators.
- */
-
 namespace Drupal\Core\Menu;
 
 use Drupal\Core\Access\AccessManagerInterface;
@@ -42,7 +37,7 @@ class DefaultMenuLinkTreeManipulators {
    *
    * @var \Drupal\Core\Entity\Query\QueryFactory
    */
-   protected $queryFactory;
+  protected $queryFactory;
 
   /**
    * Constructs a \Drupal\Core\Menu\DefaultMenuLinkTreeManipulators object.

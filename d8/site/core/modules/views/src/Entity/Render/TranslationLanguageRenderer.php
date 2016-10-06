@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Entity\Render\TranslationLanguageRenderer.
- */
-
 namespace Drupal\views\Entity\Render;
 
 use Drupal\Core\Language\LanguageInterface;
@@ -79,4 +74,5 @@ class TranslationLanguageRenderer extends EntityTranslationRendererBase {
   public function getCacheContexts() {
     return ['languages:' . LanguageInterface::TYPE_CONTENT];
   }
+
 }

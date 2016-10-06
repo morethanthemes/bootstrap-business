@@ -1,13 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\comment\Tests\CommentActionsTest.
- */
-
 namespace Drupal\comment\Tests;
 
 use Drupal\comment\Entity\Comment;
+use Drupal\system\Entity\Action;
 
 /**
  * Tests actions provided by the Comment module.
@@ -33,12 +29,12 @@ class CommentActionsTest extends CommentTestBase {
     $comment = $this->postComment($this->node, $comment_text, $subject);
 
     // Unpublish a comment.
-    $action = entity_load('action', 'comment_unpublish_action');
+    $action = Action::load('comment_unpublish_action');
     $action->execute(array($comment));
     $this->assertTrue($comment->isPublished() === FALSE, 'Comment was unpublished');
 
     // Publish a comment.
-    $action = entity_load('action', 'comment_publish_action');
+    $action = Action::load('comment_publish_action');
     $action->execute(array($comment));
     $this->assertTrue($comment->isPublished() === TRUE, 'Comment was published');
   }
@@ -50,7 +46,7 @@ class CommentActionsTest extends CommentTestBase {
     $this->drupalLogin($this->adminUser);
     $keyword_1 = $this->randomMachineName();
     $keyword_2 = $this->randomMachineName();
-    $action = entity_create('action', array(
+    $action = Action::create(array(
       'id' => 'comment_unpublish_by_keyword_action',
       'label' => $this->randomMachineName(),
       'type' => 'comment',

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\FileTransfer\FileTransfer.
- */
-
 namespace Drupal\Core\FileTransfer;
 
 /**
@@ -419,4 +414,5 @@ abstract class FileTransfer {
     );
     return $form;
   }
+
 }

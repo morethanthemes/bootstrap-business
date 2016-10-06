@@ -1,17 +1,12 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Component\Plugin\Discovery\StaticDiscoveryDecoratorTest.
- */
-
 namespace Drupal\Tests\Component\Plugin\Discovery;
 
 use Drupal\Tests\UnitTestCase;
 
 /**
  * @group Plugin
- * @coversDefaultClass Drupal\Component\Plugin\Discovery\StaticDiscoveryDecorator
+ * @coversDefaultClass \Drupal\Component\Plugin\Discovery\StaticDiscoveryDecorator
  */
 class StaticDiscoveryDecoratorTest extends UnitTestCase {
 
@@ -22,7 +17,7 @@ class StaticDiscoveryDecoratorTest extends UnitTestCase {
    * \Callable in the mock object. The return value of this callback is
    * never used.
    *
-   * @return mock
+   * @return \PHPUnit_Framework_MockObject_MockObject
    *   Mocked object with expectation of registerDefinitionsCallback() being
    *   called once.
    */

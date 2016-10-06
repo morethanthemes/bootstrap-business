@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\Plugin\Derivative\DeriverBase.
- */
-
 namespace Drupal\Component\Plugin\Derivative;
 
 /**
@@ -36,4 +31,5 @@ abstract class DeriverBase implements DeriverInterface {
   public function getDerivativeDefinitions($base_plugin_definition) {
     return $this->derivatives;
   }
+
 }

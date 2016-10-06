@@ -1,13 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\comment\Tests\CommentAdminTest.
- */
-
 namespace Drupal\comment\Tests;
 
 use Drupal\user\RoleInterface;
+use Drupal\comment\Entity\Comment;
 
 /**
  * Tests comment approval functionality.
@@ -50,7 +46,7 @@ class CommentAdminTest extends CommentTestBase {
     // Get unapproved comment id.
     $this->drupalLogin($this->adminUser);
     $anonymous_comment4 = $this->getUnapprovedComment($subject);
-    $anonymous_comment4 = entity_create('comment', array(
+    $anonymous_comment4 = Comment::create(array(
       'cid' => $anonymous_comment4,
       'subject' => $subject,
       'comment_body' => $body,
@@ -127,7 +123,7 @@ class CommentAdminTest extends CommentTestBase {
     // Get unapproved comment id.
     $this->drupalLogin($this->adminUser);
     $anonymous_comment4 = $this->getUnapprovedComment($subject);
-    $anonymous_comment4 = entity_create('comment', array(
+    $anonymous_comment4 = Comment::create(array(
       'cid' => $anonymous_comment4,
       'subject' => $subject,
       'comment_body' => $body,
@@ -188,7 +184,7 @@ class CommentAdminTest extends CommentTestBase {
       'skip comment approval',
     ));
 
-    // Login as a web user.
+    // Log in as a web user.
     $this->drupalLogin($this->webUser);
     // Post a comment.
     $comment = $this->postComment($this->node, $this->randomMachineName());
@@ -205,7 +201,7 @@ class CommentAdminTest extends CommentTestBase {
     $author_mail = $this->randomMachineName() . '@example.com';
     $anonymous_comment = $this->postComment($this->node, $this->randomMachineName(), $this->randomMachineName(), array('name' => $author_name, 'mail' => $author_mail));
 
-    // Login as an admin user.
+    // Log in as an admin user.
     $this->drupalLogin($this->adminUser);
 
     // Make sure the comment field is not visible when
@@ -218,4 +214,5 @@ class CommentAdminTest extends CommentTestBase {
     $this->drupalGet('comment/' . $anonymous_comment->id() . '/edit');
     $this->assertFieldById('edit-mail', $anonymous_comment->getAuthorEmail());
   }
+
 }

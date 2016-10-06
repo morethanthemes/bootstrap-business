@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\locale\Tests\LocaleContentTest.
- */
-
 namespace Drupal\locale\Tests;
 
 use Drupal\simpletest\WebTestBase;
@@ -117,13 +112,17 @@ class LocaleContentTest extends WebTestBase {
     // Edit the content and ensure correct language is selected.
     $path = 'node/' . $node->id() . '/edit';
     $this->drupalGet($path);
-    $this->assertRaw('<option value="' . $langcode . '" selected="selected">' .  $name . '</option>', 'Correct language selected.');
+    $this->assertRaw('<option value="' . $langcode . '" selected="selected">' . $name . '</option>', 'Correct language selected.');
     // Ensure we can change the node language.
     $edit = array(
       'langcode[0][value]' => 'en',
     );
     $this->drupalPostForm($path, $edit, t('Save'));
-    $this->assertRaw(t('%title has been updated.', array('%title' => $node_title)));
+    $this->assertText(t('@title has been updated.', array('@title' => $node_title)));
+
+    // Verify that the creation message contains a link to a node.
+    $view_link = $this->xpath('//div[@class="messages"]//a[contains(@href, :href)]', array(':href' => 'node/' . $node->id()));
+    $this->assert(isset($view_link), 'The message area contains the link to the edited node');
 
     $this->drupalLogout();
   }
@@ -139,7 +138,7 @@ class LocaleContentTest extends WebTestBase {
     // User to create a node.
     $web_user = $this->drupalCreateUser(array("create {$type->id()} content", "edit own {$type->id()} content"));
 
-    // Login as admin.
+    // Log in as admin.
     $this->drupalLogin($admin_user);
 
     // Install Arabic language.
@@ -162,7 +161,7 @@ class LocaleContentTest extends WebTestBase {
     $this->assertRaw(t('The content type %type has been updated.', array('%type' => $type->label())));
     $this->drupalLogout();
 
-    // Login as web user to add new node.
+    // Log in as web user to add new node.
     $this->drupalLogin($web_user);
 
     // Create three nodes: English, Arabic and Spanish.

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\shortcut\Form\SetCustomize.
- */
-
 namespace Drupal\shortcut\Form;
 
 use Drupal\Core\Entity\EntityForm;
@@ -93,7 +88,7 @@ class SetCustomize extends EntityForm {
     return array(
       'submit' => array(
         '#type' => 'submit',
-        '#value' => t('Save changes'),
+        '#value' => t('Save'),
         '#access' => (bool) Element::getVisibleChildren($form['shortcuts']['links']),
         '#submit' => array('::submitForm', '::save'),
       ),

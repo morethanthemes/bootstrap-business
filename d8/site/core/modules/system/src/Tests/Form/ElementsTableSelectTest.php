@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Form\ElementsTableSelectTest.
- */
-
 namespace Drupal\system\Tests\Form;
 
 use Drupal\Core\Form\FormState;
@@ -39,6 +34,27 @@ class ElementsTableSelectTest extends WebTestBase {
     $rows = array('row1', 'row2', 'row3');
     foreach ($rows as $row) {
       $this->assertFieldByXPath('//input[@type="checkbox"]', $row, format_string('Checkbox for value @row.', array('@row' => $row)));
+    }
+  }
+
+  /**
+   * Test the presence of ajax functionality for all options.
+   */
+  function testAjax() {
+    $rows = array('row1', 'row2', 'row3');
+    // Test checkboxes (#multiple == TRUE).
+    foreach ($rows as $row) {
+      $element = 'tableselect[' . $row . ']';
+      $edit = array($element => TRUE);
+      $result = $this->drupalPostAjaxForm('form_test/tableselect/multiple-true', $edit, $element);
+      $this->assertFalse(empty($result), t('Ajax triggers on checkbox for @row.', array('@row' => $row)));
+    }
+    // Test radios (#multiple == FALSE).
+    $element = 'tableselect';
+    foreach ($rows as $row) {
+      $edit = array($element => $row);
+      $result = $this->drupalPostAjaxForm('form_test/tableselect/multiple-false', $edit, $element);
+      $this->assertFalse(empty($result), t('Ajax triggers on radio for @row.', array('@row' => $row)));
     }
   }
 
@@ -238,4 +254,5 @@ class ElementsTableSelectTest extends WebTestBase {
     // to allow the caller lowlevel access to the form.
     return array($form, $form_state, $errors);
   }
+
 }

@@ -31,11 +31,11 @@ function aggregator_help($route_name, RouteMatchInterface $route_match) {
         $output .= '<dd>' . t('Users view feed content in the <a href=":aggregator">main aggregator display</a>, or by <a href=":aggregator-sources">their source</a> (usually via an RSS feed reader). The most recent content in a feed can be displayed as a block through the <a href=":admin-block">Blocks administration page</a>.', array(':aggregator' => \Drupal::url('aggregator.page_last'), ':aggregator-sources' => $url->toString(), ':admin-block' => (\Drupal::moduleHandler()->moduleExists('block')) ? \Drupal::url('block.admin_display') : '#')) . '</dd>';
       }
       $output .= '<dt>' . t('Adding, editing, and deleting feeds') . '</dt>';
-      $output .= '<dd>' . t('Administrators can add, edit, and delete feeds, and choose how often to check each feed for newly updated items on the <a href=":feededit">Feed aggregator page</a>.', array(':feededit' => \Drupal::url('aggregator.admin_overview'))) . '</dd>';
+      $output .= '<dd>' . t('Administrators can add, edit, and delete feeds, and choose how often to check each feed for newly updated items on the <a href=":feededit">Aggregator administration page</a>.', array(':feededit' => \Drupal::url('aggregator.admin_overview'))) . '</dd>';
       $output .= '<dt>' . t('Configuring the display of feed items') . '</dt>';
-      $output .= '<dd>' . t('Administrators can choose how many items are displayed in the listing pages, which HTML tags are allowed in the content of feed items, and whether they should be trimmed to a maximum number of characters on the <a href=":settings">Feed aggregator settings page</a>.', array(':settings' => \Drupal::url('aggregator.admin_settings'))) . '</dd>';
+      $output .= '<dd>' . t('Administrators can choose how many items are displayed in the listing pages, which HTML tags are allowed in the content of feed items, and whether they should be trimmed to a maximum number of characters on the <a href=":settings">Aggregator settings page</a>.', array(':settings' => \Drupal::url('aggregator.admin_settings'))) . '</dd>';
       $output .= '<dt>' . t('Discarding old feed items') . '</dt>';
-      $output .= '<dd>' . t('Administrators can choose whether to discard feed items that are older than a specified period of time on the <a href=":settings">Feed aggregator settings page</a>. This requires a correctly configured cron maintenance task (see below).', array(':settings' => \Drupal::url('aggregator.admin_settings'))) . '<dd>';
+      $output .= '<dd>' . t('Administrators can choose whether to discard feed items that are older than a specified period of time on the <a href=":settings">Aggregator settings page</a>. This requires a correctly configured cron maintenance task (see below).', array(':settings' => \Drupal::url('aggregator.admin_settings'))) . '<dd>';
 
       $output .= '<dt>' . t('<abbr title="Outline Processor Markup Language">OPML</abbr> integration') . '</dt>';
       // Check if the aggregator opml View is enabled.
@@ -50,7 +50,7 @@ function aggregator_help($route_name, RouteMatchInterface $route_match) {
     case 'aggregator.admin_overview':
       // Don't use placeholders for possibility to change URLs for translators.
       $output = '<p>' . t('Many sites publish their headlines and posts in feeds, using a number of standardized XML-based formats. The aggregator supports <a href="http://en.wikipedia.org/wiki/Rss">RSS</a>, <a href="http://en.wikipedia.org/wiki/Resource_Description_Framework">RDF</a>, and <a href="http://en.wikipedia.org/wiki/Atom_%28standard%29">Atom</a>.') . '</p>';
-      $output .= '<p>' . t('Current feeds are listed below, and <a href=":addfeed">new feeds may be added</a>. For each feed, the <em>latest items</em> block may be enabled at the <a href=":block">blocks administration page</a>.', array(':addfeed' =>  \Drupal::url('aggregator.feed_add'), ':block' => (\Drupal::moduleHandler()->moduleExists('block')) ? \Drupal::url('block.admin_display') : '#')) . '</p>';
+      $output .= '<p>' . t('Current feeds are listed below, and <a href=":addfeed">new feeds may be added</a>. For each feed, the <em>latest items</em> block may be enabled at the <a href=":block">blocks administration page</a>.', array(':addfeed' => \Drupal::url('aggregator.feed_add'), ':block' => (\Drupal::moduleHandler()->moduleExists('block')) ? \Drupal::url('block.admin_display') : '#')) . '</p>';
       return $output;
 
     case 'aggregator.feed_add':
@@ -109,7 +109,7 @@ function aggregator_entity_extra_field_info() {
       ),
       'feed_icon' => array(
         'label' => t('Feed icon'),
-        'description' => t('An icon that links to the feed url'),
+        'description' => t('An icon that links to the feed URL'),
         'weight' => 6,
       ),
     ),

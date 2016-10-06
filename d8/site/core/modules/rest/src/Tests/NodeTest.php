@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rest\Tests\NodeTest.
- */
-
 namespace Drupal\rest\Tests;
 
 use Drupal\Core\Url;
@@ -24,7 +19,7 @@ class NodeTest extends RESTTestBase {
    *
    * @var array
    */
-  public static $modules = array('hal', 'rest', 'comment');
+  public static $modules = array('hal', 'rest', 'comment', 'node');
 
   /**
    * Enables node specific REST API configuration and authentication.
@@ -37,7 +32,6 @@ class NodeTest extends RESTTestBase {
   protected function enableNodeConfiguration($method, $operation) {
     $this->enableService('entity:node', $method);
     $permissions = $this->entityPermissions('node', $operation);
-    $permissions[] = 'restful ' . strtolower($method) . ' entity:node';
     $account = $this->drupalCreateUser($permissions);
     $this->drupalLogin($account);
   }
@@ -115,7 +109,7 @@ class NodeTest extends RESTTestBase {
     );
     $serialized = $this->container->get('serializer')->serialize($data, $this->defaultFormat);
     $this->httpRequest($node->urlInfo(), 'PATCH', $serialized, $this->defaultMimeType);
-    $this->assertResponse(204);
+    $this->assertResponse(200);
 
     // Reload the node from the DB and check if the title was correctly updated.
     $node_storage->resetCache(array($node->id()));
@@ -199,4 +193,5 @@ class NodeTest extends RESTTestBase {
     $this->assertResponse(400);
     $this->assertResponseBody('{"error":"A string must be provided as a bundle value."}');
   }
+
 }

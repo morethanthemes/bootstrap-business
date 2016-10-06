@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\form_test\Form\FormTestGroupFieldsetForm.
- */
-
 namespace Drupal\form_test\Form;
 
 use Drupal\Core\Form\FormBase;
@@ -25,10 +20,11 @@ class FormTestGroupFieldsetForm extends FormBase {
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state) {
+  public function buildForm(array $form, FormStateInterface $form_state, $required = FALSE) {
     $form['fieldset'] = array(
       '#type' => 'fieldset',
       '#title' => 'Fieldset',
+      '#required' => !empty($required),
     );
     $form['meta'] = array(
       '#type' => 'container',

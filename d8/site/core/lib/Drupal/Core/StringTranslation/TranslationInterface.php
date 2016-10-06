@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\StringTranslation\TranslationInterface.
- */
-
 namespace Drupal\Core\StringTranslation;
 
 /**
@@ -38,7 +33,9 @@ interface TranslationInterface {
    *   - 'langcode' (defaults to the current language): A language code, to
    *     translate to a language other than what is used to display the page.
    *   - 'context' (defaults to the empty context): The context the source
-   *     string belongs to.
+   *     string belongs to. See the
+   *     @link i18n Internationalization topic @endlink for more information
+   *     about string contexts.
    *
    * @return \Drupal\Core\StringTranslation\TranslatableMarkup
    *   An object that, when cast to a string, returns the translated string.

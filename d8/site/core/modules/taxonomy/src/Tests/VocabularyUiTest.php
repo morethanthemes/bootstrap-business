@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\taxonomy\Tests\VocabularyUiTest.
- */
-
 namespace Drupal\taxonomy\Tests;
 use Drupal\Component\Utility\Unicode;
 
@@ -158,4 +153,5 @@ class VocabularyUiTest extends TaxonomyTestBase {
     $this->container->get('entity.manager')->getStorage('taxonomy_vocabulary')->resetCache();
     $this->assertFalse(Vocabulary::load($vid), 'Vocabulary not found.');
   }
+
 }

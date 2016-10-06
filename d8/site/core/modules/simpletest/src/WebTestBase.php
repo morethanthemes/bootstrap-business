@@ -1,16 +1,10 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\simpletest\WebTestBase.
- */
-
 namespace Drupal\simpletest;
 
 use Drupal\block\Entity\Block;
 use Drupal\Component\FileCache\FileCacheFactory;
 use Drupal\Component\Serialization\Json;
-use Drupal\Component\Serialization\Yaml;
 use Drupal\Component\Utility\Html;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Component\Utility\UrlHelper;
@@ -23,14 +17,18 @@ use Drupal\Core\EventSubscriber\AjaxResponseSubscriber;
 use Drupal\Core\EventSubscriber\MainContentViewSubscriber;
 use Drupal\Core\Extension\MissingDependencyException;
 use Drupal\Core\Render\Element;
+use Drupal\Core\Serialization\Yaml;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Session\AnonymousUserSession;
 use Drupal\Core\Session\UserSession;
 use Drupal\Core\Site\Settings;
-use Drupal\Core\StreamWrapper\PublicStream;
+use Drupal\Core\Test\AssertMailTrait;
 use Drupal\Core\Url;
+use Drupal\system\Tests\Cache\AssertPageCacheContextsAndTagsTrait;
+use Drupal\Tests\TestFileCreationTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Yaml\Yaml as SymfonyYaml;
 use Zend\Diactoros\Uri;
 
 /**
@@ -41,11 +39,19 @@ use Zend\Diactoros\Uri;
 abstract class WebTestBase extends TestBase {
 
   use AssertContentTrait;
+  use TestFileCreationTrait {
+    getTestFiles as drupalGetTestFiles;
+    compareFiles as drupalCompareFiles;
+  }
+  use AssertPageCacheContextsAndTagsTrait;
   use BlockCreationTrait {
     placeBlock as drupalPlaceBlock;
   }
   use ContentTypeCreationTrait {
     createContentType as drupalCreateContentType;
+  }
+  use AssertMailTrait {
+    getMails as drupalGetMails;
   }
   use NodeCreationTrait {
     getNodeByTitle as drupalGetNodeByTitle;
@@ -165,11 +171,6 @@ abstract class WebTestBase extends TestBase {
    * The current session ID, if available.
    */
   protected $sessionId = NULL;
-
-  /**
-   * Whether the files were copied to the test files directory.
-   */
-  protected $generatedTestFiles = FALSE;
 
   /**
    * The maximum number of redirects to follow when handling responses.
@@ -329,99 +330,6 @@ abstract class WebTestBase extends TestBase {
    */
   protected function findBlockInstance(Block $block) {
     return $this->xpath('//div[@id = :id]', array(':id' => 'block-' . $block->id()));
-  }
-
-  /**
-   * Gets a list of files that can be used in tests.
-   *
-   * The first time this method is called, it will call
-   * simpletest_generate_file() to generate binary and ASCII text files in the
-   * public:// directory. It will also copy all files in
-   * core/modules/simpletest/files to public://. These contain image, SQL, PHP,
-   * JavaScript, and HTML files.
-   *
-   * All filenames are prefixed with their type and have appropriate extensions:
-   * - text-*.txt
-   * - binary-*.txt
-   * - html-*.html and html-*.txt
-   * - image-*.png, image-*.jpg, and image-*.gif
-   * - javascript-*.txt and javascript-*.script
-   * - php-*.txt and php-*.php
-   * - sql-*.txt and sql-*.sql
-   *
-   * Any subsequent calls will not generate any new files, or copy the files
-   * over again. However, if a test class adds a new file to public:// that
-   * is prefixed with one of the above types, it will get returned as well, even
-   * on subsequent calls.
-   *
-   * @param $type
-   *   File type, possible values: 'binary', 'html', 'image', 'javascript',
-   *   'php', 'sql', 'text'.
-   * @param $size
-   *   (optional) File size in bytes to match. Defaults to NULL, which will not
-   *   filter the returned list by size.
-   *
-   * @return
-   *   List of files in public:// that match the filter(s).
-   */
-  protected function drupalGetTestFiles($type, $size = NULL) {
-    if (empty($this->generatedTestFiles)) {
-      // Generate binary test files.
-      $lines = array(64, 1024);
-      $count = 0;
-      foreach ($lines as $line) {
-        simpletest_generate_file('binary-' . $count++, 64, $line, 'binary');
-      }
-
-      // Generate ASCII text test files.
-      $lines = array(16, 256, 1024, 2048, 20480);
-      $count = 0;
-      foreach ($lines as $line) {
-        simpletest_generate_file('text-' . $count++, 64, $line, 'text');
-      }
-
-      // Copy other test files from simpletest.
-      $original = drupal_get_path('module', 'simpletest') . '/files';
-      $files = file_scan_directory($original, '/(html|image|javascript|php|sql)-.*/');
-      foreach ($files as $file) {
-        file_unmanaged_copy($file->uri, PublicStream::basePath());
-      }
-
-      $this->generatedTestFiles = TRUE;
-    }
-
-    $files = array();
-    // Make sure type is valid.
-    if (in_array($type, array('binary', 'html', 'image', 'javascript', 'php', 'sql', 'text'))) {
-      $files = file_scan_directory('public://', '/' . $type . '\-.*/');
-
-      // If size is set then remove any files that are not of that size.
-      if ($size !== NULL) {
-        foreach ($files as $file) {
-          $stats = stat($file->uri);
-          if ($stats['size'] != $size) {
-            unset($files[$file->uri]);
-          }
-        }
-      }
-    }
-    usort($files, array($this, 'drupalCompareFiles'));
-    return $files;
-  }
-
-  /**
-   * Compare two files based on size and file name.
-   */
-  protected function drupalCompareFiles($file1, $file2) {
-    $compare_size = filesize($file1->uri) - filesize($file2->uri);
-    if ($compare_size) {
-      // Sort by file size.
-      return $compare_size;
-    }
-    else {
-      // The files were the same size, so sort alphabetically.
-      return strnatcmp($file1->name, $file2->name);
-    }
   }
 
   /**
@@ -613,10 +521,6 @@ abstract class WebTestBase extends TestBase {
       'value' => $this->originalProfile,
       'required' => TRUE,
     ];
-    $settings['settings']['apcu_ensure_unique_prefix'] = (object) [
-      'value' => FALSE,
-      'required' => TRUE,
-    ];
     $this->writeSettings($settings);
     // Allow for test-specific overrides.
     $settings_testing_file = DRUPAL_ROOT . '/' . $this->originalSite . '/settings.testing.php';
@@ -625,7 +529,7 @@ abstract class WebTestBase extends TestBase {
       copy($settings_testing_file, $directory . '/settings.testing.php');
       // Add the name of the testing class to settings.php and include the
       // testing specific overrides
-      file_put_contents($directory . '/settings.php', "\n\$test_class = '" . get_class($this) ."';\n" . 'include DRUPAL_ROOT . \'/\' . $site_path . \'/settings.testing.php\';' ."\n", FILE_APPEND);
+      file_put_contents($directory . '/settings.php', "\n\$test_class = '" . get_class($this) . "';\n" . 'include DRUPAL_ROOT . \'/\' . $site_path . \'/settings.testing.php\';' . "\n", FILE_APPEND);
     }
     $settings_services_file = DRUPAL_ROOT . '/' . $this->originalSite . '/testing.services.yml';
     if (!file_exists($settings_services_file)) {
@@ -636,7 +540,7 @@ abstract class WebTestBase extends TestBase {
     copy($settings_services_file, $directory . '/services.yml');
     if ($this->strictConfigSchema) {
       // Add a listener to validate configuration schema on save.
-      $yaml = new \Symfony\Component\Yaml\Yaml();
+      $yaml = new SymfonyYaml();
       $content = file_get_contents($directory . '/services.yml');
       $services = $yaml->parse($content);
       $services['services']['simpletest.config_schema_checker'] = [
@@ -876,7 +780,7 @@ abstract class WebTestBase extends TestBase {
    * To install test modules outside of the testing environment, add
    * @code
    * $settings['extension_discovery_scan_tests'] = TRUE;
-   * @encode
+   * @endcode
    * to your settings.php.
    *
    * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
@@ -1164,9 +1068,7 @@ abstract class WebTestBase extends TestBase {
     }
     // We set the user agent header on each request so as to use the current
     // time and a new uniqid.
-    if (preg_match('/simpletest\d+/', $this->databasePrefix, $matches)) {
-      curl_setopt($this->curlHandle, CURLOPT_USERAGENT, drupal_generate_test_ua($matches[0]));
-    }
+    curl_setopt($this->curlHandle, CURLOPT_USERAGENT, drupal_generate_test_ua($this->databasePrefix));
   }
 
   /**
@@ -1175,7 +1077,7 @@ abstract class WebTestBase extends TestBase {
    * @param $curl_options
    *   An associative array of cURL options to set, where the keys are constants
    *   defined by the cURL library. For a list of valid options, see
-   *   http://www.php.net/manual/function.curl-setopt.php
+   *   http://php.net/manual/function.curl-setopt.php
    * @param $redirect
    *   FALSE if this is an initial request, TRUE if this request is the result
    *   of a redirect.
@@ -1302,7 +1204,7 @@ abstract class WebTestBase extends TestBase {
    * @param $header
    *   An header.
    *
-   * @see _drupal_log_error().
+   * @see _drupal_log_error()
    */
   protected function curlHeaderCallback($curlHandler, $header) {
     // Header fields can be extended over multiple lines by preceding each
@@ -1508,7 +1410,7 @@ abstract class WebTestBase extends TestBase {
    *   $edit = array(...);
    *   $this->drupalPostForm(NULL, $edit, t('Save'));
    *   @endcode
-   * @param  $edit
+   * @param $edit
    *   Field data in an associative array. Changes the current input fields
    *   (where possible) to the values indicated.
    *
@@ -2311,7 +2213,6 @@ abstract class WebTestBase extends TestBase {
   /**
    * Follows a link by partial name.
    *
-   *
    * If the link is discovered and clicked, the test passes. Fail otherwise.
    *
    * @param string|\Drupal\Component\Render\MarkupInterface $label
@@ -2519,32 +2420,6 @@ abstract class WebTestBase extends TestBase {
   }
 
   /**
-   * Gets an array containing all emails sent during this test case.
-   *
-   * @param $filter
-   *   An array containing key/value pairs used to filter the emails that are
-   *   returned.
-   *
-   * @return
-   *   An array containing email messages captured during the current test.
-   */
-  protected function drupalGetMails($filter = array()) {
-    $captured_emails = \Drupal::state()->get('system.test_mail_collector') ?: array();
-    $filtered_emails = array();
-
-    foreach ($captured_emails as $message) {
-      foreach ($filter as $key => $value) {
-        if (!isset($message[$key]) || $message[$key] != $value) {
-          continue 2;
-        }
-      }
-      $filtered_emails[] = $message;
-    }
-
-    return $filtered_emails;
-  }
-
-  /**
    * Passes if the internal browser's URL matches the given path.
    *
    * @param \Drupal\Core\Url|string $path
@@ -2566,7 +2441,7 @@ abstract class WebTestBase extends TestBase {
    *   TRUE on pass, FALSE on fail.
    */
   protected function assertUrl($path, array $options = array(), $message = '', $group = 'Other') {
-    if ($path instanceof Url)  {
+    if ($path instanceof Url) {
       $url_obj = $path;
     }
     elseif (UrlHelper::isExternal($path)) {
@@ -2645,126 +2520,6 @@ abstract class WebTestBase extends TestBase {
   }
 
   /**
-   * Asserts that the most recently sent email message has the given value.
-   *
-   * The field in $name must have the content described in $value.
-   *
-   * @param $name
-   *   Name of field or message property to assert. Examples: subject, body,
-   *   id, ...
-   * @param $value
-   *   Value of the field to assert.
-   * @param $message
-   *   (optional) A message to display with the assertion. Do not translate
-   *   messages: use \Drupal\Component\Utility\SafeMarkup::format() to embed
-   *   variables in the message text, not t(). If left blank, a default message
-   *   will be displayed.
-   * @param $group
-   *   (optional) The group this message is in, which is displayed in a column
-   *   in test output. Use 'Debug' to indicate this is debugging output. Do not
-   *   translate this string. Defaults to 'Email'; most tests do not override
-   *   this default.
-   *
-   * @return
-   *   TRUE on pass, FALSE on fail.
-   */
-  protected function assertMail($name, $value = '', $message = '', $group = 'Email') {
-    $captured_emails = \Drupal::state()->get('system.test_mail_collector') ?: array();
-    $email = end($captured_emails);
-    return $this->assertTrue($email && isset($email[$name]) && $email[$name] == $value, $message, $group);
-  }
-
-  /**
-   * Asserts that the most recently sent email message has the string in it.
-   *
-   * @param $field_name
-   *   Name of field or message property to assert: subject, body, id, ...
-   * @param $string
-   *   String to search for.
-   * @param $email_depth
-   *   Number of emails to search for string, starting with most recent.
-   * @param $message
-   *   (optional) A message to display with the assertion. Do not translate
-   *   messages: use \Drupal\Component\Utility\SafeMarkup::format() to embed
-   *   variables in the message text, not t(). If left blank, a default message
-   *   will be displayed.
-   * @param $group
-   *   (optional) The group this message is in, which is displayed in a column
-   *   in test output. Use 'Debug' to indicate this is debugging output. Do not
-   *   translate this string. Defaults to 'Other'; most tests do not override
-   *   this default.
-   *
-   * @return
-   *   TRUE on pass, FALSE on fail.
-   */
-  protected function assertMailString($field_name, $string, $email_depth, $message = '', $group = 'Other') {
-    $mails = $this->drupalGetMails();
-    $string_found = FALSE;
-    // Cast MarkupInterface objects to string.
-    $string = (string) $string;
-    for ($i = count($mails) -1; $i >= count($mails) - $email_depth && $i >= 0; $i--) {
-      $mail = $mails[$i];
-      // Normalize whitespace, as we don't know what the mail system might have
-      // done. Any run of whitespace becomes a single space.
-      $normalized_mail = preg_replace('/\s+/', ' ', $mail[$field_name]);
-      $normalized_string = preg_replace('/\s+/', ' ', $string);
-      $string_found = (FALSE !== strpos($normalized_mail, $normalized_string));
-      if ($string_found) {
-        break;
-      }
-    }
-    if (!$message) {
-      $message = format_string('Expected text found in @field of email message: "@expected".', array('@field' => $field_name, '@expected' => $string));
-    }
-    return $this->assertTrue($string_found, $message, $group);
-  }
-
-  /**
-   * Asserts that the most recently sent email message has the pattern in it.
-   *
-   * @param $field_name
-   *   Name of field or message property to assert: subject, body, id, ...
-   * @param $regex
-   *   Pattern to search for.
-   * @param $message
-   *   (optional) A message to display with the assertion. Do not translate
-   *   messages: use \Drupal\Component\Utility\SafeMarkup::format() to embed
-   *   variables in the message text, not t(). If left blank, a default message
-   *   will be displayed.
-   * @param $group
-   *   (optional) The group this message is in, which is displayed in a column
-   *   in test output. Use 'Debug' to indicate this is debugging output. Do not
-   *   translate this string. Defaults to 'Other'; most tests do not override
-   *   this default.
-   *
-   * @return
-   *   TRUE on pass, FALSE on fail.
-   */
-  protected function assertMailPattern($field_name, $regex, $message = '', $group = 'Other') {
-    $mails = $this->drupalGetMails();
-    $mail = end($mails);
-    $regex_found = preg_match("/$regex/", $mail[$field_name]);
-    if (!$message) {
-      $message = format_string('Expected text found in @field of email message: "@expected".', array('@field' => $field_name, '@expected' => $regex));
-    }
-    return $this->assertTrue($regex_found, $message, $group);
-  }
-
-  /**
-   * Outputs to verbose the most recent $count emails sent.
-   *
-   * @param $count
-   *   Optional number of emails to output.
-   */
-  protected function verboseEmail($count = 1) {
-    $mails = $this->drupalGetMails();
-    for ($i = count($mails) -1; $i >= count($mails) - $count && $i >= 0; $i--) {
-      $mail = $mails[$i];
-      $this->verbose('Email:<pre>' . print_r($mail, TRUE) . '</pre>');
-    }
-  }
-
-  /**
    * Creates a mock request and sets it on the generator.
    *
    * This is used to manipulate how the generator generates paths during tests.
@@ -2778,7 +2533,7 @@ abstract class WebTestBase extends TestBase {
    * @param $override_server_vars
    *   An array of server variables to override.
    *
-   * @return $request
+   * @return \Symfony\Component\HttpFoundation\Request
    *   The mocked request object.
    */
   protected function prepareRequestForGenerator($clean_urls = TRUE, $override_server_vars = array()) {
@@ -2827,7 +2582,7 @@ abstract class WebTestBase extends TestBase {
    *   Options to be passed to Url::fromUri().
    *
    * @return string
-   *   An absolute URL stsring.
+   *   An absolute URL string.
    */
   protected function buildUrl($path, array $options = array()) {
     if ($path instanceof Url) {
@@ -2856,28 +2611,6 @@ abstract class WebTestBase extends TestBase {
     else {
       return $this->getAbsoluteUrl($path);
     }
-  }
-
-  /**
-   * Asserts whether an expected cache context was present in the last response.
-   *
-   * @param string $expected_cache_context
-   *   The expected cache context.
-   */
-  protected function assertCacheContext($expected_cache_context) {
-    $cache_contexts = explode(' ', $this->drupalGetHeader('X-Drupal-Cache-Contexts'));
-    $this->assertTrue(in_array($expected_cache_context, $cache_contexts), "'" . $expected_cache_context . "' is present in the X-Drupal-Cache-Contexts header.");
-  }
-
-  /**
-   * Asserts that a cache context was not present in the last response.
-   *
-   * @param string $not_expected_cache_context
-   *   The expected cache context.
-   */
-  protected function assertNoCacheContext($not_expected_cache_context) {
-    $cache_contexts = explode(' ', $this->drupalGetHeader('X-Drupal-Cache-Contexts'));
-    $this->assertFalse(in_array($not_expected_cache_context, $cache_contexts), "'" . $not_expected_cache_context . "' is not present in the X-Drupal-Cache-Contexts header.");
   }
 
   /**

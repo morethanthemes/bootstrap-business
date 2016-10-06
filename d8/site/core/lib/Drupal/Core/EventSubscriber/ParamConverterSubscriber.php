@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\EventSubscriber\ParamConverterSubscriber.
- */
-
 namespace Drupal\Core\EventSubscriber;
 
 use Drupal\Core\ParamConverter\ParamConverterManagerInterface;
@@ -53,4 +48,5 @@ class ParamConverterSubscriber implements EventSubscriberInterface {
     $events[RoutingEvents::ALTER][] = array('onRoutingRouteAlterSetParameterConverters', -220);
     return $events;
   }
+
 }

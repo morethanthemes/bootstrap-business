@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Tests\NodeRevisionsTest.
- */
-
 namespace Drupal\node\Tests;
 
 use Drupal\Core\Url;
@@ -13,6 +8,7 @@ use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\language\Entity\ConfigurableLanguage;
 use Drupal\node\Entity\Node;
 use Drupal\node\NodeInterface;
+use Drupal\Component\Serialization\Json;
 
 /**
  * Create a node with revisions and test viewing, saving, reverting, and
@@ -39,7 +35,7 @@ class NodeRevisionsTest extends NodeTestBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = array('node', 'datetime', 'language', 'content_translation');
+  public static $modules = ['node', 'contextual', 'datetime', 'language', 'content_translation'];
 
   /**
    * {@inheritdoc}
@@ -47,6 +43,8 @@ class NodeRevisionsTest extends NodeTestBase {
   protected function setUp() {
     parent::setUp();
 
+    // Enable additional languages.
+    ConfigurableLanguage::createFromLangcode('de')->save();
     ConfigurableLanguage::createFromLangcode('it')->save();
 
     $field_storage_definition = array(
@@ -74,7 +72,9 @@ class NodeRevisionsTest extends NodeTestBase {
         'delete page revisions',
         'edit any page content',
         'delete any page content',
+        'access contextual links',
         'translate any entity',
+        'administer content types',
       )
     );
 
@@ -109,10 +109,10 @@ class NodeRevisionsTest extends NodeTestBase {
       // Edit the 2nd revision with a different user.
       if ($i == 1) {
         $editor = $this->drupalCreateUser();
-        $node->setRevisionAuthorId($editor->id());
+        $node->setRevisionUserId($editor->id());
       }
       else {
-        $node->setRevisionAuthorId($web_user->id());
+        $node->setRevisionUserId($web_user->id());
       }
 
       $node->save();
@@ -154,6 +154,18 @@ class NodeRevisionsTest extends NodeTestBase {
     // Confirm that this is the default revision.
     $this->assertTrue($node->isDefaultRevision(), 'Third node revision is the default one.');
 
+    // Confirm that the "Edit" and "Delete" contextual links appear for the
+    // default revision.
+    $ids = ['node:node=' . $node->id() . ':changed=' . $node->getChangedTime()];
+    $json = $this->renderContextualLinks($ids, 'node/' . $node->id());
+    $this->verbose($json[$ids[0]]);
+
+    $expected = '<li class="entitynodeedit-form"><a href="' . base_path() . 'node/' . $node->id() . '/edit">Edit</a></li>';
+    $this->assertTrue(strstr($json[$ids[0]], $expected), 'The "Edit" contextual link is shown for the default revision.');
+    $expected = '<li class="entitynodedelete-form"><a href="' . base_path() . 'node/' . $node->id() . '/delete">Delete</a></li>';
+    $this->assertTrue(strstr($json[$ids[0]], $expected), 'The "Delete" contextual link is shown for the default revision.');
+
+
     // Confirm that revisions revert properly.
     $this->drupalPostForm("node/" . $node->id() . "/revisions/" . $nodes[1]->getRevisionid() . "/revert", array(), t('Revert'));
     $this->assertRaw(t('@type %title has been reverted to the revision from %revision-date.',
@@ -166,6 +178,16 @@ class NodeRevisionsTest extends NodeTestBase {
     // Confirm that this is not the default version.
     $node = node_revision_load($node->getRevisionId());
     $this->assertFalse($node->isDefaultRevision(), 'Third node revision is not the default one.');
+
+    // Confirm that "Edit" and "Delete" contextual links don't appear for
+    // non-default revision.
+    $ids = ['node_revision::node=' . $node->id() . '&node_revision=' . $node->getRevisionId() . ':'];
+    $json = $this->renderContextualLinks($ids, 'node/' . $node->id() . '/revisions/' . $node->getRevisionId() . '/view');
+    $this->verbose($json[$ids[0]]);
+
+    $this->assertFalse(strstr($json[$ids[0]], '<li class="entitynodeedit-form">'), 'The "Edit" contextual link is not shown for a non-default revision.');
+    $this->assertFalse(strstr($json[$ids[0]], '<li class="entitynodedelete-form">'), 'The "Delete" contextual link is not shown for a non-default revision.');
+
 
     // Confirm revisions delete properly.
     $this->drupalPostForm("node/" . $node->id() . "/revisions/" . $nodes[1]->getRevisionId() . "/delete", array(), t('Delete'));
@@ -216,6 +238,60 @@ class NodeRevisionsTest extends NodeTestBase {
       ->fetchCol();
     $default_revision_vid = $default_revision[0];
     $this->assertTrue($new_node_revision->getRevisionId() > $default_revision_vid, 'Revision vid is greater than default revision vid.');
+
+    // Create an 'EN' node with a revision log message.
+    $node = $this->drupalCreateNode();
+    $node->title = 'Node title in EN';
+    $node->revision_log = 'Simple revision message (EN)';
+    $node->save();
+
+    $this->drupalGet("node/" . $node->id() . "/revisions");
+    $this->assertResponse(403);
+
+    // Create a new revision and new log message.
+    $node = Node::load($node->id());
+    $node->body->value = 'New text (EN)';
+    $node->revision_log = 'New revision message (EN)';
+    $node->setNewRevision();
+    $node->save();
+
+    // Check both revisions are shown on the node revisions overview page.
+    $this->drupalGet("node/" . $node->id() . "/revisions");
+    $this->assertText('Simple revision message (EN)');
+    $this->assertText('New revision message (EN)');
+
+    // Create an 'EN' node with a revision log message.
+    $node = $this->drupalCreateNode();
+    $node->langcode = 'en';
+    $node->title = 'Node title in EN';
+    $node->revision_log = 'Simple revision message (EN)';
+    $node->save();
+
+    $this->drupalGet("node/" . $node->id() . "/revisions");
+    $this->assertResponse(403);
+
+    // Add a translation in 'DE' and create a new revision and new log message.
+    $translation = $node->addTranslation('de');
+    $translation->title->value = 'Node title in DE';
+    $translation->body->value = 'New text (DE)';
+    $translation->revision_log = 'New revision message (DE)';
+    $translation->setNewRevision();
+    $translation->save();
+
+    // View the revision UI in 'IT', only the original node revision is shown.
+    $this->drupalGet("it/node/" . $node->id() . "/revisions");
+    $this->assertText('Simple revision message (EN)');
+    $this->assertNoText('New revision message (DE)');
+
+    // View the revision UI in 'DE', only the translated node revision is shown.
+    $this->drupalGet("de/node/" . $node->id() . "/revisions");
+    $this->assertNoText('Simple revision message (EN)');
+    $this->assertText('New revision message (DE)');
+
+    // View the revision UI in 'EN', only the original node revision is shown.
+    $this->drupalGet("node/" . $node->id() . "/revisions");
+    $this->assertText('Simple revision message (EN)');
+    $this->assertNoText('New revision message (DE)');
   }
 
   /**
@@ -263,6 +339,27 @@ class NodeRevisionsTest extends NodeTestBase {
     $node_storage->resetCache(array($node->id()));
     $node_revision = $node_storage->load($node->id());
     $this->assertTrue(empty($node_revision->revision_log->value), 'After a new node revision is saved with an empty log message, the log message for the node is empty.');
+  }
+
+  /**
+   * Gets server-rendered contextual links for the given contextual links IDs.
+   *
+   * @param string[] $ids
+   *   An array of contextual link IDs.
+   * @param string $current_path
+   *   The Drupal path for the page for which the contextual links are rendered.
+   *
+   * @return string
+   *   The decoded JSON response body.
+   */
+  protected function renderContextualLinks(array $ids, $current_path) {
+    $post = array();
+    for ($i = 0; $i < count($ids); $i++) {
+      $post['ids[' . $i . ']'] = $ids[$i];
+    }
+    $response = $this->drupalPost('contextual/render', 'application/json', $post, ['query' => ['destination' => $current_path]]);
+
+    return Json::decode($response);
   }
 
   /**

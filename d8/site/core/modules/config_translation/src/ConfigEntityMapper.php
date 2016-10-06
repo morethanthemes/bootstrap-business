@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\config_translation\ConfigEntityMapper.
- */
-
 namespace Drupal\config_translation;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -125,7 +120,7 @@ class ConfigEntityMapper extends ConfigNamesMapper {
     return $this->entity;
   }
 
-    /**
+  /**
    * Sets the entity instance for this mapper.
    *
    * This method can only be invoked when the concrete entity is known, that is

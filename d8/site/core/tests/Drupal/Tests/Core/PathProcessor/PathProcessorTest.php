@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\PathProcessor\PathProcessorTest.
- */
-
 namespace Drupal\Tests\Core\PathProcessor;
 
 use Drupal\Core\Language\Language;
@@ -34,7 +29,7 @@ class PathProcessorTest extends UnitTestCase {
   protected $languages;
 
   /**
-   *  The language manager stub used to construct a PathProcessorLanguage object.
+   * The language manager stub used to construct a PathProcessorLanguage object.
    *
    * @var \Drupal\language\ConfigurableLanguageManagerInterface|\PHPUnit_Framework_MockObject_MockBuilder
    */
@@ -214,4 +209,5 @@ class PathProcessorTest extends UnitTestCase {
     $processed = $processor_manager->processInbound($test_path, $request);
     $this->assertEquals('/user/1', $processed, 'Processing in the correct order resolves the system path from an alias.');
   }
+
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Field\Plugin\Field\FieldType\BooleanItem.
- */
-
 namespace Drupal\Core\Field\Plugin\Field\FieldType;
 
 use Drupal\Core\Field\FieldDefinitionInterface;
@@ -124,5 +119,5 @@ class BooleanItem extends FieldItemBase implements OptionsProviderInterface {
     $values['value'] = mt_rand(0, 1);
     return $values;
   }
-}
 
+}

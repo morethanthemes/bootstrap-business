@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Database\Driver\sqlite\Statement.
- */
-
 namespace Drupal\Core\Database\Driver\sqlite;
 
 use Drupal\Core\Database\StatementPrefetch;
@@ -146,4 +141,5 @@ class Statement extends StatementPrefetch implements StatementInterface {
 
     return $return;
   }
+
 }

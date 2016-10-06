@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Cache\NullBackendTest.
- */
-
 namespace Drupal\Tests\Core\Cache;
 
 use Drupal\Core\Cache\NullBackend;
@@ -29,4 +24,5 @@ class NullBackendTest extends UnitTestCase {
     $null_cache->set($key, $value);
     $this->assertFalse($null_cache->get($key));
   }
+
 }

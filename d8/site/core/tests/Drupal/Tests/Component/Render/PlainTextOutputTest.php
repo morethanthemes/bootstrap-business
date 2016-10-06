@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Component\Render\PlainTextOutputTest.
- */
-
 namespace Drupal\Tests\Component\Render;
 
 use Drupal\Component\Render\PlainTextOutput;
@@ -55,7 +50,7 @@ class PlainTextOutputTest extends UnitTestCase {
     $safe_string = $this->prophesize(MarkupInterface::class);
     $safe_string->__toString()->willReturn('<em>"this"</em>');
     $safe_string = $safe_string->reveal();
-    $data['escaped-html-with-quotes-and-placeholders'] = [$expected, 'The @tag tag makes your text look like @result.', ['@tag' =>'<em>', '@result' => $safe_string]];
+    $data['escaped-html-with-quotes-and-placeholders'] = [$expected, 'The @tag tag makes your text look like @result.', ['@tag' => '<em>', '@result' => $safe_string]];
 
     $safe_string = $this->prophesize(MarkupInterface::class);
     $safe_string->__toString()->willReturn($string);

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\plugin_test\Plugin\plugin_test\mock_block\MockUserNameBlock.
- */
-
 namespace Drupal\plugin_test\Plugin\plugin_test\mock_block;
 
 use Drupal\Core\Plugin\ContextAwarePluginBase;
@@ -20,4 +15,5 @@ class MockUserNameBlock extends ContextAwarePluginBase {
     $user = $this->getContextValue('user');
     return $user->label();
   }
+
 }

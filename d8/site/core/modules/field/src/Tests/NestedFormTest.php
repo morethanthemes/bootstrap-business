@@ -1,12 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\field\Tests\NestedFormTest.
- */
-
 namespace Drupal\field\Tests;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\field\Entity\FieldStorageConfig;
 
 /**
  * Tests field elements in nested forms.
@@ -57,30 +54,33 @@ class NestedFormTest extends FieldTestBase {
    */
   function testNestedFieldForm() {
     // Add two fields on the 'entity_test'
-    entity_create('field_storage_config', $this->fieldStorageSingle)->save();
-    entity_create('field_storage_config', $this->fieldStorageUnlimited)->save();
+    FieldStorageConfig::create($this->fieldStorageSingle)->save();
+    FieldStorageConfig::create($this->fieldStorageUnlimited)->save();
     $this->field['field_name'] = 'field_single';
     $this->field['label'] = 'Single field';
-    entity_create('field_config', $this->field)->save();
+    FieldConfig::create($this->field)->save();
     entity_get_form_display($this->field['entity_type'], $this->field['bundle'], 'default')
       ->setComponent($this->field['field_name'])
       ->save();
     $this->field['field_name'] = 'field_unlimited';
     $this->field['label'] = 'Unlimited field';
-    entity_create('field_config', $this->field)->save();
+    FieldConfig::create($this->field)->save();
     entity_get_form_display($this->field['entity_type'], $this->field['bundle'], 'default')
       ->setComponent($this->field['field_name'])
       ->save();
 
     // Create two entities.
     $entity_type = 'entity_test';
-    $entity_1 = entity_create($entity_type, array('id' => 1));
+    $storage = $this->container->get('entity_type.manager')
+      ->getStorage($entity_type);
+
+    $entity_1 = $storage->create(['id' => 1]);
     $entity_1->enforceIsNew();
     $entity_1->field_single->value = 0;
     $entity_1->field_unlimited->value = 1;
     $entity_1->save();
 
-    $entity_2 = entity_create($entity_type, array('id' => 2));
+    $entity_2 = $storage->create(array('id' => 2));
     $entity_2->enforceIsNew();
     $entity_2->field_single->value = 10;
     $entity_2->field_unlimited->value = 11;
@@ -103,8 +103,8 @@ class NestedFormTest extends FieldTestBase {
       'entity_2[field_unlimited][1][value]' => 13,
     );
     $this->drupalPostForm(NULL, $edit, t('Save'));
-    $entity_1 = entity_load($entity_type, 1);
-    $entity_2 = entity_load($entity_type, 2);
+    $entity_1 = $storage->load(1);
+    $entity_2 = $storage->load(2);
     $this->assertFieldValues($entity_1, 'field_single', array(1));
     $this->assertFieldValues($entity_1, 'field_unlimited', array(2, 3));
     $this->assertFieldValues($entity_2, 'field_single', array(11));

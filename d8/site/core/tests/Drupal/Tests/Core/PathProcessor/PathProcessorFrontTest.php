@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\Tests\Core\PathProcess\PathProcessorFrontTest
- */
 
 namespace Drupal\Tests\Core\PathProcessor;
 
@@ -86,4 +82,5 @@ class PathProcessorFrontTest extends UnitTestCase {
       ['/user', '/user'],
     ];
   }
+
 }

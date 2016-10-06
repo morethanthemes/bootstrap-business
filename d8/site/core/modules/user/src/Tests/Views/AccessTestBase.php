@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\Tests\Views\AccessTestBase.
- */
-
 namespace Drupal\user\Tests\Views;
 
 /**
@@ -67,4 +62,5 @@ abstract class AccessTestBase extends UserTestBase {
     // @todo when all the plugin information is cached make a reset function and
     // call it here.
   }
+
 }

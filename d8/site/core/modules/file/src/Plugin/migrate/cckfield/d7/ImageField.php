@@ -1,18 +1,14 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\file\Plugin\migrate\cckfield\d7\ImageField.
- */
-
 namespace Drupal\file\Plugin\migrate\cckfield\d7;
 
-use Drupal\migrate\Entity\MigrationInterface;
+use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate_drupal\Plugin\migrate\cckfield\CckFieldPluginBase;
 
 /**
  * @MigrateCckField(
- *   id = "image"
+ *   id = "image",
+ *   core = {7}
  * )
  */
 class ImageField extends CckFieldPluginBase {

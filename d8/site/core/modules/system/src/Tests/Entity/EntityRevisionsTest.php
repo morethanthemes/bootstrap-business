@@ -1,12 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Entity\EntityRevisionsTest.
- */
-
 namespace Drupal\system\Tests\Entity;
 
+use Drupal\entity_test\Entity\EntityTestMulRev;
+use Drupal\language\Entity\ConfigurableLanguage;
 use Drupal\simpletest\WebTestBase;
 
 /**
@@ -22,7 +19,7 @@ class EntityRevisionsTest extends WebTestBase {
    *
    * @var array
    */
-  public static $modules = array('entity_test');
+  public static $modules = array('entity_test', 'language');
 
   /**
    * A user with permission to administer entity_test content.
@@ -34,12 +31,15 @@ class EntityRevisionsTest extends WebTestBase {
   protected function setUp() {
     parent::setUp();
 
-    // Create and login user.
+    // Create and log in user.
     $this->webUser = $this->drupalCreateUser(array(
       'administer entity_test content',
       'view test entity',
     ));
     $this->drupalLogin($this->webUser);
+
+    // Enable an additional language.
+    ConfigurableLanguage::createFromLangcode('de')->save();
   }
 
   /**
@@ -62,10 +62,12 @@ class EntityRevisionsTest extends WebTestBase {
   protected function runRevisionsTests($entity_type) {
 
     // Create initial entity.
-    $entity = entity_create($entity_type, array(
-      'name' => 'foo',
-      'user_id' => $this->webUser->id(),
-    ));
+    $entity = $this->container->get('entity_type.manager')
+      ->getStorage($entity_type)
+      ->create(array(
+        'name' => 'foo',
+        'user_id' => $this->webUser->id(),
+      ));
     $entity->field_test_text->value = 'bar';
     $entity->save();
 
@@ -81,7 +83,8 @@ class EntityRevisionsTest extends WebTestBase {
       $legacy_name = $entity->name->value;
       $legacy_text = $entity->field_test_text->value;
 
-      $entity = entity_load($entity_type, $entity->id->value);
+      $entity = $this->container->get('entity_type.manager')
+        ->getStorage($entity_type)->load($entity->id->value);
       $entity->setNewRevision(TRUE);
       $names[] = $entity->name->value = $this->randomMachineName(32);
       $texts[] = $entity->field_test_text->value = $this->randomMachineName(32);
@@ -110,9 +113,49 @@ class EntityRevisionsTest extends WebTestBase {
     }
 
     // Confirm the correct revision text appears in the edit form.
-    $entity = entity_load($entity_type, $entity->id->value);
+    $entity = $this->container->get('entity_type.manager')
+      ->getStorage($entity_type)
+      ->load($entity->id->value);
     $this->drupalGet($entity_type . '/manage/' . $entity->id->value . '/edit');
     $this->assertFieldById('edit-name-0-value', $entity->name->value, format_string('%entity_type: Name matches in UI.', array('%entity_type' => $entity_type)));
     $this->assertFieldById('edit-field-test-text-0-value', $entity->field_test_text->value, format_string('%entity_type: Text matches in UI.', array('%entity_type' => $entity_type)));
   }
+
+  /**
+   * Tests that an entity revision is upcasted in the correct language.
+   */
+  public function testEntityRevisionParamConverter() {
+    // Create a test entity with multiple revisions and translations for them.
+    $entity = EntityTestMulRev::create([
+      'name' => 'default revision - en',
+      'user_id' => $this->webUser,
+      'language' => 'en',
+    ]);
+    $entity->addTranslation('de', ['name' => 'default revision - de']);
+    $entity->save();
+
+    $forward_revision = \Drupal::entityTypeManager()->getStorage('entity_test_mulrev')->loadUnchanged($entity->id());
+
+    $forward_revision->setNewRevision();
+    $forward_revision->isDefaultRevision(FALSE);
+
+    $forward_revision->name = 'forward revision - en';
+    $forward_revision->save();
+
+    $forward_revision_translation = $forward_revision->getTranslation('de');
+    $forward_revision_translation->name = 'forward revision - de';
+    $forward_revision_translation->save();
+
+    // Check that the entity revision is upcasted in the correct language.
+    $revision_url = 'entity_test_mulrev/' . $entity->id() . '/revision/' . $forward_revision->getRevisionId() . '/view';
+
+    $this->drupalGet($revision_url);
+    $this->assertText('forward revision - en');
+    $this->assertNoText('forward revision - de');
+
+    $this->drupalGet('de/' . $revision_url);
+    $this->assertText('forward revision - de');
+    $this->assertNoText('forward revision - en');
+  }
+
 }

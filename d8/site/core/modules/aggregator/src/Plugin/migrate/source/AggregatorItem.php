@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\aggregator\Plugin\migrate\source\AggregatorItem.
- */
-
 namespace Drupal\aggregator\Plugin\migrate\source;
 
 use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
@@ -25,7 +20,7 @@ class AggregatorItem extends DrupalSqlBase {
   public function query() {
     return $this->select('aggregator_item', 'ai')
       ->fields('ai')
-      ->orderBy('iid');
+      ->orderBy('ai.iid');
   }
 
   /**

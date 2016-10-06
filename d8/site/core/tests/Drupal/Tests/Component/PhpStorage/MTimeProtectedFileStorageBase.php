@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Component\PhpStorage\MTimeProtectedFileStorageBase.
- */
-
 namespace Drupal\Tests\Component\PhpStorage;
 
 /**
@@ -42,7 +37,7 @@ abstract class MTimeProtectedFileStorageBase extends PhpStorageTestBase {
     $this->secret = $this->randomMachineName();
 
     $this->settings = array(
-      'directory' =>  $this->directory,
+      'directory' => $this->directory,
       'bin' => 'test',
       'secret' => $this->secret,
     );
@@ -74,7 +69,7 @@ abstract class MTimeProtectedFileStorageBase extends PhpStorageTestBase {
     $php = new $this->storageClass($this->settings);
     $name = 'simpletest.php';
     $php->save($name, '<?php');
-    $expected_root_directory =  $this->directory . '/test';
+    $expected_root_directory = $this->directory . '/test';
     if (substr($name, -4) === '.php') {
       $expected_directory = $expected_root_directory . '/' . substr($name, 0, -4);
     }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Database\Driver\pgsql\Schema.
- */
-
 namespace Drupal\Core\Database\Driver\pgsql;
 
 use Drupal\Component\Utility\Unicode;
@@ -28,7 +23,7 @@ class Schema extends DatabaseSchema {
    * This is collected by DatabaseConnection_pgsql->queryTableInformation(),
    * by introspecting the database.
    *
-   * @see DatabaseConnection_pgsql->queryTableInformation()
+   * @see \Drupal\Core\Database\Driver\pgsql\Schema::queryTableInformation()
    * @var array
    */
   protected $tableInformation = array();
@@ -536,6 +531,11 @@ class Schema extends DatabaseSchema {
         ->fields(array($field => $spec['initial']))
         ->execute();
     }
+    if (isset($spec['initial_from_field'])) {
+      $this->connection->update($table)
+        ->expression($field, $spec['initial_from_field'])
+        ->execute();
+    }
     if ($fixnull) {
       $this->connection->query("ALTER TABLE {" . $table . "} ALTER $field SET NOT NULL");
     }
@@ -849,6 +849,7 @@ class Schema extends DatabaseSchema {
     // Modify the hash so it's safe to use in PostgreSQL identifiers.
     return strtr($hash, array('+' => '_', '/' => '_', '=' => ''));
   }
+
 }
 
 /**

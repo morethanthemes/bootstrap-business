@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\System\RetrieveFileTest.
- */
-
 namespace Drupal\system\Tests\System;
 
 use Drupal\simpletest\WebTestBase;
@@ -50,4 +45,5 @@ class RetrieveFileTest extends WebTestBase {
     file_unmanaged_delete_recursive($sourcedir);
     file_unmanaged_delete_recursive($targetdir);
   }
+
 }

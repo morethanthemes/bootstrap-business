@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\menu_ui\Tests\MenuLinkReorderTest.
- */
-
 namespace Drupal\menu_ui\Tests;
 
 use Drupal\simpletest\WebTestBase;
@@ -68,4 +63,5 @@ class MenuLinkReorderTest extends WebTestBase {
     $this->assertLink('Home');
 
   }
+
 }

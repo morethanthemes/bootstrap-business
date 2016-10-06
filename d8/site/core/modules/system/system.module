@@ -9,6 +9,7 @@ use Drupal\Component\Render\PlainTextOutput;
 use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Asset\AttachedAssetsInterface;
 use Drupal\Core\Cache\Cache;
+use Drupal\Core\Queue\QueueGarbageCollectionInterface;
 use Drupal\Core\Database\Query\AlterableInterface;
 use Drupal\Core\Extension\Extension;
 use Drupal\Core\Extension\ExtensionDiscovery;
@@ -17,6 +18,7 @@ use Drupal\Core\KeyValueStore\KeyValueDatabaseExpirableFactory;
 use Drupal\Core\PageCache\RequestPolicyInterface;
 use Drupal\Core\PhpStorage\PhpStorageFactory;
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Routing\StackedRouteMatchInterface;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Menu\MenuTreeParameters;
 use Drupal\Core\Extension\ModuleHandler;
@@ -88,7 +90,7 @@ function system_help($route_name, RouteMatchInterface $route_match) {
       $output .= '<dt>' . t('Disabling drag-and-drop functionality') . '</dt>';
       $output .= '<dd>' . t('The default drag-and-drop user interface for ordering tables in the administrative interface presents a challenge for some users, including users of screen readers and other assistive technology. The drag-and-drop interface can be disabled in a table by clicking a link labeled "Show row weights" above the table. The replacement interface allows users to order the table by choosing numerical weights instead of dragging table rows.') . '</dd>';
       $output .= '<dt>' . t('Configuring basic site settings') . '</dt>';
-      $output .= '<dd>' . t('The System module provides pages for managing basic site configuration, including <a href=":date-time-settings">Date and time formats</a> and basic <a href=":site-info">Site information</a> (site name, email address to send mail from, home page, and error pages). Additional configuration pages are listed on the main <a href=":config">Configuration page</a>.', array(':date-time-settings' => \Drupal::url('entity.date_format.collection'), ':site-info' => \Drupal::url('system.site_information_settings'), ':config' => \Drupal::url('system.admin_config'))) . '</dd>';
+      $output .= '<dd>' . t('The System module provides pages for managing basic site configuration, including <a href=":date-time-settings">Date and time formats</a> and <a href=":site-info">Basic site settings</a> (site name, email address to send mail from, home page, and error pages). Additional configuration pages are listed on the main <a href=":config">Configuration page</a>.', array(':date-time-settings' => \Drupal::url('entity.date_format.collection'), ':site-info' => \Drupal::url('system.site_information_settings'), ':config' => \Drupal::url('system.admin_config'))) . '</dd>';
       $output .= '<dt>' . t('Checking site status') . '</dt>';
       $output .= '<dd>' . t('The <a href=":status">Status report</a> provides an overview of the configuration, status, and health of your site. Review this report to make sure there are not any problems to address, and to find information about the software your site and web server are using.', array(':status' => \Drupal::url('system.status'))) . '</dd>';
       $output .= '<dt>' . t('Using maintenance mode') . '</dt>';
@@ -120,7 +122,7 @@ function system_help($route_name, RouteMatchInterface $route_match) {
       return '<p>' . t('These options control the display settings for the %name theme. When your site is displayed using this theme, these settings will be used.', array('%name' => $theme->info['name'])) . '</p>';
 
     case 'system.theme_settings':
-      return '<p>' . t('These options control the default display settings for your entire site, across all themes. Unless they have been overridden by a specific theme, these settings will be used.') . '</p>';
+      return '<p>' . t('Control default display settings for your site, across all themes. Use theme-specific settings to override these defaults.') . '</p>';
 
     case 'system.modules_list':
       $output = '<p>' . t('Download additional <a href=":modules">contributed modules</a> to extend your site\'s functionality.', array(':modules' => 'https://www.drupal.org/project/modules')) . '</p>';
@@ -214,6 +216,13 @@ function system_theme() {
     'system_admin_index' => array(
       'variables' => array('menu_items' => NULL),
       'file' => 'system.admin.inc',
+    ),
+    'entity_add_list' => array(
+      'variables' => array(
+        'bundles' => array(),
+        'add_bundle_message' => NULL,
+      ),
+      'template' => 'entity-add-list',
     ),
   ));
 }
@@ -315,6 +324,25 @@ function system_theme_suggestions_field(array $variables) {
 }
 
 /**
+ * Prepares variables for the list of available bundles.
+ *
+ * Default template: entity-add-list.html.twig.
+ *
+ * @param array $variables
+ *   An associative array containing:
+ *   - bundles: An array of bundles with the label, description, add_link keys.
+ *   - add_bundle_message: The message shown when there are no bundles. Only
+ *     available if the entity type uses bundle entities.
+ */
+function template_preprocess_entity_add_list(&$variables) {
+  foreach ($variables['bundles'] as $bundle_name => $bundle_info) {
+    $variables['bundles'][$bundle_name]['description'] = [
+      '#markup' => $bundle_info['description'],
+    ];
+  }
+}
+
+/**
  * @defgroup authorize Authorized operations
  * @{
  * Functions to run operations with elevated privileges via authorize.php.
@@ -412,7 +440,7 @@ function system_authorized_init($callback, $file, $arguments = array(), $page_ti
  * Return the URL for the authorize.php script.
  *
  * @param array $options
- *   Optional array of options to pass to url().
+ *   Optional array of options to set on the \Drupal\Core\Url object.
  * @return \Drupal\Core\Url
  *   The full URL to authorize.php, using HTTPS if available.
  *
@@ -431,7 +459,7 @@ function system_authorized_get_url(array $options = array()) {
  * Returns the URL for the authorize.php script when it is processing a batch.
  *
  * @param array $options
- *   Optional array of options to pass to url().
+ *   Optional array of options to set on the \Drupal\Core\Url object.
  *
  * @return \Drupal\Core\Url
  */
@@ -646,7 +674,9 @@ function system_js_settings_build(&$settings, AttachedAssetsInterface $assets) {
  * as well as theme_token ajax state.
  */
 function system_js_settings_alter(&$settings, AttachedAssetsInterface $assets) {
-  $request = \Drupal::request();
+  // As this is being output in the final response always use the master
+  // request.
+  $request = \Drupal::requestStack()->getMasterRequest();
   $current_query = $request->query->all();
 
   // Let output path processors set a prefix.
@@ -656,8 +686,12 @@ function system_js_settings_alter(&$settings, AttachedAssetsInterface $assets) {
   $path_processor->processOutbound('/', $options);
   $pathPrefix = $options['prefix'];
 
-  $current_path = \Drupal::routeMatch()->getRouteName() ? Url::fromRouteMatch(\Drupal::routeMatch())->getInternalPath() : '';
-  $current_path_is_admin = \Drupal::service('router.admin_context')->isAdminRoute();
+  $route_match = \Drupal::routeMatch();
+  if ($route_match instanceof StackedRouteMatchInterface) {
+    $route_match = $route_match->getMasterRouteMatch();
+  }
+  $current_path = $route_match->getRouteName() ? Url::fromRouteMatch($route_match)->getInternalPath() : '';
+  $current_path_is_admin = \Drupal::service('router.admin_context')->isAdminRoute($route_match->getRouteObject());
   $path_settings = [
     'baseUrl' => $request->getBaseUrl() . '/',
     'pathPrefix' => $pathPrefix,
@@ -722,7 +756,7 @@ function system_form_alter(&$form, FormStateInterface $form_state) {
 }
 
 /**
- * Implements hook_form_FORM_ID_alter().
+ * Implements hook_form_FORM_ID_alter() for \Drupal\user\AccountForm.
  */
 function system_form_user_form_alter(&$form, FormStateInterface $form_state) {
   if (\Drupal::config('system.date')->get('timezone.user.configurable')) {
@@ -731,7 +765,7 @@ function system_form_user_form_alter(&$form, FormStateInterface $form_state) {
 }
 
 /**
- * Implements hook_form_FORM_ID_alter().
+ * Implements hook_form_FORM_ID_alter() for \Drupal\user\RegisterForm.
  */
 function system_form_user_register_form_alter(&$form, FormStateInterface $form_state) {
   $config = \Drupal::config('system.date');
@@ -1061,21 +1095,6 @@ function system_rebuild_module_data() {
 }
 
 /**
- * Returns an array of default theme features.
- *
- * @see \Drupal\Core\Extension\ThemeHandler::$defaultFeatures
- */
-function _system_default_theme_features() {
-  return array(
-    'favicon',
-    'logo',
-    'node_user_picture',
-    'comment_user_picture',
-    'comment_user_verification',
-  );
-}
-
-/**
  * Get a list of available regions from a specified theme.
  *
  * @param \Drupal\Core\Extension\Extension|string $theme
@@ -1119,7 +1138,7 @@ function system_sort_modules_by_info_name($a, $b) {
  * Callback for uasort() within
  * \Drupal\system\Controller\SystemController::themesPage().
  *
- * @see system_sort_modules_by_info_name().
+ * @see system_sort_modules_by_info_name()
  */
 function system_sort_themes($a, $b) {
   if ($a->is_default) {
@@ -1235,7 +1254,7 @@ function system_get_module_admin_tasks($module, array $info) {
     $access_manager = \Drupal::service('access_manager');
     if ($access_manager->checkNamedRoute('user.admin_permissions', array(), \Drupal::currentUser())) {
       /** @var \Drupal\Core\Url $url */
-      $url = new \Drupal\Core\Url('user.admin_permissions');
+      $url = new Url('user.admin_permissions');
       $url->setOption('fragment', 'module-' . $module);
       $admin_tasks["user.admin_permissions.$module"] = array(
         'title' => t('Configure @module permissions', array('@module' => $info['name'])),
@@ -1266,21 +1285,17 @@ function system_cron() {
     \Drupal::service('keyvalue.expirable.database')->garbageCollection();
   }
 
-  // Clean up the queue for failed batches.
-  db_delete('queue')
-    ->condition('created', REQUEST_TIME - 864000, '<')
-    ->condition('name', 'drupal_batch:%', 'LIKE')
-    ->execute();
+  // Clean up any garbage in the queue service.
+  $queue_worker_manager = \Drupal::service('plugin.manager.queue_worker');
+  $queue_factory = \Drupal::service('queue');
 
-  // Reset expired items in the default queue implementation table. If that's
-  // not used, this will simply be a no-op.
-  db_update('queue')
-    ->fields(array(
-      'expire' => 0,
-    ))
-    ->condition('expire', 0, '<>')
-    ->condition('expire', REQUEST_TIME, '<')
-    ->execute();
+  foreach (array_keys($queue_worker_manager->getDefinitions()) as $queue_name) {
+    $queue = $queue_factory->get($queue_name);
+
+    if ($queue instanceof QueueGarbageCollectionInterface) {
+      $queue->garbageCollection();
+    }
+  }
 
   // Clean up PHP storage.
   PhpStorageFactory::get('container')->garbageCollection();
@@ -1412,22 +1427,24 @@ function system_block_view_system_main_block_alter(array &$build, BlockPluginInt
 /**
  * Implements hook_path_update().
  */
-function system_path_update() {
-  \Drupal::service('path.alias_manager')->cacheClear();
+function system_path_update($path) {
+  $alias_manager = \Drupal::service('path.alias_manager');
+  $alias_manager->cacheClear($path['source']);
+  $alias_manager->cacheClear($path['original']['source']);
 }
 
 /**
  * Implements hook_path_insert().
  */
-function system_path_insert() {
-  \Drupal::service('path.alias_manager')->cacheClear();
+function system_path_insert($path) {
+  \Drupal::service('path.alias_manager')->cacheClear($path['source']);
 }
 
 /**
  * Implements hook_path_delete().
  */
 function system_path_delete($path) {
-  \Drupal::service('path.alias_manager')->cacheClear();
+  \Drupal::service('path.alias_manager')->cacheClear($path['source']);
 }
 
 /**

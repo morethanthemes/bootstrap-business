@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Block\BlockBase.
- */
-
 namespace Drupal\Core\Block;
 
 use Drupal\block\BlockInterface;
@@ -15,6 +10,8 @@ use Drupal\Core\Plugin\ContextAwarePluginBase;
 use Drupal\Component\Utility\Unicode;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Language\LanguageInterface;
+use Drupal\Core\Plugin\PluginWithFormsInterface;
+use Drupal\Core\Plugin\PluginWithFormsTrait;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Component\Transliteration\TransliterationInterface;
 
@@ -27,9 +24,10 @@ use Drupal\Component\Transliteration\TransliterationInterface;
  *
  * @ingroup block_api
  */
-abstract class BlockBase extends ContextAwarePluginBase implements BlockPluginInterface {
+abstract class BlockBase extends ContextAwarePluginBase implements BlockPluginInterface, PluginWithFormsInterface {
 
   use ContextAwarePluginAssignmentTrait;
+  use PluginWithFormsTrait;
 
   /**
    * The transliteration service.

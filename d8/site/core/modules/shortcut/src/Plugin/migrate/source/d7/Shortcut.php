@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\shortcut\Plugin\migrate\source\d7\Shortcut.
- */
 
 namespace Drupal\shortcut\Plugin\migrate\source\d7;
 
@@ -25,7 +21,8 @@ class Shortcut extends DrupalSqlBase {
     return $this->select('menu_links', 'ml')
       ->fields('ml', array('mlid', 'menu_name', 'link_path', 'link_title', 'weight'))
       ->condition('hidden', '0')
-      ->condition('menu_name', 'shortcut-set-%', 'LIKE');
+      ->condition('menu_name', 'shortcut-set-%', 'LIKE')
+      ->orderBy('ml.mlid');
   }
 
   /**

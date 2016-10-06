@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\locale\StringDatabaseStorage.
- */
-
 namespace Drupal\locale;
 
 use Drupal\Core\Database\Connection;
@@ -180,9 +175,9 @@ class StringDatabaseStorage implements StringStorageInterface {
     if ($string->getId() && $string->getVersion() != $version) {
       $string->setVersion($version);
       $this->connection->update('locales_source', $this->options)
-      ->condition('lid', $string->getId())
-      ->fields(array('version' => $version))
-      ->execute();
+        ->condition('lid', $string->getId())
+        ->fields(array('version' => $version))
+        ->execute();
     }
   }
 
@@ -541,4 +536,5 @@ class StringDatabaseStorage implements StringStorageInterface {
   protected function dbExecute($query, array $args = array()) {
     return $this->connection->query($query, $args, $this->options);
   }
+
 }

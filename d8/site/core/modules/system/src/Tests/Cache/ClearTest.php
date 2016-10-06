@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Cache\ClearTest.
- */
-
 namespace Drupal\system\Tests\Cache;
 
 /**
@@ -43,4 +38,5 @@ class ClearTest extends CacheTestBase {
       $this->assertFalse($this->checkCacheExists($cid, $this->defaultValue, $bin), format_string('All cache entries removed from @bin.', array('@bin' => $bin)));
     }
   }
+
 }

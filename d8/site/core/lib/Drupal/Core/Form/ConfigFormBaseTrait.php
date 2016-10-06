@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Form\ConfigFormBaseTrait.
- */
-
 namespace Drupal\Core\Form;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -30,11 +25,6 @@ trait ConfigFormBaseTrait {
   /**
    * Retrieves a configuration object.
    *
-   * Objects that use the trait need to implement the
-   * \Drupal\Core\Form\ConfigFormBaseTrait::getEditableConfigNames() to declare
-   * which configuration objects this method returns override free and mutable.
-   * This ensures that overrides do not pollute saved configuration.
-   *
    * @param string $name
    *   The name of the configuration object to retrieve. The name corresponds to
    *   a configuration file. For @code \Drupal::config('book.admin') @endcode,
@@ -42,7 +32,9 @@ trait ConfigFormBaseTrait {
    *   configuration file.
    *
    * @return \Drupal\Core\Config\Config|\Drupal\Core\Config\ImmutableConfig
-   *   A configuration object.
+   *   An editable configuration object if the given name is listed in the
+   *   getEditableConfigNames() method or an immutable configuration object if
+   *   not.
    */
   protected function config($name) {
     /** @var \Drupal\Core\Config\ConfigFactoryInterface $config_factory */

@@ -1,12 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Field\Plugin\Field\FieldFormatter\EntityReferenceEntityFormatter.
- */
-
 namespace Drupal\Core\Field\Plugin\Field\FieldFormatter;
 
+use Drupal\Core\Entity\EntityDisplayRepositoryInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Form\FormStateInterface;
@@ -29,6 +26,13 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class EntityReferenceEntityFormatter extends EntityReferenceFormatterBase implements ContainerFactoryPluginInterface {
 
   /**
+   * The number of times this formatter allows rendering the same entity.
+   *
+   * @var int
+   */
+  const RECURSIVE_RENDER_LIMIT = 20;
+
+  /**
    * The logger factory.
    *
    * @var \Drupal\Core\Logger\LoggerChannelFactoryInterface
@@ -36,7 +40,33 @@ class EntityReferenceEntityFormatter extends EntityReferenceFormatterBase implem
   protected $loggerFactory;
 
   /**
-   * Constructs a StringFormatter instance.
+   * The entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
+   * The entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityDisplayRepositoryInterface
+   */
+  protected $entityDisplayRepository;
+
+  /**
+   * An array of counters for the recursive rendering protection.
+   *
+   * Each counter takes into account all the relevant information about the
+   * field and the referenced entity that is being rendered.
+   *
+   * @see \Drupal\Core\Field\Plugin\Field\FieldFormatter\EntityReferenceEntityFormatter::viewElements()
+   *
+   * @var array
+   */
+  protected static $recursiveRenderDepth = [];
+
+  /**
+   * Constructs a EntityReferenceEntityFormatter instance.
    *
    * @param string $plugin_id
    *   The plugin_id for the formatter.
@@ -54,10 +84,16 @@ class EntityReferenceEntityFormatter extends EntityReferenceFormatterBase implem
    *   Any third party settings settings.
    * @param LoggerChannelFactoryInterface $logger_factory
    *   The logger factory.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager.
+   * @param \Drupal\Core\Entity\EntityDisplayRepositoryInterface $entity_display_repository
+   *   The entity display repository.
    */
-  public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, $label, $view_mode, array $third_party_settings, LoggerChannelFactoryInterface $logger_factory) {
+  public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, $label, $view_mode, array $third_party_settings, LoggerChannelFactoryInterface $logger_factory, EntityTypeManagerInterface $entity_type_manager, EntityDisplayRepositoryInterface $entity_display_repository) {
     parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $label, $view_mode, $third_party_settings);
     $this->loggerFactory = $logger_factory;
+    $this->entityTypeManager = $entity_type_manager;
+    $this->entityDisplayRepository = $entity_display_repository;
   }
 
   /**
@@ -72,7 +108,9 @@ class EntityReferenceEntityFormatter extends EntityReferenceFormatterBase implem
       $configuration['label'],
       $configuration['view_mode'],
       $configuration['third_party_settings'],
-      $container->get('logger.factory')
+      $container->get('logger.factory'),
+      $container->get('entity_type.manager'),
+      $container->get('entity_display.repository')
     );
   }
 
@@ -92,7 +130,7 @@ class EntityReferenceEntityFormatter extends EntityReferenceFormatterBase implem
   public function settingsForm(array $form, FormStateInterface $form_state) {
     $elements['view_mode'] = array(
       '#type' => 'select',
-      '#options' => \Drupal::entityManager()->getViewModeOptions($this->getFieldSetting('target_type')),
+      '#options' => $this->entityDisplayRepository->getViewModeOptions($this->getFieldSetting('target_type')),
       '#title' => t('View mode'),
       '#default_value' => $this->getSetting('view_mode'),
       '#required' => TRUE,
@@ -107,7 +145,7 @@ class EntityReferenceEntityFormatter extends EntityReferenceFormatterBase implem
   public function settingsSummary() {
     $summary = array();
 
-    $view_modes = \Drupal::entityManager()->getViewModeOptions($this->getFieldSetting('target_type'));
+    $view_modes = $this->entityDisplayRepository->getViewModeOptions($this->getFieldSetting('target_type'));
     $view_mode = $this->getSetting('view_mode');
     $summary[] = t('Rendered as @mode', array('@mode' => isset($view_modes[$view_mode]) ? $view_modes[$view_mode] : $view_mode));
 
@@ -122,29 +160,43 @@ class EntityReferenceEntityFormatter extends EntityReferenceFormatterBase implem
     $elements = array();
 
     foreach ($this->getEntitiesToView($items, $langcode) as $delta => $entity) {
+      // Due to render caching and delayed calls, the viewElements() method
+      // will be called later in the rendering process through a '#pre_render'
+      // callback, so we need to generate a counter that takes into account
+      // all the relevant information about this field and the referenced
+      // entity that is being rendered.
+      $recursive_render_id = $items->getFieldDefinition()->getTargetEntityTypeId()
+        . $items->getFieldDefinition()->getTargetBundle()
+        . $items->getName()
+        . $entity->id();
+
+      if (isset(static::$recursiveRenderDepth[$recursive_render_id])) {
+        static::$recursiveRenderDepth[$recursive_render_id]++;
+      }
+      else {
+        static::$recursiveRenderDepth[$recursive_render_id] = 1;
+      }
+
       // Protect ourselves from recursive rendering.
-      static $depth = 0;
-      $depth++;
-      if ($depth > 20) {
-        $this->loggerFactory->get('entity')->error('Recursive rendering detected when rendering entity @entity_type @entity_id. Aborting rendering.', array('@entity_type' => $entity->getEntityTypeId(), '@entity_id' => $entity->id()));
+      if (static::$recursiveRenderDepth[$recursive_render_id] > static::RECURSIVE_RENDER_LIMIT) {
+        $this->loggerFactory->get('entity')->error('Recursive rendering detected when rendering entity %entity_type: %entity_id, using the %field_name field on the %bundle_name bundle. Aborting rendering.', [
+          '%entity_type' => $entity->getEntityTypeId(),
+          '%entity_id' => $entity->id(),
+          '%field_name' => $items->getName(),
+          '%bundle_name' => $items->getFieldDefinition()->getTargetBundle(),
+        ]);
         return $elements;
       }
 
-      if ($entity->id()) {
-        $elements[$delta] = entity_view($entity, $view_mode, $entity->language()->getId());
+      $view_builder = $this->entityTypeManager->getViewBuilder($entity->getEntityTypeId());
+      $elements[$delta] = $view_builder->view($entity, $view_mode, $entity->language()->getId());
 
-        // Add a resource attribute to set the mapping property's value to the
-        // entity's url. Since we don't know what the markup of the entity will
-        // be, we shouldn't rely on it for structured data such as RDFa.
-        if (!empty($items[$delta]->_attributes)) {
-          $items[$delta]->_attributes += array('resource' => $entity->url());
-        }
+      // Add a resource attribute to set the mapping property's value to the
+      // entity's url. Since we don't know what the markup of the entity will
+      // be, we shouldn't rely on it for structured data such as RDFa.
+      if (!empty($items[$delta]->_attributes) && !$entity->isNew() && $entity->hasLinkTemplate('canonical')) {
+        $items[$delta]->_attributes += array('resource' => $entity->toUrl()->toString());
       }
-      else {
-        // This is an "auto_create" item.
-        $elements[$delta] = array('#markup' => $entity->label());
-      }
-      $depth = 0;
     }
 
     return $elements;

@@ -1,19 +1,12 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\block\Tests\BlockHookOperationTest.
- *
- * Tests for Block module regarding hook_entity_operations_alter().
- */
-
 namespace Drupal\block\Tests;
 
 use Drupal\Component\Utility\Unicode;
 use Drupal\simpletest\WebTestBase;
 
 /**
- * Implement hook entity operations alter.
+ * Tests for Block module regarding hook_entity_operations_alter().
  *
  * @group block
  */
@@ -38,7 +31,7 @@ class BlockHookOperationTest extends WebTestBase {
     $this->drupalLogin($admin_user);
   }
 
-  /*
+  /**
    * Tests the block list to see if the test_operation link is added.
    */
   public function testBlockOperationAlter() {

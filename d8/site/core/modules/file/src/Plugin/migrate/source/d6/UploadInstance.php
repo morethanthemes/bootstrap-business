@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\file\Plugin\migrate\source\d6\UploadInstance.
- */
-
 namespace Drupal\file\Plugin\migrate\source\d6;
 
 use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
@@ -38,7 +33,7 @@ class UploadInstance extends DrupalSqlBase {
     $return = array();
     $values = $this->select('variable', 'v')
       ->fields('v', ['name', 'value'])
-      ->condition('name', $variables, 'IN')
+      ->condition('v.name', $variables, 'IN')
       ->execute()
       ->fetchAllKeyed();
     foreach ($node_types as $node_type) {

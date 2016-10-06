@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\simpletest\Tests\MissingCheckedRequirementsTest.
- */
-
 namespace Drupal\simpletest\Tests;
 
 use Drupal\simpletest\WebTestBase;
@@ -58,4 +53,5 @@ class MissingCheckedRequirementsTest extends WebTestBase {
       $this->fail('Test ran when it failed requirements check.');
     }
   }
+
 }

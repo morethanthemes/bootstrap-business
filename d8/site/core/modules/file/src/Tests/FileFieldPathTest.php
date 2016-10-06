@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\file\Tests\FileFieldPathTest.
- */
-
 namespace Drupal\file\Tests;
 
 use Drupal\file\Entity\File;
@@ -94,4 +89,5 @@ class FileFieldPathTest extends FileFieldTestBase {
     $result = preg_match('/' . preg_quote($base_path, '/') . '(_[0-9]+)?\.' . preg_quote($extension, '/') . '/', $actual_path);
     $this->assertTrue($result, $message);
   }
+
 }

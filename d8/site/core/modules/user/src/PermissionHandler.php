@@ -1,13 +1,8 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\PermissionHandler.
- */
-
 namespace Drupal\user;
 
-use Drupal\Component\Discovery\YamlDiscovery;
+use Drupal\Core\Discovery\YamlDiscovery;
 use Drupal\Core\Controller\ControllerResolverInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
@@ -64,7 +59,7 @@ class PermissionHandler implements PermissionHandlerInterface {
   /**
    * The YAML discovery class to find all .permissions.yml files.
    *
-   * @var \Drupal\Component\Discovery\YamlDiscovery
+   * @var \Drupal\Core\Discovery\YamlDiscovery
    */
   protected $yamlDiscovery;
 
@@ -96,7 +91,7 @@ class PermissionHandler implements PermissionHandlerInterface {
   /**
    * Gets the YAML discovery.
    *
-   * @return \Drupal\Component\Discovery\YamlDiscovery
+   * @return \Drupal\Core\Discovery\YamlDiscovery
    *   The YAML discovery.
    */
   protected function getYamlDiscovery() {
@@ -163,8 +158,8 @@ class PermissionHandler implements PermissionHandlerInterface {
 
               $callback_permission += array(
                 'description' => NULL,
+                'provider' => $provider,
               );
-              $callback_permission['provider'] = $provider;
 
               $all_callback_permissions[$name] = $callback_permission;
             }
@@ -182,7 +177,7 @@ class PermissionHandler implements PermissionHandlerInterface {
         }
         $permission['title'] = $this->t($permission['title']);
         $permission['description'] = isset($permission['description']) ? $this->t($permission['description']) : NULL;
-        $permission['provider'] = $provider;
+        $permission['provider'] = !empty($permission['provider']) ? $permission['provider'] : $provider;
       }
 
       $all_permissions += $permissions;

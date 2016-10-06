@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Ajax\FormValuesTest.
- */
-
 namespace Drupal\system\Tests\Ajax;
 
 use Drupal\Core\Ajax\DataCommand;
@@ -65,4 +60,5 @@ class FormValuesTest extends AjaxTestBase {
     // Not using File API; a potential error must trigger a PHP warning.
     unlink(\Drupal::root() . '/' . $this->siteDirectory . '/error.log');
   }
+
 }

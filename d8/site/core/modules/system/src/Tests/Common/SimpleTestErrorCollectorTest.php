@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Common\SimpleTestErrorCollectorTest.
- */
-
 namespace Drupal\system\Tests\Common;
 
 use Drupal\simpletest\WebTestBase;
@@ -95,4 +90,5 @@ class SimpleTestErrorCollectorTest extends WebTestBase {
       $this->assertEqual($error['message'], $message, format_string("Message was %message", array('%message' => $message)));
     }
   }
+
 }

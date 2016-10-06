@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\search\Tests\SearchPageCacheTagsTest.
- */
-
 namespace Drupal\search\Tests;
 
 use Drupal\Core\Cache\Cache;
@@ -169,7 +164,7 @@ class SearchPageCacheTagsTest extends SearchTestBase {
     $this->container->get('plugin.manager.search')->createInstance('node_search')->updateIndex();
     search_update_totals();
 
-    // Login with searching user again.
+    // Log in with searching user again.
     $this->drupalLogin($this->searchingUser);
 
     // Default search cache tags.

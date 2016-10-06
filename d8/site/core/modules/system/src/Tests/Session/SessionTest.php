@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Session\SessionTest.
- */
-
 namespace Drupal\system\Tests\Session;
 
 use Drupal\simpletest\WebTestBase;
@@ -55,7 +50,7 @@ class SessionTest extends WebTestBase {
     $this->drupalGet('session-test/id');
     $matches = array();
     preg_match('/\s*session_id:(.*)\n/', $this->getRawContent(), $matches);
-    $this->assertTrue(!empty($matches[1]) , 'Found session ID before logging in.');
+    $this->assertTrue(!empty($matches[1]), 'Found session ID before logging in.');
     $original_session = $matches[1];
 
     // We cannot use $this->drupalLogin($user); because we exit in
@@ -72,7 +67,7 @@ class SessionTest extends WebTestBase {
     $this->drupalGet('session-test/id');
     $matches = array();
     preg_match('/\s*session_id:(.*)\n/', $this->getRawContent(), $matches);
-    $this->assertTrue(!empty($matches[1]) , 'Found session ID after logging in.');
+    $this->assertTrue(!empty($matches[1]), 'Found session ID after logging in.');
     $this->assertTrue($matches[1] != $original_session, 'Session ID changed after login.');
   }
 
@@ -325,4 +320,5 @@ class SessionTest extends WebTestBase {
       $this->assertIdentical($this->drupalGetHeader('X-Session-Empty'), '0', 'Session was not empty.');
     }
   }
+
 }

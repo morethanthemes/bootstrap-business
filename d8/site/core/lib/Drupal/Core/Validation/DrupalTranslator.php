@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Validation\DrupalTranslator.
- */
-
 namespace Drupal\Core\Validation;
 
 use Drupal\Component\Render\MarkupInterface;
@@ -108,4 +103,5 @@ class DrupalTranslator implements TranslatorInterface {
     $locale = isset($locale) ? $locale : $this->locale;
     return array('langcode' => $locale);
   }
+
 }

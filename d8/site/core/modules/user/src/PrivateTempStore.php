@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\PrivateTempStore.
- */
-
 namespace Drupal\user;
 
 use Drupal\Core\KeyValueStore\KeyValueStoreExpirableInterface;
@@ -79,8 +74,10 @@ class PrivateTempStore {
    *   of key/value pairs.
    * @param \Drupal\Core\Lock\LockBackendInterface $lock_backend
    *   The lock object used for this data.
-   * @param mixed $owner
-   *   The owner key to store along with the data (e.g. a user or session ID).
+   * @param \Drupal\Core\Session\AccountProxyInterface $current_user
+   *   The current user account.
+   * @param \Symfony\Component\HttpFoundation\RequestStack $request_stack
+   *   The request stack.
    * @param int $expire
    *   The time to live for items, in seconds.
    */
@@ -206,4 +203,5 @@ class PrivateTempStore {
   protected function getOwner() {
     return $this->currentUser->id() ?: $this->requestStack->getCurrentRequest()->getSession()->getId();
   }
+
 }

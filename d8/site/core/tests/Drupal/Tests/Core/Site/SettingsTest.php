@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Site\SettingsTest.
- */
-
 namespace Drupal\Tests\Core\Site;
 
 use Drupal\Core\Site\Settings;
@@ -100,11 +95,11 @@ class SettingsTest extends UnitTestCase {
    * @return array
    */
   public function providerTestGetHashSaltEmpty() {
-   return array(
-     array(array()),
-     array(array('hash_salt' => '')),
-     array(array('hash_salt' => NULL)),
-   );
+    return array(
+      array(array()),
+      array(array('hash_salt' => '')),
+      array(array('hash_salt' => NULL)),
+    );
   }
 
   /**

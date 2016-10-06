@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\Tests\UserAdminTest.
- */
-
 namespace Drupal\user\Tests;
 
 use Drupal\simpletest\WebTestBase;
@@ -28,6 +23,7 @@ class UserAdminTest extends WebTestBase {
    * Registers a user and deletes it.
    */
   function testUserAdmin() {
+    $config = $this->config('user.settings');
     $user_a = $this->drupalCreateUser();
     $user_a->name = 'User A';
     $user_a->mail = $this->randomMachineName() . '@example.com';
@@ -101,11 +97,16 @@ class UserAdminTest extends WebTestBase {
     $edit = array();
     $edit['action'] = 'user_block_user_action';
     $edit['user_bulk_form[4]'] = TRUE;
-    $this->drupalPostForm('admin/people', $edit, t('Apply'), array(
+    $config
+      ->set('notify.status_blocked', TRUE)
+      ->save();
+    $this->drupalPostForm('admin/people', $edit, t('Apply to selected items'), array(
       // Sort the table by username so that we know reliably which user will be
       // targeted with the blocking action.
       'query' => array('order' => 'name', 'sort' => 'asc')
     ));
+    $site_name = $this->config('system.site')->get('name');
+    $this->assertMailString('body', 'Your account on ' . $site_name . ' has been blocked.', 1, 'Blocked message found in the mail sent to user C.');
     $user_storage->resetCache(array($user_c->id()));
     $account = $user_storage->load($user_c->id());
     $this->assertTrue($account->isBlocked(), 'User C blocked');
@@ -120,7 +121,7 @@ class UserAdminTest extends WebTestBase {
     $editunblock = array();
     $editunblock['action'] = 'user_unblock_user_action';
     $editunblock['user_bulk_form[4]'] = TRUE;
-    $this->drupalPostForm('admin/people', $editunblock, t('Apply'), array(
+    $this->drupalPostForm('admin/people', $editunblock, t('Apply to selected items'), array(
       // Sort the table by username so that we know reliably which user will be
       // targeted with the blocking action.
       'query' => array('order' => 'name', 'sort' => 'asc')
@@ -173,8 +174,8 @@ class UserAdminTest extends WebTestBase {
       ->save();
     // Register a new user account.
     $edit = array();
-    $edit['name'] = $name = $this->randomMachineName();
-    $edit['mail'] = $mail = $edit['name'] . '@example.com';
+    $edit['name'] = $this->randomMachineName();
+    $edit['mail'] = $edit['name'] . '@example.com';
     $this->drupalPostForm('user/register', $edit, t('Create new account'));
     $subject = 'Account details for ' . $edit['name'] . ' at ' . $system->get('name') . ' (pending admin approval)';
     // Ensure that admin notification mail is sent to the configured
@@ -195,4 +196,5 @@ class UserAdminTest extends WebTestBase {
     ));
     $this->assertTrue(count($user_mail), 'New user mail to user is sent from configured Notification Email address');
   }
+
 }

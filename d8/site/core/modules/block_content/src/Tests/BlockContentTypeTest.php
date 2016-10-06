@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\block_content\Tests\BlockContentTypeTest.
- */
-
 namespace Drupal\block_content\Tests;
 
 use Drupal\block_content\Entity\BlockContentType;
@@ -51,7 +46,7 @@ class BlockContentTypeTest extends BlockContentTestBase {
    * Tests creating a block type programmatically and via a form.
    */
   public function testBlockContentTypeCreation() {
-    // Login a test user.
+    // Log in a test user.
     $this->drupalLogin($this->adminUser);
 
     // Test the page with no block-types.

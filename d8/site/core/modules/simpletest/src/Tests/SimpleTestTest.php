@@ -1,13 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\simpletest\Tests\SimpleTestTest.
- */
-
 namespace Drupal\simpletest\Tests;
 
 use Drupal\Component\Utility\Crypt;
+use Drupal\Core\Test\TestDatabase;
 use Drupal\simpletest\WebTestBase;
 
 /**
@@ -83,7 +79,7 @@ if (!function_exists('simpletest_test_stub_settings_function')) {
 }
 EOD;
 
-      file_put_contents($this->siteDirectory. '/' . 'settings.testing.php', $php);
+      file_put_contents($this->siteDirectory . '/' . 'settings.testing.php', $php);
       // @see \Drupal\system\Tests\DrupalKernel\DrupalKernelSiteTest
       $class = __CLASS__;
       $yaml = <<<EOD
@@ -159,7 +155,8 @@ EOD;
     // test in a test since the prefix has changed.
     // @see \Drupal\Core\Test\HttpClientMiddleware\TestHttpClientMiddleware::onBeforeSendRequest()
     // @see drupal_generate_test_ua();
-    $key_file = DRUPAL_ROOT . '/sites/simpletest/' . substr($this->databasePrefix, 10) . '/.htkey';
+    $test_db = new TestDatabase($this->databasePrefix);
+    $key_file = DRUPAL_ROOT . '/' . $test_db->getTestSitePath() . '/.htkey';
     $private_key = Crypt::randomBytesBase64(55);
     $site_path = $this->container->get('site.path');
     file_put_contents($key_file, $private_key);
@@ -289,11 +286,16 @@ EOD;
   /**
    * Asserts that an assertion with specified values is displayed in results.
    *
-   * @param string $message Assertion message.
-   * @param string $type Assertion type.
-   * @param string $status Assertion status.
-   * @param string $file File where the assertion originated.
-   * @param string $function Function where the assertion originated.
+   * @param string $message
+   *   Assertion message.
+   * @param string $type
+   *   Assertion type.
+   * @param string $status
+   *   Assertion status.
+   * @param string $file
+   *   File where the assertion originated.
+   * @param string $function
+   *   Function where the assertion originated.
    *
    * @return Assertion result.
    */

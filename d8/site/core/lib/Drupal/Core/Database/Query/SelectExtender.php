@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Database\Query\SelectExtender.
- */
-
 namespace Drupal\Core\Database\Query;
 
 use Drupal\Core\Database\Connection;
@@ -537,4 +532,5 @@ class SelectExtender implements SelectInterface {
   public function orConditionGroup() {
     return $this->conditionGroupFactory('OR');
   }
+
 }

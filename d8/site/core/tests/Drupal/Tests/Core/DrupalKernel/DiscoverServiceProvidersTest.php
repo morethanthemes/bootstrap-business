@@ -1,12 +1,8 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\DrupalKernel\DiscoverServiceProvidersTest.
- */
-
 namespace Drupal\Tests\Core\DrupalKernel;
 
+use Composer\Autoload\ClassLoader;
 use Drupal\Core\DrupalKernel;
 use Drupal\Core\Site\Settings;
 use Drupal\Tests\UnitTestCase;
@@ -29,7 +25,7 @@ class DiscoverServiceProvidersTest extends UnitTestCase {
       ),
     ));
 
-    $kernel = new DrupalKernel('prod', new \Composer\Autoload\ClassLoader());
+    $kernel = new DrupalKernel('prod', new ClassLoader());
     $kernel->discoverServiceProviders();
 
     $expect = array(
@@ -49,7 +45,7 @@ class DiscoverServiceProvidersTest extends UnitTestCase {
    */
   public function testDiscoverServiceNoContainerYamls() {
     new Settings([]);
-    $kernel = new DrupalKernel('prod', new \Composer\Autoload\ClassLoader());
+    $kernel = new DrupalKernel('prod', new ClassLoader());
     $kernel->discoverServiceProviders();
 
     $expect = [

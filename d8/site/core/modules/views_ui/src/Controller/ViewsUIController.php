@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views_ui\Controller\ViewsUIController.
- */
-
 namespace Drupal\views_ui\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
@@ -36,7 +31,7 @@ class ViewsUIController extends ControllerBase {
   /**
    * Constructs a new \Drupal\views_ui\Controller\ViewsUIController object.
    *
-   * @param \Drupal\views\ViewsData views_data
+   * @param \Drupal\views\ViewsData $views_data
    *   The Views data cache object.
    */
   public function __construct(ViewsData $views_data) {
@@ -158,7 +153,6 @@ class ViewsUIController extends ControllerBase {
    * @return \Drupal\Core\Ajax\AjaxResponse|\Symfony\Component\HttpFoundation\RedirectResponse
    *   Either returns a rebuilt listing page as an AJAX response, or redirects
    *   back to the listing page.
-   *
    */
   public function ajaxOperation(ViewEntityInterface $view, $op, Request $request) {
     // Perform the operation.

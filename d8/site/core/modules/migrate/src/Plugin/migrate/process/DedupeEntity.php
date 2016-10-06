@@ -1,19 +1,16 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\migrate\Plugin\migrate\process\DedupeEntity.
- */
-
 namespace Drupal\migrate\Plugin\migrate\process;
 
 use Drupal\Core\Entity\Query\QueryFactory;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
-use Drupal\migrate\Entity\MigrationInterface;
+use Drupal\migrate\Plugin\MigrationInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Ensures value is not duplicated against an entity field.
+ *
+ * @link https://www.drupal.org/node/2135325 Online handbook documentation for dedupe_entity process plugin @endlink
  *
  * @MigrateProcessPlugin(
  *   id = "dedupe_entity"

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\Tests\UserCancelTest.
- */
-
 namespace Drupal\user\Tests;
 
 use Drupal\comment\Tests\CommentTestTrait;
@@ -129,7 +124,7 @@ class UserCancelTest extends WebTestBase {
       'action' => 'user_cancel_user_action',
       'user_bulk_form[0]' => TRUE,
     );
-    $this->drupalPostForm('admin/people', $edit, t('Apply'));
+    $this->drupalPostForm('admin/people', $edit, t('Apply to selected items'));
 
     // Verify that uid 1's account was not cancelled.
     $user_storage->resetCache(array(1));
@@ -249,7 +244,7 @@ class UserCancelTest extends WebTestBase {
     // Add a comment to the page.
     $comment_subject = $this->randomMachineName(8);
     $comment_body = $this->randomMachineName(8);
-    $comment = entity_create('comment', array(
+    $comment = Comment::create(array(
       'subject' => $comment_subject,
       'comment_body' => $comment_body,
       'entity_id' => $node->id(),
@@ -316,7 +311,7 @@ class UserCancelTest extends WebTestBase {
     // Add a comment to the page.
     $comment_subject = $this->randomMachineName(8);
     $comment_body = $this->randomMachineName(8);
-    $comment = entity_create('comment', array(
+    $comment = Comment::create(array(
       'subject' => $comment_subject,
       'comment_body' => $comment_body,
       'entity_id' => $node->id(),
@@ -358,7 +353,7 @@ class UserCancelTest extends WebTestBase {
     $test_node = $node_storage->load($node->id());
     $this->assertTrue(($test_node->getOwnerId() == 0 && $test_node->isPublished()), 'Node of the user has been attributed to anonymous user.');
     $test_node = node_revision_load($revision, TRUE);
-    $this->assertTrue(($test_node->getRevisionAuthor()->id() == 0 && $test_node->isPublished()), 'Node revision of the user has been attributed to anonymous user.');
+    $this->assertTrue(($test_node->getRevisionUser()->id() == 0 && $test_node->isPublished()), 'Node revision of the user has been attributed to anonymous user.');
     $node_storage->resetCache(array($revision_node->id()));
     $test_node = $node_storage->load($revision_node->id());
     $this->assertTrue(($test_node->getOwnerId() != 0 && $test_node->isPublished()), "Current revision of the user's node was not attributed to anonymous user.");
@@ -371,6 +366,53 @@ class UserCancelTest extends WebTestBase {
 
     // Confirm that the confirmation message made it through to the end user.
     $this->assertRaw(t('%name has been deleted.', array('%name' => $account->getUsername())), "Confirmation message displayed to user.");
+  }
+
+  /**
+   * Delete account and anonymize all content using a batch process.
+   */
+  public function testUserAnonymizeBatch() {
+    $node_storage = $this->container->get('entity.manager')->getStorage('node');
+    $this->config('user.settings')->set('cancel_method', 'user_cancel_reassign')->save();
+    $user_storage = $this->container->get('entity.manager')->getStorage('user');
+
+    // Create a user.
+    $account = $this->drupalCreateUser(array('cancel account'));
+    $this->drupalLogin($account);
+    // Load a real user object.
+    $user_storage->resetCache([$account->id()]);
+    $account = $user_storage->load($account->id());
+
+    // Create 11 nodes in order to trigger batch processing in
+    // node_mass_update().
+    $nodes = [];
+    for ($i = 0; $i < 11; $i++) {
+      $node = $this->drupalCreateNode(['uid' => $account->id()]);
+      $nodes[$node->id()] = $node;
+    }
+
+    // Attempt to cancel account.
+    $this->drupalGet('user/' . $account->id() . '/edit');
+    $this->drupalPostForm(NULL, NULL, t('Cancel account'));
+    $this->assertText(t('Are you sure you want to cancel your account?'), 'Confirmation form to cancel account displayed.');
+    $this->assertRaw(t('Your account will be removed and all account information deleted. All of your content will be assigned to the %anonymous-name user.', array('%anonymous-name' => $this->config('user.settings')->get('anonymous'))), 'Informs that all content will be attributed to anonymous account.');
+
+    // Confirm account cancellation.
+    $timestamp = time();
+    $this->drupalPostForm(NULL, NULL, t('Cancel account'));
+    $this->assertText(t('A confirmation request to cancel your account has been sent to your email address.'), 'Account cancellation request mailed message displayed.');
+
+    // Confirm account cancellation request.
+    $this->drupalGet("user/" . $account->id() . "/cancel/confirm/$timestamp/" . user_pass_rehash($account, $timestamp));
+    $user_storage->resetCache([$account->id()]);
+    $this->assertFalse($user_storage->load($account->id()), 'User is not found in the database.');
+
+    // Confirm that user's content has been attributed to anonymous user.
+    $node_storage->resetCache(array_keys($nodes));
+    $test_nodes = $node_storage->loadMultiple(array_keys($nodes));
+    foreach ($test_nodes as $test_node) {
+      $this->assertTrue(($test_node->getOwnerId() == 0 && $test_node->isPublished()), 'Node ' . $test_node->id() . ' of the user has been attributed to anonymous user.');
+    }
   }
 
   /**
@@ -525,7 +567,7 @@ class UserCancelTest extends WebTestBase {
     for ($i = 0; $i <= 4; $i++) {
       $edit['user_bulk_form[' . $i . ']'] = TRUE;
     }
-    $this->drupalPostForm('admin/people', $edit, t('Apply'));
+    $this->drupalPostForm('admin/people', $edit, t('Apply to selected items'));
     $this->assertText(t('Are you sure you want to cancel these user accounts?'), 'Confirmation form to cancel accounts displayed.');
     $this->assertText(t('When cancelling these accounts'), 'Allows to select account cancellation method.');
     $this->assertText(t('Require email confirmation to cancel account'), 'Allows to send confirmation mail.');

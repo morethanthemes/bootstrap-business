@@ -1,12 +1,8 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\filter\Tests\FilterSecurityTest.
- */
-
 namespace Drupal\filter\Tests;
 
+use Drupal\filter\Entity\FilterFormat;
 use Drupal\simpletest\WebTestBase;
 use Drupal\filter\Plugin\FilterInterface;
 use Drupal\user\RoleInterface;
@@ -41,7 +37,7 @@ class FilterSecurityTest extends WebTestBase {
     $this->drupalCreateContentType(array('type' => 'page', 'name' => 'Basic page'));
 
     /** @var \Drupal\filter\Entity\FilterFormat $filtered_html_format */
-    $filtered_html_format = entity_load('filter_format', 'filtered_html');
+    $filtered_html_format = FilterFormat::load('filtered_html');
     $filtered_html_permission = $filtered_html_format->getPermissionName();
     user_role_grant_permissions(RoleInterface::ANONYMOUS_ID, array($filtered_html_permission));
 
@@ -91,4 +87,5 @@ class FilterSecurityTest extends WebTestBase {
     $this->assertEqual(check_markup($text, 'filtered_html', '', array()), $expected_filtered_text, 'Expected filter result.');
     $this->assertEqual(check_markup($text, 'filtered_html', '', array(FilterInterface::TYPE_HTML_RESTRICTOR)), $expected_filtered_text, 'Expected filter result, even when trying to disable filters of the FilterInterface::TYPE_HTML_RESTRICTOR type.');
   }
+
 }

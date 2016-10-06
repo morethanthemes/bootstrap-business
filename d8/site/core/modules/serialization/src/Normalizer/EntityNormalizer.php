@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\serialization\Normalizer\EntityNormalizer.
- */
-
 namespace Drupal\serialization\Normalizer;
 
 use Drupal\Core\Entity\EntityManagerInterface;
@@ -93,4 +88,5 @@ class EntityNormalizer extends ComplexDataNormalizer implements DenormalizerInte
 
     return $entity;
   }
+
 }

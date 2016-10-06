@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Database\Query\ConditionInterface.
- */
-
 namespace Drupal\Core\Database\Query;
 
 use Drupal\Core\Database\Connection;
@@ -196,4 +191,5 @@ interface ConditionInterface {
    * @return \Drupal\Core\Database\Query\ConditionInterface
    */
   public function orConditionGroup();
+
 }

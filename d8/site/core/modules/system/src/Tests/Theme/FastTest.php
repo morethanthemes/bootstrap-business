@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Theme\FastTest.
- */
-
 namespace Drupal\system\Tests\Theme;
 
 use Drupal\simpletest\WebTestBase;
@@ -37,4 +32,5 @@ class FastTest extends WebTestBase {
     $this->assertRaw($this->account->getUsername());
     $this->assertNoText('registry initialized', 'The registry was not initialized');
   }
+
 }

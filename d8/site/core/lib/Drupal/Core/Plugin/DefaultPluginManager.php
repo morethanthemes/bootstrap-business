@@ -1,13 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Plugin\DefaultPluginManager.
- */
-
 namespace Drupal\Core\Plugin;
 
 use Drupal\Component\Plugin\Discovery\CachedDiscoveryInterface;
+use Drupal\Core\Cache\CacheableDependencyInterface;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Cache\UseCacheBackendTrait;
 use Drupal\Component\Plugin\Discovery\DiscoveryCachedTrait;
@@ -25,7 +21,7 @@ use Drupal\Core\Plugin\Factory\ContainerFactory;
  *
  * @ingroup plugin_api
  */
-class DefaultPluginManager extends PluginManagerBase implements PluginManagerInterface, CachedDiscoveryInterface {
+class DefaultPluginManager extends PluginManagerBase implements PluginManagerInterface, CachedDiscoveryInterface, CacheableDependencyInterface {
 
   use DiscoveryCachedTrait;
   use UseCacheBackendTrait;
@@ -42,7 +38,7 @@ class DefaultPluginManager extends PluginManagerBase implements PluginManagerInt
    *
    * @var array
    */
-  protected $cacheTags = array();
+  protected $cacheTags = [];
 
   /**
    * Name of the alter hook if one should be invoked.
@@ -73,7 +69,7 @@ class DefaultPluginManager extends PluginManagerBase implements PluginManagerInt
    *
    * @var array
    */
-  protected $defaults = array();
+  protected $defaults = [];
 
   /**
    * The name of the annotation that contains the plugin definition.
@@ -98,6 +94,14 @@ class DefaultPluginManager extends PluginManagerBase implements PluginManagerInt
   protected $namespaces;
 
   /**
+   * Additional namespaces the annotation discovery mechanism should scan for
+   * annotation definitions.
+   *
+   * @var string[]
+   */
+  protected $additionalAnnotationNamespaces = [];
+
+  /**
    * Creates the discovery object.
    *
    * @param string|bool $subdir
@@ -112,13 +116,16 @@ class DefaultPluginManager extends PluginManagerBase implements PluginManagerInt
    * @param string $plugin_definition_annotation_name
    *   (optional) The name of the annotation that contains the plugin definition.
    *   Defaults to 'Drupal\Component\Annotation\Plugin'.
+   * @param string[] $additional_annotation_namespaces
+   *   (optional) Additional namespaces to scan for annotation definitions.
    */
-  public function __construct($subdir, \Traversable $namespaces, ModuleHandlerInterface $module_handler, $plugin_interface = NULL, $plugin_definition_annotation_name = 'Drupal\Component\Annotation\Plugin') {
+  public function __construct($subdir, \Traversable $namespaces, ModuleHandlerInterface $module_handler, $plugin_interface = NULL, $plugin_definition_annotation_name = 'Drupal\Component\Annotation\Plugin', array $additional_annotation_namespaces = []) {
     $this->subdir = $subdir;
     $this->namespaces = $namespaces;
     $this->pluginDefinitionAnnotationName = $plugin_definition_annotation_name;
     $this->pluginInterface = $plugin_interface;
     $this->moduleHandler = $module_handler;
+    $this->additionalAnnotationNamespaces = $additional_annotation_namespaces;
   }
 
   /**
@@ -232,6 +239,11 @@ class DefaultPluginManager extends PluginManagerBase implements PluginManagerInt
    * method.
    */
   public function processDefinition(&$definition, $plugin_id) {
+    // Only arrays can be operated on.
+    if (!is_array($definition)) {
+      return;
+    }
+
     if (!empty($this->defaults) && is_array($this->defaults)) {
       $definition = NestedArray::mergeDeep($this->defaults, $definition);
     }
@@ -242,7 +254,7 @@ class DefaultPluginManager extends PluginManagerBase implements PluginManagerInt
    */
   protected function getDiscovery() {
     if (!$this->discovery) {
-      $discovery = new AnnotatedClassDiscovery($this->subdir, $this->namespaces, $this->pluginDefinitionAnnotationName);
+      $discovery = new AnnotatedClassDiscovery($this->subdir, $this->namespaces, $this->pluginDefinitionAnnotationName, $this->additionalAnnotationNamespaces);
       $this->discovery = new ContainerDerivativeDiscoveryDecorator($discovery);
     }
     return $this->discovery;
@@ -305,6 +317,27 @@ class DefaultPluginManager extends PluginManagerBase implements PluginManagerInt
    */
   protected function providerExists($provider) {
     return $this->moduleHandler->moduleExists($provider);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getCacheContexts() {
+    return [];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getCacheTags() {
+    return $this->cacheTags;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getCacheMaxAge() {
+    return CACHE::PERMANENT;
   }
 
 }

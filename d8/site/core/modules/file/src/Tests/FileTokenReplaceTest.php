@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\file\Tests\FileTokenReplaceTest.
- */
-
 namespace Drupal\file\Tests;
 
 use Drupal\Component\Utility\Html;
@@ -98,4 +93,5 @@ class FileTokenReplaceTest extends FileFieldTestBase {
       $this->assertEqual($output, $expected, format_string('Unsanitized file token %token replaced.', array('%token' => $input)));
     }
   }
+
 }

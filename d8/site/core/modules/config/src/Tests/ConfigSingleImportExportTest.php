@@ -1,13 +1,8 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\config\Tests\ConfigSingleImportExportTest.
- */
-
 namespace Drupal\config\Tests;
 
-use Drupal\Component\Serialization\Yaml;
+use Drupal\Core\Serialization\Yaml;
 use Drupal\simpletest\WebTestBase;
 
 /**
@@ -25,7 +20,10 @@ class ConfigSingleImportExportTest extends WebTestBase {
   public static $modules = [
     'block',
     'config',
-    'config_test'
+    'config_test',
+    // Adding language module makes it possible to involve non-default
+    // (language.xx) collections in import/export operations.
+    'language',
   ];
 
   protected function setUp() {
@@ -42,6 +40,17 @@ class ConfigSingleImportExportTest extends WebTestBase {
     $uuid = \Drupal::service('uuid');
 
     $this->drupalLogin($this->drupalCreateUser(array('import configuration')));
+
+    // Attempt an import with invalid YAML.
+    $edit = [
+      'config_type' => 'action',
+      'import' => '{{{',
+    ];
+
+    $this->drupalPostForm('admin/config/development/configuration/single/import', $edit, t('Import'));
+    // Assert the static portion of the error since different parsers could give different text in their error.
+    $this->assertText('The import failed with the following message: ');
+
     $import = <<<EOD
 label: First
 weight: 0
@@ -211,8 +220,8 @@ EOD;
     $this->assertFieldByXPath('//select[@name="config_name"]//option[@selected="selected"]', t('Fallback date format (fallback)'), 'The fallback date format config entity is selected when specified in the URL.');
 
     $fallback_date = \Drupal::entityManager()->getStorage('date_format')->load('fallback');
-    $data = Yaml::encode($fallback_date->toArray());
-    $this->assertFieldByXPath('//textarea[@name="export"]', $data, 'The fallback date format config entity export code is displayed.');
+    $yaml_text = (string) $this->xpath('//textarea[@name="export"]')[0];
+    $this->assertEqual(Yaml::decode($yaml_text), $fallback_date->toArray(), 'The fallback date format config entity export code is displayed.');
   }
 
 }

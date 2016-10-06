@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Controller\ThemeController.
- */
-
 namespace Drupal\system\Controller;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -12,7 +7,6 @@ use Drupal\Core\Config\PreExistingConfigException;
 use Drupal\Core\Config\UnmetDependenciesException;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Extension\ThemeHandlerInterface;
-use Drupal\Core\Routing\RouteBuilderInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -66,7 +60,7 @@ class ThemeController extends ControllerBase {
    *   the token is invalid.
    */
   public function uninstall(Request $request) {
-    $theme = $request->get('theme');
+    $theme = $request->query->get('theme');
     $config = $this->config('system.theme');
 
     if (isset($theme)) {
@@ -108,7 +102,7 @@ class ThemeController extends ControllerBase {
    *   the token is invalid.
    */
   public function install(Request $request) {
-    $theme = $request->get('theme');
+    $theme = $request->query->get('theme');
 
     if (isset($theme)) {
       try {

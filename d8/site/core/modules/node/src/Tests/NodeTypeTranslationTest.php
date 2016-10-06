@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Tests\NodeTypeTranslationTest.
- */
-
 namespace Drupal\node\Tests;
 
 use Drupal\Component\Utility\Unicode;
@@ -13,6 +8,10 @@ use Drupal\simpletest\WebTestBase;
 
 /**
  * Ensures that node types translation work correctly.
+ *
+ * Note that the child site is installed in French; therefore, when making
+ * assertions on translated text it is important to provide a langcode. This
+ * ensures the asserts pass regardless of the Drupal version.
  *
  * @group node
  */
@@ -24,7 +23,9 @@ class NodeTypeTranslationTest extends WebTestBase {
    * @var array
    */
   public static $modules = array(
+    'block',
     'config_translation',
+    'field_ui',
     'node',
   );
 
@@ -54,12 +55,14 @@ class NodeTypeTranslationTest extends WebTestBase {
 
     $admin_permissions = array(
       'administer content types',
+      'administer node fields',
+      'administer languages',
       'administer site configuration',
       'administer themes',
       'translate configuration',
     );
 
-    // Create and login user.
+    // Create and log in user.
     $this->adminUser = $this->drupalCreateUser($admin_permissions);
 
     // Add languages.
@@ -105,12 +108,16 @@ class NodeTypeTranslationTest extends WebTestBase {
     // Check the name is translated without admin theme for editing.
     $this->drupalPostForm('admin/appearance', array('use_admin_theme' => '0'), t('Save configuration'));
     $this->drupalGet("$langcode/node/add/$type");
-    $this->assertRaw(t('Create @name', array('@name' => $translated_name)));
+    // This is a Spanish page, so ensure the text asserted is translated in
+    // Spanish and not French by adding the langcode option.
+    $this->assertRaw(t('Create @name', array('@name' => $translated_name), array('langcode' => $langcode)));
 
     // Check the name is translated with admin theme for editing.
     $this->drupalPostForm('admin/appearance', array('use_admin_theme' => '1'), t('Save configuration'));
     $this->drupalGet("$langcode/node/add/$type");
-    $this->assertRaw(t('Create @name', array('@name' => $translated_name)));
+    // This is a Spanish page, so ensure the text asserted is translated in
+    // Spanish and not French by adding the langcode option.
+    $this->assertRaw(t('Create @name', array('@name' => $translated_name), array('langcode' => $langcode)));
   }
 
   /**
@@ -128,17 +135,42 @@ class NodeTypeTranslationTest extends WebTestBase {
 
     // Assert that the title label is displayed on the translation form with the right value.
     $this->drupalGet("admin/structure/types/manage/$type/translate/$langcode/add");
-    $this->assertRaw(t('Label'));
-    $this->assertRaw(t('Edited title'));
+    $this->assertText('Edited title');
 
     // Translate the title label.
     $this->drupalPostForm(NULL, array("translation[config_names][core.base_field_override.node.$type.title][label]" => 'Translated title'), t('Save translation'));
 
-    // Assert that the right title label is displayed on the node add form.
+    // Assert that the right title label is displayed on the node add form. The
+    // translations are created in this test; therefore, the assertions do not
+    // use t(). If t() were used then the correct langcodes would need to be
+    // provided.
     $this->drupalGet("node/add/$type");
-    $this->assertRaw(t('Edited title'));
+    $this->assertText('Edited title');
     $this->drupalGet("$langcode/node/add/$type");
-    $this->assertRaw(t('Translated title'));
+    $this->assertText('Translated title');
+
+    // Add an e-mail field.
+    $this->drupalPostForm("admin/structure/types/manage/$type/fields/add-field", array('new_storage_type' => 'email', 'label' => 'Email', 'field_name' => 'email'), 'Save and continue');
+    $this->drupalPostForm(NULL, array(), 'Save field settings');
+    $this->drupalPostForm(NULL, array(), 'Save settings');
+
+    $type = Unicode::strtolower($this->randomMachineName(16));
+    $name = $this->randomString();
+    $this->drupalCreateContentType(array('type' => $type, 'name' => $name));
+
+    // Set tabs.
+    $this->drupalPlaceBlock('local_tasks_block', array('primary' => TRUE));
+
+    // Change default language.
+    $this->drupalPostForm('admin/config/regional/language', array('site_default_language' => 'es'), 'Save configuration');
+
+    // Try re-using the email field.
+    $this->drupalGet("es/admin/structure/types/manage/$type/fields/add-field");
+    $this->drupalPostForm(NULL, array('existing_storage_name' => 'field_email', 'existing_storage_label' => 'Email'), 'Save and continue');
+    $this->assertResponse(200);
+    $this->drupalGet("es/admin/structure/types/manage/$type/fields/node.$type.field_email/translate");
+    $this->assertResponse(200);
+    $this->assertText("The configuration objects have different language codes so they cannot be translated");
   }
 
 }

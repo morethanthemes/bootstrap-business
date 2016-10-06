@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Mail\MailFormatHelper.
- */
-
 namespace Drupal\Core\Mail;
 
 use Drupal\Component\Utility\Html;
@@ -207,8 +202,7 @@ class MailFormatHelper {
               // Ensure blank new-line.
               $chunk = '';
             }
-
-          // Fall-through.
+            // Intentional fall-through to the processing for '/li' and '/dd'.
           case '/li':
           case '/dd':
             array_pop($indent);
@@ -217,6 +211,7 @@ class MailFormatHelper {
           case '/h3':
           case '/h4':
             array_pop($indent);
+            // Intentional fall-through to the processing for '/h5' and '/h6'.
           case '/h5':
           case '/h6':
             // Ensure blank new-line.
@@ -393,4 +388,5 @@ class MailFormatHelper {
     // Add prefix and padding, and restore linebreak.
     return $text . $prefix . str_repeat($pad, $n) . "\n";
   }
+
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\TypedData\ListDataDefinition.
- */
-
 namespace Drupal\Core\TypedData;
 
 /**
@@ -112,4 +107,5 @@ class ListDataDefinition extends DataDefinition implements ListDataDefinitionInt
     $this->itemDefinition = $definition;
     return $this;
   }
+
 }

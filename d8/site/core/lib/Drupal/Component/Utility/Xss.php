@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\Utility\Xss.
- */
-
 namespace Drupal\Component\Utility;
 
 /**
@@ -121,7 +116,6 @@ class Xss {
    * @ingroup sanitization
    *
    * @see \Drupal\Component\Utility\Xss::getAdminTagList()
-   *
    */
   public static function filterAdmin($string) {
     return static::filter($string, static::$adminTags);
@@ -230,6 +224,8 @@ class Xss {
             $skip_protocol_filtering = substr($attribute_name, 0, 5) === 'data-' || in_array($attribute_name, array(
               'title',
               'alt',
+              'rel',
+              'property',
             ));
 
             $working = $mode = 1;
@@ -349,4 +345,5 @@ class Xss {
   public static function getHtmlTagList() {
     return static::$htmlTags;
   }
+
 }

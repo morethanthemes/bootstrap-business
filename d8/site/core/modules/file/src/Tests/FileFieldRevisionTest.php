@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\file\Tests\FileFieldRevisionTest.
- */
-
 namespace Drupal\file\Tests;
 
 use Drupal\file\Entity\File;
@@ -143,4 +138,5 @@ class FileFieldRevisionTest extends FileFieldTestBase {
     $this->assertFileNotExists($node_file_r1, 'Original file is deleted after deleting the entire node with two revisions remaining.');
     $this->assertFileEntryNotExists($node_file_r1, 'Original file entry is deleted after deleting the entire node with two revisions remaining.');
   }
+
 }

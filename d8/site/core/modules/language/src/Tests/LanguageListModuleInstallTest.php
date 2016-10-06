@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\language\Tests\LanguageListModuleInstallTest.
- */
-
 namespace Drupal\language\Tests;
 
 use Drupal\simpletest\WebTestBase;
@@ -42,4 +37,5 @@ class LanguageListModuleInstallTest extends WebTestBase {
     $this->rebuildContainer();
     $this->assertTrue(\Drupal::moduleHandler()->moduleExists('language'), 'Language module is enabled');
   }
+
 }

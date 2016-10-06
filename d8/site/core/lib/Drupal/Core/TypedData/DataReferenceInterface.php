@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\TypedData\DataReferenceInterface.
- */
-
 namespace Drupal\Core\TypedData;
 
 /**
@@ -12,7 +7,7 @@ namespace Drupal\Core\TypedData;
  *
  * @see \Drupal\Core\TypedData\DataReferenceDefinitionInterface
  */
-interface DataReferenceInterface  {
+interface DataReferenceInterface {
 
   /**
    * Gets the referenced data.

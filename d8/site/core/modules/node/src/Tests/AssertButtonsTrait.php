@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Tests\AssertButtonsTrait.
- */
-
 namespace Drupal\node\Tests;
 
 /**
@@ -49,4 +44,5 @@ trait AssertButtonsTrait {
       $this->assertNoRaw('dropbutton-wrapper');
     }
   }
+
 }

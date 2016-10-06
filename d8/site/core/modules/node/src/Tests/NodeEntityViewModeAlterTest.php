@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Tests\NodeEntityViewModeAlterTest.
- */
-
 namespace Drupal\node\Tests;
 
 use Drupal\Core\Cache\Cache;
@@ -51,4 +46,5 @@ class NodeEntityViewModeAlterTest extends NodeTestBase {
     $build = $this->drupalBuildEntityView($node);
     $this->assertEqual($build['#view_mode'], 'teaser', 'The view mode has correctly been set to teaser.');
   }
+
 }

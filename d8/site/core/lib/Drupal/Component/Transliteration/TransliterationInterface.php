@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\Transliteration\TransliterationInterface.
- */
-
 namespace Drupal\Component\Transliteration;
 
 /**
@@ -51,4 +46,5 @@ interface TransliterationInterface {
    *   characters, and unknown characters replaced with $unknown_character.
    */
   public function transliterate($string, $langcode = 'en', $unknown_character = '?', $max_length = NULL);
+
 }

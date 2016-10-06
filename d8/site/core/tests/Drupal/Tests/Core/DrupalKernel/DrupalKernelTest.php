@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\DrupalKernel\DrupalKernelTest.
- */
-
 namespace Drupal\Tests\Core\DrupalKernel {
 
   use Drupal\Core\DrupalKernel;
@@ -42,12 +37,12 @@ namespace Drupal\Tests\Core\DrupalKernel {
 
       $method = new \ReflectionMethod('Drupal\Core\DrupalKernel', 'setupTrustedHosts');
       $method->setAccessible(TRUE);
-      $valid_host = $method->invoke(null, $request, $trusted_host_patterns);
+      $valid_host = $method->invoke(NULL, $request, $trusted_host_patterns);
 
       $this->assertSame($expected, $valid_host, $message);
 
       // Reset the trusted hosts because it is statically stored on the request.
-      $method->invoke(null, $request, []);
+      $method->invoke(NULL, $request, []);
       // Reset the request factory because it is statically stored on the request.
       Request::setFactory(NULL);
     }
@@ -131,13 +126,14 @@ EOD;
         ]
       ]]);
 
-      define('DRUPAL_ROOT', $vfs_root->url('drupal_root'));
       $request = new Request();
       $request->server->set('SERVER_NAME', 'www.example.org');
       $request->server->set('SERVER_PORT', '8888');
       $request->server->set('SCRIPT_NAME', '/index.php');
-      $this->assertEquals('sites/example', DrupalKernel::findSitePath($request));
+      $this->assertEquals('sites/example', DrupalKernel::findSitePath($request, TRUE, $vfs_root->url('drupal_root')));
+      $this->assertEquals('sites/example', DrupalKernel::findSitePath($request, FALSE, $vfs_root->url('drupal_root')));
     }
+
   }
 
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rest\Plugin\views\style\Serializer.
- */
-
 namespace Drupal\rest\Plugin\views\style;
 
 use Drupal\Core\Cache\Cache;
@@ -53,6 +48,13 @@ class Serializer extends StylePluginBase implements CacheableDependencyInterface
   protected $formats = array();
 
   /**
+   * The serialization format providers, keyed by format.
+   *
+   * @var string[]
+   */
+  protected $formatProviders;
+
+  /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
@@ -61,19 +63,21 @@ class Serializer extends StylePluginBase implements CacheableDependencyInterface
       $plugin_id,
       $plugin_definition,
       $container->get('serializer'),
-      $container->getParameter('serializer.formats')
+      $container->getParameter('serializer.formats'),
+      $container->getParameter('serializer.format_providers')
     );
   }
 
   /**
    * Constructs a Plugin object.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, SerializerInterface $serializer, array $serializer_formats) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, SerializerInterface $serializer, array $serializer_formats, array $serializer_format_providers) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
     $this->definition = $plugin_definition + $configuration;
     $this->serializer = $serializer;
     $this->formats = $serializer_formats;
+    $this->formatProviders = $serializer_format_providers;
   }
 
   /**
@@ -96,7 +100,7 @@ class Serializer extends StylePluginBase implements CacheableDependencyInterface
       '#type' => 'checkboxes',
       '#title' => $this->t('Accepted request formats'),
       '#description' => $this->t('Request formats that will be allowed in responses. If none are selected all formats will be allowed.'),
-      '#options' => array_combine($this->formats, $this->formats),
+      '#options' => $this->getFormatOptions(),
       '#default_value' => $this->options['formats'],
     );
   }
@@ -135,7 +139,7 @@ class Serializer extends StylePluginBase implements CacheableDependencyInterface
     else {
       $content_type = !empty($this->options['formats']) ? reset($this->options['formats']) : 'json';
     }
-    return $this->serializer->serialize($rows, $content_type);
+    return $this->serializer->serialize($rows, $content_type, ['views_style_plugin' => $this]);
   }
 
   /**
@@ -170,6 +174,32 @@ class Serializer extends StylePluginBase implements CacheableDependencyInterface
    */
   public function getCacheTags() {
     return [];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function calculateDependencies() {
+    $dependencies = parent::calculateDependencies();
+    $formats = $this->getFormats();
+    $providers = array_intersect_key($this->formatProviders, array_flip($formats));
+    // The plugin always uses services from the serialization module.
+    $providers[] = 'serialization';
+
+    $dependencies += ['module' => []];
+    $dependencies['module'] = array_merge($dependencies['module'], $providers);
+    return $dependencies;
+  }
+
+  /**
+   * Returns an array of format options
+   *
+   * @return string[]
+   *   An array of format options. Both key and value are the same.
+   */
+  protected function getFormatOptions() {
+    $formats = array_keys($this->formatProviders);
+    return array_combine($formats, $formats);
   }
 
 }

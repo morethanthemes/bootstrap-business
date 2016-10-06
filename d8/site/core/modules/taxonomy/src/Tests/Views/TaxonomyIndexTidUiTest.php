@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\taxonomy\Tests\Views\TaxonomyIndexTidUiTest.
- */
-
 namespace Drupal\taxonomy\Tests\Views;
 
 use Drupal\field\Tests\EntityReference\EntityReferenceTestTrait;
@@ -12,6 +7,7 @@ use Drupal\taxonomy\Entity\Term;
 use Drupal\taxonomy\Entity\Vocabulary;
 use Drupal\views\Tests\ViewTestData;
 use Drupal\views_ui\Tests\UITestBase;
+use Drupal\views\Entity\View;
 
 /**
  * Tests the taxonomy index filter handler UI.
@@ -28,14 +24,14 @@ class TaxonomyIndexTidUiTest extends UITestBase {
    *
    * @var array
    */
-  public static $testViews = array('test_filter_taxonomy_index_tid');
+  public static $testViews = array('test_filter_taxonomy_index_tid', 'test_taxonomy_term_name');
 
   /**
    * Modules to enable.
    *
    * @var array
    */
-  public static $modules = ['node', 'taxonomy', 'taxonomy_test_views'];
+  public static $modules = ['node', 'taxonomy', 'views', 'views_ui', 'taxonomy_test_views'];
 
   /**
    * A nested array of \Drupal\taxonomy\TermInterface objects.
@@ -49,6 +45,9 @@ class TaxonomyIndexTidUiTest extends UITestBase {
    */
   protected function setUp() {
     parent::setUp();
+
+    $this->adminUser = $this->drupalCreateUser(['administer taxonomy', 'administer views']);
+    $this->drupalLogin($this->adminUser);
 
     Vocabulary::create([
       'vid' => 'tags',
@@ -73,6 +72,11 @@ class TaxonomyIndexTidUiTest extends UITestBase {
       }
     }
     ViewTestData::createTestViews(get_class($this), array('taxonomy_test_views'));
+
+    Vocabulary::create([
+      'vid' => 'empty_vocabulary',
+      'name' => 'Empty Vocabulary',
+    ])->save();
   }
 
   /**
@@ -99,7 +103,7 @@ class TaxonomyIndexTidUiTest extends UITestBase {
 
     // Ensure the autocomplete input element appears when using the 'textfield'
     // type.
-    $view = entity_load('view', 'test_filter_taxonomy_index_tid');
+    $view = View::load('test_filter_taxonomy_index_tid');
     $display =& $view->getDisplay('default');
     $display['display_options']['filters']['tid']['type'] = 'textfield';
     $view->save();
@@ -189,6 +193,29 @@ class TaxonomyIndexTidUiTest extends UITestBase {
     $this->assertIdentical(1, count($xpath));
     $xpath = $this->xpath('//div[@class="view-content"]//a[@href=:href]', [':href' => $node4->url()]);
     $this->assertIdentical(1, count($xpath));
+
+    // Select 'Term ID' as the field to be displayed.
+    $edit = ['name[taxonomy_term_field_data.tid]' => TRUE];
+    $this->drupalPostForm('admin/structure/views/nojs/add-handler/test_taxonomy_term_name/default/field', $edit, 'Add and configure fields');
+    // Select 'Term' and 'Vocabulary' as filters.
+    $edit = [
+      'name[taxonomy_term_field_data.tid]' => TRUE,
+      'name[taxonomy_term_field_data.vid]' => TRUE
+    ];
+    $this->drupalPostForm('admin/structure/views/nojs/add-handler/test_taxonomy_term_name/default/filter', $edit, 'Add and configure filter criteria');
+    // Select 'Empty Vocabulary' and 'Autocomplete' from the list of options.
+    $this->drupalPostForm('admin/structure/views/nojs/handler-extra/test_taxonomy_term_name/default/filter/tid', [], 'Apply and continue');
+    // Expose the filter.
+    $edit = ['options[expose_button][checkbox][checkbox]' => TRUE];
+    $this->drupalPostForm('admin/structure/views/nojs/handler/test_taxonomy_term_name/default/filter/tid', $edit, 'Expose filter');
+    $this->drupalPostForm('admin/structure/views/nojs/handler/test_taxonomy_term_name/default/filter/tid', $edit, 'Apply');
+    // Filter 'Taxonomy terms' belonging to 'Empty Vocabulary'.
+    $edit = ['options[value][empty_vocabulary]' => TRUE];
+    $this->drupalPostForm('admin/structure/views/nojs/handler/test_taxonomy_term_name/default/filter/vid', $edit, 'Apply');
+    $this->drupalPostForm('admin/structure/views/view/test_taxonomy_term_name/edit/default', [], 'Save');
+    $this->drupalPostForm(NULL, [], t('Update preview'));
+    $preview = $this->xpath("//div[@class='view-content']");
+    $this->assertTrue(empty($preview), 'No results.');
   }
 
 }

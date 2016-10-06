@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\Tests\UserTokenReplaceTest.
- */
-
 namespace Drupal\user\Tests;
 
 use Drupal\Component\Render\FormattableMarkup;
@@ -169,4 +164,5 @@ class UserTokenReplaceTest extends WebTestBase {
     $output = $token_service->replace($input, ['user' => $user1]);
     $this->assertEqual($output, $expected, new FormattableMarkup('User token %token does not escape safe markup.', ['%token' => 'display-name']));
   }
+
 }

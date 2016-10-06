@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\Plugin\migrate\process\ConvertTokens.
- */
-
 namespace Drupal\user\Plugin\migrate\process;
 
 use Drupal\migrate\MigrateException;
@@ -24,7 +19,6 @@ class ConvertTokens extends ProcessPluginBase {
 
   /**
    * {@inheritdoc}
-   *
    */
   public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, $destination_property) {
     $tokens = array(

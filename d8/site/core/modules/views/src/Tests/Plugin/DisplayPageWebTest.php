@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Tests\Plugin\DisplayPageWebTest.
- */
-
 namespace Drupal\views\Tests\Plugin;
 
 use Drupal\system\Tests\Cache\AssertPageCacheContextsAndTagsTrait;
@@ -157,7 +152,7 @@ class DisplayPageWebTest extends PluginTestBase {
    * @param string $path
    *   Path that will be set as the view page display path.
    *
-   * @return boolean
+   * @return bool
    *   Assertion result.
    */
   public function assertPagePath($path) {

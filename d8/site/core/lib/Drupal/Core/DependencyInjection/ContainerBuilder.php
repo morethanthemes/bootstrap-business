@@ -1,15 +1,12 @@
 <?php
-
-/**
- * @file
- * Contains \Drupal\Core\DependencyInjection\ContainerBuilder.
- */
+// @codingStandardsIgnoreFile
 
 namespace Drupal\Core\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder as SymfonyContainerBuilder;
 use Symfony\Component\DependencyInjection\Container as SymfonyContainer;
-use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\LazyProxy\Instantiator\RealServiceInstantiator;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 /**
@@ -22,11 +19,48 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 class ContainerBuilder extends SymfonyContainerBuilder {
 
   /**
+   * @var \Doctrine\Instantiator\InstantiatorInterface|null
+   */
+  private $proxyInstantiator;
+
+  /**
    * {@inheritdoc}
    */
   public function __construct(ParameterBagInterface $parameterBag = NULL) {
     $this->setResourceTracking(FALSE);
     parent::__construct($parameterBag);
+  }
+
+  /**
+   * Retrieves the currently set proxy instantiator or instantiates one.
+   *
+   * @return InstantiatorInterface
+   */
+  private function getProxyInstantiator()
+  {
+    if (!$this->proxyInstantiator) {
+      $this->proxyInstantiator = new RealServiceInstantiator();
+    }
+
+    return $this->proxyInstantiator;
+  }
+
+  /**
+   * Direct copy of the parent function.
+   */
+  protected function shareService(Definition $definition, $service, $id)
+  {
+    if ($definition->isShared() && self::SCOPE_PROTOTYPE !== $scope = $definition->getScope(false)) {
+      if (self::SCOPE_CONTAINER !== $scope && !isset($this->scopedServices[$scope])) {
+        throw new InactiveScopeException($id, $scope);
+      }
+
+      $this->services[$lowerId = strtolower($id)] = $service;
+
+      if (self::SCOPE_CONTAINER !== $scope) {
+        $this->scopedServices[$scope][$lowerId] = $service;
+      }
+    }
   }
 
   /**

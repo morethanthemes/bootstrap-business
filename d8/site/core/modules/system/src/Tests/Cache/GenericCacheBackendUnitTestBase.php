@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Cache\GenericCacheBackendUnitTestBase.
- */
-
 namespace Drupal\system\Tests\Cache;
 
 use Drupal\Core\Cache\Cache;
@@ -20,6 +15,9 @@ use Drupal\simpletest\KernelTestBase;
  *
  * @see DatabaseBackendUnitTestCase
  *   For a full working implementation.
+ *
+ * @deprecated as of Drupal 8.2.x, will be removed before Drupal 9.0.0. Use
+ *    \Drupal\KernelTests\Core\Cache\GenericCacheBackendUnitTestBase instead.
  */
 abstract class GenericCacheBackendUnitTestBase extends KernelTestBase {
 
@@ -94,7 +92,7 @@ abstract class GenericCacheBackendUnitTestBase extends KernelTestBase {
    * @return \Drupal\Core\Cache\CacheBackendInterface
    *   Cache backend to test.
    */
-  protected function getCacheBackend($bin = null) {
+  protected function getCacheBackend($bin = NULL) {
     if (!isset($bin)) {
       $bin = $this->getTestBin();
     }

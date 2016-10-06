@@ -1,15 +1,11 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\Query\Sql\Tables.
- */
-
 namespace Drupal\Core\Entity\Query\Sql;
 
 use Drupal\Core\Database\Query\SelectInterface;
 use Drupal\Core\Entity\Query\QueryException;
 use Drupal\Core\Entity\Sql\SqlEntityStorageInterface;
+use Drupal\Core\Entity\Sql\TableMappingInterface;
 
 /**
  * Adds tables and fields to the SQL entity query.
@@ -85,10 +81,21 @@ class Tables implements TablesInterface {
     $entity_type = $this->entityManager->getDefinition($entity_type_id);
 
     $field_storage_definitions = $this->entityManager->getFieldStorageDefinitions($entity_type_id);
-    for ($key = 0; $key <= $count; $key ++) {
-      // If there is revision support and only the current revision is being
-      // queried then use the revision id. Otherwise, the entity id will do.
-      if (($revision_key = $entity_type->getKey('revision')) && $all_revisions) {
+    for ($key = 0; $key <= $count; $key++) {
+      // This can either be the name of an entity base field or a configurable
+      // field.
+      $specifier = $specifiers[$key];
+      if (isset($field_storage_definitions[$specifier])) {
+        $field_storage = $field_storage_definitions[$specifier];
+      }
+      else {
+        $field_storage = FALSE;
+      }
+
+      // If there is revision support, only the current revisions are being
+      // queried, and the field is revisionable then use the revision id.
+      // Otherwise, the entity id will do.
+      if (($revision_key = $entity_type->getKey('revision')) && $all_revisions && $field_storage && $field_storage->isRevisionable()) {
         // This contains the relevant SQL field to be used when joining entity
         // tables.
         $entity_id_field = $revision_key;
@@ -100,26 +107,43 @@ class Tables implements TablesInterface {
         $entity_id_field = $entity_type->getKey('id');
         $field_id_field = 'entity_id';
       }
-      // This can either be the name of an entity base field or a configurable
-      // field.
-      $specifier = $specifiers[$key];
-      if (isset($field_storage_definitions[$specifier])) {
-        $field_storage = $field_storage_definitions[$specifier];
-      }
-      else {
-        $field_storage = FALSE;
-      }
 
       /** @var \Drupal\Core\Entity\Sql\DefaultTableMapping $table_mapping */
       $table_mapping = $this->entityManager->getStorage($entity_type_id)->getTableMapping();
 
       // Check whether this field is stored in a dedicated table.
       if ($field_storage && $table_mapping->requiresDedicatedTableStorage($field_storage)) {
+        $delta = NULL;
         // Find the field column.
         $column = $field_storage->getMainPropertyName();
 
         if ($key < $count) {
           $next = $specifiers[$key + 1];
+          // If this is a numeric specifier we're adding a condition on the
+          // specific delta.
+          if (is_numeric($next)) {
+            $delta = $next;
+            $index_prefix .= ".$delta";
+            // Do not process it again.
+            $key++;
+            $next = $specifiers[$key + 1];
+          }
+          // If this specifier is the reserved keyword "%delta" we're adding a
+          // condition on a delta range.
+          elseif ($next == TableMappingInterface::DELTA) {
+            $index_prefix .= TableMappingInterface::DELTA;
+            // Do not process it again.
+            $key++;
+            // If there are more specifiers to work with then continue
+            // processing. If this is the last specifier then use the reserved
+            // keyword as a column name.
+            if ($key < $count) {
+              $next = $specifiers[$key + 1];
+            }
+            else {
+              $column = TableMappingInterface::DELTA;
+            }
+          }
           // Is this a field column?
           $columns = $field_storage->getColumns();
           if (isset($columns[$next]) || in_array($next, $table_mapping->getReservedColumns())) {
@@ -143,7 +167,7 @@ class Tables implements TablesInterface {
             $next_index_prefix = "$relationship_specifier.$column";
           }
         }
-        $table = $this->ensureFieldTable($index_prefix, $field_storage, $type, $langcode, $base_table, $entity_id_field, $field_id_field);
+        $table = $this->ensureFieldTable($index_prefix, $field_storage, $type, $langcode, $base_table, $entity_id_field, $field_id_field, $delta);
         $sql_column = $table_mapping->getFieldColumnName($field_storage, $column);
         $property_definitions = $field_storage->getPropertyDefinitions();
         if (isset($property_definitions[$column])) {
@@ -157,11 +181,18 @@ class Tables implements TablesInterface {
         // finds the property first. The data table is preferred, which is why
         // it gets added before the base table.
         $entity_tables = array();
-        if ($data_table = $all_revisions ? $entity_type->getRevisionDataTable() : $entity_type->getDataTable()) {
+        if ($all_revisions && $field_storage && $field_storage->isRevisionable()) {
+          $data_table = $entity_type->getRevisionDataTable();
+          $entity_base_table = $entity_type->getRevisionTable();
+        }
+        else {
+          $data_table = $entity_type->getDataTable();
+          $entity_base_table = $entity_type->getBaseTable();
+        }
+        if ($data_table) {
           $this->sqlQuery->addMetaData('simple_query', FALSE);
           $entity_tables[$data_table] = $this->getTableMapping($data_table, $entity_type_id);
         }
-        $entity_base_table = $all_revisions ? $entity_type->getRevisionTable() : $entity_type->getBaseTable();
         $entity_tables[$entity_base_table] = $this->getTableMapping($entity_base_table, $entity_type_id);
         $sql_column = $specifier;
 
@@ -169,6 +200,27 @@ class Tables implements TablesInterface {
         // next one is a column of this field.
         if ($key < $count) {
           $next = $specifiers[$key + 1];
+          // If this specifier is the reserved keyword "%delta" we're adding a
+          // condition on a delta range.
+          if ($next == TableMappingInterface::DELTA) {
+            $key++;
+            if ($key < $count) {
+              $next = $specifiers[$key + 1];
+            }
+            else {
+              return 0;
+            }
+          }
+          // If this is a numeric specifier we're adding a condition on the
+          // specific delta. Since we know that this is a single value base
+          // field no other value than 0 makes sense.
+          if (is_numeric($next)) {
+            if ($next > 0) {
+              $this->sqlQuery->condition('1 <> 1');
+            }
+            $key++;
+            $next = $specifiers[$key + 1];
+          }
           // Is this a field column?
           $columns = $field_storage->getColumns();
           if (isset($columns[$next]) || in_array($next, $table_mapping->getReservedColumns())) {
@@ -208,7 +260,7 @@ class Tables implements TablesInterface {
           $entity_type = $this->entityManager->getDefinition($entity_type_id);
           $field_storage_definitions = $this->entityManager->getFieldStorageDefinitions($entity_type_id);
           // Add the new entity base table using the table and sql column.
-          $join_condition= '%alias.' . $entity_type->getKey('id') . " = $table.$sql_column";
+          $join_condition = '%alias.' . $entity_type->getKey('id') . " = $table.$sql_column";
           $base_table = $this->sqlQuery->leftJoin($entity_type->getBaseTable(), NULL, $join_condition);
           $propertyDefinitions = array();
           $key++;
@@ -260,7 +312,7 @@ class Tables implements TablesInterface {
    * @return string
    * @throws \Drupal\Core\Entity\Query\QueryException
    */
-  protected function ensureFieldTable($index_prefix, &$field, $type, $langcode, $base_table, $entity_id_field, $field_id_field) {
+  protected function ensureFieldTable($index_prefix, &$field, $type, $langcode, $base_table, $entity_id_field, $field_id_field, $delta) {
     $field_name = $field->getName();
     if (!isset($this->fieldTables[$index_prefix . $field_name])) {
       $entity_type_id = $this->sqlQuery->getMetaData('entity_type');
@@ -270,12 +322,12 @@ class Tables implements TablesInterface {
       if ($field->getCardinality() != 1) {
         $this->sqlQuery->addMetaData('simple_query', FALSE);
       }
-      $this->fieldTables[$index_prefix . $field_name] = $this->addJoin($type, $table, "%alias.$field_id_field = $base_table.$entity_id_field", $langcode);
+      $this->fieldTables[$index_prefix . $field_name] = $this->addJoin($type, $table, "%alias.$field_id_field = $base_table.$entity_id_field", $langcode, $delta);
     }
     return $this->fieldTables[$index_prefix . $field_name];
   }
 
-  protected function addJoin($type, $table, $join_condition, $langcode) {
+  protected function addJoin($type, $table, $join_condition, $langcode, $delta = NULL) {
     $arguments = array();
     if ($langcode) {
       $entity_type_id = $this->sqlQuery->getMetaData('entity_type');
@@ -286,6 +338,11 @@ class Tables implements TablesInterface {
       $placeholder = ':langcode' . $this->sqlQuery->nextPlaceholder();
       $join_condition .= ' AND %alias.' . $langcode_key . ' = ' . $placeholder;
       $arguments[$placeholder] = $langcode;
+    }
+    if (isset($delta)) {
+      $placeholder = ':delta' . $this->sqlQuery->nextPlaceholder();
+      $join_condition .= ' AND %alias.delta = ' . $placeholder;
+      $arguments[$placeholder] = $delta;
     }
     return $this->sqlQuery->addJoin($type, $table, NULL, $join_condition, $arguments);
   }

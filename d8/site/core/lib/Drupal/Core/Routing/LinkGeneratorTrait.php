@@ -1,13 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Routing\LinkGeneratorTrait.
- *
- * @deprecated in Drupal 8.0.0 and will be removed before Drupal 9.0.0.
- *   Use \Drupal\Core\Link instead.
- */
-
 namespace Drupal\Core\Routing;
 
 
@@ -21,6 +13,9 @@ use Drupal\Core\Utility\LinkGeneratorInterface;
  * classes that would implement ContainerInjectionInterface. Services registered
  * in the Container should not use this trait but inject the appropriate service
  * directly for easier testing.
+ *
+ * @deprecated in Drupal 8.0.0 and will be removed before Drupal 9.0.0.
+ *   Use \Drupal\Core\Link instead.
  */
 trait LinkGeneratorTrait {
 
@@ -34,8 +29,8 @@ trait LinkGeneratorTrait {
   /**
    * Renders a link to a route given a route name and its parameters.
    *
-   * @see \Drupal\Core\Utility\LinkGeneratorInterface::generate() for details
-   *   on the arguments, usage, and possible exceptions.
+   * For details on the arguments, usage, and possible exceptions see
+   * \Drupal\Core\Utility\LinkGeneratorInterface::generate().
    *
    * @return \Drupal\Core\GeneratedLink
    *   A GeneratedLink object containing a link to the given route and
@@ -43,6 +38,8 @@ trait LinkGeneratorTrait {
    *
    * @deprecated in Drupal 8.0.0 and will be removed before Drupal 9.0.0.
    *   Use \Drupal\Core\Link instead.
+   *
+   * @see \Drupal\Core\Utility\LinkGeneratorInterface::generate()
    */
   protected function l($text, Url $url) {
     return $this->getLinkGenerator()->generate($text, $url);
@@ -74,4 +71,5 @@ trait LinkGeneratorTrait {
 
     return $this;
   }
+
 }

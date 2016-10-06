@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\tracker\Tests\TrackerNodeAccessTest.
- */
-
 namespace Drupal\tracker\Tests;
 
 use Drupal\comment\Plugin\Field\FieldType\CommentItemInterface;
@@ -76,4 +71,5 @@ class TrackerNodeAccessTest extends WebTestBase {
     $this->assertNoText($private_node->getTitle(), 'Private node is not visible to user without private access.');
     $this->assertText($public_node->getTitle(), 'Public node is visible to user without private access.');
   }
+
 }

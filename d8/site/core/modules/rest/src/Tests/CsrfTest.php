@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\rest\Tests\CsrfTest.
- */
 
 namespace Drupal\rest\Tests;
 
@@ -47,14 +43,15 @@ class CsrfTest extends RESTTestBase {
     // Create a user account that has the required permissions to create
     // resources via the REST API.
     $permissions = $this->entityPermissions($this->testEntityType, 'create');
-    $permissions[] = 'restful post entity:' . $this->testEntityType;
     $this->account = $this->drupalCreateUser($permissions);
 
     // Serialize an entity to a string to use in the content body of the POST
     // request.
     $serializer = $this->container->get('serializer');
     $entity_values = $this->entityValues($this->testEntityType);
-    $entity = entity_create($this->testEntityType, $entity_values);
+    $entity = $this->container->get('entity_type.manager')
+      ->getStorage($this->testEntityType)
+      ->create($entity_values);
     $this->serialized = $serializer->serialize($entity, $this->defaultFormat);
   }
 
@@ -74,6 +71,10 @@ class CsrfTest extends RESTTestBase {
 
   /**
    * Tests that CSRF check is triggered for Cookie Auth requests.
+   *
+   * @deprecated as of Drupal 8.2.x, will be removed before Drupal 9.0.0. Use
+   *   \Drupal\Tests\system\Functional\CsrfRequestHeaderTest::testRouteAccess
+   *   instead.
    */
   public function testCookieAuth() {
     $this->drupalLogin($this->account);
@@ -86,7 +87,10 @@ class CsrfTest extends RESTTestBase {
     $this->curlExec($curl_options);
     $this->assertResponse(403);
     // Ensure that the entity was not created.
-    $this->assertFalse(entity_load_multiple($this->testEntityType, NULL, TRUE), 'No entity has been created in the database.');
+    $storage = $this->container->get('entity_type.manager')
+      ->getStorage($this->testEntityType);
+    $storage->resetCache();
+    $this->assertFalse($storage->loadMultiple(), 'No entity has been created in the database.');
 
     // Create an entity with the CSRF token.
     $token = $this->drupalGet('rest/session/token');
@@ -116,4 +120,5 @@ class CsrfTest extends RESTTestBase {
       ),
     );
   }
+
 }

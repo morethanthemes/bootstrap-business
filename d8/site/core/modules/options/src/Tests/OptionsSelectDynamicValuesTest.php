@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\options\Tests\OptionsSelectDynamicValuesTest.
- */
-
 namespace Drupal\options\Tests;
 
 /**
@@ -35,4 +30,5 @@ class OptionsSelectDynamicValuesTest extends OptionsDynamicValuesTestBase {
       }
     }
   }
+
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\EventSubscriber\RedirectResponseSubscriberTest.
- */
-
 namespace Drupal\Tests\Core\EventSubscriber;
 
 use Drupal\Core\EventSubscriber\RedirectResponseSubscriber;
@@ -272,4 +267,5 @@ class RedirectResponseSubscriberTest extends UnitTestCase {
 
     return $data;
   }
+
 }

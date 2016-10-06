@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\search\Tests\SearchTestBase.
- */
-
 namespace Drupal\search\Tests;
 
 use Drupal\simpletest\WebTestBase;
@@ -93,4 +88,5 @@ abstract class SearchTestBase extends WebTestBase {
       $this->fail(format_string('Found the requested form fields at @path', array('@path' => $path)));
     }
   }
+
 }

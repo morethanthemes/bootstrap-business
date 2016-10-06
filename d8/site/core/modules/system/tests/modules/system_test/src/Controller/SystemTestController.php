@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system_test\Controller\SystemTestController.
- */
-
 namespace Drupal\system_test\Controller;
 
 use Drupal\Core\Access\AccessResult;
@@ -247,11 +242,11 @@ class SystemTestController extends ControllerBase {
   /**
    * Initialize authorize.php during testing.
    *
-   * @see system_authorized_init().
+   * @see system_authorized_init()
    */
   public function authorizeInit($page_title) {
     $authorize_url = Url::fromUri('base:core/authorize.php', array('absolute' => TRUE))->toString();
-    system_authorized_init('system_test_authorize_run', drupal_get_path('module', 'system_test') . '/system_test.module', array(), $page_title);
+    system_authorized_init('system_test_authorize_run', __DIR__ . '/../../system_test.module', array(), $page_title);
     return new RedirectResponse($authorize_url);
   }
 
@@ -350,6 +345,18 @@ class SystemTestController extends ControllerBase {
   public function getCurrentDate() {
     // Uses specific time to test that the right timezone is used.
     $response = new Response(\Drupal::service('date.formatter')->format(1452702549));
+    return $response;
+  }
+
+  /**
+   * Returns a response with a test header set from the request.
+   *
+   * @return \Symfony\Component\HttpFoundation\Response $response
+   *   A Response object containing the test header.
+   */
+  public function getTestHeader(Request $request) {
+    $response = new Response();
+    $response->headers->set('Test-Header', $request->headers->get('Test-Header'));
     return $response;
   }
 

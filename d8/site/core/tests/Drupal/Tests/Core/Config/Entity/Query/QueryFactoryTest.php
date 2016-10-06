@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Config\Entity\Query\QueryFactoryTest.
- */
-
 namespace Drupal\Tests\Core\Config\Entity\Query;
 
 use Drupal\Core\Config\Config;
@@ -135,4 +130,5 @@ class QueryFactoryTest extends UnitTestCase {
       ->getMock();
     return $config->setName($name);
   }
+
 }

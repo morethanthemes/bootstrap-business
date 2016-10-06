@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\quickedit\MetadataGenerator.
- */
-
 namespace Drupal\quickedit;
 
 use Drupal\Component\Plugin\PluginManagerInterface;
@@ -46,7 +41,7 @@ class MetadataGenerator implements MetadataGeneratorInterface {
    *   An object that checks if a user has access to edit a given field.
    * @param \Drupal\quickedit\EditorSelectorInterface $editor_selector
    *   An object that determines which editor to attach to a given field.
-   * @param \Drupal\Component\Plugin\PluginManagerInterface
+   * @param \Drupal\Component\Plugin\PluginManagerInterface $editor_manager
    *   The manager for editor plugins.
    */
   public function __construct(EditEntityFieldAccessCheckInterface $access_checker, EditorSelectorInterface $editor_selector, PluginManagerInterface $editor_manager) {

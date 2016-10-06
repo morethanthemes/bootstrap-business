@@ -8,22 +8,29 @@ process:
   format: format
   name: name
   cache: cache
+  weight: weight
   filters:
     plugin: iterator
     source: filters
     key: '@id'
     process:
       id:
-        plugin: static_map
+        # If the filter ID cannot be mapped, it will pass through unmodified
+        # because the bypass flag is set. When the user actually tries to
+        # view text through an invalid filter plugin, the filter system will
+        # fall back to filter_null and display a helpful error message.
+        plugin: filter_id
         bypass: true
         source: name
-        map:
-          php_code: filter_null
+        # No need to map anything -- filter plugin IDs haven't changed since
+        # Drupal 7.
+        map: { }
       settings:
         plugin: filter_settings
         source: settings
       status:
         plugin: default_value
         default_value: true
+      weight: weight
 destination:
   plugin: entity:filter_format

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\taxonomy\Tests\LoadMultipleTest.
- */
-
 namespace Drupal\taxonomy\Tests;
 
 use Drupal\taxonomy\Entity\Term;
@@ -63,4 +58,5 @@ class LoadMultipleTest extends TaxonomyTestBase {
     $loaded_term = reset($loaded_terms);
     $this->assertEqual($term->id(), $loaded_term->id(), 'Term loaded by name successfully.');
   }
+
 }

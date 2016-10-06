@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\Diff\Diff.
- */
-
 namespace Drupal\Component\Diff;
 
 use Drupal\Component\Diff\Engine\DiffEngine;
@@ -173,5 +168,5 @@ class Diff {
   public function getEdits() {
     return $this->edits;
   }
-}
 
+}

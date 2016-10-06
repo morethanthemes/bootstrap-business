@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Routing\MockAliasManager.
- */
-
 namespace Drupal\system\Tests\Routing;
 
 use Drupal\Core\Path\AliasManagerInterface;
@@ -45,11 +40,11 @@ class MockAliasManager implements AliasManagerInterface {
   /**
    * Adds an alias to the in-memory alias table for this object.
    *
-   * @param type $path
+   * @param string $path
    *   The system path of the alias.
-   * @param type $alias
+   * @param string $alias
    *   The alias of the system path.
-   * @param type $path_language
+   * @param string $path_language
    *   The language of this alias.
    */
   public function addAlias($path, $alias, $path_language = NULL) {
@@ -81,6 +76,10 @@ class MockAliasManager implements AliasManagerInterface {
    * @return
    */
   public function getAliasByPath($path, $langcode = NULL) {
+    if ($path[0] !== '/') {
+      throw new \InvalidArgumentException(sprintf('Source path %s has to start with a slash.', $path));
+    }
+
     $langcode = $langcode ?: $this->defaultLanguage;
     $this->lookedUp[$path] = 1;
     return $this->aliases[$path][$langcode];
@@ -92,4 +91,5 @@ class MockAliasManager implements AliasManagerInterface {
   public function cacheClear($source = NULL) {
     // Not needed.
   }
+
 }

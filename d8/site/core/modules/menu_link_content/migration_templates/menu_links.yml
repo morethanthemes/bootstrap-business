@@ -5,16 +5,14 @@ migration_tags:
   - Drupal 7
 source:
   plugin: menu_link
-  constants:
-    bundle: menu_link_content
 process:
   id: mlid
-  bundle: 'constants/bundle'
   title: link_title
   description: description
   menu_name:
     -
       plugin: migration
+      # The menu migration is in the system module.
       migration: menu
       source: menu_name
     -
@@ -23,7 +21,7 @@ process:
         management: admin
       bypass: true
   'link/uri':
-    plugin: internal_uri
+    plugin: link_uri
     source:
       - link_path
   'link/options': options
@@ -44,11 +42,12 @@ process:
     plugin: menu_link_parent
     source:
       - plid
-      - @menu_name
+      - '@menu_name'
       - parent_link_path
   changed: updated
 destination:
   plugin: entity:menu_link_content
+  default_bundle: menu_link_content
   no_stub: true
 migration_dependencies:
   required:

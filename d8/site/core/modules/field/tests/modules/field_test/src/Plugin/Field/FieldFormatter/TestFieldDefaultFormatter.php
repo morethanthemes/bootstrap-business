@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\field_test\Plugin\Field\FieldFormatter\TestFieldDefaultFormatter.
- */
-
 namespace Drupal\field_test\Plugin\Field\FieldFormatter;
 
 use Drupal\Core\Field\FormatterBase;
@@ -71,4 +66,5 @@ class TestFieldDefaultFormatter extends FormatterBase {
 
     return $elements;
   }
+
 }

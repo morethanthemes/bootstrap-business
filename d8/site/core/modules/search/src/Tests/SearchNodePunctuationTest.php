@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\search\Tests\SearchNodePunctuationTest.
- */
-
 namespace Drupal\search\Tests;
 
 /**
@@ -64,4 +59,5 @@ class SearchNodePunctuationTest extends SearchTestBase {
     $this->assertNoRaw('<strong>&</strong>amp;');
     $this->assertText('You must include at least one keyword');
   }
+
 }

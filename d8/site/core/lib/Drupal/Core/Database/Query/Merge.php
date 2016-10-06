@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Database\Query\Merge.
- */
-
 namespace Drupal\Core\Database\Query;
 
 use Drupal\Core\Database\Database;
@@ -408,4 +403,5 @@ class Merge extends Query implements ConditionInterface {
       }
     }
   }
+
 }

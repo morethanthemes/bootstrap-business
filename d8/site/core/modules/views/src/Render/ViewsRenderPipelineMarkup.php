@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Render\ViewsRenderPipelineMarkup.
- */
-
 namespace Drupal\views\Render;
 
 use Drupal\Component\Render\MarkupInterface;
@@ -25,4 +20,5 @@ use Drupal\Component\Render\MarkupTrait;
  */
 final class ViewsRenderPipelineMarkup implements MarkupInterface, \Countable {
   use MarkupTrait;
+
 }

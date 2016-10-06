@@ -1,14 +1,10 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Extension\ModuleHandlerTest.
- */
-
 namespace Drupal\Tests\system\Kernel\Extension;
 
-use Drupal\Core\DependencyInjection\ContainerBuilder;
+use Drupal\Core\Extension\MissingDependencyException;
 use \Drupal\Core\Extension\ModuleUninstallValidatorException;
+use Drupal\entity_test\Entity\EntityTest;
 use Drupal\KernelTests\KernelTestBase;
 
 /**
@@ -37,16 +33,6 @@ class ModuleHandlerTest extends KernelTestBase {
     // drupal_get_filename().
     // @todo Remove as part of https://www.drupal.org/node/2186491
     system_rebuild_module_data();
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function register(ContainerBuilder $container) {
-    parent::register($container);
-    // Put a fake route bumper on the container to be called during uninstall.
-    $container
-      ->register('router.dumper', 'Drupal\Core\Routing\NullMatcherDumper');
   }
 
   /**
@@ -88,7 +74,7 @@ class ModuleHandlerTest extends KernelTestBase {
    *   The expected values, sorted by weight and module name.
    * @param $condition
    */
-  protected function assertModuleList(Array $expected_values, $condition) {
+  protected function assertModuleList(array $expected_values, $condition) {
     $expected_values = array_values(array_unique($expected_values));
     $enabled_modules = array_keys($this->container->get('module_handler')->getModuleList());
     $this->assertEqual($expected_values, $enabled_modules, format_string('@condition: extension handler returns correct results', array('@condition' => $condition)));
@@ -125,11 +111,11 @@ class ModuleHandlerTest extends KernelTestBase {
       $result = $this->moduleInstaller()->install(array('color'));
       $this->fail(t('ModuleInstaller::install() throws an exception if dependencies are missing.'));
     }
-    catch (\Drupal\Core\Extension\MissingDependencyException $e) {
+    catch (MissingDependencyException $e) {
       $this->pass(t('ModuleInstaller::install() throws an exception if dependencies are missing.'));
     }
 
-    $this->assertFalse($this->moduleHandler()->moduleExists('color'), 'ModuleHandler::install() aborts if dependencies are missing.');
+    $this->assertFalse($this->moduleHandler()->moduleExists('color'), 'ModuleInstaller::install() aborts if dependencies are missing.');
 
     // Fix the missing dependency.
     // Color module depends on Config. Config depends on Help module.
@@ -137,7 +123,7 @@ class ModuleHandlerTest extends KernelTestBase {
     drupal_static_reset('system_rebuild_module_data');
 
     $result = $this->moduleInstaller()->install(array('color'));
-    $this->assertTrue($result, 'ModuleHandler::install() returns the correct value.');
+    $this->assertTrue($result, 'ModuleInstaller::install() returns the correct value.');
 
     // Verify that the fake dependency chain was installed.
     $this->assertTrue($this->moduleHandler()->moduleExists('config') && $this->moduleHandler()->moduleExists('help'), 'Dependency chain was installed.');
@@ -150,10 +136,10 @@ class ModuleHandlerTest extends KernelTestBase {
     $this->assertEqual($module_order, array('help', 'config', 'color'));
 
     // Uninstall all three modules explicitly, but in the incorrect order,
-    // and make sure that ModuleHandler::uninstall() uninstalled them in the
+    // and make sure that ModuleInstaller::uninstall() uninstalled them in the
     // correct sequence.
     $result = $this->moduleInstaller()->uninstall(array('config', 'help', 'color'));
-    $this->assertTrue($result, 'ModuleHandler::uninstall() returned TRUE.');
+    $this->assertTrue($result, 'ModuleInstaller::uninstall() returned TRUE.');
 
     foreach (array('color', 'config', 'help') as $module) {
       $this->assertEqual(drupal_get_installed_schema_version($module), SCHEMA_UNINSTALLED, "$module module was uninstalled.");
@@ -164,12 +150,12 @@ class ModuleHandlerTest extends KernelTestBase {
     // Enable Color module again, which should enable both the Config module and
     // Help module. But, this time do it with Config module declaring a
     // dependency on a specific version of Help module in its info file. Make
-    // sure that Drupal\Core\Extension\ModuleHandler::install() still works.
+    // sure that Drupal\Core\Extension\ModuleInstaller::install() still works.
     \Drupal::state()->set('module_test.dependency', 'version dependency');
     drupal_static_reset('system_rebuild_module_data');
 
     $result = $this->moduleInstaller()->install(array('color'));
-    $this->assertTrue($result, 'ModuleHandler::install() returns the correct value.');
+    $this->assertTrue($result, 'ModuleInstaller::install() returns the correct value.');
 
     // Verify that the fake dependency chain was installed.
     $this->assertTrue($this->moduleHandler()->moduleExists('config') && $this->moduleHandler()->moduleExists('help'), 'Dependency chain was installed.');
@@ -205,7 +191,7 @@ class ModuleHandlerTest extends KernelTestBase {
 
     // Uninstall the profile module "dependency".
     $result = $this->moduleInstaller()->uninstall(array($dependency));
-    $this->assertTrue($result, 'ModuleHandler::uninstall() returns TRUE.');
+    $this->assertTrue($result, 'ModuleInstaller::uninstall() returns TRUE.');
     $this->assertFalse($this->moduleHandler()->moduleExists($dependency));
     $this->assertEqual(drupal_get_installed_schema_version($dependency), SCHEMA_UNINSTALLED, "$dependency module was uninstalled.");
 
@@ -238,12 +224,12 @@ class ModuleHandlerTest extends KernelTestBase {
     drupal_static_reset('system_rebuild_module_data');
 
     // Create an entity so that the modules can not be disabled.
-    $entity = entity_create('entity_test', array('name' => $this->randomString()));
+    $entity = EntityTest::create(array('name' => $this->randomString()));
     $entity->save();
 
     // Uninstalling entity_test is not possible when there is content.
     try {
-      $message = 'ModuleHandler::uninstall() throws ModuleUninstallValidatorException upon uninstalling a module which does not pass validation.';
+      $message = 'ModuleInstaller::uninstall() throws ModuleUninstallValidatorException upon uninstalling a module which does not pass validation.';
       $this->moduleInstaller()->uninstall(array('entity_test'));
       $this->fail($message);
     }
@@ -253,7 +239,7 @@ class ModuleHandlerTest extends KernelTestBase {
 
     // Uninstalling help needs entity_test to be un-installable.
     try {
-      $message = 'ModuleHandler::uninstall() throws ModuleUninstallValidatorException upon uninstalling a module which does not pass validation.';
+      $message = 'ModuleInstaller::uninstall() throws ModuleUninstallValidatorException upon uninstalling a module which does not pass validation.';
       $this->moduleInstaller()->uninstall(array('help'));
       $this->fail($message);
     }
@@ -265,7 +251,7 @@ class ModuleHandlerTest extends KernelTestBase {
     $entity->delete();
 
     $result = $this->moduleInstaller()->uninstall(array('help'));
-    $this->assertTrue($result, 'ModuleHandler::uninstall() returns TRUE.');
+    $this->assertTrue($result, 'ModuleInstaller::uninstall() returns TRUE.');
     $this->assertEqual(drupal_get_installed_schema_version('entity_test'), SCHEMA_UNINSTALLED, "entity_test module was uninstalled.");
   }
 

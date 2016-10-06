@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Installer\InstallerTranslationTest.
- */
-
 namespace Drupal\system\Tests\Installer;
 
 use Drupal\Core\Database\Database;
@@ -100,7 +95,7 @@ class InstallerTranslationTest extends InstallerTestBase {
 
     // Verify the strings from the translation files were imported.
     $test_samples = ['Save and continue', 'Anonymous'];
-    foreach($test_samples as $sample) {
+    foreach ($test_samples as $sample) {
       $edit = array();
       $edit['langcode'] = 'de';
       $edit['translation'] = 'translated';

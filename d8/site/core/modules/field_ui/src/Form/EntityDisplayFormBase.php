@@ -1,15 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\field_ui\Form\EntityDisplayFormBase.
- */
-
 namespace Drupal\field_ui\Form;
 
 use Drupal\Component\Plugin\Factory\DefaultFactory;
 use Drupal\Component\Plugin\PluginManagerBase;
-use Drupal\Component\Utility\Html;
 use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityWithPluginCollectionInterface;
@@ -17,7 +11,6 @@ use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
 use Drupal\Core\Field\PluginSettingsInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Render\Element;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\field_ui\Element\FieldUiTable;
 use Drupal\field_ui\FieldUI;
@@ -212,10 +205,12 @@ abstract class EntityDisplayFormBase extends EntityForm {
         }
         $form['modes']['display_modes_custom'] = array(
           '#type' => 'checkboxes',
-          '#title' => $this->t('Use custom display settings for the following modes'),
+          '#title' => $this->t('Use custom display settings for the following @display_context modes', ['@display_context' => $this->displayContext]),
           '#options' => $display_mode_options,
           '#default_value' => $default,
         );
+        // Provide link to manage display modes.
+        $form['modes']['display_modes_link'] = $this->getDisplayModesLink();
       }
     }
 
@@ -796,6 +791,14 @@ abstract class EntityDisplayFormBase extends EntityForm {
    *   An array of form or view mode options.
    */
   abstract protected function getDisplayModeOptions();
+
+  /**
+   * Returns a link to the form or view mode admin page.
+   *
+   * @return array
+   *   An array of a form element to be rendered as a link.
+   */
+  abstract protected function getDisplayModesLink();
 
   /**
    * Returns the region to which a row in the display overview belongs.

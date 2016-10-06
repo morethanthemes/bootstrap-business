@@ -199,9 +199,17 @@ function content_translation_entity_base_field_info(EntityTypeInterface $entity_
  *   which columns should be synchronized across different translations and
  *   which are translatable. This is useful for instance to translate the
  *   "alt" and "title" textual elements of an image field, while keeping the
- *   same image on every translation.
+ *   same image on every translation. Each group has the following keys:
+ *   - title: Title of the column group.
+ *   - translatable: (optional) If the column group should be translatable by
+ *     default, defaults to FALSE.
+ *   - columns: (optional) A list of columns of this group. Defaults to the
+ *     name of he group as the single column.
+ *   - require_all_groups_for_translation: (optional) Set to TRUE to enforce
+ *     that making this column group translatable requires all others to be
+ *     translatable too.
  *
- *   @see Drupal\image\Plugin\Field\FieldType\imageItem.
+ * @see Drupal\image\Plugin\Field\FieldType\ImageItem
  */
 function content_translation_field_info_alter(&$info) {
   foreach ($info as $key => $settings) {
@@ -274,7 +282,7 @@ function content_translation_translate_access(EntityInterface $entity) {
   $condition = $entity instanceof ContentEntityInterface && $entity->access('view') &&
     !$entity->getUntranslated()->language()->isLocked() && \Drupal::languageManager()->isMultilingual() && $entity->isTranslatable() &&
     ($account->hasPermission('create content translations') || $account->hasPermission('update content translations') || $account->hasPermission('delete content translations'));
-  return AccessResult::allowedIf($condition)->cachePerPermissions()->cacheUntilEntityChanges($entity);
+  return AccessResult::allowedIf($condition)->cachePerPermissions()->addCacheableDependency($entity);
 }
 
 /**
@@ -343,9 +351,9 @@ function content_translation_language_fallback_candidates_entity_view_alter(&$ca
  */
 function content_translation_entity_extra_field_info() {
   $extra = array();
-
+  $bundle_info_service = \Drupal::service('entity_type.bundle.info');
   foreach (\Drupal::entityManager()->getDefinitions() as $entity_type => $info) {
-    foreach (entity_get_bundles($entity_type) as $bundle => $bundle_info) {
+    foreach ($bundle_info_service->getBundleInfo($entity_type) as $bundle => $bundle_info) {
       if (\Drupal::service('content_translation.manager')->isEnabled($entity_type, $bundle)) {
         $extra[$entity_type][$bundle]['form']['translation'] = array(
           'label' => t('Translation'),
@@ -404,7 +412,8 @@ function content_translation_entity_presave(EntityInterface $entity) {
     // as original language, since source values are the only ones available to
     // compare against.
     if (!isset($entity->original)) {
-      $entity->original = entity_load_unchanged($entity->entityType(), $entity->id());
+      $entity->original = \Drupal::entityTypeManager()
+        ->getStorage($entity->entityType())->loadUnchanged($entity->id());
     }
     $langcode = $entity->language()->getId();
     /** @var \Drupal\content_translation\ContentTranslationManagerInterface $manager */

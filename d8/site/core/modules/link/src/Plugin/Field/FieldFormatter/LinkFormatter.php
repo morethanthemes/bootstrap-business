@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\link\Plugin\Field\FieldFormatter\LinkFormatter.
- */
-
 namespace Drupal\link\Plugin\Field\FieldFormatter;
 
 use Drupal\Component\Utility\Unicode;
@@ -207,7 +202,7 @@ class LinkFormatter extends FormatterBase implements ContainerFactoryPluginInter
           // field template wrapper, and set the URL value in a content
           // attribute.
           // @todo Does RDF need a URL rather than an internal URI here?
-          // @see \Drupal\rdf\Tests\Field\LinkFieldRdfaTest.
+          // @see \Drupal\Tests\rdf\Kernel\Field\LinkFieldRdfaTest.
           $content = str_replace('internal:/', '', $item->uri);
           $item->_attributes += array('content' => $content);
         }
@@ -240,13 +235,14 @@ class LinkFormatter extends FormatterBase implements ContainerFactoryPluginInter
    *   The link field item being rendered.
    *
    * @return \Drupal\Core\Url
-   *   An Url object.
+   *   A Url object.
    */
   protected function buildUrl(LinkItemInterface $item) {
     $url = $item->getUrl() ?: Url::fromRoute('<none>');
 
     $settings = $this->getSettings();
     $options = $item->options;
+    $options += $url->getOptions();
 
     // Add optional 'rel' attribute to link options.
     if (!empty($settings['rel'])) {

@@ -1,18 +1,13 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Session\UserSessionTest.
- */
-
 namespace Drupal\Tests\Core\Session;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Session\UserSession;
 use Drupal\Tests\UnitTestCase;
-  use Drupal\user\RoleInterface;
+use Drupal\user\RoleInterface;
 
-  /**
+/**
  * @coversDefaultClass \Drupal\Core\Session\UserSession
  * @group Session
  */
@@ -140,7 +135,7 @@ class UserSessionTest extends UnitTestCase {
    *
    * @dataProvider providerTestHasPermission
    *
-   * @see \Drupal\Core\Session\UserSession::hasPermission().
+   * @see \Drupal\Core\Session\UserSession::hasPermission()
    */
   public function testHasPermission($permission, array $sessions_with_access, array $sessions_without_access) {
     foreach ($sessions_with_access as $name) {

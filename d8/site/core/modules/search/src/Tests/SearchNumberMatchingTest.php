@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\search\Tests\SearchNumberMatchingTest.
- */
-
 namespace Drupal\search\Tests;
 
 use Drupal\Core\Language\LanguageInterface;
@@ -100,4 +95,5 @@ class SearchNumberMatchingTest extends SearchTestBase {
     }
 
   }
+
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\EntityResolverManager.
- */
-
 namespace Drupal\Core\Entity;
 
 use Drupal\Core\DependencyInjection\ClassResolverInterface;
@@ -177,7 +172,7 @@ class EntityResolverManager {
       // First try to figure out whether there is already a parameter upcasting
       // the same entity type already.
       foreach ($parameter_definitions as $info) {
-        if (isset($info['type'])) {
+        if (isset($info['type']) && (strpos($info['type'], 'entity:') === 0)) {
           // The parameter types are in the form 'entity:$entity_type'.
           list(, $parameter_entity_type) = explode(':', $info['type'], 2);
           if ($parameter_entity_type == $entity_type) {

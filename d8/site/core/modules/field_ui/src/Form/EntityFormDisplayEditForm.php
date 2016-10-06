@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\field_ui\Form\EntityFormDisplayEditForm.
- */
-
 namespace Drupal\field_ui\Form;
 
 use Drupal\Core\Field\FieldDefinitionInterface;
@@ -78,6 +73,17 @@ class EntityFormDisplayEditForm extends EntityDisplayFormBase {
    */
   protected function getDisplayModeOptions() {
     return $this->entityManager->getFormModeOptions($this->entity->getTargetEntityTypeId());
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function getDisplayModesLink() {
+    return [
+      '#type' => 'link',
+      '#title' => t('Manage form modes'),
+      '#url' => Url::fromRoute('entity.entity_form_mode.collection'),
+    ];
   }
 
   /**

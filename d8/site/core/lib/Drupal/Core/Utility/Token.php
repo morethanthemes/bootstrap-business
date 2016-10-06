@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Utility\Token.
- */
-
 namespace Drupal\Core\Utility;
 
 use Drupal\Component\Render\HtmlEscapedText;
@@ -410,4 +405,5 @@ class Token {
     $this->tokenInfo = NULL;
     $this->cacheTagsInvalidator->invalidateTags([static::TOKEN_INFO_CACHE_TAG]);
   }
+
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\StreamWrapper\TemporaryStream.
- */
-
 namespace Drupal\Core\StreamWrapper;
 
 use \Drupal\Core\Url;
@@ -52,4 +47,5 @@ class TemporaryStream extends LocalStream {
     $path = str_replace('\\', '/', $this->getTarget());
     return Url::fromRoute('system.temporary', [], ['absolute' => TRUE, 'query' => ['file' => $path]])->toString();
   }
+
 }

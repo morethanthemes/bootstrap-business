@@ -85,25 +85,25 @@
 
     // Add the ajax to exposed forms.
     this.$exposed_form = $('form#views-exposed-form-' + settings.view_name.replace(/_/g, '-') + '-' + settings.view_display_id.replace(/_/g, '-'));
-    this.$exposed_form.once('exposed-form').each(jQuery.proxy(this.attachExposedFormAjax, this));
+    this.$exposed_form.once('exposed-form').each($.proxy(this.attachExposedFormAjax, this));
 
     // Add the ajax to pagers.
     this.$view
       // Don't attach to nested views. Doing so would attach multiple behaviors
       // to a given element.
-      .filter(jQuery.proxy(this.filterNestedViews, this))
-      .once('ajax-pager').each(jQuery.proxy(this.attachPagerAjax, this));
+      .filter($.proxy(this.filterNestedViews, this))
+      .once('ajax-pager').each($.proxy(this.attachPagerAjax, this));
 
     // Add a trigger to update this view specifically. In order to trigger a
     // refresh use the following code.
     //
     // @code
-    // jQuery('.view-name').trigger('RefreshView');
+    // $('.view-name').trigger('RefreshView');
     // @endcode
     var self_settings = $.extend({}, this.element_settings, {
       event: 'RefreshView',
       base: this.selector,
-      element: this.$view
+      element: this.$view.get(0)
     });
     this.refreshViewAjax = Drupal.ajax(self_settings);
   };
@@ -114,7 +114,9 @@
   Drupal.views.ajaxView.prototype.attachExposedFormAjax = function () {
     var that = this;
     this.exposedFormAjax = [];
-    $('input[type=submit], input[type=image]', this.$exposed_form).each(function (index) {
+    // Exclude the reset buttons so no AJAX behaviours are bound. Many things
+    // break during the form reset phase if using AJAX.
+    $('input[type=submit], input[type=image]', this.$exposed_form).not('[data-drupal-selector=edit-reset]').each(function (index) {
       var self_settings = $.extend({}, that.element_settings, {
         base: $(this).attr('id'),
         element: this
@@ -140,7 +142,7 @@
    */
   Drupal.views.ajaxView.prototype.attachPagerAjax = function () {
     this.$view.find('ul.js-pager__items > li > a, th.views-field a, .attachment .views-summary a')
-      .each(jQuery.proxy(this.attachPagerLinkAjax, this));
+      .each($.proxy(this.attachPagerLinkAjax, this));
   };
 
   /**
@@ -168,7 +170,7 @@
     var self_settings = $.extend({}, this.element_settings, {
       submit: viewData,
       base: false,
-      element: $link
+      element: link
     });
     this.pagerAjax = Drupal.ajax(self_settings);
   };

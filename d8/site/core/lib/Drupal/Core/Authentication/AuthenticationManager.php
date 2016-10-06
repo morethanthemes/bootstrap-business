@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Authentication\AuthenticationManager.
- */
-
 namespace Drupal\Core\Authentication;
 
 use Drupal\Core\Routing\RouteMatch;
@@ -99,7 +94,7 @@ class AuthenticationManager implements AuthenticationProviderInterface, Authenti
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The incoming request.
    *
-   * @return string|NULL
+   * @return string|null
    *   The id of the first authentication provider which applies to the request.
    *   If no application detects appropriate credentials, then NULL is returned.
    */
@@ -117,7 +112,7 @@ class AuthenticationManager implements AuthenticationProviderInterface, Authenti
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The incoming request.
    *
-   * @return string|NULL
+   * @return string|null
    *   The ID of the first authentication provider which applies to the request.
    *   If no application detects appropriate credentials, then NULL is returned.
    */

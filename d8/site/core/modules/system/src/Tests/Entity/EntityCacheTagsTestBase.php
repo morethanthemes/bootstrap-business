@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Entity\EntityCacheTagsTestBase.
- */
-
 namespace Drupal\system\Tests\Entity;
 
 use Drupal\Core\Cache\Cache;
@@ -73,19 +68,19 @@ abstract class EntityCacheTagsTestBase extends PageCacheTagsTestBase {
     if ($this->entity->getEntityType()->get('field_ui_base_route')) {
       // Add field, so we can modify the field storage and field entities to
       // verify that changes to those indeed clear cache tags.
-      entity_create('field_storage_config', array(
+      FieldStorageConfig::create(array(
         'field_name' => 'configurable_field',
         'entity_type' => $this->entity->getEntityTypeId(),
         'type' => 'test_field',
         'settings' => array(),
       ))->save();
-      entity_create('field_config', array(
+      FieldConfig::create([
         'entity_type' => $this->entity->getEntityTypeId(),
         'bundle' => $this->entity->bundle(),
         'field_name' => 'configurable_field',
         'label' => 'Configurable field',
         'settings' => array(),
-      ))->save();
+      ])->save();
 
       // Reload the entity now that a new field has been added to it.
       $storage = $this->container
@@ -231,10 +226,10 @@ abstract class EntityCacheTagsTestBase extends PageCacheTagsTestBase {
    * Creates a referencing and a non-referencing entity for testing purposes.
    *
    * @param \Drupal\Core\Entity\EntityInterface $referenced_entity
-   *  The entity that the referencing entity should reference.
+   *   The entity that the referencing entity should reference.
    *
    * @return \Drupal\Core\Entity\EntityInterface[]
-   *  An array containing a referencing entity and a non-referencing entity.
+   *   An array containing a referencing entity and a non-referencing entity.
    */
   protected function createReferenceTestEntities($referenced_entity) {
     // All referencing entities should be of the type 'entity_test'.
@@ -246,7 +241,7 @@ abstract class EntityCacheTagsTestBase extends PageCacheTagsTestBase {
 
     // Add a field of the given type to the given entity type's "foo" bundle.
     $field_name = $referenced_entity->getEntityTypeId() . '_reference';
-    entity_create('field_storage_config', array(
+    FieldStorageConfig::create(array(
       'field_name' => $field_name,
       'entity_type' => $entity_type,
       'type' => 'entity_reference',
@@ -255,7 +250,7 @@ abstract class EntityCacheTagsTestBase extends PageCacheTagsTestBase {
         'target_type' => $referenced_entity->getEntityTypeId(),
       ),
     ))->save();
-    entity_create('field_config', array(
+    FieldConfig::create([
       'field_name' => $field_name,
       'entity_type' => $entity_type,
       'bundle' => $bundle,
@@ -269,7 +264,7 @@ abstract class EntityCacheTagsTestBase extends PageCacheTagsTestBase {
           'auto_create' => FALSE,
         ),
       ),
-    ))->save();
+    ])->save();
     if (!$this->entity->getEntityType()->hasHandlerClass('view_builder')) {
       entity_get_display($entity_type, $bundle, 'full')
         ->setComponent($field_name, array(
@@ -291,20 +286,24 @@ abstract class EntityCacheTagsTestBase extends PageCacheTagsTestBase {
 
     // Create an entity that does reference the entity being tested.
     $label_key = \Drupal::entityManager()->getDefinition($entity_type)->getKey('label');
-    $referencing_entity = entity_create($entity_type, array(
-      $label_key => 'Referencing ' . $entity_type,
-      'status' => 1,
-      'type' => $bundle,
-      $field_name => array('target_id' => $referenced_entity->id()),
-    ));
+    $referencing_entity = $this->container->get('entity_type.manager')
+      ->getStorage($entity_type)
+      ->create(array(
+        $label_key => 'Referencing ' . $entity_type,
+        'status' => 1,
+        'type' => $bundle,
+        $field_name => array('target_id' => $referenced_entity->id()),
+      ));
     $referencing_entity->save();
 
     // Create an entity that does not reference the entity being tested.
-    $non_referencing_entity = entity_create($entity_type, array(
-      $label_key => 'Non-referencing ' . $entity_type,
-      'status' => 1,
-      'type' => $bundle,
-    ));
+    $non_referencing_entity = $this->container->get('entity_type.manager')
+      ->getStorage($entity_type)
+      ->create(array(
+        $label_key => 'Non-referencing ' . $entity_type,
+        'status' => 1,
+        'type' => $bundle,
+      ));
     $non_referencing_entity->save();
 
     return array(
@@ -328,7 +327,7 @@ abstract class EntityCacheTagsTestBase extends PageCacheTagsTestBase {
     $referencing_entity_url = $this->referencingEntity->urlInfo('canonical');
     $non_referencing_entity_url = $this->nonReferencingEntity->urlInfo('canonical');
     $listing_url = Url::fromRoute('entity.entity_test.collection_referencing_entities', [
-      'entity_reference_field_name' =>  $entity_type . '_reference',
+      'entity_reference_field_name' => $entity_type . '_reference',
       'referenced_entity_type' => $entity_type,
       'referenced_entity_id' => $this->entity->id(),
     ]);
@@ -347,7 +346,7 @@ abstract class EntityCacheTagsTestBase extends PageCacheTagsTestBase {
     $page_cache_tags = Cache::mergeTags(['rendered'], ['config:user.role.anonymous']);
     // If the block module is used, the Block page display variant is used,
     // which adds the block config entity type's list cache tags.
-    $page_cache_tags = Cache::mergeTags($page_cache_tags, \Drupal::moduleHandler()->moduleExists('block') ? ['config:block_list']: []);
+    $page_cache_tags = Cache::mergeTags($page_cache_tags, \Drupal::moduleHandler()->moduleExists('block') ? ['config:block_list'] : []);
 
     $page_cache_tags_referencing_entity = in_array('user.permissions', $this->getAccessCacheContextsForEntity($this->referencingEntity)) ? ['config:user.role.anonymous'] : [];
 
@@ -516,7 +515,9 @@ abstract class EntityCacheTagsTestBase extends PageCacheTagsTestBase {
       // cache miss for both the referencing entity, and the listing of
       // referencing entities, but not for any other routes.
       $this->pass("Test modification of referenced entity's bundle entity.", 'Debug');
-      $bundle_entity = entity_load($bundle_entity_type_id, $this->entity->bundle());
+      $bundle_entity = $this->container->get('entity_type.manager')
+        ->getStorage($bundle_entity_type_id)
+        ->load($this->entity->bundle());
       $bundle_entity->save();
       $this->verifyPageCache($referencing_entity_url, 'MISS');
       $this->verifyPageCache($listing_url, 'MISS');

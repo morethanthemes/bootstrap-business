@@ -1,13 +1,10 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Path\UrlAlterFunctionalTest.
- */
-
 namespace Drupal\system\Tests\Path;
 
+use Drupal\Core\Database\Database;
 use Drupal\simpletest\WebTestBase;
+use Drupal\taxonomy\Entity\Term;
 
 /**
  * Tests altering the inbound path and the outbound path.
@@ -27,7 +24,12 @@ class UrlAlterFunctionalTest extends WebTestBase {
    * Test that URL altering works and that it occurs in the correct order.
    */
   function testUrlAlter() {
-    $account = $this->drupalCreateUser(array('administer url aliases'));
+    // Ensure that the url_alias table exists after Drupal installation.
+    $this->assertTrue(Database::getConnection()->schema()->tableExists('url_alias'), 'The url_alias table exists after Drupal installation.');
+
+    // User names can have quotes and plus signs so we should ensure that URL
+    // altering works with this.
+    $account = $this->drupalCreateUser(array('administer url aliases'), "a'foo+bar");
     $this->drupalLogin($account);
 
     $uid = $account->id();
@@ -64,10 +66,10 @@ class UrlAlterFunctionalTest extends WebTestBase {
     $this->assertUrlOutboundAlter('/forum', '/community');
     $forum_vid = $this->config('forum.settings')->get('vocabulary');
     $term_name = $this->randomMachineName();
-    $term = entity_create('taxonomy_term', array(
+    $term = Term::create([
       'name' => $term_name,
       'vid' => $forum_vid,
-    ));
+    ]);
     $term->save();
     $this->drupalGet("community/" . $term->id());
     $this->assertText($term_name, 'The community/{tid} path gets resolved correctly');
@@ -107,4 +109,5 @@ class UrlAlterFunctionalTest extends WebTestBase {
     $result = $this->container->get('path.alias_manager')->getPathByAlias($original);
     return $this->assertIdentical($result, $final, format_string('Altered inbound URL %original, expected %final, and got %result.', array('%original' => $original, '%final' => $final, '%result' => $result)));
   }
+
 }

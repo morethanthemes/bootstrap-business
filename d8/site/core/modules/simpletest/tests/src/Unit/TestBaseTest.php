@@ -1,15 +1,11 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\simpletest\Unit\TestBaseTest.
- */
-
 namespace Drupal\Tests\simpletest\Unit;
 
 use Drupal\Tests\UnitTestCase;
 
 /**
+ * @requires extension curl
  * @coversDefaultClass \Drupal\simpletest\TestBase
  * @group simpletest
  */

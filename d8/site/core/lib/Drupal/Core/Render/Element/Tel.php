@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\Element\Tel.
- */
-
 namespace Drupal\Core\Render\Element;
 
 use Drupal\Core\Render\Element;
@@ -19,7 +14,7 @@ use Drupal\Core\Render\Element;
  * @code
  * $form['phone'] = array(
  *   '#type' => 'tel',
- *   '#title' => t('Phone'),
+ *   '#title' => $this->t('Phone'),
  * );
  * @endcode
  *

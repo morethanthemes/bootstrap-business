@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Menu\Form\MenuLinkDefaultForm.
- */
-
 namespace Drupal\Core\Menu\Form;
 
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
@@ -110,6 +105,10 @@ class MenuLinkDefaultForm implements MenuLinkFormInterface, ContainerInjectionIn
       '#type' => 'item',
       '#title' => $this->t('This link is provided by the @name module. The title and path cannot be edited.', array('@name' => $this->moduleHandler->getName($provider))),
     );
+    $form['id'] = array(
+      '#type' => 'value',
+      '#value' => $this->menuLink->getPluginId(),
+    );
     $link = array(
       '#type' => 'link',
       '#title' => $this->menuLink->getTitle(),
@@ -158,7 +157,11 @@ class MenuLinkDefaultForm implements MenuLinkFormInterface, ContainerInjectionIn
    * {@inheritdoc}
    */
   public function extractFormValues(array &$form, FormStateInterface $form_state) {
-    $new_definition = array();
+    // Start from the complete, original, definition.
+    $new_definition = $this->menuLink->getPluginDefinition();
+    // Since the ID may not be present in the definition used to construct the
+    // plugin, add it here so it's available to any consumers of this method.
+    $new_definition['id'] = $form_state->getValue('id');
     $new_definition['enabled'] = $form_state->getValue('enabled') ? 1 : 0;
     $new_definition['weight'] = (int) $form_state->getValue('weight');
     $new_definition['expanded'] = $form_state->getValue('expanded') ? 1 : 0;

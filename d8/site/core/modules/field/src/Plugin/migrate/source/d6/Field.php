@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\field\Plugin\migrate\source\d6\Field.
- */
-
 namespace Drupal\field\Plugin\migrate\source\d6;
 
 use Drupal\migrate\Row;
@@ -84,7 +79,7 @@ class Field extends DrupalSqlBase {
         ['field_name' => $row->getSourceProperty('field_name')],
         $this->t('Widget types @types are used in Drupal 6 field instances: widget type @selected_type applied to the Drupal 8 base field', [
           '@types' => implode(', ', $widget_types),
-          '@selected_type' =>  $widget_types[0],
+          '@selected_type' => $widget_types[0],
         ])
       );
     }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Tests\PagePreviewTest.
- */
-
 namespace Drupal\node\Tests;
 
 use Drupal\comment\Tests\CommentTestTrait;
@@ -15,6 +10,8 @@ use Drupal\field\Tests\EntityReference\EntityReferenceTestTrait;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\node\Entity\NodeType;
+use Drupal\taxonomy\Entity\Term;
+use Drupal\taxonomy\Entity\Vocabulary;
 
 /**
  * Tests the node entity preview functionality.
@@ -48,24 +45,24 @@ class PagePreviewTest extends NodeTestBase {
     $this->drupalLogin($web_user);
 
     // Add a vocabulary so we can test different view modes.
-    $vocabulary = entity_create('taxonomy_vocabulary', array(
+    $vocabulary = Vocabulary::create([
       'name' => $this->randomMachineName(),
       'description' => $this->randomMachineName(),
       'vid' => $this->randomMachineName(),
       'langcode' => LanguageInterface::LANGCODE_NOT_SPECIFIED,
       'help' => '',
-    ));
+    ]);
     $vocabulary->save();
 
     $this->vocabulary = $vocabulary;
 
     // Add a term to the vocabulary.
-    $term = entity_create('taxonomy_term', array(
+    $term = Term::create([
       'name' => $this->randomMachineName(),
       'description' => $this->randomMachineName(),
       'vid' => $this->vocabulary->id(),
       'langcode' => LanguageInterface::LANGCODE_NOT_SPECIFIED,
-    ));
+    ]);
     $term->save();
 
     $this->term = $term;
@@ -299,6 +296,24 @@ class PagePreviewTest extends NodeTestBase {
 
     // Check that the revision log field has the correct value.
     $this->assertFieldByName('revision_log[0][value]', $edit['revision_log[0][value]'], 'Revision log field displayed.');
+
+    // Save the node after coming back from the preview page so we can create a
+    // forward revision for it.
+    $this->drupalPostForm(NULL, [], t('Save'));
+    $node = $this->drupalGetNodeByTitle($edit[$title_key]);
+
+    // Check that previewing a forward revision of a node works. This can not be
+    // accomplished through the UI so we have to use API calls.
+    // @todo Change this test to use the UI when we will be able to create
+    // forward revisions in core.
+    // @see https://www.drupal.org/node/2725533
+    $node->setNewRevision(TRUE);
+    $node->isDefaultRevision(FALSE);
+
+    /** @var \Drupal\Core\Controller\ControllerResolverInterface $controller_resolver */
+    $controller_resolver = \Drupal::service('controller_resolver');
+    $node_preview_controller = $controller_resolver->getControllerFromDefinition('\Drupal\node\Controller\NodePreviewController::view');
+    $node_preview_controller($node, 'default');
   }
 
   /**

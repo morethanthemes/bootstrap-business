@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\user\Unit\PermissionAccessCheckTest.
- */
-
 namespace Drupal\Tests\user\Unit;
 
 use Drupal\Core\Access\AccessResult;
@@ -17,7 +12,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 /**
  * @coversDefaultClass \Drupal\user\Access\PermissionAccessCheck
  * @group Routing
- * @group AccessF
+ * @group Access
  */
 class PermissionAccessCheckTest extends UnitTestCase {
 

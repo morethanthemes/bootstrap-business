@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\plugin_test\Plugin\plugin_test\mock_block\MockMenuBlockDeriver.
- */
-
 namespace Drupal\plugin_test\Plugin\plugin_test\mock_block;
 
 use Drupal\Component\Plugin\Derivative\DeriverInterface;
@@ -56,4 +51,5 @@ class MockMenuBlockDeriver implements DeriverInterface {
 
     return $derivatives;
   }
+
 }

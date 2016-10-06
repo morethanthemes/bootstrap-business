@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\aggregator\Plugin\Field\FieldFormatter\AggregatorXSSFormatter.
- */
-
 namespace Drupal\aggregator\Plugin\Field\FieldFormatter;
 
 use Drupal\Core\Field\FieldItemListInterface;
@@ -40,4 +35,5 @@ class AggregatorXSSFormatter extends FormatterBase {
     }
     return $elements;
   }
+
 }

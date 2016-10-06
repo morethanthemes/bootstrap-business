@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\field_ui\Tests\ManageDisplayTest.
- */
-
 namespace Drupal\field_ui\Tests;
 
 use Drupal\Component\Utility\Unicode;
@@ -140,7 +135,10 @@ class ManageDisplayTest extends WebTestBase {
     $this->drupalPostForm(NULL, array(), t('Save'));
 
     \Drupal::entityManager()->clearCachedFieldDefinitions();
-    $display = entity_load('entity_view_display', 'node.' . $this->type . '.default', TRUE);
+    $id = 'node.' . $this->type . '.default';
+    $storage = $this->container->get('entity_type.manager')->getStorage('entity_view_display');
+    $storage->resetCache([$id]);
+    $display = $storage->load($id);
     $this->assertEqual($display->getRenderer('field_test')->getThirdPartySetting('field_third_party_test', 'field_test_field_formatter_third_party_settings_form'), 'foo');
     $this->assertTrue(in_array('field_third_party_test', $display->calculateDependencies()->getDependencies()['module']), 'The display has a dependency on field_third_party_test module.');
 
@@ -266,7 +264,9 @@ class ManageDisplayTest extends WebTestBase {
     // Save the form to save the third party settings.
     $this->drupalPostForm(NULL, array(), t('Save'));
     \Drupal::entityManager()->clearCachedFieldDefinitions();
-    $display = entity_load('entity_form_display', 'node.' . $this->type . '.default', TRUE);
+    $storage = $this->container->get('entity_type.manager')->getStorage('entity_form_display');
+    $storage->resetCache(array('node.' . $this->type . '.default'));
+    $display = $storage->load('node.' . $this->type . '.default');
     $this->assertEqual($display->getRenderer('field_test')->getThirdPartySetting('field_third_party_test', 'field_test_widget_third_party_settings_form'), 'foo');
     $this->assertTrue(in_array('field_third_party_test', $display->calculateDependencies()->getDependencies()['module']), 'Form display does not have a dependency on field_third_party_test module.');
 
@@ -309,7 +309,7 @@ class ManageDisplayTest extends WebTestBase {
     $field_test_with_prepare_view_settings = $formatter_plugin_manager->getDefaultSettings('field_test_with_prepare_view');
     $output = array(
       'field_test_default' => $field_test_default_settings['test_formatter_setting'] . '|' . $value,
-      'field_test_with_prepare_view' => $field_test_with_prepare_view_settings['test_formatter_setting_additional'] . '|' . $value. '|' . ($value + 1),
+      'field_test_with_prepare_view' => $field_test_with_prepare_view_settings['test_formatter_setting_additional'] . '|' . $value . '|' . ($value + 1),
     );
 
     // Check that the field is displayed with the default formatter in 'rss'
@@ -475,7 +475,7 @@ class ManageDisplayTest extends WebTestBase {
     $clone = clone $node;
     $element = node_view($clone, $view_mode);
     $output = \Drupal::service('renderer')->renderRoot($element);
-    $this->verbose(t('Rendered node - view mode: @view_mode', array('@view_mode' => $view_mode)) . '<hr />'. $output);
+    $this->verbose(t('Rendered node - view mode: @view_mode', array('@view_mode' => $view_mode)) . '<hr />' . $output);
 
     // Assign content so that WebTestBase functions can be used.
     $this->setRawContent($output);

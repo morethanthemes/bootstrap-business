@@ -1,14 +1,12 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\field\Tests\Email\EmailFieldTest.
- */
-
 namespace Drupal\field\Tests\Email;
 
 use Drupal\Component\Utility\Unicode;
+use Drupal\entity_test\Entity\EntityTest;
+use Drupal\field\Entity\FieldConfig;
 use Drupal\simpletest\WebTestBase;
+use Drupal\field\Entity\FieldStorageConfig;
 
 /**
  * Tests email field functionality.
@@ -54,16 +52,16 @@ class EmailFieldTest extends WebTestBase {
   function testEmailField() {
     // Create a field with settings to validate.
     $field_name = Unicode::strtolower($this->randomMachineName());
-    $this->fieldStorage = entity_create('field_storage_config', array(
+    $this->fieldStorage = FieldStorageConfig::create(array(
       'field_name' => $field_name,
       'entity_type' => 'entity_test',
       'type' => 'email',
     ));
     $this->fieldStorage->save();
-    $this->field = entity_create('field_config', array(
+    $this->field = FieldConfig::create([
       'field_storage' => $this->fieldStorage,
       'bundle' => 'entity_test',
-    ));
+    ]);
     $this->field->save();
 
     // Create a form display for the default form mode.
@@ -99,7 +97,7 @@ class EmailFieldTest extends WebTestBase {
     $this->assertRaw($value);
 
     // Verify that a mailto link is displayed.
-    $entity = entity_load('entity_test', $id);
+    $entity = EntityTest::load($id);
     $display = entity_get_display($entity->getEntityTypeId(), $entity->bundle(), 'full');
     $content = $display->build($entity);
     $this->setRawContent(\Drupal::service('renderer')->renderRoot($content));

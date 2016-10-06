@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Module\VersionTest.
- */
-
 namespace Drupal\system\Tests\Module;
 
 /**
@@ -57,4 +52,5 @@ class VersionTest extends ModuleTestBase {
       $this->assertEqual(!empty($checkbox[0]['disabled']), $i % 2, $dependencies[$i]);
     }
   }
+
 }

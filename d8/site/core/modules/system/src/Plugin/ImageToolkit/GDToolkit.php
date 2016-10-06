@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Plugin\ImageToolkit\GDToolkit.
- */
-
 namespace Drupal\system\Plugin\ImageToolkit;
 
 use Drupal\Component\Utility\Color;
@@ -53,7 +48,7 @@ class GDToolkit extends ImageToolkitBase {
    *
    * @see \Drupal\system\Plugin\ImageToolkit\GDToolkit::parseFile()
    * @see \Drupal\system\Plugin\ImageToolkit\GDToolkit::setResource()
-   * @see http://php.net/manual/en/function.getimagesize.php
+   * @see http://php.net/manual/function.getimagesize.php
    */
   protected $preLoadInfo = NULL;
 
@@ -378,7 +373,7 @@ class GDToolkit extends ImageToolkitBase {
     // Check for filter and rotate support.
     if (!function_exists('imagefilter') || !function_exists('imagerotate')) {
       $requirements['version']['severity'] = REQUIREMENT_WARNING;
-      $requirements['version']['description'] = t('The GD Library for PHP is enabled, but was compiled without support for functions used by the rotate and desaturate effects. It was probably compiled using the official GD libraries from http://www.libgd.org instead of the GD library bundled with PHP. You should recompile PHP --with-gd using the bundled GD library. See <a href=":url">the PHP manual</a>.', array(':url' => 'http://www.php.net/manual/book.image.php'));
+      $requirements['version']['description'] = t('The GD Library for PHP is enabled, but was compiled without support for functions used by the rotate and desaturate effects. It was probably compiled using the official GD libraries from http://www.libgd.org instead of the GD library bundled with PHP. You should recompile PHP --with-gd using the bundled GD library. See <a href="http://php.net/manual/book.image.php">the PHP manual</a>.');
     }
 
     return $requirements;
@@ -398,7 +393,15 @@ class GDToolkit extends ImageToolkitBase {
   public static function getSupportedExtensions() {
     $extensions = array();
     foreach (static::supportedTypes() as $image_type) {
-      $extensions[] = Unicode::strtolower(image_type_to_extension($image_type, FALSE));
+      // @todo Automatically fetch possible extensions for each mime type.
+      // @see https://www.drupal.org/node/2311679
+      $extension = Unicode::strtolower(image_type_to_extension($image_type, FALSE));
+      $extensions[] = $extension;
+      // Add some known similar extensions.
+      if ($extension === 'jpeg') {
+        $extensions[] = 'jpg';
+        $extensions[] = 'jpe';
+      }
     }
     return $extensions;
   }
@@ -418,6 +421,9 @@ class GDToolkit extends ImageToolkitBase {
    * @see image_type_to_extension()
    */
   public function extensionToImageType($extension) {
+    if (in_array($extension, ['jpe', 'jpg'])) {
+      $extension = 'jpeg';
+    }
     foreach ($this->supportedTypes() as $type) {
       if (image_type_to_extension($type, FALSE) === $extension) {
         return $type;
@@ -436,4 +442,5 @@ class GDToolkit extends ImageToolkitBase {
   protected static function supportedTypes() {
     return array(IMAGETYPE_PNG, IMAGETYPE_JPEG, IMAGETYPE_GIF);
   }
+
 }

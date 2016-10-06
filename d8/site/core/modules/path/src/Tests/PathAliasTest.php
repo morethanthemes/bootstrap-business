@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\path\Tests\PathAliasTest.
- */
-
 namespace Drupal\path\Tests;
 
 use Drupal\Component\Utility\Unicode;
@@ -29,7 +24,7 @@ class PathAliasTest extends PathTestBase {
   protected function setUp() {
     parent::setUp();
 
-    // Create test user and login.
+    // Create test user and log in.
     $web_user = $this->drupalCreateUser(array('create page content', 'edit own page content', 'administer url aliases', 'create url aliases'));
     $this->drupalLogin($web_user);
   }
@@ -48,7 +43,7 @@ class PathAliasTest extends PathTestBase {
     $this->drupalPostForm('admin/config/search/path/add', $edit, t('Save'));
 
     // Check the path alias whitelist cache.
-    $whitelist = \Drupal::cache()->get('path_alias_whitelist');
+    $whitelist = \Drupal::cache('bootstrap')->get('path_alias_whitelist');
     $this->assertTrue($whitelist->data['node']);
     $this->assertFalse($whitelist->data['admin']);
 
@@ -64,7 +59,7 @@ class PathAliasTest extends PathTestBase {
     // @todo Remove this once https://www.drupal.org/node/2480077 lands.
     Cache::invalidateTags(['rendered']);
     $this->drupalGet(trim($edit['alias'], '/'));
-    $this->assertTrue(\Drupal::cache('data')->get('preload-paths:' .  $edit['source']), 'Cache entry was created.');
+    $this->assertTrue(\Drupal::cache('data')->get('preload-paths:' . $edit['source']), 'Cache entry was created.');
   }
 
   /**
@@ -145,7 +140,9 @@ class PathAliasTest extends PathTestBase {
     ]), 'Attempt to move upper-case alias was rejected.');
 
     // Delete alias.
-    $this->drupalPostForm('admin/config/search/path/edit/' . $pid, array(), t('Delete'));
+    $this->drupalGet('admin/config/search/path/edit/' . $pid);
+    $this->clickLink(t('Delete'));
+    $this->assertRaw(t('Are you sure you want to delete path alias %name?', array('%name' => $edit['alias'])));
     $this->drupalPostForm(NULL, array(), t('Confirm'));
 
     // Confirm that the alias no longer works.
@@ -317,6 +314,18 @@ class PathAliasTest extends PathTestBase {
     $this->drupalGet(trim($edit['path[0][alias]'], '/'));
     $this->assertText($node4->label(), 'Alias trimmed trailing slash.');
     $this->assertResponse(200);
+
+    // Create fifth test node.
+    $node5 = $this->drupalCreateNode();
+
+    // Set a path alias.
+    $edit = array('path[0][alias]' => '/' . $this->randomMachineName(8));
+    $this->drupalPostForm('node/' . $node5->id() . '/edit', $edit, t('Save'));
+
+    // Delete the node and check that the path alias is also deleted.
+    $node5->delete();
+    $path_alias = \Drupal::service('path.alias_storage')->lookupPathAlias('/node/' . $node5->id(), $node5->language()->getId());
+    $this->assertFalse($path_alias, 'Alias was successfully deleted when the referenced node was deleted.');
   }
 
   /**
@@ -348,4 +357,5 @@ class PathAliasTest extends PathTestBase {
     $this->assertText(t('The alias is already in use.'));
     $this->assertFieldByXPath("//input[@name='path[0][alias]' and contains(@class, 'error')]", $edit['path[0][alias]'], 'Textfield exists and has the error class.');
   }
+
 }

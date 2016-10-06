@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\aggregator\FeedAccessControlHandler.
- */
-
 namespace Drupal\aggregator;
 
 use Drupal\Core\Access\AccessResult;
@@ -26,11 +21,9 @@ class FeedAccessControlHandler extends EntityAccessControlHandler {
     switch ($operation) {
       case 'view':
         return AccessResult::allowedIfHasPermission($account, 'access news feeds');
-        break;
 
       default:
         return AccessResult::allowedIfHasPermission($account, 'administer news feeds');
-        break;
     }
   }
 

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\EventSubscriber\EntityRouteAlterSubscriber.
- */
-
 namespace Drupal\Core\EventSubscriber;
 
 use Drupal\Core\Entity\EntityResolverManager;
@@ -35,7 +30,7 @@ class EntityRouteAlterSubscriber implements EventSubscriberInterface {
   /**
    * Constructs an EntityRouteAlterSubscriber instance.
    *
-   * @param \Drupal\Core\Entity\EntityResolverManager
+   * @param \Drupal\Core\Entity\EntityResolverManager $entity_resolver_manager
    *   The entity resolver manager.
    */
   public function __construct(EntityResolverManager $entity_resolver_manager) {
@@ -61,4 +56,5 @@ class EntityRouteAlterSubscriber implements EventSubscriberInterface {
     $events[RoutingEvents::ALTER][] = array('onRoutingRouteAlterSetType', -150);
     return $events;
   }
+
 }

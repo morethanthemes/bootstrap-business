@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\Diff\Engine\DiffOpDelete.
- */
-
 namespace Drupal\Component\Diff\Engine;
 
 /**
@@ -13,7 +8,7 @@ namespace Drupal\Component\Diff\Engine;
  * @subpackage DifferenceEngine
  */
 class DiffOpDelete extends DiffOp {
-  var $type = 'delete';
+  public $type = 'delete';
 
   public function __construct($lines) {
     $this->orig = $lines;
@@ -23,4 +18,5 @@ class DiffOpDelete extends DiffOp {
   public function reverse() {
     return new DiffOpAdd($this->orig);
   }
+
 }

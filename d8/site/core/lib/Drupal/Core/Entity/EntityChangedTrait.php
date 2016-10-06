@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\EntityChangedTrait.
- */
-
 namespace Drupal\Core\Entity;
 
 /**
@@ -50,4 +45,5 @@ trait EntityChangedTrait {
     $this->set('changed', $timestamp);
     return $this;
   }
+
 }

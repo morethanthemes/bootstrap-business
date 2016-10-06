@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\taxonomy\TermViewBuilder.
- */
-
 namespace Drupal\taxonomy;
 
 use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
@@ -12,7 +7,7 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityViewBuilder;
 
 /**
- * Render controller for taxonomy terms.
+ * View builder handler for taxonomy terms.
  */
 class TermViewBuilder extends EntityViewBuilder {
 

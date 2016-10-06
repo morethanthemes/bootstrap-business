@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\config\Tests\ConfigInstallWebTest.
- */
-
 namespace Drupal\config\Tests;
 
 use Drupal\Core\Config\PreExistingConfigException;
@@ -31,7 +26,7 @@ class ConfigInstallWebTest extends WebTestBase {
   protected function setUp() {
     parent::setUp();
 
-    $this->adminUser = $this->drupalCreateUser(array('administer modules', 'administer themes'));
+    $this->adminUser = $this->drupalCreateUser(array('administer modules', 'administer themes', 'administer site configuration'));
 
     // Ensure the global variable being asserted by this test does not exist;
     // a previous test executed in this request/process might have set it.
@@ -185,11 +180,30 @@ class ConfigInstallWebTest extends WebTestBase {
     // not depend on config_test and order is important.
     $this->drupalPostForm('admin/modules', array('modules[Testing][config_test][enable]' => TRUE), t('Install'));
     $this->drupalPostForm('admin/modules', array('modules[Testing][config_install_dependency_test][enable]' => TRUE), t('Install'));
-    $this->assertRaw('Unable to install Config install dependency test, <em class="placeholder">config_test.dynamic.other_module_test_with_dependency</em> has unmet dependencies.');
+    $this->assertRaw('Unable to install Config install dependency test, <em class="placeholder">config_other_module_config_test.weird_simple_config, config_test.dynamic.other_module_test_with_dependency</em> have unmet dependencies.');
 
     $this->drupalPostForm('admin/modules', array('modules[Testing][config_other_module_config_test][enable]' => TRUE), t('Install'));
     $this->drupalPostForm('admin/modules', array('modules[Testing][config_install_dependency_test][enable]' => TRUE), t('Install'));
     $this->rebuildContainer();
     $this->assertTrue(entity_load('config_test', 'other_module_test_with_dependency'), 'The config_test.dynamic.other_module_test_with_dependency configuration has been created during install.');
   }
+
+  /**
+   * Tests config_requirements().
+   */
+  public function testConfigModuleRequirements() {
+    $this->drupalLogin($this->adminUser);
+    $this->drupalPostForm('admin/modules', array('modules[Core][config][enable]' => TRUE), t('Install'));
+
+    $directory = config_get_config_directory(CONFIG_SYNC_DIRECTORY);
+    file_unmanaged_delete_recursive($directory);
+    $this->drupalGet('/admin/reports/status');
+    $this->assertRaw(t('The directory %directory does not exist.', array('%directory' => $directory)));
+
+    file_prepare_directory($directory, FILE_CREATE_DIRECTORY);
+    \Drupal::service('file_system')->chmod($directory, 0555);
+    $this->drupalGet('/admin/reports/status');
+    $this->assertRaw(t('The directory %directory is not writable.', ['%directory' => $directory]));
+  }
+
 }

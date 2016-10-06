@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\image\Tests\ImageAdminStylesTest.
- */
-
 namespace Drupal\image\Tests;
 
 use Drupal\Component\Utility\SafeMarkup;
@@ -244,7 +239,8 @@ class ImageAdminStylesTest extends ImageFieldTestBase {
     $this->assertNoLinkByHref($style_path . '/effects/' . $uuids['image_crop'] . '/delete');
     // Refresh the image style information and verify that the effect was
     // actually deleted.
-    $style = entity_load_unchanged('image_style', $style->id());
+    $entity_type_manager = $this->container->get('entity_type.manager');
+    $style = $entity_type_manager->getStorage('image_style')->loadUnchanged($style->id());
     $this->assertFalse($style->getEffects()->has($uuids['image_crop']), format_string(
       'Effect with ID %uuid no longer found on image style %style',
       array(
@@ -260,7 +256,8 @@ class ImageAdminStylesTest extends ImageFieldTestBase {
     );
     $this->drupalPostForm($style_path, array('new' => 'image_rotate'), t('Add'));
     $this->drupalPostForm(NULL, $edit, t('Add effect'));
-    $style = entity_load_unchanged('image_style', $style_name);
+    $entity_type_manager = $this->container->get('entity_type.manager');
+    $style = $entity_type_manager->getStorage('image_style')->loadUnchanged($style_name);
     $this->assertEqual(count($style->getEffects()), 6, 'Rotate effect with transparent background was added.');
 
     // Style deletion form.
@@ -290,13 +287,54 @@ class ImageAdminStylesTest extends ImageFieldTestBase {
   }
 
   /**
+   * Tests editing Ajax-enabled image effect forms.
+   */
+  public function testAjaxEnabledEffectForm() {
+    $admin_path = 'admin/config/media/image-styles';
+
+    // Setup a style to be created and effects to add to it.
+    $style_name = strtolower($this->randomMachineName(10));
+    $style_label = $this->randomString();
+    $style_path = $admin_path . '/manage/' . $style_name;
+    $effect_edit = [
+      'data[test_parameter]' => 100,
+    ];
+
+    // Add style form.
+    $edit = [
+      'name' => $style_name,
+      'label' => $style_label,
+    ];
+    $this->drupalPostForm($admin_path . '/add', $edit, t('Create new style'));
+    $this->assertRaw(t('Style %name was created.', ['%name' => $style_label]));
+
+    // Add two Ajax-enabled test effects.
+    $this->drupalPostForm($style_path, ['new' => 'image_module_test_ajax'], t('Add'));
+    $this->drupalPostForm(NULL, $effect_edit, t('Add effect'));
+    $this->drupalPostForm($style_path, ['new' => 'image_module_test_ajax'], t('Add'));
+    $this->drupalPostForm(NULL, $effect_edit, t('Add effect'));
+
+    // Load the saved image style.
+    $style = ImageStyle::load($style_name);
+
+    // Edit back the effects.
+    foreach ($style->getEffects() as $uuid => $effect) {
+      $effect_path = $admin_path . '/manage/' . $style_name . '/effects/' . $uuid;
+      $this->drupalGet($effect_path);
+      $this->drupalPostAjaxForm(NULL, $effect_edit, ['op' => t('Ajax refresh')]);
+      $this->drupalPostForm(NULL, $effect_edit, t('Update effect'));
+    }
+
+  }
+
+  /**
    * Test deleting a style and choosing a replacement style.
    */
   function testStyleReplacement() {
     // Create a new style.
     $style_name = strtolower($this->randomMachineName(10));
     $style_label = $this->randomString();
-    $style = entity_create('image_style', array('name' => $style_name, 'label' => $style_label));
+    $style = ImageStyle::create(array('name' => $style_name, 'label' => $style_label));
     $style->save();
     $style_path = 'admin/config/media/image-styles/manage/';
 
@@ -401,7 +439,7 @@ class ImageAdminStylesTest extends ImageFieldTestBase {
 
     // Create a new style.
     $style_name = strtolower($this->randomMachineName(10));
-    $style = entity_create('image_style', array('name' => $style_name, 'label' => $this->randomString()));
+    $style = ImageStyle::create(array('name' => $style_name, 'label' => $this->randomString()));
     $style->save();
 
     // Create an image to make sure it gets flushed.
@@ -431,7 +469,7 @@ class ImageAdminStylesTest extends ImageFieldTestBase {
     // Create a new style.
     $style_name = strtolower($this->randomMachineName(10));
     $style_label = $this->randomString();
-    $style = entity_create('image_style', array('name' => $style_name, 'label' => $style_label));
+    $style = ImageStyle::create(array('name' => $style_name, 'label' => $style_label));
     $style->save();
 
     // Create an image field that uses the new style.
@@ -477,7 +515,7 @@ class ImageAdminStylesTest extends ImageFieldTestBase {
    * Tests access for the image style listing.
    */
   public function testImageStyleAccess() {
-    $style = entity_create('image_style', array('name' => 'style_foo', 'label' => $this->randomString()));
+    $style = ImageStyle::create(array('name' => 'style_foo', 'label' => $this->randomString()));
     $style->save();
 
     $this->drupalGet('admin/config/media/image-styles');

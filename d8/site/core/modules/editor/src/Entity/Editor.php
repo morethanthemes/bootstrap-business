@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\editor\Entity\Editor.
- */
-
 namespace Drupal\editor\Entity;
 
 use Drupal\Core\Config\Entity\ConfigEntityBase;
@@ -16,6 +11,9 @@ use Drupal\editor\EditorInterface;
  * @ConfigEntityType(
  *   id = "editor",
  *   label = @Translation("Text Editor"),
+ *   handlers = {
+ *     "access" = "Drupal\editor\EditorAccessControlHandler",
+ *   },
  *   entity_keys = {
  *     "id" = "format"
  *   },

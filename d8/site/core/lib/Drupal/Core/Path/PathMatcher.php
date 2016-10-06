@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Path\PathMatcher.
- */
-
 namespace Drupal\Core\Path;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -121,4 +116,5 @@ class PathMatcher implements PathMatcherInterface {
     }
     return $this->frontPage;
   }
+
 }

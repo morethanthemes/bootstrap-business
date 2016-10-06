@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rest\Plugin\Deriver\EntityDeriver.
- */
-
 namespace Drupal\rest\Plugin\Deriver;
 
 use Drupal\Core\Entity\EntityManagerInterface;
@@ -98,4 +93,5 @@ class EntityDeriver implements ContainerDeriverInterface {
     }
     return $this->derivatives;
   }
+
 }

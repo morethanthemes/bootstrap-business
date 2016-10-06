@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\plugin_test\Plugin\plugin_test\mock_block\MockLayoutBlockDeriver.
- */
-
 namespace Drupal\plugin_test\Plugin\plugin_test\mock_block;
 
 use Drupal\Component\Plugin\Derivative\DeriverInterface;
@@ -52,4 +47,5 @@ class MockLayoutBlockDeriver implements DeriverInterface {
 
     return $derivatives;
   }
+
 }

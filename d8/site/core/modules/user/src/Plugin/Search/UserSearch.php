@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\Plugin\Search\UserSearch.
- */
-
 namespace Drupal\user\Plugin\Search;
 
 use Drupal\Core\Access\AccessResult;
@@ -163,7 +158,7 @@ class UserSearch extends SearchPluginBase implements AccessibleInterface {
     return $results;
   }
 
-  /*
+  /**
    * {@inheritdoc}
    */
   public function getHelp() {

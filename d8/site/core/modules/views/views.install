@@ -331,3 +331,80 @@ function views_update_8003() {
 /**
  * @} End of "addtogroup updates-8.0.0-rc".
  */
+
+/**
+ * @addtogroup updates-8.0.x
+ * @{
+ */
+
+/**
+ * Clear caches due to updated entity views data.
+ */
+function views_update_8004() {
+  // Empty update to cause a cache flush so that views data is rebuilt.
+}
+
+/**
+ * @} End of "addtogroup updates-8.0.x".
+ */
+
+/**
+ * @addtogroup updates-8.1.0
+ * @{
+ */
+
+/**
+ * Clear views data cache.
+ */
+function views_update_8005() {
+  // Empty update function to rebuild the views data.
+}
+
+/**
+ * Clear caches due to updated entity views data.
+ */
+function views_update_8100() {
+  // Empty update to cause a cache flush so that views data is rebuilt.
+}
+
+/**
+ * Set default values for enabled/expanded flag on page displays.
+ */
+function views_update_8101() {
+  $config_factory = \Drupal::configFactory();
+  foreach ($config_factory->listAll('views.view.') as $view_config_name) {
+    $view = $config_factory->getEditable($view_config_name);
+    $save = FALSE;
+    foreach ($view->get('display') as $display_id => $display) {
+      if ($display['display_plugin'] == 'page') {
+        $display['display_options']['menu']['enabled'] = TRUE;
+        $display['display_options']['menu']['expanded'] = FALSE;
+        $view->set("display.$display_id", $display);
+        $save = TRUE;
+      }
+    }
+    if ($save) {
+      $view->save();
+    }
+  }
+}
+
+/**
+ * @} End of "addtogroup updates-8.1.0".
+ */
+
+/**
+ * @addtogroup updates-8.2.0
+ * @{
+ */
+
+/**
+ * Rebuild the container to add a new container parameter.
+ */
+function views_update_8200() {
+  // Empty update to cause a cache rebuild so that the container is rebuilt.
+}
+
+/**
+ * @} End of "addtogroup updates-8.2.0".
+ */

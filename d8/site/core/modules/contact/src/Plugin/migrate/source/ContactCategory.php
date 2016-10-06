@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\contact\Plugin\migrate\source\ContactCategory.
- */
-
 namespace Drupal\contact\Plugin\migrate\source;
 
 use Drupal\migrate\Row;
@@ -34,7 +29,7 @@ class ContactCategory extends DrupalSqlBase {
         'selected',
       )
     );
-    $query->orderBy('cid');
+    $query->orderBy('c.cid');
     return $query;
   }
 

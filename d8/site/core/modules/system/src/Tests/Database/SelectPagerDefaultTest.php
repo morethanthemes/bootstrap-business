@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Database\SelectPagerDefaultTest.
- */
-
 namespace Drupal\system\Tests\Database;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -169,4 +164,5 @@ class SelectPagerDefaultTest extends DatabaseWebTestBase {
     $this->assertEqual($name, 'John', 'Pager query #3 with a generated element ID returned the correct results.');
 
   }
+
 }

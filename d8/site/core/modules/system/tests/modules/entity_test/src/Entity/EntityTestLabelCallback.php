@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\entity_test\Entity\EntityTestLabelCallback.
- */
-
 namespace Drupal\entity_test\Entity;
 
 /**
@@ -14,11 +9,13 @@ namespace Drupal\entity_test\Entity;
  *   id = "entity_test_label_callback",
  *   label = @Translation("Entity test label callback"),
  *   persistent_cache = FALSE,
- *   base_table = "entity_test",
+ *   base_table = "entity_test_label_callback",
  *   label_callback = "entity_test_label_callback",
  *   entity_keys = {
  *     "id" = "id",
- *     "bundle" = "type"
+ *     "bundle" = "type",
+ *     "uuid" = "uuid",
+ *     "langcode" = "langcode",
  *   }
  * )
  */

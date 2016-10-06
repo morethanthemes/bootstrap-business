@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\taxonomy\Tests\ThemeTest.
- */
-
 namespace Drupal\taxonomy\Tests;
 
 /**
@@ -50,4 +45,5 @@ class ThemeTest extends TaxonomyTestBase {
     $this->drupalGet('taxonomy/term/' . $term->id() . '/edit');
     $this->assertRaw('seven/css/base/elements.css', t("The administrative theme's CSS appears on the page for editing a taxonomy term."));
   }
+
 }

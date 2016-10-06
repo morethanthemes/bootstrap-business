@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Tests\NodeQueryAlterTest.
- */
-
 namespace Drupal\node\Tests;
 
 /**
@@ -69,6 +64,24 @@ class NodeQueryAlterTest extends NodeTestBase {
     }
     catch (\Exception $e) {
       $this->fail(t('Altered query is malformed'));
+    }
+  }
+
+  /**
+   * Tests 'node_access' query alter with revision-enabled nodes.
+   */
+  public function testNodeQueryAlterWithRevisions() {
+    // Execute a query that only deals with the 'node_revision' table.
+    try {
+      $query = \Drupal::entityTypeManager()->getStorage('node')->getQuery();
+      $result = $query
+        ->allRevisions()
+        ->execute();
+
+      $this->assertEqual(count($result), 4, 'User with access can see correct nodes');
+    }
+    catch (\Exception $e) {
+      $this->fail('Altered query is malformed');
     }
   }
 
@@ -180,4 +193,5 @@ class NodeQueryAlterTest extends NodeTestBase {
     }
     \Drupal::state()->delete('node_access_test.no_access_uid');
   }
+
 }

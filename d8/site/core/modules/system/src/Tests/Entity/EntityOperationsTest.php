@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Entity\EntityOperationsTest.
- */
-
 namespace Drupal\system\Tests\Entity;
 
 use Drupal\simpletest\WebTestBase;
@@ -26,7 +21,7 @@ class EntityOperationsTest extends WebTestBase {
   protected function setUp() {
     parent::setUp();
 
-    // Create and login user.
+    // Create and log in user.
     $this->drupalLogin($this->drupalCreateUser(array('administer permissions')));
   }
 

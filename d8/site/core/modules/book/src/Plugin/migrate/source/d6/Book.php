@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\book\Plugin\migrate\source\d6\Book.
- */
-
 namespace Drupal\book\Plugin\migrate\source\d6;
 
 use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
@@ -28,7 +23,7 @@ class Book extends DrupalSqlBase {
     for ($i = 1; $i <= 9; $i++) {
       $field = "p$i";
       $ml_fields[] = $field;
-      $query->orderBy($field);
+      $query->orderBy('ml.' . $field);
     }
     $query->fields('ml', $ml_fields);
     return $query;

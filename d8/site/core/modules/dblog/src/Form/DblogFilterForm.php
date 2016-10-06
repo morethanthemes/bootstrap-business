@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\dblog\Form\DblogFilterForm.
- */
-
 namespace Drupal\dblog\Form;
 
 use Drupal\Core\Form\FormBase;
@@ -31,7 +26,7 @@ class DblogFilterForm extends FormBase {
     $form['filters'] = array(
       '#type' => 'details',
       '#title' => $this->t('Filter log messages'),
-      '#open' => !empty($_SESSION['dblog_overview_filter']),
+      '#open' => TRUE,
     );
     foreach ($filters as $key => $filter) {
       $form['filters']['status'][$key] = array(

@@ -65,7 +65,7 @@ function update_check_incompatibility($name, $type = 'module') {
  * Returns whether the minimum schema requirement has been satisfied.
  *
  * @return array
- *  A requirements info array.
+ *   A requirements info array.
  */
 function update_system_schema_requirements() {
   $requirements = array();
@@ -326,7 +326,7 @@ function update_get_update_list() {
       $updates = array_combine($updates, $updates);
       foreach (array_keys($updates) as $update) {
         if ($update == \Drupal::CORE_MINIMUM_SCHEMA_VERSION) {
-          $ret[$module]['warning'] = '<em>' . $module . '</em> module cannot be updated. It contains an update numbered as ' . \Drupal::CORE_MINIMUM_SCHEMA_VERSION . ' which is reserved for the earliest installation of a module in Drupal ' .  \Drupal::CORE_COMPATIBILITY . ', before any updates. In order to update <em>' . $module . '</em> module, you will need to install a version of the module with valid updates.';
+          $ret[$module]['warning'] = '<em>' . $module . '</em> module cannot be updated. It contains an update numbered as ' . \Drupal::CORE_MINIMUM_SCHEMA_VERSION . ' which is reserved for the earliest installation of a module in Drupal ' . \Drupal::CORE_COMPATIBILITY . ', before any updates. In order to update <em>' . $module . '</em> module, you will need to install a version of the module with valid updates.';
           continue 2;
         }
         if ($update > $schema_version) {
@@ -596,7 +596,7 @@ function update_already_performed($module, $number) {
  *   An array of return values obtained by merging the results of the
  *   hook_update_dependencies() implementations in all installed modules.
  *
- * @see \Drupal::moduleHandler()->invokeAll()
+ * @see \Drupal\Core\Extension\ModuleHandlerInterface::invokeAll()
  * @see hook_update_dependencies()
  */
 function update_retrieve_dependencies() {
@@ -707,7 +707,7 @@ function update_language_list($flags = LanguageInterface::STATE_CONFIGURABLE) {
   // Initialize master language list.
   if (!isset($languages)) {
     // Initialize local language list cache.
-   $languages = array();
+    $languages = array();
 
     // Fill in master language list based on current configuration.
     $default = \Drupal::languageManager()->getDefaultLanguage();

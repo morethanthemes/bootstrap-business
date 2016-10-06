@@ -1,13 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Tests\Plugin\NumericFormatPluralTest.
- */
-
 namespace Drupal\views\Tests\Plugin;
 
 use Drupal\Component\Gettext\PoHeader;
+use Drupal\file\Entity\File;
 use Drupal\views\Tests\ViewTestBase;
 
 /**
@@ -140,11 +136,11 @@ class NumericFormatPluralTest extends ViewTestBase {
    * Creates and saves a test file.
    *
    * @return \Drupal\Core\Entity\EntityInterface
-   *  A file entity.
+   *   A file entity.
    */
   protected function createFile() {
     // Create a new file entity.
-    $file = entity_create('file', array(
+    $file = File::create([
       'uid' => 1,
       'filename' => 'druplicon.txt',
       'uri' => 'public://druplicon.txt',
@@ -152,7 +148,7 @@ class NumericFormatPluralTest extends ViewTestBase {
       'created' => 1,
       'changed' => 1,
       'status' => FILE_STATUS_PERMANENT,
-    ));
+    ]);
     file_put_contents($file->getFileUri(), 'hello world');
 
     // Save it, inserting a new record.
@@ -160,4 +156,5 @@ class NumericFormatPluralTest extends ViewTestBase {
 
     return $file;
   }
+
 }

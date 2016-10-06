@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Config\DatabaseStorage.
- */
-
 namespace Drupal\Core\Config;
 
 use Drupal\Core\Database\Database;
@@ -257,7 +252,8 @@ class DatabaseStorage implements StorageInterface {
    * Implements Drupal\Core\Config\StorageInterface::decode().
    *
    * @throws ErrorException
-   *   unserialize() triggers E_NOTICE if the string cannot be unserialized.
+   *   The unserialize() call will trigger E_NOTICE if the string cannot
+   *   be unserialized.
    */
   public function decode($raw) {
     $data = @unserialize($raw);
@@ -329,6 +325,5 @@ class DatabaseStorage implements StorageInterface {
       return array();
     }
   }
-
 
 }

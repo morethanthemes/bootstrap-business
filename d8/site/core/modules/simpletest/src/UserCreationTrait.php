@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\simpletest\UserCreationTrait.
- */
-
 namespace Drupal\simpletest;
 
 use Drupal\Component\Utility\SafeMarkup;
@@ -82,6 +77,8 @@ trait UserCreationTrait {
 
     // Add the raw password so that we can log in as this user.
     $account->pass_raw = $edit['pass'];
+    // Support BrowserTestBase as well.
+    $account->passRaw = $account->pass_raw;
     return $account;
   }
 

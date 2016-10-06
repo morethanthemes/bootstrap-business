@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views_ui\ViewListBuilder.
- */
-
 namespace Drupal\views_ui;
 
 use Drupal\Component\Plugin\PluginManagerInterface;
@@ -103,9 +98,14 @@ class ViewListBuilder extends ConfigEntityListBuilder {
           'data' => array(
             '#plain_text' => $view->get('description'),
           ),
-          'class' => array('views-table-filter-text-source'),
+          'data-drupal-selector' => 'views-table-filter-text-source',
         ),
-        'tag' => $view->get('tag'),
+        'tag' => array(
+          'data' => array(
+            '#plain_text' => $view->get('tag'),
+          ),
+          'data-drupal-selector' => 'views-table-filter-text-source',
+        ),
         'path' => array(
           'data' => array(
             '#theme' => 'item_list',

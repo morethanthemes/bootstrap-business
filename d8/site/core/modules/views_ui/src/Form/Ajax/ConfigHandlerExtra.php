@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views_ui\Form\Ajax\ConfigHandlerExtra.
- */
-
 namespace Drupal\views_ui\Form\Ajax;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -58,7 +53,7 @@ class ConfigHandlerExtra extends ViewsFormBase {
 
     $form = array(
       'options' => array(
-        '#tree' => true,
+        '#tree' => TRUE,
         '#theme_wrappers' => array('container'),
         '#attributes' => array('class' => array('scroll'), 'data-drupal-views-scroll' => TRUE),
       ),

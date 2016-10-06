@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Plugin\views\row\Rss.
- */
-
 namespace Drupal\node\Plugin\views\row;
 
 use Drupal\Core\Entity\EntityManagerInterface;
@@ -27,12 +22,12 @@ use Drupal\views\Plugin\views\row\RssPluginBase;
 class Rss extends RssPluginBase {
 
   // Basic properties that let the row style follow relationships.
-  var $base_table = 'node_field_data';
+  public $base_table = 'node_field_data';
 
-  var $base_field = 'nid';
+  public $base_field = 'nid';
 
   // Stores the nodes loaded with preRender.
-  var $nodes = array();
+  public $nodes = array();
 
   /**
    * {@inheritdoc}

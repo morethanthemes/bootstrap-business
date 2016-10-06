@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\aggregator\ItemInterface.
- */
-
 namespace Drupal\aggregator;
 
 use Drupal\Core\Entity\ContentEntityInterface;
@@ -146,4 +141,5 @@ interface ItemInterface extends ContentEntityInterface {
    *   The called feed item entity.
    */
   public function setGuid($guid);
+
 }

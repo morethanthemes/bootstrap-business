@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\field_test\Plugin\Field\FieldType\TestItemWithDependencies.
- */
-
 namespace Drupal\field_test\Plugin\Field\FieldType;
 
 use Drupal\Core\Field\FieldDefinitionInterface;
@@ -26,7 +21,6 @@ use Drupal\Core\Field\FieldDefinitionInterface;
  *   }
  * )
  */
-
 class TestItemWithDependencies extends TestItem {
 
   /**

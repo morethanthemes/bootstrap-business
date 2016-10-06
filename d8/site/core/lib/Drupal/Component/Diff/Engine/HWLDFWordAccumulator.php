@@ -1,17 +1,11 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\Diff\Engine\HWLDFWordAccumulator.
- */
-
 namespace Drupal\Component\Diff\Engine;
 
 use Drupal\Component\Utility\Unicode;
 
 /**
- *  Additions by Axel Boldt follow, partly taken from diff.php, phpwiki-1.3.3
- *
+ * Additions by Axel Boldt follow, partly taken from diff.php, phpwiki-1.3.3
  */
 
 /**
@@ -81,4 +75,5 @@ class HWLDFWordAccumulator {
     $this->_flushLine('~done');
     return $this->lines;
   }
+
 }

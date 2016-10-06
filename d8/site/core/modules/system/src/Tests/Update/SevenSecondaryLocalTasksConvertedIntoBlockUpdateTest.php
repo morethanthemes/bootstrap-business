@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Update\SevenSecondaryLocalTasksConvertedIntoBlockUpdateTest.
- */
-
 namespace Drupal\system\Tests\Update;
 
 /**
@@ -50,7 +45,7 @@ class SevenSecondaryLocalTasksConvertedIntoBlockUpdateTest extends UpdatePathTes
     // after updates in https://www.drupal.org/node/2435135.
     \Drupal::state()->set('system.maintenance_mode', FALSE);
 
-    // We finished updating so we can login the user now.
+    // We finished updating so we can log in the user now.
     $this->drupalLogin($this->rootUser);
 
     // Local actions are visible on the content listing page.

@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\views_test_data\Form\ViewsTestDataElementEmbedForm.
- */
 
 namespace Drupal\views_test_data\Form;
 
@@ -41,4 +37,5 @@ class ViewsTestDataElementEmbedForm extends FormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
   }
+
 }

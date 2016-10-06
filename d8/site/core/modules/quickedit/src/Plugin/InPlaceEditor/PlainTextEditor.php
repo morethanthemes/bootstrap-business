@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\quickedit\Plugin\InPlaceEditor\PlainTextEditor.
- */
-
 namespace Drupal\quickedit\Plugin\InPlaceEditor;
 
 use Drupal\Core\Field\FieldItemListInterface;
@@ -26,16 +21,7 @@ class PlainTextEditor extends InPlaceEditorBase {
     $field_definition = $items->getFieldDefinition();
 
     // This editor is incompatible with multivalued fields.
-    if ($field_definition->getFieldStorageDefinition()->getCardinality() != 1) {
-      return FALSE;
-    }
-    // This editor is incompatible with formatted ("rich") text fields.
-    elseif (in_array($field_definition->getType(), array('text', 'text_long', 'text_with_summary'), TRUE)) {
-      return FALSE;
-    }
-    else {
-      return TRUE;
-    }
+    return $field_definition->getFieldStorageDefinition()->getCardinality() == 1;
   }
 
   /**

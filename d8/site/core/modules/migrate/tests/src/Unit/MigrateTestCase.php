@@ -1,15 +1,10 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\migrate\Unit\MigrateTestCase.
- */
-
 namespace Drupal\Tests\migrate\Unit;
 
 use Drupal\Core\Database\Driver\sqlite\Connection;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
-use Drupal\migrate\Entity\MigrationInterface;
+use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\Tests\UnitTestCase;
 
 /**
@@ -34,18 +29,18 @@ abstract class MigrateTestCase extends UnitTestCase {
   /**
    * Local store for mocking setStatus()/getStatus().
    *
-   * @var \Drupal\migrate\Entity\MigrationInterface::STATUS_*
+   * @var \Drupal\migrate\Plugin\MigrationInterface::STATUS_*
    */
   protected $migrationStatus = MigrationInterface::STATUS_IDLE;
 
   /**
    * Retrieves a mocked migration.
    *
-   * @return \Drupal\migrate\Entity\MigrationInterface|\PHPUnit_Framework_MockObject_MockObject
+   * @return \Drupal\migrate\Plugin\MigrationInterface|\PHPUnit_Framework_MockObject_MockObject
    *   The mocked migration.
    */
   protected function getMigration() {
-    $this->migrationConfiguration += ['migrationClass' => 'Drupal\migrate\Entity\Migration'];
+    $this->migrationConfiguration += ['migrationClass' => 'Drupal\migrate\Plugin\Migration'];
     $this->idMap = $this->getMock('Drupal\migrate\Plugin\MigrateIdMapInterface');
 
     $this->idMap
@@ -83,9 +78,9 @@ abstract class MigrateTestCase extends UnitTestCase {
 
     $configuration = &$this->migrationConfiguration;
 
-    $migration->method('get')
-      ->willReturnCallback(function ($argument) use (&$configuration) {
-        return isset($configuration[$argument]) ? $configuration[$argument] : '';
+    $migration->method('getHighWaterProperty')
+      ->willReturnCallback(function () use ($configuration) {
+        return isset($configuration['high_water_property']) ? $configuration['high_water_property'] : '';
       });
 
     $migration->method('set')
@@ -204,9 +199,11 @@ abstract class MigrateTestCase extends UnitTestCase {
    */
   protected function retrievalAssertHelper($expected_value, $actual_value, $message) {
     if (is_array($expected_value)) {
-      foreach ($expected_value as $k => $v) {
-        $this->retrievalAssertHelper($v, $actual_value[$k], $message . '[' . $k . ']');
+      // If the expected and actual values are empty, no need to array compare.
+      if (empty($expected_value && $actual_value)) {
+        return;
       }
+      $this->assertArrayEquals($expected_value, $actual_value, $message);
     }
     else {
       $this->assertSame((string) $expected_value, (string) $actual_value, $message);

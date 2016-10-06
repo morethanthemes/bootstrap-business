@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\KeyValueStore\KeyValueNullExpirableFactory.
- */
-
 namespace Drupal\Core\KeyValueStore;
 
 /**
@@ -18,4 +13,5 @@ class KeyValueNullExpirableFactory implements KeyValueExpirableFactoryInterface 
   public function get($collection) {
     return new NullStorageExpirable($collection);
   }
+
 }

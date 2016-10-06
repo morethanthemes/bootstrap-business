@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Form\FormBuilder.
- */
-
 namespace Drupal\Core\Form;
 
 use Drupal\Component\Utility\Crypt;
@@ -655,8 +650,8 @@ class FormBuilder implements FormBuilderInterface, FormValidatorInterface, FormS
    * #lazy_builder callback; renders form CSRF token.
    *
    * @param string $placeholder
-   *  A string containing a placeholder, matching the value of the form's
-   *  #token.
+   *   A string containing a placeholder, matching the value of the form's
+   *   #token.
    *
    * @return array
    *   A renderable array containing the CSRF token.
@@ -1037,7 +1032,7 @@ class FormBuilder implements FormBuilderInterface, FormValidatorInterface, FormS
 
       // Assign a decimal placeholder weight to preserve original array order.
       if (!isset($element[$key]['#weight'])) {
-        $element[$key]['#weight'] = $count/1000;
+        $element[$key]['#weight'] = $count / 1000;
       }
       else {
         // If one of the child elements has a weight then we will need to sort

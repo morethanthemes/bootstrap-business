@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\search\Tests\SearchPreprocessLangcodeTest.
- */
 
 namespace Drupal\search\Tests;
 
@@ -99,4 +95,5 @@ class SearchPreprocessLangcodeTest extends SearchTestBase {
     $this->assertText('Search results');
     $this->assertText('we are testing');
   }
+
 }

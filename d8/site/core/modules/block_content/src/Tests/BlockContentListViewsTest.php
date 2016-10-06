@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\block_content\Tests\BlockContentListViewsTest.
- */
-
 namespace Drupal\block_content\Tests;
 
 /**
@@ -32,6 +27,10 @@ class BlockContentListViewsTest extends BlockContentTestBase {
 
     // Test for the page title.
     $this->assertTitle(t('Custom block library') . ' | Drupal');
+
+    // Test for the exposed filters.
+    $this->assertFieldByName('info');
+    $this->assertFieldByName('type');
 
     // Test for the table.
     $element = $this->xpath('//div[@class="layout-content"]//table');

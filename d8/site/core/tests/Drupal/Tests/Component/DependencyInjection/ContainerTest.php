@@ -9,7 +9,6 @@ namespace Drupal\Tests\Component\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
-use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Prophecy\Argument;
 
 /**
@@ -132,7 +131,7 @@ class ContainerTest extends \PHPUnit_Framework_TestCase {
    *
    * @covers ::setParameter
    *
-   * @expectedException LogicException
+   * @expectedException \Symfony\Component\DependencyInjection\Exception\LogicException
    */
   public function testSetParameterWithFrozenContainer() {
     $this->container = new $this->containerClass($this->containerDefinition);
@@ -221,6 +220,17 @@ class ContainerTest extends \PHPUnit_Framework_TestCase {
     $mock_service = new MockService();
     $this->container->set('another.service', $mock_service);
     $this->assertTrue($this->container->has('another.service'));
+  }
+
+  /**
+   * Tests that Container::has() for aliased services works properly.
+   *
+   * @covers ::has
+   */
+  public function testHasForAliasedService() {
+    $service = $this->container->has('service.provider');
+    $aliased_service = $this->container->has('service.provider_alias');
+    $this->assertSame($service, $aliased_service);
   }
 
   /**
@@ -442,8 +452,8 @@ class ContainerTest extends \PHPUnit_Framework_TestCase {
    */
   public function testGetForInstantiationWithVariousArgumentLengths() {
     $args = array();
-    for ($i=0; $i < 12; $i++) {
-      $instantiation_service = $this->container->get('service_test_instantiation_'. $i);
+    for ($i = 0; $i < 12; $i++) {
+      $instantiation_service = $this->container->get('service_test_instantiation_' . $i);
       $this->assertEquals($args, $instantiation_service->getArguments());
       $args[] = 'arg_' . $i;
     }
@@ -481,7 +491,7 @@ class ContainerTest extends \PHPUnit_Framework_TestCase {
    */
   public function testGetForFactoryClass() {
     $service = $this->container->get('service.provider');
-    $factory_service= $this->container->get('factory_class');
+    $factory_service = $this->container->get('factory_class');
 
     $this->assertInstanceOf(get_class($service), $factory_service);
     $this->assertEquals('bar', $factory_service->getSomeParameter(), 'Correct parameter was passed via the factory class instantiation.');
@@ -893,7 +903,7 @@ class ContainerTest extends \PHPUnit_Framework_TestCase {
 
     // Test multiple arguments.
     $args = array();
-    for ($i=0; $i < 12; $i++) {
+    for ($i = 0; $i < 12; $i++) {
       $services['service_test_instantiation_' . $i] = array(
         'class' => '\Drupal\Tests\Component\DependencyInjection\MockInstantiationService',
         // Also test a collection that does not need resolving.

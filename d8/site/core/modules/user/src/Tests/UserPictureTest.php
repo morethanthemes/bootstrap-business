@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\Tests\UserPictureTest.
- */
-
 namespace Drupal\user\Tests;
 
 use Drupal\image\Entity\ImageStyle;
@@ -144,4 +139,5 @@ class UserPictureTest extends WebTestBase {
     $account = $user_storage->load($this->webUser->id());
     return File::load($account->user_picture->target_id);
   }
+
 }

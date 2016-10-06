@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\views\Unit\Plugin\argument_validator\EntityTest.
- */
-
 namespace Drupal\Tests\views\Unit\Plugin\argument_validator;
 
 use Drupal\Tests\UnitTestCase;
@@ -219,7 +214,7 @@ class EntityTest extends UnitTestCase {
     $options['bundles'] = array('test_bundle' => 1);
     $argumentValidator->init($this->executable, $this->display, $options);
 
-    $this->assertEquals(['config'=>['test_bundle']], $argumentValidator->calculateDependencies());
+    $this->assertEquals(['config' => ['test_bundle']], $argumentValidator->calculateDependencies());
   }
 
   /**

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\DrupalKernelInterface.
- */
-
 namespace Drupal\Core;
 
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
@@ -63,7 +58,7 @@ interface DrupalKernelInterface extends HttpKernelInterface, ContainerAwareInter
    *
    * This also allows inspecting a built container for debugging purposes.
    *
-   * @return array|NULL
+   * @return array|null
    *   The cached container definition or NULL if not found in cache.
    */
   public function getCachedContainerDefinition();

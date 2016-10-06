@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\FileTransfer\FileTransferException.
- */
-
 namespace Drupal\Core\FileTransfer;
 
 /**
@@ -33,4 +28,5 @@ class FileTransferException extends \RuntimeException {
     parent::__construct($message, $code);
     $this->arguments = $arguments;
   }
+
 }

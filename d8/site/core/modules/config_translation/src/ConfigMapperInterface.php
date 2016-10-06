@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\config_translation\ConfigMapperInterface.
- */
-
 namespace Drupal\config_translation;
 
 use Drupal\Core\Language\LanguageInterface;
@@ -206,6 +201,17 @@ interface ConfigMapperInterface {
    *   match.
    */
   public function getLangcode();
+
+  /**
+   * Returns the language code of a configuration object given its name.
+   *
+   * @param string $config_name
+   *   The name of the configuration object.
+   *
+   * @return string
+   *   The language code of the configuration object.
+   */
+  public function getLangcodeFromConfig($config_name);
 
   /**
    * Sets the original language code.

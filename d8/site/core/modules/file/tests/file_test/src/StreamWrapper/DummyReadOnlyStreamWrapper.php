@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\file_test\StreamWrapper\DummyReadOnlyStreamWrapper.
- */
-
 namespace Drupal\file_test\StreamWrapper;
 
 use Drupal\Core\StreamWrapper\LocalReadOnlyStream;
@@ -51,4 +46,5 @@ class DummyReadOnlyStreamWrapper extends LocalReadOnlyStream {
   function getExternalUrl() {
     return '/dummy/example.txt';
   }
+
 }

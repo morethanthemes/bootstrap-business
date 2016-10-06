@@ -1,11 +1,6 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Form\FormTestBase.
- */
-
-namespace Drupal\Tests\Core\Form {
+namespace Drupal\Tests\Core\Form;
 
 use Drupal\Component\Utility\Html;
 use Drupal\Core\Form\FormBuilder;
@@ -118,7 +113,6 @@ abstract class FormTestBase extends UnitTestCase {
   protected $elementInfo;
 
   /**
-   *
    * The event dispatcher.
    *
    * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface|\PHPUnit_Framework_MockObject_MockObject
@@ -152,6 +146,9 @@ abstract class FormTestBase extends UnitTestCase {
    */
   protected function setUp() {
     parent::setUp();
+
+    // Add functions to the global namespace for testing.
+    require_once __DIR__ . '/fixtures/form_base_test.inc';
 
     $this->moduleHandler = $this->getMock('Drupal\Core\Extension\ModuleHandlerInterface');
 
@@ -314,38 +311,6 @@ abstract class FormTestBase extends UnitTestCase {
       $types[$type] = array();
     }
     return $types[$type];
-  }
-
-}
-
-}
-
-namespace {
-
-  function test_form_id() {
-    $form['test'] = array(
-      '#type' => 'textfield',
-      '#title' => 'Test',
-    );
-    $form['options'] = array(
-      '#type' => 'radios',
-      '#options' => array(
-        'foo' => 'foo',
-        'bar' => 'bar',
-      ),
-    );
-    $form['value'] = array(
-      '#type' => 'value',
-      '#value' => 'bananas',
-    );
-    $form['actions'] = array(
-      '#type' => 'actions',
-    );
-    $form['actions']['submit'] = array(
-      '#type' => 'submit',
-      '#value' => 'Submit',
-    );
-    return $form;
   }
 
 }

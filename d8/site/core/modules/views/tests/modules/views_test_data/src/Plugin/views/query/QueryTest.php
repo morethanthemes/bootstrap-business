@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views_test_data\Plugin\views\query\QueryTest.
- */
-
 namespace Drupal\views_test_data\Plugin\views\query;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -95,7 +90,7 @@ class QueryTest extends QueryPluginBase {
     // @todo You could add a string representation of the query.
     $this->view->build_info['query'] = "";
     $this->view->build_info['count_query'] = "";
-}
+  }
 
   /**
    * {@inheritdoc}

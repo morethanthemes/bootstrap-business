@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Ajax\OpenModalDialogCommand.
- */
-
 namespace Drupal\Core\Ajax;
 
 /**
@@ -38,4 +33,5 @@ class OpenModalDialogCommand extends OpenDialogCommand {
     $dialog_options['modal'] = TRUE;
     parent::__construct('#drupal-modal', $title, $content, $dialog_options, $settings);
   }
+
 }

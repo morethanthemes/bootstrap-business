@@ -1,11 +1,6 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\language\Unit\LanguageNegotiationUrlTest.
- */
-
-namespace Drupal\Tests\language\Unit {
+namespace Drupal\Tests\language\Unit;
 
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Language\LanguageInterface;
@@ -254,15 +249,14 @@ class LanguageNegotiationUrlTest extends UnitTestCase {
     );
     return $domain_configuration;
   }
-}
 
 }
 
 // @todo Remove as part of https://www.drupal.org/node/2481833.
-namespace {
-  if (!function_exists('base_path')) {
-    function base_path() {
-      return '/';
-    }
+namespace Drupal\language\Plugin\LanguageNegotiation;
+
+if (!function_exists('base_path')) {
+  function base_path() {
+    return '/';
   }
 }

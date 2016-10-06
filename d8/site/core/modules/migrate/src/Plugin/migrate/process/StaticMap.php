@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\migrate\Plugin\migrate\process\StaticMap.
- */
-
 namespace Drupal\migrate\Plugin\migrate\process;
 
 use Drupal\Component\Utility\NestedArray;
@@ -17,7 +12,7 @@ use Drupal\migrate\MigrateSkipRowException;
 /**
  * This plugin changes the current value based on a static lookup map.
  *
- * @see https://www.drupal.org/node/2143521
+ * @link https://www.drupal.org/node/2143521 Online handbook documentation for static_map process plugin @endlink
  *
  * @MigrateProcessPlugin(
  *   id = "static_map"
@@ -40,7 +35,7 @@ class StaticMap extends ProcessPluginBase {
     }
     $new_value = NestedArray::getValue($this->configuration['map'], $new_value, $key_exists);
     if (!$key_exists) {
-      if (isset($this->configuration['default_value'])) {
+      if (array_key_exists('default_value', $this->configuration)) {
         if (!empty($this->configuration['bypass'])) {
           throw new MigrateException('Setting both default_value and bypass is invalid.');
         }

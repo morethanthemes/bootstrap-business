@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\StreamWrapper\LocalReadOnlyStream.
- */
-
 namespace Drupal\Core\StreamWrapper;
 
 /**
@@ -21,24 +16,14 @@ namespace Drupal\Core\StreamWrapper;
 abstract class LocalReadOnlyStream extends LocalStream {
 
   /**
-   * Support for fopen(), file_get_contents(), etc.
-   *
-   * Any write modes will be rejected, as this is a read-only stream wrapper.
-   *
-   * @param string $uri
-   *   A string containing the URI to the file to open.
-   * @param int $mode
-   *   The file mode, only strict readonly modes are supported.
-   * @param int $options
-   *   A bit mask of STREAM_USE_PATH and STREAM_REPORT_ERRORS.
-   * @param string $opened_path
-   *   A string containing the path actually opened.
-   *
-   * @return bool
-   *   TRUE if $mode denotes a readonly mode and the file was opened
-   *   successfully, FALSE otherwise.
-   *
-   * @see http://php.net/manual/streamwrapper.stream-open.php
+   * {@inheritdoc}
+   */
+  public static function getType() {
+    return StreamWrapperInterface::READ_VISIBLE | StreamWrapperInterface::LOCAL;
+  }
+
+  /**
+   * {@inheritdoc}
    */
   public function stream_open($uri, $mode, $options, &$opened_path) {
     if (!in_array($mode, array('r', 'rb', 'rt'))) {
@@ -47,15 +32,7 @@ abstract class LocalReadOnlyStream extends LocalStream {
       }
       return FALSE;
     }
-
-    $this->uri = $uri;
-    $path = $this->getLocalPath();
-    $this->handle = ($options & STREAM_REPORT_ERRORS) ? fopen($path, $mode) : @fopen($path, $mode);
-    if ($this->handle !== FALSE && ($options & STREAM_USE_PATH)) {
-      $opened_path = $path;
-    }
-
-    return (bool) $this->handle;
+    return parent::stream_open($uri, $mode, $options, $opened_path);
   }
 
   /**
@@ -81,11 +58,11 @@ abstract class LocalReadOnlyStream extends LocalStream {
    */
   public function stream_lock($operation) {
     // Disallow exclusive lock or non-blocking lock requests
-    if (in_array($operation, array(LOCK_EX, LOCK_EX|LOCK_NB))) {
+    if (in_array($operation, array(LOCK_EX, LOCK_EX | LOCK_NB))) {
       trigger_error('stream_lock() exclusive lock operations not supported for read-only stream wrappers', E_USER_WARNING);
       return FALSE;
     }
-    if (in_array($operation, array(LOCK_SH, LOCK_UN, LOCK_SH|LOCK_NB))) {
+    if (in_array($operation, array(LOCK_SH, LOCK_UN, LOCK_SH | LOCK_NB))) {
       return flock($this->handle, $operation);
     }
 
@@ -104,7 +81,7 @@ abstract class LocalReadOnlyStream extends LocalStream {
    * @return bool
    *   FALSE as data will not be written.
    *
-   * @see http://php.net/manual/en/streamwrapper.stream-write.php
+   * @see http://php.net/manual/streamwrapper.stream-write.php
    */
   public function stream_write($data) {
     trigger_error('stream_write() not supported for read-only stream wrappers', E_USER_WARNING);
@@ -158,7 +135,7 @@ abstract class LocalReadOnlyStream extends LocalStream {
    *   TRUE so that file_delete() will remove db reference to file. File is not
    *   actually deleted.
    *
-   * @see http://php.net/manual/en/streamwrapper.unlink.php
+   * @see http://php.net/manual/streamwrapper.unlink.php
    */
   public function unlink($uri) {
     trigger_error('unlink() not supported for read-only stream wrappers', E_USER_WARNING);
@@ -178,7 +155,7 @@ abstract class LocalReadOnlyStream extends LocalStream {
    * @return bool
    *   FALSE as file will never be renamed.
    *
-   * @see http://php.net/manual/en/streamwrapper.rename.php
+   * @see http://php.net/manual/streamwrapper.rename.php
    */
   public function rename($from_uri, $to_uri) {
     trigger_error('rename() not supported for read-only stream wrappers', E_USER_WARNING);
@@ -200,7 +177,7 @@ abstract class LocalReadOnlyStream extends LocalStream {
    * @return bool
    *   FALSE as directory will never be created.
    *
-   * @see http://php.net/manual/en/streamwrapper.mkdir.php
+   * @see http://php.net/manual/streamwrapper.mkdir.php
    */
   public function mkdir($uri, $mode, $options) {
     trigger_error('mkdir() not supported for read-only stream wrappers', E_USER_WARNING);
@@ -220,7 +197,7 @@ abstract class LocalReadOnlyStream extends LocalStream {
    * @return bool
    *   FALSE as directory will never be deleted.
    *
-   * @see http://php.net/manual/en/streamwrapper.rmdir.php
+   * @see http://php.net/manual/streamwrapper.rmdir.php
    */
   public function rmdir($uri, $options) {
     trigger_error('rmdir() not supported for read-only stream wrappers', E_USER_WARNING);

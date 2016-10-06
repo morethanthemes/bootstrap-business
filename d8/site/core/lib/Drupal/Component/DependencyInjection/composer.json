@@ -10,6 +10,13 @@
     "irc": "irc://irc.freenode.net/drupal-contribute",
     "source": "https://www.drupal.org/project/drupal/git-instructions"
   },
+  "require": {
+    "php": ">=5.5.9",
+    "symfony/dependency-injection": "~2.8"
+  },
+  "suggest": {
+    "symfony/expression-language": "For using expressions in service container configuration"
+  },
   "autoload": {
     "psr-4": {
       "Drupal\\Component\\DependencyInjection\\": ""

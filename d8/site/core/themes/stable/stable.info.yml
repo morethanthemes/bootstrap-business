@@ -21,6 +21,10 @@ libraries-override:
     css:
       component:
         css/plugins/drupalimagecaption/ckeditor.drupalimagecaption.css: css/ckeditor/plugins/drupalimagecaption/ckeditor.drupalimagecaption.css
+  ckeditor/drupal.ckeditor.plugins.language:
+    css:
+      component:
+        css/plugins/language/ckeditor.language.css: css/ckeditor/plugins/language/ckeditor.language.css
   ckeditor/drupal.ckeditor.admin:
     css:
       theme:
@@ -234,8 +238,8 @@ libraries-override:
         css/views_ui.admin.theme.css: css/views_ui/views_ui.admin.theme.css
         css/views_ui.contextual.css: css/views_ui/views_ui.contextual.css
 
-# Information added by Drupal.org packaging script on 2016-02-03
-version: '8.0.3'
+# Information added by Drupal.org packaging script on 2016-10-05
+version: '8.2.0'
 core: '8.x'
 project: 'drupal'
-datestamp: 1454490380
+datestamp: 1475661293

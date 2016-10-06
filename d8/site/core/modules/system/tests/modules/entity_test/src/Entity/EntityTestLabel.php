@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\entity_test\Entity\EntityTestLabel.
- */
-
 namespace Drupal\entity_test\Entity;
 
 /**
@@ -17,12 +12,14 @@ namespace Drupal\entity_test\Entity;
  *     "access" = "Drupal\entity_test\EntityTestAccessControlHandler",
  *     "view_builder" = "Drupal\entity_test\EntityTestViewBuilder"
  *   },
- *   base_table = "entity_test",
+ *   base_table = "entity_test_label",
  *   render_cache = FALSE,
  *   entity_keys = {
+ *     "uuid" = "uuid",
  *     "id" = "id",
  *     "label" = "name",
- *     "bundle" = "type"
+ *     "bundle" = "type",
+ *     "langcode" = "langcode",
  *   }
  * )
  */

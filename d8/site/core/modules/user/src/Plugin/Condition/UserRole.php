@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\Plugin\Condition\UserRole.
- */
-
 namespace Drupal\user\Plugin\Condition;
 
 use Drupal\Core\Condition\ConditionPluginBase;
@@ -20,7 +15,6 @@ use Drupal\Core\Form\FormStateInterface;
  *     "user" = @ContextDefinition("entity:user", label = @Translation("User"))
  *   }
  * )
- *
  */
 class UserRole extends ConditionPluginBase {
 

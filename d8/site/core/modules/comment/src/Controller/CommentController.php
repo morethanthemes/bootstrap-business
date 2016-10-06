@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\comment\Controller\CommentController.
- */
-
 namespace Drupal\comment\Controller;
 
 use Drupal\comment\CommentInterface;
@@ -84,8 +79,7 @@ class CommentController extends ControllerBase {
    * @param \Drupal\comment\CommentInterface $comment
    *   A comment entity.
    *
-   * @return \Symfony\Component\HttpFoundation\RedirectResponse.
-   *   Redirects to the permalink URL for this comment.
+   * @return \Symfony\Component\HttpFoundation\RedirectResponse
    */
   public function commentApprove(CommentInterface $comment) {
     $comment->setPublished(TRUE);
@@ -130,14 +124,12 @@ class CommentController extends ControllerBase {
       // Find the current display page for this comment.
       $page = $this->entityManager()->getStorage('comment')->getDisplayOrdinal($comment, $field_definition->getSetting('default_mode'), $field_definition->getSetting('per_page'));
       // @todo: Cleaner sub request handling.
-      $subrequest_url = $entity->urlInfo()->toString(TRUE);
+      $subrequest_url = $entity->urlInfo()->setOption('query', ['page' => $page])->toString(TRUE);
       $redirect_request = Request::create($subrequest_url->getGeneratedUrl(), 'GET', $request->query->all(), $request->cookies->all(), array(), $request->server->all());
-      $redirect_request->query->set('page', $page);
       // Carry over the session to the subrequest.
       if ($session = $request->getSession()) {
         $redirect_request->setSession($session);
       }
-      // @todo: Convert the pager to use the request object.
       $request->query->set('page', $page);
       $response = $this->httpKernel->handle($redirect_request, HttpKernelInterface::SUB_REQUEST);
       if ($response instanceof CacheableResponseInterface) {
@@ -289,7 +281,7 @@ class CommentController extends ControllerBase {
 
     $status = $entity->{$field_name}->status;
     $access = $access->andIf(AccessResult::allowedIf($status == CommentItemInterface::OPEN)
-      ->cacheUntilEntityChanges($entity));
+      ->addCacheableDependency($entity));
 
     // $pid indicates that this is a reply to a comment.
     if ($pid) {
@@ -301,7 +293,7 @@ class CommentController extends ControllerBase {
       // Check if the parent comment is published and belongs to the entity.
       $access = $access->andIf(AccessResult::allowedIf($comment && $comment->isPublished() && $comment->getCommentedEntityId() == $entity->id()));
       if ($comment) {
-        $access->cacheUntilEntityChanges($comment);
+        $access->addCacheableDependency($comment);
       }
     }
     return $access;

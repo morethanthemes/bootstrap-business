@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views_ui\Tests\HandlerTest.
- */
-
 namespace Drupal\views_ui\Tests;
 
 use Drupal\Component\Utility\SafeMarkup;
@@ -65,7 +60,9 @@ class HandlerTest extends UITestBase {
   /**
    * Overrides \Drupal\views\Tests\ViewTestBase::viewsData().
    *
-   * Adds a relationship for the uid column.
+   * Adds:
+   * - a relationship for the uid column.
+   * - a dummy field with no help text.
    */
   protected function viewsData() {
     $data = parent::viewsData();
@@ -78,6 +75,12 @@ class HandlerTest extends UITestBase {
         'base field' => 'uid'
       )
     );
+
+    // Create a dummy field with no help text.
+    $data['views_test_data']['no_help'] = $data['views_test_data']['name'];
+    $data['views_test_data']['no_help']['field']['title'] = t('No help');
+    $data['views_test_data']['no_help']['field']['real field'] = 'name';
+    unset($data['views_test_data']['no_help']['help']);
 
     return $data;
   }
@@ -237,13 +240,30 @@ class HandlerTest extends UITestBase {
       $add_handler_url = 'admin/structure/views/nojs/add-handler/test_node_view/default/' . $handler_type;
       $this->drupalGet($add_handler_url);
 
-      $this->assertNoDuplicateField('Node ID', 'Content');
-      $this->assertNoDuplicateField('Node ID', 'Content revision');
-      $this->assertNoDuplicateField('Type', 'Content');
+      $this->assertNoDuplicateField('ID', 'Content');
+      $this->assertNoDuplicateField('ID', 'Content revision');
+      $this->assertNoDuplicateField('Content type', 'Content');
       $this->assertNoDuplicateField('UUID', 'Content');
       $this->assertNoDuplicateField('Revision ID', 'Content');
       $this->assertNoDuplicateField('Revision ID', 'Content revision');
     }
+  }
+
+  /**
+   * Ensures that no missing help text is shown.
+   *
+   * @see \Drupal\views\EntityViewsData
+   */
+  public function testErrorMissingHelp() {
+    // Test that the error message is not shown for entity fields but an empty
+    // description field is shown instead.
+    $this->drupalGet('admin/structure/views/nojs/add-handler/test_node_view/default/field');
+    $this->assertNoText('Error: missing help');
+    $this->assertRaw('<td class="description"></td>', 'Empty description found');
+
+    // Test that no error message is shown for other fields.
+    $this->drupalGet('admin/structure/views/nojs/add-handler/test_view_empty/default/field');
+    $this->assertNoText('Error: missing help');
   }
 
   /**
@@ -256,6 +276,7 @@ class HandlerTest extends UITestBase {
    */
   public function assertNoDuplicateField($field_name, $entity_type) {
     $elements = $this->xpath('//td[.=:entity_type]/preceding-sibling::td[@class="title" and .=:title]', [':title' => $field_name, ':entity_type' => $entity_type]);
-    $this->assertEqual(1, count($elements), $field_name . ' appears just once in ' . $entity_type .  '.');
+    $this->assertEqual(1, count($elements), $field_name . ' appears just once in ' . $entity_type . '.');
   }
+
 }

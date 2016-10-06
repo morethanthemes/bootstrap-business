@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\Element\StatusMessages.
- */
-
 namespace Drupal\Core\Render\Element;
 
 /**
@@ -17,7 +12,7 @@ namespace Drupal\Core\Render\Element;
  * $build['status_messages'] = [
  *   '#type' => 'status_messages',
  * ];
- * @end
+ * @endcode
  *
  * @RenderElement("status_messages")
  */
@@ -50,12 +45,15 @@ class StatusMessages extends RenderElement {
    *   The updated renderable array containing the placeholder.
    */
   public static function generatePlaceholder(array $element) {
-    $element['messages_placeholder'] = [
+    $element = [
       '#lazy_builder' => [get_class() . '::renderMessages', [$element['#display']]],
       '#create_placeholder' => TRUE,
     ];
 
-    return $element;
+    // Directly create a placeholder as we need this to be placeholdered
+    // regardless if this is a POST or GET request.
+    // @todo remove this when https://www.drupal.org/node/2367555 lands.
+    return \Drupal::service('render_placeholder_generator')->createPlaceholder($element);
   }
 
   /**

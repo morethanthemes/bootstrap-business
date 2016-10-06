@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Form\ModulesUninstallConfirmForm.
- */
-
 namespace Drupal\system\Form;
 
 use Drupal\Core\Config\ConfigManagerInterface;
@@ -148,7 +143,7 @@ class ModulesUninstallConfirmForm extends ConfirmFormBase {
     );
 
     // List the dependent entities.
-    $this->addDependencyListsToForm($form, 'module', $this->modules , $this->configManager, $this->entityManager);
+    $this->addDependencyListsToForm($form, 'module', $this->modules, $this->configManager, $this->entityManager);
 
     return parent::buildForm($form, $form_state);
   }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\ManyToOneHelper.
- */
-
 namespace Drupal\views;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -22,7 +17,6 @@ use Drupal\views\Plugin\views\HandlerBase;
  * definition terms:
  * - numeric: If true, treat this field as numeric, using %d instead of %s in
  *            queries.
- *
  */
 class ManyToOneHelper {
 

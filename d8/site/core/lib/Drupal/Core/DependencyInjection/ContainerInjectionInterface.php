@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\DependencyInjection\ContainerInjectionInterface.
- */
-
 namespace Drupal\Core\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -29,4 +24,5 @@ interface ContainerInjectionInterface {
    *   The service container this instance should use.
    */
   public static function create(ContainerInterface $container);
+
 }

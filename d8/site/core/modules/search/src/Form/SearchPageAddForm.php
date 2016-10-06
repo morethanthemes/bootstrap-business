@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\search\Form\SearchPageAddForm.
- */
-
 namespace Drupal\search\Form;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -29,7 +24,7 @@ class SearchPageAddForm extends SearchPageFormBase {
    */
   protected function actions(array $form, FormStateInterface $form_state) {
     $actions = parent::actions($form, $form_state);
-    $actions['submit']['#value'] = $this->t('Add search page');
+    $actions['submit']['#value'] = $this->t('Save');
     return $actions;
   }
 

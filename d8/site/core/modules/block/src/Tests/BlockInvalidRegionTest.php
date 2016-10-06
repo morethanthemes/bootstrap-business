@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\block\Tests\BlockInvalidRegionTest.
- */
-
 namespace Drupal\block\Tests;
 
 use Drupal\simpletest\WebTestBase;
@@ -64,4 +59,5 @@ class BlockInvalidRegionTest extends WebTestBase {
     $this->drupalPostForm('admin/config/development/performance', array(), 'Clear all caches');
     $this->assertNoRaw($warning_message, 'Disabled block in the invalid region will not trigger the warning.');
   }
+
 }

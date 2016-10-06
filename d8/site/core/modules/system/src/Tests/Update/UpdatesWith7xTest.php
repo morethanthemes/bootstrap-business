@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Update\UpdatesWith7xTest.
- */
-
 namespace Drupal\system\Tests\Update;
 
 use Drupal\simpletest\WebTestBase;
@@ -56,4 +51,5 @@ class UpdatesWith7xTest extends WebTestBase {
     $this->clickLink(t('Continue'));
     $this->assertText(t('Some of the pending updates cannot be applied because their dependencies were not met.'));
   }
+
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Updater\Updater.
- */
-
 namespace Drupal\Core\Updater;
 
 use Drupal\Component\Utility\Unicode;
@@ -412,4 +407,5 @@ class Updater {
   public function postUpdateTasks() {
     return array();
   }
+
 }

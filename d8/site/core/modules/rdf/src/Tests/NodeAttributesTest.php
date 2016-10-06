@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rdf\Tests\NodeAttributesTest.
- */
-
 namespace Drupal\rdf\Tests;
 
 use Drupal\node\Tests\NodeTestBase;
@@ -95,4 +90,5 @@ class NodeAttributesTest extends NodeTestBase {
     );
     $this->assertTrue($graph->hasProperty($node_uri, 'http://purl.org/dc/terms/created', $expected_value), 'Node date found in RDF output (dc:created).');
   }
+
 }

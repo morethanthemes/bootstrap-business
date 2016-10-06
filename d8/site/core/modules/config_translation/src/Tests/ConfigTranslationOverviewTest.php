@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\config_translation\Tests\ConfigTranslationOverviewTest.
- */
-
 namespace Drupal\config_translation\Tests;
 
 use Drupal\Component\Utility\Html;
@@ -60,7 +55,7 @@ class ConfigTranslationOverviewTest extends WebTestBase {
       'access contextual links',
       'administer views',
     );
-    // Create and login user.
+    // Create and log in user.
     $this->drupalLogin($this->drupalCreateUser($permissions));
 
     // Add languages.

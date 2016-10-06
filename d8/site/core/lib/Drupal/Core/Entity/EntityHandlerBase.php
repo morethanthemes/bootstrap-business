@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\EntityHandlerBase.
- */
-
 namespace Drupal\Core\Entity;
 
 use Drupal\Core\DependencyInjection\DependencySerializationTrait;
@@ -18,6 +13,8 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
  *   Implement the container injection pattern of
  *   \Drupal\Core\Entity\EntityHandlerInterface::createInstance() to obtain the
  *   module handler service for your class.
+ *
+ * @ingroup entity_api
  */
 abstract class EntityHandlerBase {
   use StringTranslationTrait;

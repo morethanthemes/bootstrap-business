@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\locale\Tests\LocaleUpdateCronTest.
- */
-
 namespace Drupal\locale\Tests;
 
 /**
@@ -111,4 +106,5 @@ class LocaleUpdateCronTest extends LocaleUpdateBase {
     $this->assertTrue($current->timestamp > $initial->timestamp, 'Timestamp is updated');
     $this->assertTrue($current->last_checked > $initial->last_checked, 'Last checked is updated');
   }
+
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\datetime\Plugin\views\Argument\Date.
- */
-
 namespace Drupal\datetime\Plugin\views\Argument;
 
 use Drupal\views\Plugin\views\argument\Date as NumericDate;
@@ -42,4 +37,5 @@ class Date extends NumericDate {
     // Pass in the string-field option.
     return $this->query->getDateFormat($this->getDateField(), $format, TRUE);
   }
+
 }

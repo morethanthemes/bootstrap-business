@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\StreamWrapper\LocalStream.
- */
-
 namespace Drupal\Core\StreamWrapper;
 
 /**
@@ -572,4 +567,5 @@ abstract class LocalStream implements StreamWrapperInterface {
     // have a return value.
     return TRUE;
   }
+
 }

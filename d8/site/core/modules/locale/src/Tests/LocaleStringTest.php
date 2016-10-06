@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\locale\Tests\LocaleStringTest.
- */
-
 namespace Drupal\locale\Tests;
 
 use Drupal\language\Entity\ConfigurableLanguage;
@@ -206,4 +201,5 @@ class LocaleStringTest extends WebTestBase {
       'translation' => $this->randomMachineName(100),
     ))->save();
   }
+
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rdf\Tests\TaxonomyAttributesTest.
- */
-
 namespace Drupal\rdf\Tests;
 
 use Drupal\taxonomy\Tests\TaxonomyTestBase;
@@ -82,4 +77,5 @@ class TaxonomyAttributesTest extends TaxonomyTestBase {
     // @todo Add test for term description once it is a field:
     //   https://www.drupal.org/node/569434.
   }
+
 }

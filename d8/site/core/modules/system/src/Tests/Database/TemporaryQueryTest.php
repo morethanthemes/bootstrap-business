@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Database\TemporaryQueryTest.
- */
-
 namespace Drupal\system\Tests\Database;
 
 /**
@@ -58,4 +53,5 @@ class TemporaryQueryTest extends DatabaseWebTestBase {
     $table_name_test = db_query_temporary($sql, array());
     $this->assertEqual($this->countTableRows($table_name_test), $this->countTableRows('test'), 'Leading white space and comments do not interfere with temporary table creation.');
   }
+
 }

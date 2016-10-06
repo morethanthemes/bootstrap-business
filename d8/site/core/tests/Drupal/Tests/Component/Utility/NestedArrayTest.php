@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Component\Utility\NestedArrayTest.
- */
-
 namespace Drupal\Tests\Component\Utility;
 
 use Drupal\Component\Utility\NestedArray;
@@ -257,6 +252,32 @@ class NestedArrayTest extends UnitTestCase {
     );
     $actual = NestedArray::mergeDeepArray(array($a, $b));
     $this->assertSame($expected, $actual, 'drupal_array_merge_deep() ignores numeric key order when merging.');
+  }
+
+  /**
+   * @covers ::filter
+   * @dataProvider providerTestFilter
+   */
+  public function testFilter($array, $callable, $expected) {
+    $this->assertEquals($expected, NestedArray::filter($array, $callable));
+  }
+
+  public function providerTestFilter() {
+    $data = [];
+    $data['1d-array'] = [
+      [0, 1, '', TRUE], NULL, [1 => 1, 3 => TRUE]
+    ];
+    $data['1d-array-callable'] = [
+      [0, 1, '', TRUE], function ($element) { return $element === ''; }, [2 => '']
+    ];
+    $data['2d-array'] = [
+      [[0, 1, '', TRUE], [0, 1, 2, 3]], NULL, [0 => [1 => 1, 3 => TRUE], 1 => [1 => 1, 2 => 2, 3 => 3]],
+    ];
+    $data['2d-array-callable'] = [
+      [[0, 1, '', TRUE], [0, 1, 2, 3]], function ($element) { return is_array($element) || $element === 3; }, [0 => [], 1 => [3 => 3]],
+    ];
+
+    return $data;
   }
 
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\Discovery\YamlDiscovery.
- */
-
 namespace Drupal\Component\Discovery;
 
 use Drupal\Component\Serialization\Yaml;
@@ -66,12 +61,23 @@ class YamlDiscovery implements DiscoverableInterface {
       foreach ($provider_by_files as $file => $provider) {
         // If a file is empty or its contents are commented out, return an empty
         // array instead of NULL for type consistency.
-        $all[$provider] = Yaml::decode(file_get_contents($file)) ?: [];
+        $all[$provider] = $this->decode($file);
         $file_cache->set($file, $all[$provider]);
       }
     }
 
     return $all;
+  }
+
+  /**
+   * Decode a YAML file.
+   *
+   * @param string $file
+   *   Yaml file path.
+   * @return array
+   */
+  protected function decode($file) {
+    return Yaml::decode(file_get_contents($file)) ?: [];
   }
 
   /**
@@ -91,4 +97,3 @@ class YamlDiscovery implements DiscoverableInterface {
   }
 
 }
-

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Tests\NodeTranslationUITest.
- */
-
 namespace Drupal\node\Tests;
 
 use Drupal\Core\Entity\EntityInterface;
@@ -30,7 +25,8 @@ class NodeTranslationUITest extends ContentTranslationUITestBase {
     'theme',
     'route',
     'timezone',
-    'url',
+    'url.path.parent',
+    'url.query_args:_wrapper_format',
     'user'
   ];
 
@@ -87,7 +83,10 @@ class NodeTranslationUITest extends ContentTranslationUITestBase {
     $default_langcode = $this->langcodes[0];
     $values[$default_langcode] = array('title' => array(array('value' => $this->randomMachineName())));
     $entity_id = $this->createEntity($values[$default_langcode], $default_langcode);
-    $entity = entity_load($this->entityTypeId, $entity_id, TRUE);
+    $storage = $this->container->get('entity_type.manager')
+      ->getStorage($this->entityTypeId);
+    $storage->resetCache([$this->entityId]);
+    $entity = $storage->load($this->entityId);
 
     // Add a content translation.
     $langcode = 'fr';
@@ -102,7 +101,8 @@ class NodeTranslationUITest extends ContentTranslationUITestBase {
     ], array('language' => $language));
     $this->drupalPostForm($add_url, $this->getEditValues($values, $langcode), t('Save and unpublish (this translation)'));
 
-    $entity = entity_load($this->entityTypeId, $this->entityId, TRUE);
+    $storage->resetCache([$this->entityId]);
+    $entity = $storage->load($this->entityId);
     $translation = $entity->getTranslation($langcode);
     // Make sure we unpublished the node correctly.
     $this->assertFalse($this->manager->getTranslationMetadata($translation)->isPublished(), 'The translation has been correctly unpublished.');
@@ -152,7 +152,10 @@ class NodeTranslationUITest extends ContentTranslationUITestBase {
    * {@inheritdoc}
    */
   protected function doTestPublishedStatus() {
-    $entity = entity_load($this->entityTypeId, $this->entityId, TRUE);
+    $storage = $this->container->get('entity_type.manager')
+      ->getStorage($this->entityTypeId);
+    $storage->resetCache([$this->entityId]);
+    $entity = $storage->load($this->entityId);
     $languages = $this->container->get('language_manager')->getLanguages();
 
     $actions = array(
@@ -168,7 +171,8 @@ class NodeTranslationUITest extends ContentTranslationUITestBase {
         $url = $entity->urlInfo('edit-form', $options);
         $this->drupalPostForm($url, array(), $action . $this->getFormSubmitSuffix($entity, $langcode), $options);
       }
-      $entity = entity_load($this->entityTypeId, $this->entityId, TRUE);
+      $storage->resetCache([$this->entityId]);
+      $entity = $storage->load($this->entityId);
       foreach ($this->langcodes as $langcode) {
         // The node is created as unpublished thus we switch to the published
         // status first.
@@ -183,7 +187,10 @@ class NodeTranslationUITest extends ContentTranslationUITestBase {
    * {@inheritdoc}
    */
   protected function doTestAuthoringInfo() {
-    $entity = entity_load($this->entityTypeId, $this->entityId, TRUE);
+    $storage = $this->container->get('entity_type.manager')
+      ->getStorage($this->entityTypeId);
+    $storage->resetCache([$this->entityId]);
+    $entity = $storage->load($this->entityId);
     $languages = $this->container->get('language_manager')->getLanguages();
     $values = array();
 
@@ -208,7 +215,8 @@ class NodeTranslationUITest extends ContentTranslationUITestBase {
       $this->drupalPostForm($url, $edit, $this->getFormSubmitAction($entity, $langcode), $options);
     }
 
-    $entity = entity_load($this->entityTypeId, $this->entityId, TRUE);
+    $storage->resetCache([$this->entityId]);
+    $entity = $storage->load($this->entityId);
     foreach ($this->langcodes as $langcode) {
       $translation = $entity->getTranslation($langcode);
       $metadata = $this->manager->getTranslationMetadata($translation);
@@ -428,7 +436,10 @@ class NodeTranslationUITest extends ContentTranslationUITestBase {
    * {@inheritdoc}
    */
   protected function doTestTranslationEdit() {
-    $entity = entity_load($this->entityTypeId, $this->entityId, TRUE);
+    $storage = $this->container->get('entity_type.manager')
+      ->getStorage($this->entityTypeId);
+    $storage->resetCache([$this->entityId]);
+    $entity = $storage->load($this->entityId);
     $languages = $this->container->get('language_manager')->getLanguages();
     $type_name = node_get_type_label($entity);
 
@@ -447,6 +458,55 @@ class NodeTranslationUITest extends ContentTranslationUITestBase {
         $this->assertRaw($title);
       }
     }
+  }
+
+  /**
+   * Tests that revision translations are rendered properly.
+   */
+  public function testRevisionTranslationRendering() {
+    $storage = \Drupal::entityTypeManager()->getStorage('node');
+
+    // Create a node.
+    $nid = $this->createEntity(['title' => 'First rev en title'], 'en');
+    $node = $storage->load($nid);
+    $original_revision_id = $node->getRevisionId();
+
+    // Add a French translation.
+    $translation = $node->addTranslation('fr');
+    $translation->title = 'First rev fr title';
+    $translation->setNewRevision(FALSE);
+    $translation->save();
+
+    // Create a new revision.
+    $node->title = 'Second rev en title';
+    $node->setNewRevision(TRUE);
+    $node->save();
+
+    // Get an English view of this revision.
+    $original_revision = $storage->loadRevision($original_revision_id);
+    $original_revision_url = $original_revision->toUrl('revision')->toString();
+
+    // Should be different from regular node URL.
+    $this->assertNotIdentical($original_revision_url, $original_revision->toUrl()->toString());
+    $this->drupalGet($original_revision_url);
+    $this->assertResponse(200);
+
+    // Contents should be in English, of correct revision.
+    $this->assertText('First rev en title');
+    $this->assertNoText('First rev fr title');
+
+    // Get a French view.
+    $url_fr = $original_revision->getTranslation('fr')->toUrl('revision')->toString();
+
+    // Should have different URL from English.
+    $this->assertNotIdentical($url_fr, $original_revision->toUrl()->toString());
+    $this->assertNotIdentical($url_fr, $original_revision_url);
+    $this->drupalGet($url_fr);
+    $this->assertResponse(200);
+
+    // Contents should be in French, of correct revision.
+    $this->assertText('First rev fr title');
+    $this->assertNoText('First rev en title');
   }
 
 }

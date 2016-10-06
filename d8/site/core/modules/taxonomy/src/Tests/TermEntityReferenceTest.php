@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\taxonomy\Tests\TermEntityReferenceTest.
- */
-
 namespace Drupal\taxonomy\Tests;
 
 use Drupal\field\Entity\FieldStorageConfig;
@@ -80,4 +75,5 @@ class TermEntityReferenceTest extends TaxonomyTestBase {
 
     $this->assertIdentical($result, $expected_result, 'Terms selection restricted to a single vocabulary.');
   }
+
 }

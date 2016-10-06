@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Plugin\migrate\source\d7\Node.
- */
-
 namespace Drupal\node\Plugin\migrate\source\d7;
 
 use Drupal\migrate\Row;
@@ -55,7 +50,7 @@ class Node extends FieldableEntity {
     $query->innerJoin('node', 'n', static::JOIN);
 
     if (isset($this->configuration['node_type'])) {
-      $query->condition('type', $this->configuration['node_type']);
+      $query->condition('n.type', $this->configuration['node_type']);
     }
 
     return $query;

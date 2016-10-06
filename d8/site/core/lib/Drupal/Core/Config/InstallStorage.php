@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Config\InstallStorage.
- */
-
 namespace Drupal\Core\Config;
 
 use Drupal\Core\Extension\ExtensionDiscovery;
@@ -63,8 +58,7 @@ class InstallStorage extends FileStorage {
    *   default collection.
    */
   public function __construct($directory = self::CONFIG_INSTALL_DIRECTORY, $collection = StorageInterface::DEFAULT_COLLECTION) {
-    $this->directory = $directory;
-    $this->collection = $collection;
+    parent::__construct($directory, $collection);
   }
 
   /**
@@ -190,6 +184,7 @@ class InstallStorage extends FileStorage {
    */
   public function getComponentNames(array $list) {
     $extension = '.' . $this->getFileExtension();
+    $pattern = '/' . preg_quote($extension, '/') . '$/';
     $folders = array();
     foreach ($list as $extension_object) {
       // We don't have to use ExtensionDiscovery here because our list of
@@ -203,7 +198,7 @@ class InstallStorage extends FileStorage {
         $files = scandir($directory);
 
         foreach ($files as $file) {
-          if ($file[0] !== '.' && fnmatch('*' . $extension, $file)) {
+          if ($file[0] !== '.' && preg_match($pattern, $file)) {
             $folders[basename($file, $extension)] = $directory;
           }
         }
@@ -220,6 +215,7 @@ class InstallStorage extends FileStorage {
    */
   public function getCoreNames() {
     $extension = '.' . $this->getFileExtension();
+    $pattern = '/' . preg_quote($extension, '/') . '$/';
     $folders = array();
     $directory = $this->getCoreFolder();
     if (is_dir($directory)) {
@@ -230,7 +226,7 @@ class InstallStorage extends FileStorage {
       $files = scandir($directory);
 
       foreach ($files as $file) {
-        if ($file[0] !== '.' && fnmatch('*' . $extension, $file)) {
+        if ($file[0] !== '.' && preg_match($pattern, $file)) {
           $folders[basename($file, $extension)] = $directory;
         }
       }

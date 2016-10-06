@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Image\ToolkitTestBase.
- */
-
 namespace Drupal\system\Tests\Image;
 
 use Drupal\simpletest\WebTestBase;
@@ -155,4 +150,5 @@ abstract class ToolkitTestBase extends WebTestBase {
   function imageTestGetAllCalls() {
     return \Drupal::state()->get('image_test.results') ?: array();
   }
+
 }

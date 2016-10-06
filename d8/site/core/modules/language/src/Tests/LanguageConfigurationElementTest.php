@@ -1,16 +1,12 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\language\Tests\LanguageConfigurationElementTest.
- */
-
 namespace Drupal\language\Tests;
 
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\language\Entity\ConfigurableLanguage;
 use Drupal\language\Entity\ContentLanguageSettings;
 use Drupal\simpletest\WebTestBase;
+use Drupal\taxonomy\Entity\Vocabulary;
 
 /**
  * Tests the features of the language configuration element field.
@@ -113,7 +109,7 @@ class LanguageConfigurationElementTest extends WebTestBase {
     // Site's default.
     $old_default = \Drupal::languageManager()->getDefaultLanguage();
     // Ensure the language entity default value is correct.
-    $configurable_language = entity_load('configurable_language', $old_default->getId());
+    $configurable_language = ConfigurableLanguage::load($old_default->getId());
     $this->assertTrue($configurable_language->isDefault(), 'The en language entity is flagged as the default language.');
 
     $this->config('system.site')->set('default_langcode', 'cc')->save();
@@ -125,9 +121,9 @@ class LanguageConfigurationElementTest extends WebTestBase {
     $this->assertEqual($langcode, 'cc');
 
     // Ensure the language entity default value is correct.
-    $configurable_language = entity_load('configurable_language', $old_default->getId());
+    $configurable_language = ConfigurableLanguage::load($old_default->getId());
     $this->assertFalse($configurable_language->isDefault(), 'The en language entity is not flagged as the default language.');
-    $configurable_language = entity_load('configurable_language', 'cc');
+    $configurable_language = ConfigurableLanguage::load('cc');
     // Check calling the
     // \Drupal\language\ConfigurableLanguageInterface::isDefault() method
     // directly.
@@ -223,10 +219,10 @@ class LanguageConfigurationElementTest extends WebTestBase {
    * Tests that the configuration is retained when a vocabulary is updated.
    */
   public function testTaxonomyVocabularyUpdate() {
-    $vocabulary = entity_create('taxonomy_vocabulary', array(
+    $vocabulary = Vocabulary::create([
       'name' => 'Country',
       'vid' => 'country',
-    ));
+    ]);
     $vocabulary->save();
 
     $admin_user = $this->drupalCreateUser(array('administer taxonomy'));

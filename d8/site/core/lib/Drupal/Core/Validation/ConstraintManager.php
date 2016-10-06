@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Validation\ConstraintManager.
- */
-
 namespace Drupal\Core\Validation;
 
 use Drupal\Component\Plugin\Discovery\StaticDiscoveryDecorator;
@@ -141,4 +136,5 @@ class ConstraintManager extends DefaultPluginManager {
     }
     return $definitions;
   }
+
 }

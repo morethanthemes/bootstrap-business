@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\serialization_test\SerializationTestEncoder.
- */
-
 namespace Drupal\serialization_test;
 
 use Symfony\Component\Serializer\Encoder\EncoderInterface;
@@ -32,4 +27,5 @@ class SerializationTestEncoder implements EncoderInterface {
   public function supportsEncoding($format) {
     return static::$format === $format;
   }
+
 }

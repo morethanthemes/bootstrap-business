@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\language\HttpKernel\PathProcessorLanguage.
- */
-
 namespace Drupal\language\HttpKernel;
 
 use Drupal\Component\Utility\Unicode;
@@ -73,7 +68,7 @@ class PathProcessorLanguage implements InboundPathProcessorInterface, OutboundPa
    *   A config factory object for retrieving configuration settings.
    * @param \Drupal\language\ConfigurableLanguageManagerInterface $language_manager
    *   The configurable language manager.
-   * @param \Drupal\language\LanguageNegotiatorInterface
+   * @param \Drupal\language\LanguageNegotiatorInterface $negotiator
    *   The language negotiator.
    * @param \Drupal\Core\Session\AccountInterface $current_user
    *   The current active user.

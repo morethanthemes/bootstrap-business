@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\locale\Tests\LocalePathTest.
- */
-
 namespace Drupal\locale\Tests;
 
 use Drupal\Core\Language\LanguageInterface;
@@ -152,4 +147,5 @@ class LocalePathTest extends WebTestBase {
     $this->assertText($second_node->label(), 'Custom alias with prefix returns second node.');
 
   }
+
 }

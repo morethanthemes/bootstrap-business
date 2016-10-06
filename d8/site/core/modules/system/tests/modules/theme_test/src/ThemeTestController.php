@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\theme_test\ThemeTestController.
- */
-
 namespace Drupal\theme_test;
 
 use Drupal\Core\Controller\ControllerBase;
@@ -86,7 +81,7 @@ class ThemeTestController extends ControllerBase {
    *   Content in theme_test_output GLOBAL.
    */
   public function testRequestListener() {
-    return ['#markup' =>  $GLOBALS['theme_test_output']];
+    return ['#markup' => $GLOBALS['theme_test_output']];
   }
 
   /**

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Plugin\Search\NodeSearch.
- */
-
 namespace Drupal\node\Plugin\Search;
 
 use Drupal\Core\Access\AccessResult;
@@ -156,6 +151,8 @@ class NodeSearch extends ConfigurableSearchPluginBase implements AccessibleInter
    *   A config object for 'search.settings'.
    * @param \Drupal\Core\Language\LanguageManagerInterface $language_manager
    *   The language manager.
+   * @param \Drupal\Core\Render\RendererInterface $renderer
+   *   The renderer.
    * @param \Drupal\Core\Session\AccountInterface $account
    *   The $account object to use for checking for access to advanced search.
    */
@@ -231,7 +228,7 @@ class NodeSearch extends ConfigurableSearchPluginBase implements AccessibleInter
       ->select('search_index', 'i', array('target' => 'replica'))
       ->extend('Drupal\search\SearchQuery')
       ->extend('Drupal\Core\Database\Query\PagerSelectExtender');
-    $query->join('node_field_data', 'n', 'n.nid = i.sid');
+    $query->join('node_field_data', 'n', 'n.nid = i.sid AND n.langcode = i.langcode');
     $query->condition('n.status', 1)
       ->addTag('node_access')
       ->searchExpression($keys, $this->getPluginId());
@@ -429,8 +426,23 @@ class NodeSearch extends ConfigurableSearchPluginBase implements AccessibleInter
     // per cron run.
     $limit = (int) $this->searchSettings->get('index.cron_limit');
 
-    $result = $this->database->queryRange("SELECT n.nid, MAX(sd.reindex) FROM {node} n LEFT JOIN {search_dataset} sd ON sd.sid = n.nid AND sd.type = :type WHERE sd.sid IS NULL OR sd.reindex <> 0 GROUP BY n.nid ORDER BY MAX(sd.reindex) is null DESC, MAX(sd.reindex) ASC, n.nid ASC", 0, $limit, array(':type' => $this->getPluginId()), array('target' => 'replica'));
-    $nids = $result->fetchCol();
+    $query = db_select('node', 'n', array('target' => 'replica'));
+    $query->addField('n', 'nid');
+    $query->leftJoin('search_dataset', 'sd', 'sd.sid = n.nid AND sd.type = :type', array(':type' => $this->getPluginId()));
+    $query->addExpression('CASE MAX(sd.reindex) WHEN NULL THEN 0 ELSE 1 END', 'ex');
+    $query->addExpression('MAX(sd.reindex)', 'ex2');
+    $query->condition(
+        $query->orConditionGroup()
+        ->where('sd.sid IS NULL')
+        ->condition('sd.reindex', 0, '<>')
+      );
+    $query->orderBy('ex', 'DESC')
+      ->orderBy('ex2')
+      ->orderBy('n.nid')
+      ->groupBy('n.nid')
+      ->range(0, $limit);
+
+    $nids = $query->execute()->fetchCol();
     if (!$nids) {
       return;
     }
@@ -515,7 +527,7 @@ class NodeSearch extends ConfigurableSearchPluginBase implements AccessibleInter
     $used_advanced = !empty($parameters[self::ADVANCED_FORM]);
     if ($used_advanced) {
       $f = isset($parameters['f']) ? (array) $parameters['f'] : array();
-      $defaults =  $this->parseAdvancedDefaults($f, $keys);
+      $defaults = $this->parseAdvancedDefaults($f, $keys);
     }
     else {
       $defaults = array('keys' => $keys);
@@ -611,7 +623,7 @@ class NodeSearch extends ConfigurableSearchPluginBase implements AccessibleInter
     }
   }
 
-  /*
+  /**
    * {@inheritdoc}
    */
   public function buildSearchUrlQuery(FormStateInterface $form_state) {

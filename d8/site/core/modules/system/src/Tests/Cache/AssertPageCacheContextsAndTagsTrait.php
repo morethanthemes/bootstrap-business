@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Cache\AssertPageCacheContextsAndTagsTrait.
- */
-
 namespace Drupal\system\Tests\Cache;
 
 use Drupal\Core\Cache\Cache;
@@ -43,6 +38,28 @@ trait AssertPageCacheContextsAndTagsTrait {
     else {
       return explode(' ', $header_value);
     }
+  }
+
+  /**
+   * Asserts whether an expected cache context was present in the last response.
+   *
+   * @param string $expected_cache_context
+   *   The expected cache context.
+   */
+  protected function assertCacheContext($expected_cache_context) {
+    $cache_contexts = explode(' ', $this->drupalGetHeader('X-Drupal-Cache-Contexts'));
+    $this->assertTrue(in_array($expected_cache_context, $cache_contexts), "'" . $expected_cache_context . "' is present in the X-Drupal-Cache-Contexts header.");
+  }
+
+  /**
+   * Asserts that a cache context was not present in the last response.
+   *
+   * @param string $not_expected_cache_context
+   *   The expected cache context.
+   */
+  protected function assertNoCacheContext($not_expected_cache_context) {
+    $cache_contexts = explode(' ', $this->drupalGetHeader('X-Drupal-Cache-Contexts'));
+    $this->assertFalse(in_array($not_expected_cache_context, $cache_contexts), "'" . $not_expected_cache_context . "' is not present in the X-Drupal-Cache-Contexts header.");
   }
 
   /**
@@ -125,7 +142,7 @@ trait AssertPageCacheContextsAndTagsTrait {
    * @param bool $include_default_contexts
    *   (optional) Whether the default contexts should automatically be included.
    *
-   * @return
+   * @return bool
    *   TRUE if the assertion succeeded, FALSE otherwise.
    */
   protected function assertCacheContexts(array $expected_contexts, $message = NULL, $include_default_contexts = TRUE) {
@@ -142,12 +159,17 @@ trait AssertPageCacheContextsAndTagsTrait {
     $actual_contexts = $this->getCacheHeaderValues('X-Drupal-Cache-Contexts');
     sort($expected_contexts);
     sort($actual_contexts);
-    $return = $this->assertIdentical($actual_contexts, $expected_contexts, $message);
-    if (!$return) {
+    $match = $actual_contexts === $expected_contexts;
+    if (!$match) {
       debug('Unwanted cache contexts in response: ' . implode(',', array_diff($actual_contexts, $expected_contexts)));
       debug('Missing cache contexts in response: ' . implode(',', array_diff($expected_contexts, $actual_contexts)));
     }
-    return $return;
+
+    $this->assertIdentical($actual_contexts, $expected_contexts, $message);
+
+    // For compatibility with both BrowserTestBase and WebTestBase always return
+    // a boolean.
+    return $match;
   }
 
   /**

@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\locale\Tests\LocaleLibraryAlterTest.
- */
 
 namespace Drupal\locale\Tests;
 
@@ -36,4 +32,5 @@ class LocaleLibraryAlterTest extends WebTestBase {
     $js_assets = $this->container->get('asset.resolver')->getJsAssets($assets, FALSE)[1];
     $this->assertTrue(array_key_exists('core/modules/locale/locale.datepicker.js', $js_assets), 'locale.datepicker.js added to scripts.');
   }
+
 }

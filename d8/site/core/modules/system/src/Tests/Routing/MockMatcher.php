@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Routing\MockMatcher.
- */
-
 namespace Drupal\system\Tests\Routing;
 
 use Symfony\Component\HttpFoundation\Request;
@@ -37,4 +32,5 @@ class MockMatcher implements RequestMatcherInterface {
     $matcher = $this->matcher;
     return $matcher($request);
   }
+
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\language\Tests\LanguagePathMonolingualTest.
- */
-
 namespace Drupal\language\Tests;
 
 use Drupal\simpletest\WebTestBase;
@@ -26,7 +21,7 @@ class LanguagePathMonolingualTest extends WebTestBase {
   protected function setUp() {
     parent::setUp();
 
-    // Create and login user.
+    // Create and log in user.
     $web_user = $this->drupalCreateUser(array('administer languages', 'access administration pages', 'administer site configuration'));
     $this->drupalLogin($web_user);
 
@@ -74,4 +69,5 @@ class LanguagePathMonolingualTest extends WebTestBase {
     $this->assertResponse(200, 'Clicked link results in a valid page');
     $this->assertText(t('Add language'), 'Page contains the add language text');
   }
+
 }

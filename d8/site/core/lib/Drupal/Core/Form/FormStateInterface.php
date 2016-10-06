@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Form\FormStateInterface.
- */
-
 namespace Drupal\Core\Form;
 
 use Drupal\Core\Url;
@@ -785,7 +780,7 @@ interface FormStateInterface {
   /**
    * Returns the HTTP form method.
    *
-   * @param string
+   * @param string $method_type
    *   The HTTP form method.
    *
    * @return bool

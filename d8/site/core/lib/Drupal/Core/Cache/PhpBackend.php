@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Cache\PhpBackend.
- */
-
 namespace Drupal\Core\Cache;
 
 use Drupal\Core\PhpStorage\PhpStorageFactory;
@@ -216,7 +211,7 @@ class PhpBackend implements CacheBackendInterface {
    * {@inheritdoc}
    */
   public function invalidateAll() {
-    foreach($this->storage()->listAll() as $cidhash) {
+    foreach ($this->storage()->listAll() as $cidhash) {
       $this->invalidatebyHash($cidhash);
     }
   }

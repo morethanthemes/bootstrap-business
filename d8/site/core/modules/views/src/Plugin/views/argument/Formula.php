@@ -1,17 +1,12 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Plugin\views\argument\Formula.
- */
-
 namespace Drupal\views\Plugin\views\argument;
 
 use Drupal\views\Plugin\views\display\DisplayPluginBase;
 use Drupal\views\ViewExecutable;
 
 /**
- * Abstract argument handler for simple formulae.
+ * Argument handler for simple formulae.
  *
  * Child classes of this object should implement summaryArgument, at least.
  *
@@ -24,7 +19,7 @@ use Drupal\views\ViewExecutable;
  */
 class Formula extends ArgumentPluginBase {
 
-  var $formula = NULL;
+  public $formula = NULL;
 
   /**
    * {@inheritdoc}
@@ -63,7 +58,7 @@ class Formula extends ArgumentPluginBase {
     $this->ensureMyTable();
     // Now that our table is secure, get our formula.
     $placeholder = $this->placeholder();
-    $formula = $this->getFormula() .' = ' . $placeholder;
+    $formula = $this->getFormula() . ' = ' . $placeholder;
     $placeholders = array(
       $placeholder => $this->argument,
     );

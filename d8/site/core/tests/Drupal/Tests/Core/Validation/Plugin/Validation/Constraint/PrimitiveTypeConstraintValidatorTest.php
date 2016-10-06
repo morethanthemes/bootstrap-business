@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Validation\Plugin\Validation\Constraint\PrimitiveTypeConstraintValidatorTest.
- */
-
 namespace Drupal\Tests\Core\Validation\Plugin\Validation\Constraint;
 
 use Drupal\Core\TypedData\DataDefinition;
@@ -20,7 +15,7 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Tests\UnitTestCase;
 
 /**
- * @coversDefaultClass Drupal\Core\Validation\Plugin\Validation\Constraint\PrimitiveTypeConstraintValidator
+ * @coversDefaultClass \Drupal\Core\Validation\Plugin\Validation\Constraint\PrimitiveTypeConstraintValidator
  * @group validation
  */
 class PrimitiveTypeConstraintValidatorTest extends UnitTestCase {

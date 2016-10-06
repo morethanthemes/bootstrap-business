@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\Plugin\migrate\source\d6\UserPicture.
- */
-
 namespace Drupal\user\Plugin\migrate\source\d6;
 
 use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
@@ -27,7 +22,7 @@ class UserPicture extends DrupalSqlBase {
     $query = $this->select('users', 'u')
       ->condition('picture', '', '<>')
       ->fields('u', array('uid', 'access', 'picture'))
-      ->orderBy('access');
+      ->orderBy('u.access');
     return $query;
   }
 

@@ -1,11 +1,8 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Tests\NodeRevisionsAllTest.
- */
-
 namespace Drupal\node\Tests;
+
+use Drupal\node\NodeInterface;
 
 /**
  * Create a node with revisions and test viewing, saving, reverting, and
@@ -20,7 +17,7 @@ class NodeRevisionsAllTest extends NodeTestBase {
 
   protected function setUp() {
     parent::setUp();
-    $node_storage = $this->container->get('entity.manager')->getStorage('node');
+
     // Create and log in user.
     $web_user = $this->drupalCreateUser(
       array(
@@ -50,22 +47,34 @@ class NodeRevisionsAllTest extends NodeTestBase {
     for ($i = 0; $i < $revision_count; $i++) {
       $logs[] = $node->revision_log = $this->randomMachineName(32);
 
-      // Create revision with a random title and body and update variables.
-      $node->title = $this->randomMachineName();
-      $node->body = array(
-        'value' => $this->randomMachineName(32),
-        'format' => filter_default_format(),
-      );
-      $node->setNewRevision();
-      $node->save();
-
-      $node_storage->resetCache(array($node->id()));
-      $node = $node_storage->load($node->id()); // Make sure we get revision information.
+      $node = $this->createNodeRevision($node);
       $nodes[] = clone $node;
     }
 
     $this->nodes = $nodes;
     $this->revisionLogs = $logs;
+  }
+
+  /**
+   * Creates a new revision for a given node.
+   *
+   * @param \Drupal\node\NodeInterface $node
+   *   A node object.
+   *
+   * @return \Drupal\node\NodeInterface
+   *   A node object with up to date revision information.
+   */
+  protected function createNodeRevision(NodeInterface $node) {
+    // Create revision with a random title and body and update variables.
+    $node->title = $this->randomMachineName();
+    $node->body = array(
+      'value' => $this->randomMachineName(32),
+      'format' => filter_default_format(),
+    );
+    $node->setNewRevision();
+    $node->save();
+
+    return $node;
   }
 
   /**
@@ -79,7 +88,7 @@ class NodeRevisionsAllTest extends NodeTestBase {
     // Get last node for simple checks.
     $node = $nodes[3];
 
-    // Create and login user.
+    // Create and log in user.
     $content_admin = $this->drupalCreateUser(
       array(
         'view all revisions',
@@ -150,5 +159,29 @@ class NodeRevisionsAllTest extends NodeTestBase {
       '%title' => $nodes[2]->getTitle(),
       '%revision-date' => format_date($old_revision_date),
     )));
+
+    // Create 50 more revisions in order to trigger paging on the revisions
+    // overview screen.
+    $node = $nodes[0];
+    for ($i = 0; $i < 50; $i++) {
+      $logs[] = $node->revision_log = $this->randomMachineName(32);
+
+      $node = $this->createNodeRevision($node);
+      $nodes[] = clone $node;
+    }
+
+    $this->drupalGet('node/' . $node->id() . '/revisions');
+
+    // Check that the pager exists.
+    $this->assertRaw('page=1');
+
+    // Check that the last revision is displayed on the first page.
+    $this->assertText(end($logs));
+
+    // Go to the second page and check that one of the initial three revisions
+    // is displayed.
+    $this->clickLink(t('Page 2'));
+    $this->assertText($logs[2]);
   }
+
 }

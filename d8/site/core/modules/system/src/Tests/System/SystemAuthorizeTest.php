@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\System\SystemAuthorizeTest.
- */
-
 namespace Drupal\system\Tests\System;
 
 use Drupal\simpletest\WebTestBase;
@@ -39,7 +34,7 @@ class SystemAuthorizeTest extends WebTestBase {
    * $_SESSION inside the test site, not the framework site. This callback
    * redirects to authorize.php when it's done initializing.
    *
-   * @see system_authorized_init().
+   * @see system_authorized_init()
    */
   function drupalGetAuthorizePHP($page_title = 'system-test-auth') {
     $this->drupalGet('system-test/authorize-init/' . $page_title);
@@ -62,4 +57,5 @@ class SystemAuthorizeTest extends WebTestBase {
     // expected to the first page of the authorize.php script.
     $this->assertRaw('core/misc/states.js');
   }
+
 }

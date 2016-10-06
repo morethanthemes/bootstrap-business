@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Installer\Form\SelectLanguageForm.
- */
-
 namespace Drupal\Core\Installer\Form;
 
 use Drupal\Component\Utility\UserAgent;
@@ -83,7 +78,7 @@ class SelectLanguageForm extends FormBase {
       ),
     );
     $form['actions'] = array('#type' => 'actions');
-    $form['actions']['submit'] =  array(
+    $form['actions']['submit'] = array(
       '#type' => 'submit',
       '#value' => 'Save and continue',
       '#button_type' => 'primary',

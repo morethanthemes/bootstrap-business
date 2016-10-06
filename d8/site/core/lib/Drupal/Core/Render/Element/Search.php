@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\Element\Search.
- */
-
 namespace Drupal\Core\Render\Element;
 
 use Drupal\Core\Render\Element;
@@ -16,7 +11,7 @@ use Drupal\Core\Render\Element;
  * @code
  * $form['search'] = array(
  *   '#type' => 'search',
- *   '#title' => t('Search'),
+ *   '#title' => $this->t('Search'),
  * );
  * @endcode
  *

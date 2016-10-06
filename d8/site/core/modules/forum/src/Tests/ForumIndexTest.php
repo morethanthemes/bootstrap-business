@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\forum\Tests\ForumIndexTest.
- */
-
 namespace Drupal\forum\Tests;
 
 use Drupal\simpletest\WebTestBase;
@@ -84,4 +79,5 @@ class ForumIndexTest extends WebTestBase {
     $this->drupalGet('forum/' . $tid);
     $this->assertNoText($title, 'Unpublished forum topic no longer appears on index.');
   }
+
 }

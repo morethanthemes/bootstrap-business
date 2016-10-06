@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\search\Tests\SearchEmbedFormTest.
- */
-
 namespace Drupal\search\Tests;
 
 /**
@@ -86,4 +81,5 @@ class SearchEmbedFormTest extends SearchTestBase {
     $this->assertEqual($this->submitCount, $count, 'Form submission count is correct');
     $this->submitCount = $count;
   }
+
 }

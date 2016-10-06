@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rest\LinkManager\TypeLinkManagerInterface.
- */
-
 namespace Drupal\rest\LinkManager;
 
 interface TypeLinkManagerInterface extends ConfigurableLinkManagerInterface {
@@ -41,4 +36,5 @@ interface TypeLinkManagerInterface extends ConfigurableLinkManagerInterface {
    *   bundle. Otherwise, returns false.
    */
   public function getTypeInternalIds($type_uri, $context = array());
+
 }

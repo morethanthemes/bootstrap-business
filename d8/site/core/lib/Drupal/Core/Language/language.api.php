@@ -29,7 +29,8 @@ use Drupal\Core\Language\LanguageInterface;
  * - Any time UI text is displayed using PHP code, it should be passed through
  *   either the global t() function or a t() method on the class. If it
  *   involves plurals, it should be passed through either the global
- *   formatPlural() function or a formatPlural() method on the class. Use
+ *   \Drupal\Core\StringTranslation\PluralTranslatableMarkup::createFromTranslatedString()
+ *   or a formatPlural() method on the class. Use
  *   \Drupal\Core\StringTranslation\StringTranslationTrait to get these methods
  *   into a class.
  * - Dates displayed in the UI should be passed through the 'date' service
@@ -110,8 +111,8 @@ use Drupal\Core\Language\LanguageInterface;
  * @code
  * // PHP code
  * t('May', array(), array('context' => 'Long month name');
- * format_plural($count, '1 something', '@count somethings',
- *   array(), array('context' => 'My context'));
+ * \Drupal::translation()->formatPlural($count, '1 something',
+ *   '@count somethings', array(), array('context' => 'My context'));
  *
  * // JavaScript code
  * Drupal.t('May', {}, {'context': 'Long month name'});
@@ -146,7 +147,6 @@ use Drupal\Core\Language\LanguageInterface;
  *
  * @see transliteration
  * @see t()
- * @see format_plural()
  * @}
  */
 

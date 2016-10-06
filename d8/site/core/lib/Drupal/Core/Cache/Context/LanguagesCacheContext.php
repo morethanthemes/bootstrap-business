@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Cache\Context\LanguagesCacheContext.
- */
-
 namespace Drupal\Core\Cache\Context;
 
 use Drupal\Core\Cache\CacheableMetadata;
@@ -13,7 +8,7 @@ use Drupal\Core\Language\LanguageManagerInterface;
 /**
  * Defines the LanguagesCacheContext service, for "per language" caching.
  */
-class LanguagesCacheContext implements CalculatedCacheContextInterface  {
+class LanguagesCacheContext implements CalculatedCacheContextInterface {
 
   /**
    * The language manager.

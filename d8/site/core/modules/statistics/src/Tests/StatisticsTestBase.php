@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\statistics\Tests\StatisticsTestBase.
- */
-
 namespace Drupal\statistics\Tests;
 
 use Drupal\simpletest\WebTestBase;
@@ -52,4 +47,5 @@ abstract class StatisticsTestBase extends WebTestBase {
       ->set('count_content_views', 1)
       ->save();
   }
+
 }

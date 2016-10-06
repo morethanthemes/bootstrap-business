@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Database\DatabaseException.
- */
-
 namespace Drupal\Core\Database;
 
 /**
@@ -16,4 +11,3 @@ namespace Drupal\Core\Database;
  * developers should account for it separately.
  */
 interface DatabaseException { }
-

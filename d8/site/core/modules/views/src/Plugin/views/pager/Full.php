@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Plugin\views\pager\Full.
- */
-
 namespace Drupal\views\Plugin\views\pager;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -99,6 +94,5 @@ class Full extends SqlBase {
       '#route_name' => !empty($this->view->live_preview) ? '<current>' : '<none>',
     );
   }
-
 
 }

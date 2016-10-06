@@ -1,14 +1,10 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\field\Tests\EntityReference\EntityReferenceIntegrationTest.
- */
-
 namespace Drupal\field\Tests\EntityReference;
 
 use Drupal\Component\Utility\SafeMarkup;
 use Drupal\config\Tests\AssertConfigEntityImportTrait;
+use Drupal\entity_test\Entity\EntityTest;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\simpletest\WebTestBase;
 
@@ -86,7 +82,9 @@ class EntityReferenceIntegrationTest extends WebTestBase {
 
       // Try to post the form again with no modification and check if the field
       // values remain the same.
-      $entity = current(entity_load_multiple_by_properties($this->entityType, array('name' => $entity_name)));
+      /** @var \Drupal\Core\Entity\EntityStorageInterface $storage */
+      $storage = $this->container->get('entity_type.manager')->getStorage($this->entityType);
+      $entity = current($storage->loadByProperties(['name' => $entity_name]));
       $this->drupalGet($this->entityType . '/manage/' . $entity->id() . '/edit');
       $this->assertFieldByName($this->fieldName . '[0][target_id]', $referenced_entities[0]->label() . ' (' . $referenced_entities[0]->id() . ')');
       $this->assertFieldByName($this->fieldName . '[1][target_id]', $referenced_entities[1]->label() . ' (' . $referenced_entities[1]->id() . ')');
@@ -112,7 +110,7 @@ class EntityReferenceIntegrationTest extends WebTestBase {
 
       // Try to post the form again with no modification and check if the field
       // values remain the same.
-      $entity = current(entity_load_multiple_by_properties($this->entityType, array('name' => $entity_name)));
+      $entity = current($storage->loadByProperties(['name' => $entity_name]));
       $this->drupalGet($this->entityType . '/manage/' . $entity->id() . '/edit');
       $this->assertFieldByName($this->fieldName . '[target_id]', $target_id . ' (' . $referenced_entities[1]->id() . ')');
 
@@ -123,7 +121,7 @@ class EntityReferenceIntegrationTest extends WebTestBase {
       // Since we don't know the form structure for these widgets, just test
       // that editing and saving an already created entity works.
       $exclude = array('entity_reference_autocomplete', 'entity_reference_autocomplete_tags');
-      $entity = current(entity_load_multiple_by_properties($this->entityType, array('name' => $entity_name)));
+      $entity = current($storage->loadByProperties(['name' => $entity_name]));
       $supported_widgets = \Drupal::service('plugin.manager.field.widget')->getOptions('entity_reference');
       $supported_widget_types = array_diff(array_keys($supported_widgets), $exclude);
 
@@ -146,7 +144,7 @@ class EntityReferenceIntegrationTest extends WebTestBase {
       if ($key == 'content') {
         $field_edit['settings[handler_settings][target_bundles][' . $referenced_entities[0]->getEntityTypeId() . ']'] = TRUE;
       }
-      $this->drupalPostForm($this->entityType . '/structure/' . $this->bundle .'/fields/' . $this->entityType . '.' . $this->bundle . '.' . $this->fieldName, $field_edit, t('Save settings'));
+      $this->drupalPostForm($this->entityType . '/structure/' . $this->bundle . '/fields/' . $this->entityType . '.' . $this->bundle . '.' . $this->fieldName, $field_edit, t('Save settings'));
       // Ensure the configuration has the expected dependency on the entity that
       // is being used a default value.
       $field = FieldConfig::loadByName($this->entityType, $this->bundle, $this->fieldName);
@@ -177,7 +175,8 @@ class EntityReferenceIntegrationTest extends WebTestBase {
    *   An array of referenced entities.
    */
   protected function assertFieldValues($entity_name, $referenced_entities) {
-    $entity = current(entity_load_multiple_by_properties($this->entityType, array('name' => $entity_name)));
+    $entity = current($this->container->get('entity_type.manager')->getStorage(
+    $this->entityType)->loadByProperties(['name' => $entity_name]));
 
     $this->assertTrue($entity, format_string('%entity_type: Entity found in the database.', array('%entity_type' => $this->entityType)));
 
@@ -202,9 +201,9 @@ class EntityReferenceIntegrationTest extends WebTestBase {
     $config_entity_2 = entity_create('config_test', array('id' => $this->randomMachineName(), 'label' => $this->randomMachineName()));
     $config_entity_2->save();
 
-    $content_entity_1 = entity_create('entity_test', array('name' => $this->randomMachineName()));
+    $content_entity_1 = EntityTest::create(array('name' => $this->randomMachineName()));
     $content_entity_1->save();
-    $content_entity_2 = entity_create('entity_test', array('name' => $this->randomMachineName()));
+    $content_entity_2 = EntityTest::create(array('name' => $this->randomMachineName()));
     $content_entity_2->save();
 
     return array(

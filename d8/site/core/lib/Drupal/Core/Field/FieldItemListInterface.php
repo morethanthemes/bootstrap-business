@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Field\FieldItemListInterface.
- */
-
 namespace Drupal\Core\Field;
 
 use Drupal\Core\Entity\FieldableEntityInterface;
@@ -49,7 +44,7 @@ interface FieldItemListInterface extends ListInterface, AccessibleInterface {
   /**
    * Gets the langcode of the field values held in the object.
    *
-   * @return $langcode
+   * @return string
    *   The langcode.
    */
   public function getLangcode();
@@ -186,7 +181,7 @@ interface FieldItemListInterface extends ListInterface, AccessibleInterface {
    */
   public function view($display_options = array());
 
-  /*
+  /**
    * Populates a specified number of field items with valid sample data.
    *
    * @param int $count
@@ -250,7 +245,7 @@ interface FieldItemListInterface extends ListInterface, AccessibleInterface {
    * in order to be a valid runtime value for the field type; e.g., a date field
    * could process the defined value of 'NOW' to a valid date.
    *
-   * @param array
+   * @param array $default_value
    *   The unprocessed default value defined for the field, as a numerically
    *   indexed array of items, each item being an array of property/value pairs.
    * @param \Drupal\Core\Entity\FieldableEntityInterface $entity

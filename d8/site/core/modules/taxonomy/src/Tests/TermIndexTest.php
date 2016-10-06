@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\taxonomy\Tests\TermIndexTest.
- */
-
 namespace Drupal\taxonomy\Tests;
 
 use Drupal\Component\Utility\Unicode;
@@ -215,4 +210,5 @@ class TermIndexTest extends TaxonomyTestBase {
     // language from being added to the options.
     $this->assertRaw(\Drupal::l($term2->getName(), $term2->urlInfo('canonical', ['language' => NULL])), 'Parent term link is displayed when viewing the node.');
   }
+
 }

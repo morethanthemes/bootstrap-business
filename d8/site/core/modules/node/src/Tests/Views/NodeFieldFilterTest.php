@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Tests\Views\NodeFieldFilterTest.
- */
-
 namespace Drupal\node\Tests\Views;
 
 use Drupal\language\Entity\ConfigurableLanguage;
@@ -110,4 +105,5 @@ class NodeFieldFilterTest extends NodeTestBase {
       $this->assertEqual(substr_count($text, $this->nodeTitles[$langcode]), 2 * $count, 'Translation ' . $langcode . ' has count ' . $count . ' with ' . $message);
     }
   }
+
 }

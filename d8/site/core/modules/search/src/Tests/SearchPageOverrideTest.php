@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\search\Tests\SearchPageOverrideTest.
- */
-
 namespace Drupal\search\Tests;
 
 /**
@@ -34,7 +29,7 @@ class SearchPageOverrideTest extends SearchTestBase {
   protected function setUp() {
     parent::setUp();
 
-    // Login as a user that can create and search content.
+    // Log in as a user that can create and search content.
     $this->searchUser = $this->drupalCreateUser(array('search content', 'administer search'));
     $this->drupalLogin($this->searchUser);
   }
@@ -45,4 +40,5 @@ class SearchPageOverrideTest extends SearchTestBase {
     $this->assertText('Dummy search snippet', 'Dummy search snippet is shown');
     $this->assertText('Test page text is here', 'Page override is working');
   }
+
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\block_content\BlockContentViewBuilder.
- */
-
 namespace Drupal\block_content;
 
 use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
@@ -12,7 +7,7 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityViewBuilder;
 
 /**
- * Render controller for custom blocks.
+ * View builder handler for custom blocks.
  */
 class BlockContentViewBuilder extends EntityViewBuilder {
 

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Common\UrlTest.
- */
-
 namespace Drupal\system\Tests\Common;
 
 use Drupal\Component\Utility\UrlHelper;
@@ -321,4 +316,5 @@ class UrlTest extends WebTestBase {
     $result = Url::fromUri($url, array('query' => $query))->toString();
     $this->assertEqual($url . '&' . http_build_query($query, '', '&'), $result);
   }
+
 }

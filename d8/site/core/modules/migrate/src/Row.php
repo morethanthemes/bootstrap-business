@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\migrate\Row.
- */
-
 namespace Drupal\migrate;
 
 use Drupal\Component\Utility\NestedArray;
@@ -340,4 +335,5 @@ class Row {
   public function isStub() {
     return $this->isStub;
   }
+
 }

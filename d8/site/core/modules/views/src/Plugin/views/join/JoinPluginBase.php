@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Plugin\views\join\JoinPluginBase.
- */
-
 namespace Drupal\views\Plugin\views\join;
 
 use Drupal\Core\Plugin\PluginBase;
@@ -21,12 +16,13 @@ use Drupal\Core\Plugin\PluginBase;
  * They must be annotated with \Drupal\views\Annotation\ViewsJoin annotation,
  * and they must be in namespace directory Plugin\views\join.
  *
- * Here are some examples of how to join from table one to table two so it
- * produces the following SQL:
+ * Here are some examples of configuration for the join plugins.
+ *
+ * For this SQL:
  * @code
- * INNER JOIN {two} ON one.field_a = two.field_b
+ * LEFT JOIN {two} ON one.field_a = two.field_b
  * @endcode
- * The required php code for this kind of functionality is the following:
+ * Use this configuration:
  * @code
  * $configuration = array(
  *   'table' => 'two',
@@ -37,12 +33,17 @@ use Drupal\Core\Plugin\PluginBase;
  * );
  * $join = Views::pluginManager('join')->createInstance('standard', $configuration);
  * @endcode
+ * Note that the default join type is a LEFT join when 'type' is not supplied in
+ * the join plugin configuration.
+ *
+ * For this SQL:
  * @code
  * INNER JOIN {two} ON one.field_a = two.field_b AND one.field_c = 'some_val'
  * @endcode
- * The required php code for this kind of functionality is the following:
+ * Use this configuration:
  * @code
  * $configuration = array(
+ *   'type' => 'INNER',
  *   'table' => 'two',
  *   'field' => 'field_b',
  *   'left_table' => 'one',
@@ -57,12 +58,15 @@ use Drupal\Core\Plugin\PluginBase;
  * );
  * $join = Views::pluginManager('join')->createInstance('standard', $configuration);
  * @endcode
+ *
+ * For this SQL:
  * @code
  * INNER JOIN {two} ON one.field_a = two.field_b AND two.field_d = 'other_val'
  * @endcode
- * The required php code for this kind of functionality is the following:
+ * Use this configuration:
  * @code
  * $configuration = array(
+ *   'type' => 'INNER',
  *   'table' => 'two',
  *   'field' => 'field_b',
  *   'left_table' => 'one',
@@ -77,12 +81,15 @@ use Drupal\Core\Plugin\PluginBase;
  * );
  * $join = Views::pluginManager('join')->createInstance('standard', $configuration);
  * @endcode
+ *
+ * For this SQL:
  * @code
  * INNER JOIN {two} ON one.field_a = two.field_b AND one.field_c = two.field_d
  * @endcode
- * The required php code for this kind of functionality is the following:
+ * Use this configuration:
  * @code
  * $configuration = array(
+ *   'type' => 'INNER',
  *   'table' => 'two',
  *   'field' => 'field_b',
  *   'left_table' => 'one',
@@ -296,24 +303,18 @@ class JoinPluginBase extends PluginBase implements JoinPluginInterface {
           if (is_array($info['value']) && count($info['value']) == 1) {
             $info['value'] = array_shift($info['value']);
           }
-
           if (is_array($info['value'])) {
-            // With an array of values, we need multiple placeholders and the
-            // 'IN' operator is implicit.
-            $local_arguments = array();
-            foreach ($info['value'] as $value) {
-              $placeholder_i = ':views_join_condition_' . $select_query->nextPlaceholder();
-              $local_arguments[$placeholder_i] = $value;
-            }
-
+            // We use an SA-CORE-2014-005 conformant placeholder for our array
+            // of values. Also, note that the 'IN' operator is implicit.
+            // @see https://www.drupal.org/node/2401615.
             $operator = !empty($info['operator']) ? $info['operator'] : 'IN';
-            $placeholder = '( ' . implode(', ', array_keys($local_arguments)) . ' )';
-            $arguments += $local_arguments;
+            $placeholder = ':views_join_condition_' . $select_query->nextPlaceholder() . '[]';
+            $placeholder_sql = "( $placeholder )";
           }
           else {
             // With a single value, the '=' operator is implicit.
             $operator = !empty($info['operator']) ? $info['operator'] : '=';
-            $placeholder = ':views_join_condition_' . $select_query->nextPlaceholder();
+            $placeholder = $placeholder_sql = ':views_join_condition_' . $select_query->nextPlaceholder();
           }
           // Set 'field' as join table field if available or set 'left field' as
           // join table field is not set.
@@ -322,7 +323,7 @@ class JoinPluginBase extends PluginBase implements JoinPluginInterface {
             // Allow the value to be set either with the 'value' element or
             // with 'left_field'.
             if (isset($info['left_field'])) {
-              $placeholder = "$left[alias].$info[left_field]";
+              $placeholder_sql = "$left[alias].$info[left_field]";
             }
             else {
               $arguments[$placeholder] = $info['value'];
@@ -333,7 +334,8 @@ class JoinPluginBase extends PluginBase implements JoinPluginInterface {
             $join_table_field = "$left[alias].$info[left_field]";
             $arguments[$placeholder] = $info['value'];
           }
-          $extras[] = "$join_table_field $operator $placeholder";
+          // Render out the SQL fragment with parameters.
+          $extras[] = "$join_table_field $operator $placeholder_sql";
         }
 
         if ($extras) {

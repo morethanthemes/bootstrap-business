@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\update\UpdateManagerInterface.
- */
 
 namespace Drupal\update;
 
@@ -102,4 +98,5 @@ interface UpdateManagerInterface {
    *   array when the storage is cleared.
    */
   public function projectStorage($key);
+
 }

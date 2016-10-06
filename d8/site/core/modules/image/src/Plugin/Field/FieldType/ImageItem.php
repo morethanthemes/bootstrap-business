@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\image\Plugin\Field\FieldType\ImageItem.
- */
-
 namespace Drupal\image\Plugin\Field\FieldType;
 
 use Drupal\Component\Utility\Random;
@@ -31,7 +26,8 @@ use Drupal\file\Plugin\Field\FieldType\FileItem;
  *       "label" = @Translation("File"),
  *       "columns" = {
  *         "target_id", "width", "height"
- *       }
+ *       },
+ *       "require_all_groups_for_translation" = TRUE
  *     },
  *     "alt" = {
  *       "label" = @Translation("Alt"),
@@ -212,7 +208,7 @@ class ImageItem extends FileItem {
       '#weight' => 4.1,
       '#field_prefix' => '<div class="container-inline">',
       '#field_suffix' => '</div>',
-      '#description' => t('The maximum allowed image size expressed as WIDTH×HEIGHT (e.g. 640×480). Leave blank for no restriction. If a larger image is uploaded, it will be resized to reflect the given width and height. Resizing images on upload will cause the loss of <a href=":url">EXIF data</a> in the image.', array(':url' => 'http://en.wikipedia.org/wiki/Exchangeable_image_file_format')),
+      '#description' => t('The maximum allowed image size expressed as WIDTH×HEIGHT (e.g. 640×480). Leave blank for no restriction. If a larger image is uploaded, it will be resized to reflect the given width and height. Resizing images on upload will cause the loss of <a href="http://wikipedia.org/wiki/Exchangeable_image_file_format">EXIF data</a> in the image.'),
     );
     $element['max_resolution']['x'] = array(
       '#type' => 'number',
@@ -321,7 +317,7 @@ class ImageItem extends FileItem {
       $image = \Drupal::service('image.factory')->get($this->entity->getFileUri());
       if ($image->isValid()) {
         $this->width = $image->getWidth();
-        $this->height =$image->getHeight();
+        $this->height = $image->getHeight();
       }
     }
   }
@@ -347,7 +343,7 @@ class ImageItem extends FileItem {
         $image = File::create();
         $image->setFileUri($path);
         $image->setOwnerId(\Drupal::currentUser()->id());
-        $image->setMimeType('image/' . pathinfo($path, PATHINFO_EXTENSION));
+        $image->setMimeType(\Drupal::service('file.mime_type.guesser')->guess($path));
         $image->setFileName(drupal_basename($path));
         $destination_dir = static::doGetUploadLocation($settings);
         file_prepare_directory($destination_dir, FILE_CREATE_DIRECTORY);
@@ -370,7 +366,7 @@ class ImageItem extends FileItem {
       'target_id' => $file->id(),
       'alt' => $random->sentences(4),
       'title' => $random->sentences(4),
-      'width' =>$width,
+      'width' => $width,
       'height' => $height,
     );
     return $values;

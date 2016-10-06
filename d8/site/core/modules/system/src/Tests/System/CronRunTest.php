@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\System\CronRunTest.
- */
-
 namespace Drupal\system\Tests\System;
 
 use Drupal\simpletest\WebTestBase;
@@ -130,4 +125,5 @@ class CronRunTest extends WebTestBase {
     $this->assertResponse(200);
     $this->assertText(t('Cron ran successfully.'));
   }
+
 }

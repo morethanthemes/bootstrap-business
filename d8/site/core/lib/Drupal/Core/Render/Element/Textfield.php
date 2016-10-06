@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\Element\Textfield.
- */
-
 namespace Drupal\Core\Render\Element;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -25,7 +20,7 @@ use Drupal\Core\Render\Element;
  * @code
  * $form['title'] = array(
  *   '#type' => 'textfield',
- *   '#title' => t('Subject'),
+ *   '#title' => $this->t('Subject'),
  *   '#default_value' => $node->title,
  *   '#size' => 60,
  *   '#maxlength' => 128,

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Component\Utility\ImageTest.
- */
-
 namespace Drupal\Tests\Component\Utility;
 
 use Drupal\Component\Utility\Image;
@@ -40,11 +35,10 @@ class ImageTest extends UnitTestCase {
    *
    * @return array
    *   Keyed array containing:
-   * - 'input' - Array which contains input for
-   *   Image::scaleDimensions().
-   * - 'output' - Array which contains expected output after passing
-   *   through Image::scaleDimensions. Also contains a boolean
-   *   'return_value' which should match the expected return value.
+   *   - 'input' - Array which contains input for Image::scaleDimensions().
+   *   - 'output' - Array which contains expected output after passing
+   *     through Image::scaleDimensions. Also contains a boolean
+   *     'return_value' which should match the expected return value.
    *
    * @see testScaleDimensions()
    */

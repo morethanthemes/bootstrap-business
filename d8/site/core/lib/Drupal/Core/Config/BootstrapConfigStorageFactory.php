@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Config\BootstrapConfigStorageFactory.
- */
-
 namespace Drupal\Core\Config;
 
 use Drupal\Core\Database\Database;
@@ -61,4 +56,5 @@ class BootstrapConfigStorageFactory {
   public static function getFileStorage() {
     return new FileStorage(config_get_config_directory(CONFIG_ACTIVE_DIRECTORY));
   }
+
 }

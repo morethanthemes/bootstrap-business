@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Form\ElementsVerticalTabsTest.
- */
-
 namespace Drupal\system\Tests\Form;
 
 use Drupal\Component\Utility\SafeMarkup;
@@ -75,9 +70,9 @@ class ElementsVerticalTabsTest extends WebTestBase {
     $this->assertFalse(isset($wrapper[0]), 'Vertical tab wrappers are not displayed to unprivileged users.');
   }
 
- /**
-  * Ensures that default vertical tab is correctly selected.
-  */
+  /**
+   * Ensures that default vertical tab is correctly selected.
+   */
   function testDefaultTab() {
     $this->drupalGet('form_test/vertical-tabs');
     $this->assertFieldByName('vertical_tabs__active_tab', 'edit-tab3', t('The default vertical tab is correctly selected.'));
@@ -90,4 +85,5 @@ class ElementsVerticalTabsTest extends WebTestBase {
     $values = Json::decode($this->drupalPostForm('form_test/form-state-values-clean', [], t('Submit')));
     $this->assertFalse(isset($values['vertical_tabs__active_tab']), SafeMarkup::format('%element was removed.', ['%element' => 'vertical_tabs__active_tab']));
   }
+
 }

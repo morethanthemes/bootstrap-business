@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\aggregator\Tests\AggregatorCronTest.
- */
-
 namespace Drupal\aggregator\Tests;
 
 /**
@@ -46,4 +41,5 @@ class AggregatorCronTest extends AggregatorTestBase {
     $this->cronRun();
     $this->assertEqual(5, db_query('SELECT COUNT(*) FROM {aggregator_item} WHERE fid = :fid', array(':fid' => $feed->id()))->fetchField());
   }
+
 }

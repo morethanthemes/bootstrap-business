@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\Element\Button.
- */
-
 namespace Drupal\Core\Render\Element;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -27,7 +22,7 @@ use Drupal\Core\Render\Element;
  * @code
  * $form['actions']['preview'] = array(
  *   '#type' => 'button',
- *   '#value => $this->t('Preview'),
+ *   '#value' => $this->t('Preview'),
  * );
  * @endcode
  *
@@ -77,10 +72,9 @@ class Button extends FormElement {
    *
    * @param array $element
    *   An associative array containing the properties of the element.
-   *   Properties used: #attributes, #button_type, #name, #value.
-   *
-   * The #button_type property accepts any value, though core themes have CSS that
-   * styles the following button_types appropriately: 'primary', 'danger'.
+   *   Properties used: #attributes, #button_type, #name, #value. The
+   *   #button_type property accepts any value, though core themes have CSS that
+   *   styles the following button_types appropriately: 'primary', 'danger'.
    *
    * @return array
    *   The $element with prepared variables ready for input.html.twig.

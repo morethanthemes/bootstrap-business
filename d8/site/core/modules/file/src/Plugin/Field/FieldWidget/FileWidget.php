@@ -1,15 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\file\Plugin\Field\FieldWidget\FileWidget.
- */
-
 namespace Drupal\file\Plugin\Field\FieldWidget;
 
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Field\FieldDefinitionInterface;
-use Drupal\Core\Field\FieldFilteredMarkup;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Field\WidgetBase;
@@ -119,7 +113,7 @@ class FileWidget extends WidgetBase implements ContainerFactoryPluginInterface {
     }
 
     $title = $this->fieldDefinition->getLabel();
-    $description = FieldFilteredMarkup::create($this->fieldDefinition->getDescription());
+    $description = $this->getFilteredDescription();
 
     $elements = array();
 
@@ -331,25 +325,30 @@ class FileWidget extends WidgetBase implements ContainerFactoryPluginInterface {
    * This validator is used only when cardinality not set to 1 or unlimited.
    */
   public static function validateMultipleCount($element, FormStateInterface $form_state, $form) {
-    $parents = $element['#parents'];
-    $values = NestedArray::getValue($form_state->getValues(), $parents);
+    $values = NestedArray::getValue($form_state->getValues(), $element['#parents']);
 
-    array_pop($parents);
-    $current = count(Element::children(NestedArray::getValue($form, $parents))) - 1;
+    $array_parents = $element['#array_parents'];
+    array_pop($array_parents);
+    $previously_uploaded_count = count(Element::children(NestedArray::getValue($form, $array_parents))) - 1;
 
     $field_storage_definitions = \Drupal::entityManager()->getFieldStorageDefinitions($element['#entity_type']);
     $field_storage = $field_storage_definitions[$element['#field_name']];
-    $uploaded = count($values['fids']);
-    $count = $uploaded + $current;
-    if ($count > $field_storage->getCardinality()) {
-      $keep = $uploaded - $count + $field_storage->getCardinality();
+    $newly_uploaded_count = count($values['fids']);
+    $total_uploaded_count = $newly_uploaded_count + $previously_uploaded_count;
+    if ($total_uploaded_count > $field_storage->getCardinality()) {
+      $keep = $newly_uploaded_count - $total_uploaded_count + $field_storage->getCardinality();
       $removed_files = array_slice($values['fids'], $keep);
       $removed_names = array();
       foreach ($removed_files as $fid) {
         $file = File::load($fid);
         $removed_names[] = $file->getFilename();
       }
-      $args = array('%field' => $field_storage->getName(), '@max' => $field_storage->getCardinality(), '@count' => $uploaded, '%list' => implode(', ', $removed_names));
+      $args = [
+        '%field' => $field_storage->getName(),
+        '@max' => $field_storage->getCardinality(),
+        '@count' => $total_uploaded_count,
+        '%list' => implode(', ', $removed_names),
+      ];
       $message = t('Field %field can only hold @max values but there were @count uploaded. The following files have been omitted as a result: %list.', $args);
       drupal_set_message($message, 'warning');
       $values['fids'] = array_slice($values['fids'], 0, $keep);
@@ -378,7 +377,8 @@ class FileWidget extends WidgetBase implements ContainerFactoryPluginInterface {
       );
       if (isset($item['display'])) {
         $element['display']['#value'] = $item['display'] ? '1' : '';
-      } else {
+      }
+      else {
         $element['display']['#value'] = $element['#display_default'];
       }
     }

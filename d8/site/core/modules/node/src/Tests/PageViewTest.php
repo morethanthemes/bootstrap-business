@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Tests\PageViewTest.
- */
-
 namespace Drupal\node\Tests;
 
 use Drupal\node\Entity\Node;
@@ -43,4 +38,5 @@ class PageViewTest extends NodeTestBase {
     $this->drupalGet("node/" . $node->id() . "/edit");
     $this->assertResponse(200);
   }
+
 }

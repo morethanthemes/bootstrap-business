@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Block\BlockBaseTest.
- */
-
 namespace Drupal\Tests\Core\Block;
 
 use Drupal\block_test\Plugin\Block\TestBlockInstantiation;
@@ -19,7 +14,7 @@ class BlockBaseTest extends UnitTestCase {
   /**
    * Tests the machine name suggestion.
    *
-   * @see \Drupal\Core\Block\BlockBase::getMachineNameSuggestion().
+   * @see \Drupal\Core\Block\BlockBase::getMachineNameSuggestion()
    */
   public function testGetMachineNameSuggestion() {
     $module_handler = $this->getMock('Drupal\Core\Extension\ModuleHandlerInterface');

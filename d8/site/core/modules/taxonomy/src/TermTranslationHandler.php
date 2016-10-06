@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\taxonomy\TermTranslationHandler.
- */
-
 namespace Drupal\taxonomy;
 
 use Drupal\Core\Entity\EntityInterface;
@@ -29,7 +24,7 @@ class TermTranslationHandler extends ContentTranslationHandler {
    *
    * This handles the save action.
    *
-   * @see \Drupal\Core\Entity\EntityForm::build().
+   * @see \Drupal\Core\Entity\EntityForm::build()
    */
   function entityFormSave(array $form, FormStateInterface $form_state) {
     if ($this->getSourceLangcode($form_state)) {

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Plugin\Derivative\DefaultWizardDeriver.
- */
-
 namespace Drupal\views\Plugin\Derivative;
 
 use Drupal\Component\Plugin\Derivative\DeriverBase;
@@ -36,4 +31,5 @@ class DefaultWizardDeriver extends DeriverBase {
     }
     return parent::getDerivativeDefinitions($base_plugin_definition);
   }
+
 }

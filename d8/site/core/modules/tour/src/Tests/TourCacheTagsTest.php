@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\tour\Tests\TourCacheTagsTest.
- */
-
 namespace Drupal\tour\Tests;
 
 use Drupal\Core\Url;
@@ -34,7 +29,7 @@ class TourCacheTagsTest extends PageCacheTagsTestBase {
     // Give anonymous users permission to view nodes, so that we can verify the
     // cache tags of cached versions of node pages.
     Role::load(RoleInterface::ANONYMOUS_ID)->grantPermission('access tour')
-     ->save();
+      ->save();
   }
 
   /**

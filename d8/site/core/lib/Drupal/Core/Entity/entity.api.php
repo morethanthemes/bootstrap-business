@@ -5,7 +5,6 @@
  * Hooks and documentation related to entities.
  */
 
-use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\DynamicallyFieldableEntityStorageInterface;
@@ -277,8 +276,8 @@ use Drupal\node\Entity\NodeType;
  *   content entity type that uses bundles, the 'bundle_label' annotation gives
  *   the human-readable name to use for a bundle of this entity type (for
  *   example, "Content type" for the Node entity).
- * - The annotation will refer to several controller classes, which you will
- *   also need to define:
+ * - The annotation will refer to several handler classes, which you will also
+ *   need to define:
  *   - list_builder: Define a class that extends
  *     \Drupal\Core\Config\Entity\ConfigEntityListBuilder (for configuration
  *     entities) or \Drupal\Core\Entity\EntityListBuilder (for content
@@ -298,7 +297,7 @@ use Drupal\node\Entity\NodeType;
  *     annotation has value TRUE), define a class that extends
  *     \Drupal\content_translation\ContentTranslationHandler, to translate
  *     the content. Configuration translation is handled automatically by the
- *     Configuration Translation module, without the need of a controller class.
+ *     Configuration Translation module, without the need of a handler class.
  *   - access: If your configuration entity has complex permissions, you might
  *     need an access control handling, implementing
  *     \Drupal\Core\Entity\EntityAccessControlHandlerInterface, but most entities
@@ -381,10 +380,10 @@ use Drupal\node\Entity\NodeType;
  *   an object to the controller for the route.
  * - defaults: For entity form routes, use _entity_form rather than the generic
  *   _controller or _form. The value is composed of the entity type machine name
- *   and a form controller type from the entity annotation (see @ref define
- *   above more more on controllers and annotation). So, in this example,
- *   block.default refers to the 'default' form controller on the block entity
- *   type, whose annotation contains:
+ *   and a form handler type from the entity annotation (see @ref define above
+ *   more more on handlers and annotation). So, in this example, block.default
+ *   refers to the 'default' form handler on the block entity type, whose
+ *   annotation contains:
  *   @code
  *   handlers = {
  *     "form" = {
@@ -699,7 +698,6 @@ function hook_entity_type_alter(array &$entity_types) {
  *
  * @see \Drupal\Core\Entity\EntityManagerInterface::getAllViewModes()
  * @see \Drupal\Core\Entity\EntityManagerInterface::getViewModes()
- * @see hook_entity_view_mode_info()
  */
 function hook_entity_view_mode_info_alter(&$view_modes) {
   $view_modes['user']['full']['status'] = TRUE;
@@ -719,7 +717,7 @@ function hook_entity_view_mode_info_alter(&$view_modes) {
  *   - translatable: (optional) A boolean value specifying whether this bundle
  *     has translation support enabled. Defaults to FALSE.
  *
- * @see entity_get_bundles()
+ * @see \Drupal\Core\Entity\EntityTypeBundleInfo::getBundleInfo()
  * @see hook_entity_bundle_info_alter()
  */
 function hook_entity_bundle_info() {
@@ -733,7 +731,7 @@ function hook_entity_bundle_info() {
  * @param array $bundles
  *   An array of bundles, keyed first by entity type, then by bundle name.
  *
- * @see entity_get_bundles()
+ * @see Drupal\Core\Entity\EntityTypeBundleInfo::getBundleInfo()
  * @see hook_entity_bundle_info()
  */
 function hook_entity_bundle_info_alter(&$bundles) {
@@ -885,6 +883,9 @@ function hook_ENTITY_TYPE_storage_load(array $entities) {
 /**
  * Act on an entity before it is created or updated.
  *
+ * You can get the original entity object from $entity->original when it is an
+ * update of the entity.
+ *
  * @param \Drupal\Core\Entity\EntityInterface $entity
  *   The entity object.
  *
@@ -892,14 +893,17 @@ function hook_ENTITY_TYPE_storage_load(array $entities) {
  * @see hook_ENTITY_TYPE_presave()
  */
 function hook_entity_presave(Drupal\Core\Entity\EntityInterface $entity) {
- if ($entity instanceof ContentEntityInterface && $entity->isTranslatable()) {
-   $route_match = \Drupal::routeMatch();
-   \Drupal::service('content_translation.synchronizer')->synchronizeFields($entity, $entity->language()->getId(), $route_match->getParameter('source_langcode'));
+  if ($entity instanceof ContentEntityInterface && $entity->isTranslatable()) {
+    $route_match = \Drupal::routeMatch();
+    \Drupal::service('content_translation.synchronizer')->synchronizeFields($entity, $entity->language()->getId(), $route_match->getParameter('source_langcode'));
   }
 }
 
 /**
  * Act on a specific type of entity before it is created or updated.
+ *
+ * You can get the original entity object from $entity->original when it is an
+ * update of the entity.
  *
  * @param \Drupal\Core\Entity\EntityInterface $entity
  *   The entity object.
@@ -965,7 +969,8 @@ function hook_ENTITY_TYPE_insert(Drupal\Core\Entity\EntityInterface $entity) {
  * Respond to updates to an entity.
  *
  * This hook runs once the entity storage has been updated. Note that hook
- * implementations may not alter the stored entity data.
+ * implementations may not alter the stored entity data. Get the original entity
+ * object from $entity->original.
  *
  * @param \Drupal\Core\Entity\EntityInterface $entity
  *   The entity object.
@@ -988,7 +993,8 @@ function hook_entity_update(Drupal\Core\Entity\EntityInterface $entity) {
  * Respond to updates to an entity of a particular type.
  *
  * This hook runs once the entity storage has been updated. Note that hook
- * implementations may not alter the stored entity data.
+ * implementations may not alter the stored entity data. Get the original entity
+ * object from $entity->original.
  *
  * @param \Drupal\Core\Entity\EntityInterface $entity
  *   The entity object.
@@ -1247,25 +1253,12 @@ function hook_ENTITY_TYPE_revision_delete(Drupal\Core\Entity\EntityInterface $en
 }
 
 /**
- * Alter or execute an Drupal\Core\Entity\Query\EntityQueryInterface.
- *
- * @param \Drupal\Core\Entity\Query\QueryInterface $query
- *   Note the $query->altered attribute which is TRUE in case the query has
- *   already been altered once. This happens with cloned queries.
- *   If there is a pager, then such a cloned query will be executed to count
- *   all elements. This query can be detected by checking for
- *   ($query->pager && $query->count), allowing the driver to return 0 from
- *   the count query and disable the pager.
- */
-function hook_entity_query_alter(\Drupal\Core\Entity\Query\QueryInterface $query) {
-  // @todo: code example.
-}
-
-/**
  * Act on entities being assembled before rendering.
  *
  * @param &$build
- *   A renderable array representing the entity content.
+ *   A renderable array representing the entity content. The module may add
+ *   elements to $build prior to rendering. The structure of $build is a
+ *   renderable array as expected by drupal_render().
  * @param \Drupal\Core\Entity\EntityInterface $entity
  *   The entity object.
  * @param \Drupal\Core\Entity\Display\EntityViewDisplayInterface $display
@@ -1273,10 +1266,6 @@ function hook_entity_query_alter(\Drupal\Core\Entity\Query\QueryInterface $query
  *   entity components.
  * @param $view_mode
  *   The view mode the entity is rendered in.
- *
- * The module may add elements to $build prior to rendering. The
- * structure of $build is a renderable array as expected by
- * drupal_render().
  *
  * @see hook_entity_view_alter()
  * @see hook_ENTITY_TYPE_view()
@@ -1299,7 +1288,9 @@ function hook_entity_view(array &$build, \Drupal\Core\Entity\EntityInterface $en
  * Act on entities of a particular type being assembled before rendering.
  *
  * @param &$build
- *   A renderable array representing the entity content.
+ *   A renderable array representing the entity content. The module may add
+ *   elements to $build prior to rendering. The structure of $build is a
+ *   renderable array as expected by drupal_render().
  * @param \Drupal\Core\Entity\EntityInterface $entity
  *   The entity object.
  * @param \Drupal\Core\Entity\Display\EntityViewDisplayInterface $display
@@ -1307,10 +1298,6 @@ function hook_entity_view(array &$build, \Drupal\Core\Entity\EntityInterface $en
  *   entity components.
  * @param $view_mode
  *   The view mode the entity is rendered in.
- *
- * The module may add elements to $build prior to rendering. The
- * structure of $build is a renderable array as expected by
- * drupal_render().
  *
  * @see hook_ENTITY_TYPE_view_alter()
  * @see hook_entity_view()
@@ -1858,7 +1845,8 @@ function hook_entity_operation_alter(array &$operations, \Drupal\Core\Entity\Ent
  *
  * @param string $operation
  *   The operation to be performed. See
- *   \Drupal\Core\Access\AccessibleInterface::access() for possible values.
+ *   \Drupal\Core\Entity\EntityAccessControlHandlerInterface::fieldAccess()
+ *   for possible values.
  * @param \Drupal\Core\Field\FieldDefinitionInterface $field_definition
  *   The field definition.
  * @param \Drupal\Core\Session\AccountInterface $account
@@ -1869,6 +1857,8 @@ function hook_entity_operation_alter(array &$operations, \Drupal\Core\Entity\Ent
  *
  * @return \Drupal\Core\Access\AccessResultInterface
  *   The access result.
+ *
+ * @see \Drupal\Core\Entity\EntityAccessControlHandlerInterface::fieldAccess()
  */
 function hook_entity_field_access($operation, \Drupal\Core\Field\FieldDefinitionInterface $field_definition, \Drupal\Core\Session\AccountInterface $account, \Drupal\Core\Field\FieldItemListInterface $items = NULL) {
   if ($field_definition->getName() == 'field_of_interest' && $operation == 'edit') {

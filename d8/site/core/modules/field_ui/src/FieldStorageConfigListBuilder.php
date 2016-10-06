@@ -1,16 +1,12 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\field_ui\FieldStorageConfigListBuilder.
- */
-
 namespace Drupal\field_ui;
 
 use Drupal\Core\Config\Entity\ConfigEntityListBuilder;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -60,11 +56,11 @@ class FieldStorageConfigListBuilder extends ConfigEntityListBuilder {
    * @param \Drupal\Core\Field\FieldTypePluginManagerInterface $field_type_manager
    *   The 'field type' plugin manager.
    */
-  public function __construct(EntityTypeInterface $entity_type, EntityManagerInterface $entity_manager, FieldTypePluginManagerInterface $field_type_manager) {
+  public function __construct(EntityTypeInterface $entity_type, EntityManagerInterface $entity_manager, FieldTypePluginManagerInterface $field_type_manager, EntityTypeBundleInfoInterface $bundle_info_service) {
     parent::__construct($entity_type, $entity_manager->getStorage($entity_type->id()));
 
     $this->entityManager = $entity_manager;
-    $this->bundles = entity_get_bundles();
+    $this->bundles = $bundle_info_service->getAllBundleInfo();
     $this->fieldTypeManager = $field_type_manager;
     $this->fieldTypes = $this->fieldTypeManager->getDefinitions();
   }
@@ -76,7 +72,8 @@ class FieldStorageConfigListBuilder extends ConfigEntityListBuilder {
     return new static(
       $entity_type,
       $container->get('entity.manager'),
-      $container->get('plugin.manager.field.field_type')
+      $container->get('plugin.manager.field.field_type'),
+      $container->get('entity_type.bundle.info')
     );
   }
 
@@ -99,7 +96,7 @@ class FieldStorageConfigListBuilder extends ConfigEntityListBuilder {
   public function buildRow(EntityInterface $field_storage) {
     if ($field_storage->isLocked()) {
       $row['class'] = array('menu-disabled');
-      $row['data']['id'] =  $this->t('@field_name (Locked)', array('@field_name' => $field_storage->getName()));
+      $row['data']['id'] = $this->t('@field_name (Locked)', array('@field_name' => $field_storage->getName()));
     }
     else {
       $row['data']['id'] = $field_storage->getName();

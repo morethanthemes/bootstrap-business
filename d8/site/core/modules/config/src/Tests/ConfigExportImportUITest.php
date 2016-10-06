@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\config\Tests\ConfigExportImportUITest.
- */
-
 namespace Drupal\config\Tests;
 
 use Drupal\Component\Utility\Unicode;
@@ -108,16 +103,16 @@ class ConfigExportImportUITest extends WebTestBase {
 
     // Create a field.
     $this->fieldName = Unicode::strtolower($this->randomMachineName());
-    $this->fieldStorage = entity_create('field_storage_config', array(
+    $this->fieldStorage = FieldStorageConfig::create(array(
       'field_name' => $this->fieldName,
       'entity_type' => 'node',
       'type' => 'text',
     ));
     $this->fieldStorage->save();
-    entity_create('field_config', array(
+    FieldConfig::create([
       'field_storage' => $this->fieldStorage,
       'bundle' => $this->contentType->id(),
-    ))->save();
+    ])->save();
     // Update the displays so that configuration does not change unexpectedly on
     // import.
     entity_get_form_display('node', $this->contentType->id(), 'default')
@@ -231,7 +226,7 @@ class ConfigExportImportUITest extends WebTestBase {
     // Export the configuration.
     $this->drupalPostForm('admin/config/development/configuration/full/export', array(), 'Export');
     $this->tarball = $this->getRawContent();
-    $filename = file_directory_temp() .'/' . $this->randomMachineName();
+    $filename = file_directory_temp() . '/' . $this->randomMachineName();
     file_put_contents($filename, $this->tarball);
 
     // Set up the active storage collections to test import.

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher.
- */
-
 namespace Drupal\Component\EventDispatcher;
 
 use Symfony\Component\DependencyInjection\IntrospectableContainerInterface;
@@ -159,6 +154,35 @@ class ContainerAwareEventDispatcher implements EventDispatcherInterface {
     }
 
     return $result;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getListenerPriority($eventName, $listener) {
+    // Parts copied from \Symfony\Component\EventDispatcher, that's why you see
+    // a yoda condition here.
+    if (!isset($this->listeners[$eventName])) {
+      return;
+    }
+    foreach ($this->listeners[$eventName] as $priority => $listeners) {
+      if (FALSE !== ($key = array_search(['callable' => $listener], $listeners, TRUE))) {
+        return $priority;
+      }
+    }
+    // Resolve service definitions if the listener has not been found so far.
+    foreach ($this->listeners[$eventName] as $priority => &$definitions) {
+      foreach ($definitions as $key => &$definition) {
+        if (!isset($definition['callable'])) {
+          // Once the callable is retrieved we keep it for subsequent method
+          // invocations on this class.
+          $definition['callable'] = [$this->container->get($definition['service'][0]), $definition['service'][1]];
+          if ($definition['callable'] === $listener) {
+            return $priority;
+          }
+        }
+      }
+    }
   }
 
   /**

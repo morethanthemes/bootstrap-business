@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\Tests\UserEditedOwnAccountTest.
- */
-
 namespace Drupal\user\Tests;
 
 use Drupal\simpletest\WebTestBase;
@@ -44,4 +39,5 @@ class UserEditedOwnAccountTest extends WebTestBase {
     $account->name = $edit['name'];
     $this->drupalLogin($account);
   }
+
 }

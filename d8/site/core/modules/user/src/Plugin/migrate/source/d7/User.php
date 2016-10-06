@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\Plugin\migrate\source\d7\User.
- */
-
 namespace Drupal\user\Plugin\migrate\source\d7;
 
 use Drupal\migrate\Row;
@@ -25,7 +20,7 @@ class User extends FieldableEntity {
   public function query() {
     return $this->select('users', 'u')
       ->fields('u')
-      ->condition('uid', 0, '>');
+      ->condition('u.uid', 0, '>');
   }
 
   /**

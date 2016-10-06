@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\AccountForm.
- */
-
 namespace Drupal\user;
 
 use Drupal\Component\Utility\Crypt;
@@ -127,8 +122,9 @@ abstract class AccountForm extends ContentEntityForm {
       // To skip the current password field, the user must have logged in via a
       // one-time link and have the token in the URL. Store this in $form_state
       // so it persists even on subsequent Ajax requests.
-      if (!$form_state->get('user_pass_reset')) {
-        $user_pass_reset = isset($_SESSION['pass_reset_' . $account->id()]) && Crypt::hashEquals($_SESSION['pass_reset_' . $account->id()], \Drupal::request()->query->get('pass-reset-token'));
+      if (!$form_state->get('user_pass_reset') && ($token = $this->getRequest()->get('pass-reset-token'))) {
+        $session_key = 'pass_reset_' . $account->id();
+        $user_pass_reset = isset($_SESSION[$session_key]) && Crypt::hashEquals($_SESSION[$session_key], $token);
         $form_state->set('user_pass_reset', $user_pass_reset);
       }
 
@@ -391,8 +387,9 @@ abstract class AccountForm extends ContentEntityForm {
     $user = $this->getEntity($form_state);
     // If there's a session set to the users id, remove the password reset tag
     // since a new password was saved.
-    if (isset($_SESSION['pass_reset_'. $user->id()])) {
-      unset($_SESSION['pass_reset_'. $user->id()]);
+    if (isset($_SESSION['pass_reset_' . $user->id()])) {
+      unset($_SESSION['pass_reset_' . $user->id()]);
     }
   }
+
 }

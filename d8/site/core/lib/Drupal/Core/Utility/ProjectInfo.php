@@ -1,12 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Utility\ProjectInfo.
- *
- * API for building lists of installed projects.
- */
-
 namespace Drupal\Core\Utility;
 
 use Drupal\Core\Extension\Extension;
@@ -179,7 +172,7 @@ class ProjectInfo {
    * @return
    *   Array of .info.yml file data we need for the update manager.
    *
-   * @see \Drupal\Core\Utility\ProjectInfo->processInfoList()
+   * @see \Drupal\Core\Utility\ProjectInfo::processInfoList()
    */
   function filterProjectInfo($info, $additional_whitelist = array()) {
     $whitelist = array(

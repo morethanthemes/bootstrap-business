@@ -1,12 +1,8 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Plugin\views\field\Field.
- */
-
 namespace Drupal\views\Plugin\views\field;
 
+use Drupal\Component\Plugin\DependentPluginInterface;
 use Drupal\Component\Utility\Xss;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheableDependencyInterface;
@@ -18,6 +14,7 @@ use Drupal\Core\Field\FormatterPluginManager;
 use Drupal\Core\Form\FormHelper;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
+use Drupal\Core\Plugin\PluginDependencyTrait;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Render\Element;
 use Drupal\Core\Render\RendererInterface;
@@ -40,7 +37,9 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @ViewsField("field")
  */
 class Field extends FieldPluginBase implements CacheableDependencyInterface, MultiItemsFieldHandlerInterface {
+
   use FieldAPIHandlerTrait;
+  use PluginDependencyTrait;
 
   /**
    * An array to store field renderable arrays for use by renderItems().
@@ -471,30 +470,30 @@ class Field extends FieldPluginBase implements CacheableDependencyInterface, Mul
       $form['field_api_classes']['#description'] .= ' ' . $this->t('Checking this option will cause the group Display Type and Separator values to be ignored.');
     }
 
-    // Get the currently selected formatter.
-    $format = $this->options['type'];
-
-    $settings = $this->options['settings'] + $this->formatterPluginManager->getDefaultSettings($format);
-
-    $options = array(
-      'field_definition' => $field,
-      'configuration' => array(
-        'type' => $format,
-        'settings' => $settings,
-        'label' => '',
-        'weight' => 0,
-      ),
-      'view_mode' => '_custom',
-    );
-
     // Get the settings form.
     $settings_form = array('#value' => array());
-    if ($formatter = $this->formatterPluginManager->getInstance($options)) {
+    $format = isset($form_state->getUserInput()['options']['type']) ? $form_state->getUserInput()['options']['type'] : $this->options['type'];
+    if ($formatter = $this->getFormatterInstance($format)) {
       $settings_form = $formatter->settingsForm($form, $form_state);
       // Convert field UI selector states to work in the Views field form.
       FormHelper::rewriteStatesSelector($settings_form, "fields[{$field->getName()}][settings_edit_form]", 'options');
     }
     $form['settings'] = $settings_form;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function submitFormCalculateOptions(array $options, array $form_state_options) {
+    // When we change the formatter type we don't want to keep any of the
+    // previous configured formatter settings, as there might be schema
+    // conflict.
+    unset($options['settings']);
+    $options = $form_state_options + $options;
+    if (!isset($options['settings'])) {
+      $options['settings'] = [];
+    }
+    return $options;
   }
 
   /**
@@ -815,7 +814,7 @@ class Field extends FieldPluginBase implements CacheableDependencyInterface, Mul
       // For grouped results we need to retrieve a massaged entity having
       // grouped field values to ensure that "grouped by" values, especially
       // those with multiple cardinality work properly. See
-      // \Drupal\views\Tests\QueryGroupByTest::testGroupByFieldWithCardinality.
+      // \Drupal\Tests\views\Kernel\QueryGroupByTest::testGroupByFieldWithCardinality.
       $display = [
         'type' => $this->options['type'],
         'settings' => $this->options['settings'],
@@ -949,21 +948,52 @@ class Field extends FieldPluginBase implements CacheableDependencyInterface, Mul
   }
 
   /**
+   * Returns the field formatter instance.
+   *
+   * @return \Drupal\Core\Field\FormatterInterface|null
+   *   The field formatter instance.
+   */
+  protected function getFormatterInstance($format = NULL) {
+    if (!isset($format)) {
+      $format = $this->options['type'];
+    }
+    $settings = $this->options['settings'] + $this->formatterPluginManager->getDefaultSettings($format);
+
+    $options = [
+      'field_definition' => $this->getFieldDefinition(),
+      'configuration' => [
+        'type' => $format,
+        'settings' => $settings,
+        'label' => '',
+        'weight' => 0,
+      ],
+      'view_mode' => '_custom',
+    ];
+
+    return $this->formatterPluginManager->getInstance($options);
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function calculateDependencies() {
-    $dependencies = parent::calculateDependencies();
+    $this->dependencies = parent::calculateDependencies();
 
     // Add the module providing the configured field storage as a dependency.
     if (($field_storage_definition = $this->getFieldStorageDefinition()) && $field_storage_definition instanceof EntityInterface) {
-      $dependencies['config'][] = $field_storage_definition->getConfigDependencyName();
+      $this->dependencies['config'][] = $field_storage_definition->getConfigDependencyName();
     }
-    // Add the module providing the formatter.
     if (!empty($this->options['type'])) {
-      $dependencies['module'][] = $this->formatterPluginManager->getDefinition($this->options['type'])['provider'];
+      // Add the module providing the formatter.
+      $this->dependencies['module'][] = $this->formatterPluginManager->getDefinition($this->options['type'])['provider'];
+
+      // Add the formatter's dependencies.
+      if (($formatter = $this->getFormatterInstance()) && $formatter instanceof DependentPluginInterface) {
+        $this->calculatePluginDependencies($formatter);
+      }
     }
 
-    return $dependencies;
+    return $this->dependencies;
   }
 
   /**
@@ -1019,15 +1049,27 @@ class Field extends FieldPluginBase implements CacheableDependencyInterface, Mul
 
     $field_item_definition = $field_item_list->getFieldDefinition();
 
-    if ($field_item_definition->getFieldStorageDefinition()->getCardinality() == 1) {
-      return $field ? $field_item_list->$field : $field_item_list->value;
-    }
-
     $values = [];
     foreach ($field_item_list as $field_item) {
-      $values[] = $field ? $field_item->$field : $field_item->value;
+      /** @var \Drupal\Core\Field\FieldItemInterface $field_item */
+      if ($field) {
+        $values[] = $field_item->$field;
+      }
+      // Find the value using the main property of the field. If no main
+      // property is provided fall back to 'value'.
+      elseif ($main_property_name = $field_item->mainPropertyName()) {
+        $values[] = $field_item->{$main_property_name};
+      }
+      else {
+        $values[] = $field_item->value;
+      }
     }
-    return $values;
+    if ($field_item_definition->getFieldStorageDefinition()->getCardinality() == 1) {
+      return reset($values);
+    }
+    else {
+      return $values;
+    }
   }
 
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Database\Driver\mysql\Connection.
- */
-
 namespace Drupal\Core\Database\Driver\mysql;
 
 use Drupal\Core\Database\DatabaseExceptionWrapper;
@@ -84,7 +79,8 @@ class Connection extends DatabaseConnection {
   public function query($query, array $args = array(), $options = array()) {
     try {
       return parent::query($query, $args, $options);
-    } catch (DatabaseException $e) {
+    }
+    catch (DatabaseException $e) {
       if ($e->getPrevious()->errorInfo[1] == 1153) {
         // If a max_allowed_packet error occurs the message length is truncated.
         // This should prevent the error from recurring if the exception is

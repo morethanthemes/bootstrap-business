@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\Query\Sql\pgsql\Condition.
- */
-
 namespace Drupal\Core\Entity\Query\Sql\pgsql;
 
 use Drupal\Core\Database\Query\SelectInterface;
@@ -38,4 +33,5 @@ class Condition extends BaseCondition {
     }
     parent::translateCondition($condition, $sql_query, $case_sensitive);
   }
+
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Asset\JsCollectionRenderer.
- */
-
 namespace Drupal\Core\Asset;
 
 use Drupal\Component\Serialization\Json;
@@ -25,7 +20,7 @@ class JsCollectionRenderer implements AssetCollectionRendererInterface {
   /**
    * Constructs a JsCollectionRenderer.
    *
-   * @param \Drupal\Core\State\StateInterface
+   * @param \Drupal\Core\State\StateInterface $state
    *   The state key/value store.
    */
   public function __construct(StateInterface $state) {
@@ -73,7 +68,7 @@ class JsCollectionRenderer implements AssetCollectionRendererInterface {
             'type' => 'application/json',
             'data-drupal-selector' => 'drupal-settings-json',
           );
-          $element['#value'] =  Json::encode($js_asset['data']);
+          $element['#value'] = Json::encode($js_asset['data']);
           break;
 
         case 'file':

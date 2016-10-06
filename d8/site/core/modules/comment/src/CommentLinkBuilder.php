@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\comment\CommentLinkBuilder.
- */
-
 namespace Drupal\comment;
 
 use Drupal\comment\Plugin\Field\FieldType\CommentItemInterface;
@@ -20,7 +15,7 @@ use Drupal\Core\Url;
 /**
  * Defines a class for building markup for comment links on a commented entity.
  *
- * Comment links include 'login to post new comment', 'add new comment' etc.
+ * Comment links include 'log in to post new comment', 'add new comment' etc.
  */
 class CommentLinkBuilder implements CommentLinkBuilderInterface {
 

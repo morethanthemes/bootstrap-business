@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\migrate\Plugin\migrate\process\SkipOnEmpty.
- */
-
 namespace Drupal\migrate\Plugin\migrate\process;
 
 use Drupal\migrate\MigrateSkipProcessException;
@@ -15,6 +10,8 @@ use Drupal\migrate\MigrateSkipRowException;
 
 /**
  * If the source evaluates to empty, we skip processing or the whole row.
+ *
+ * @link https://www.drupal.org/node/2228793 Online handbook documentation for skip_on_empty process plugin @endlink
  *
  * @MigrateProcessPlugin(
  *   id = "skip_on_empty"

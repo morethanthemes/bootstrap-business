@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\field\Tests\FieldTestBase.
- */
-
 namespace Drupal\field\Tests;
 
 use Drupal\Core\Entity\EntityInterface;
@@ -22,7 +17,7 @@ abstract class FieldTestBase extends WebTestBase {
    * @param $cardinality
    *   Number of values to generate.
    * @return
-   *  An array of random values, in the format expected for field values.
+   *   An array of random values, in the format expected for field values.
    */
   function _generateTestFieldValues($cardinality) {
     $values = array();
@@ -52,8 +47,11 @@ abstract class FieldTestBase extends WebTestBase {
    */
   function assertFieldValues(EntityInterface $entity, $field_name, $expected_values, $langcode = LanguageInterface::LANGCODE_DEFAULT, $column = 'value') {
     // Re-load the entity to make sure we have the latest changes.
-    \Drupal::entityManager()->getStorage($entity->getEntityTypeId())->resetCache(array($entity->id()));
-    $e = entity_load($entity->getEntityTypeId(), $entity->id());
+    $storage = $this->container->get('entity_type.manager')
+      ->getStorage($entity->getEntityTypeId());
+    $storage->resetCache([$entity->id()]);
+    $e = $storage->load($entity->id());
+
     $field = $values = $e->getTranslation($langcode)->$field_name;
     // Filter out empty values so that they don't mess with the assertions.
     $field->filterEmptyItems();
@@ -63,4 +61,5 @@ abstract class FieldTestBase extends WebTestBase {
       $this->assertEqual($values[$key][$column], $value, format_string('Value @value was saved correctly.', array('@value' => $value)));
     }
   }
+
 }

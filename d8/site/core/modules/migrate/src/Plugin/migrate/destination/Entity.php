@@ -1,17 +1,12 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\migrate\Plugin\migrate\destination\Entity.
- */
-
 namespace Drupal\migrate\Plugin\migrate\destination;
 
 use Drupal\Component\Plugin\DependentPluginInterface;
 use Drupal\Core\Entity\DependencyTrait;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
-use Drupal\migrate\Entity\MigrationInterface;
+use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate\Row;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -94,6 +89,21 @@ abstract class Entity extends DestinationBase implements ContainerFactoryPluginI
   }
 
   /**
+   * Gets the bundle for the row taking into account the default.
+   *
+   * @param \Drupal\migrate\Row $row
+   *   The current row we're importing.
+   *
+   * @return string
+   *   The bundle for this row.
+   */
+  public function getBundle(Row $row) {
+    $default_bundle = isset($this->configuration['default_bundle']) ? $this->configuration['default_bundle'] : '';
+    $bundle_key = $this->getKey('bundle');
+    return $row->getDestinationProperty($bundle_key) ?: $default_bundle;
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function fields(MigrationInterface $migration = NULL) {
@@ -112,11 +122,17 @@ abstract class Entity extends DestinationBase implements ContainerFactoryPluginI
    *   The entity we are importing into.
    */
   protected function getEntity(Row $row, array $old_destination_id_values) {
-    $entity_id = $old_destination_id_values ? reset($old_destination_id_values) : $this->getEntityId($row);
+    $entity_id = reset($old_destination_id_values) ?: $this->getEntityId($row);
     if (!empty($entity_id) && ($entity = $this->storage->load($entity_id))) {
-      $this->updateEntity($entity, $row);
+      // Allow updateEntity() to change the entity.
+      $entity = $this->updateEntity($entity, $row) ?: $entity;
     }
     else {
+      // Attempt to ensure we always have a bundle.
+      if ($bundle = $this->getBundle($row)) {
+        $row->setDestinationProperty($this->getKey('bundle'), $bundle);
+      }
+
       // Stubs might need some required fields filled in.
       if ($row->isStub()) {
         $this->processStubRow($row);

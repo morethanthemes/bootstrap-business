@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\node\Unit\Plugin\migrate\source\d6\NodeRevisionTest.
- */
-
 namespace Drupal\Tests\node\Unit\Plugin\migrate\source\d6;
 
 use Drupal\Tests\migrate\Unit\MigrateSqlSourceTestCase;
@@ -138,7 +133,7 @@ class NodeRevisionTest extends MigrateSqlSourceTestCase {
       'promote' => 1,
       'moderate' => 0,
       'sticky' => 0,
-      'tnid' => 0,
+      'tnid' => 1,
       'translate' => 0,
       // Node revision fields.
       'vid' => 1,
@@ -162,7 +157,7 @@ class NodeRevisionTest extends MigrateSqlSourceTestCase {
       'promote' => 1,
       'moderate' => 0,
       'sticky' => 0,
-      'tnid' => 0,
+      'tnid' => 1,
       'translate' => 0,
       // Node revision fields.
       'vid' => 3,

@@ -1,13 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Tests\NodeEditFormTest.
- */
-
 namespace Drupal\node\Tests;
 
 use Drupal\node\NodeInterface;
+use Drupal\user\Entity\User;
 
 /**
  * Create a node and test node edit functionality.
@@ -77,10 +73,8 @@ class NodeEditFormTest extends NodeTestBase {
     $this->assertUrl($node->url('edit-form', ['absolute' => TRUE]));
 
     // Check that the title and body fields are displayed with the correct values.
-    // As you see the expected link text has no HTML, but we are using
-    $link_text = 'Edit<span class="visually-hidden">(active tab)</span>';
     // @todo Ideally assertLink would support HTML, but it doesn't.
-    $this->assertRaw($link_text, 'Edit tab found and marked active.');
+    $this->assertRaw('Edit<span class="visually-hidden">(active tab)</span>', 'Edit tab found and marked active.');
     $this->assertFieldByName($title_key, $edit[$title_key], 'Title field displayed.');
     $this->assertFieldByName($body_key, $edit[$body_key], 'Body field displayed.');
 
@@ -95,7 +89,7 @@ class NodeEditFormTest extends NodeTestBase {
     $this->assertText($edit[$title_key], 'Title displayed.');
     $this->assertText($edit[$body_key], 'Body displayed.');
 
-    // Login as a second administrator user.
+    // Log in as a second administrator user.
     $second_web_user = $this->drupalCreateUser(array('administer nodes', 'edit any page content'));
     $this->drupalLogin($second_web_user);
     // Edit the same node, creating a new revision.
@@ -116,7 +110,7 @@ class NodeEditFormTest extends NodeTestBase {
     // made by different users.
     $first_node_version = node_revision_load($node->getRevisionId());
     $second_node_version = node_revision_load($revised_node->getRevisionId());
-    $this->assertNotIdentical($first_node_version->getRevisionAuthor()->id(), $second_node_version->getRevisionAuthor()->id(), 'Each revision has a distinct user.');
+    $this->assertNotIdentical($first_node_version->getRevisionUser()->id(), $second_node_version->getRevisionUser()->id(), 'Each revision has a distinct user.');
   }
 
   /**
@@ -205,10 +199,17 @@ class NodeEditFormTest extends NodeTestBase {
     // won't do.
     $this->assertTrue($uid === 0 || $uid === '0', 'Node authored by anonymous user.');
 
+    // Go back to the edit form and check that the correct value is displayed
+    // in the author widget.
+    $this->drupalGet('node/' . $node->id() . '/edit');
+    $anonymous_user = User::getAnonymousUser();
+    $expected = $anonymous_user->label() . ' (' . $anonymous_user->id() . ')';
+    $this->assertFieldByName($form_element_name, $expected, 'Authored by field displays the correct value for the anonymous user.');
+
     // Change the authored by field to another user's name (that is not
     // logged in).
     $edit[$form_element_name] = $this->webUser->getUsername();
-    $this->drupalPostForm('node/' . $node->id() . '/edit', $edit, t('Save and keep published'));
+    $this->drupalPostForm(NULL, $edit, t('Save and keep published'));
     $this->nodeStorage->resetCache(array($node->id()));
     $node = $this->nodeStorage->load($node->id());
     $this->assertIdentical($node->getOwnerId(), $this->webUser->id(), 'Node authored by normal user.');

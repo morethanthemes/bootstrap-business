@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\System\SystemConfigFormTestBase.
- */
-
 namespace Drupal\system\Tests\System;
 
 use Drupal\Core\Form\FormState;
@@ -68,4 +63,5 @@ abstract class SystemConfigFormTestBase extends WebTestBase {
       $this->assertEqual($data['#value'], $this->config($data['#config_name'])->get($data['#config_key']));
     }
   }
+
 }

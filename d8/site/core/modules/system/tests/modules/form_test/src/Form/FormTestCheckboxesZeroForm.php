@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\form_test\Form\FormTestCheckboxesZeroForm.
- */
-
 namespace Drupal\form_test\Form;
 
 use Drupal\Core\Form\FormBase;
@@ -56,7 +51,7 @@ class FormTestCheckboxesZeroForm extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    if ($form_state->has('json')) {
+    if ($form_state->get('json')) {
       $form_state->setResponse(new JsonResponse($form_state->getValues()));
     }
     else {

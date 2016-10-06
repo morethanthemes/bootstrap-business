@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\datetime\Plugin\Field\FieldFormatter\DateTimeFormatterBase.
- */
-
 namespace Drupal\datetime\Plugin\Field\FieldFormatter;
 
 use Drupal\Core\Datetime\DateFormatterInterface;
@@ -14,6 +9,7 @@ use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FormatterBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\datetime\Plugin\Field\FieldType\DateTimeItem;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 
@@ -145,7 +141,14 @@ abstract class DateTimeFormatterBase extends FormatterBase implements ContainerF
    *   A DrupalDateTime object.
    */
   protected function setTimeZone(DrupalDateTime $date) {
-    $date->setTimeZone(timezone_open(drupal_get_user_timezone()));
+    if ($this->getFieldSetting('datetime_type') === DateTimeItem::DATETIME_TYPE_DATE) {
+      // A date without time has no timezone conversion.
+      $timezone = DATETIME_STORAGE_TIMEZONE;
+    }
+    else {
+      $timezone = drupal_get_user_timezone();
+    }
+    $date->setTimeZone(timezone_open($timezone));
   }
 
   /**

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\update\Tests\UpdateContribTest.
- */
-
 namespace Drupal\update\Tests;
 
 use Drupal\Core\Url;
@@ -349,6 +344,9 @@ class UpdateContribTest extends UpdateTestBase {
       ),
     );
     $this->config('update_test.settings')->set('system_info', $system_info)->save();
+
+    // Ensure that the update information is correct before testing.
+    $this->drupalGet('admin/reports/updates');
 
     $xml_mapping = array(
       'drupal' => '0.0',

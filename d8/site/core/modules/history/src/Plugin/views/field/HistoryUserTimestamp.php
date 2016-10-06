@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\history\Plugin\views\field\HistoryUserTimestamp.
- */
-
 namespace Drupal\history\Plugin\views\field;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -86,7 +81,7 @@ class HistoryUserTimestamp extends Node {
       $last_read = $this->getValue($values);
       $changed = $this->getValue($values, 'changed');
 
-      $last_comment = \Drupal::moduleHandler()->moduleExists('comment') && !empty($this->options['comments']) ?  $this->getValue($values, 'last_comment') : 0;
+      $last_comment = \Drupal::moduleHandler()->moduleExists('comment') && !empty($this->options['comments']) ? $this->getValue($values, 'last_comment') : 0;
 
       if (!$last_read && $changed > HISTORY_READ_LIMIT) {
         $mark = MARK_NEW;

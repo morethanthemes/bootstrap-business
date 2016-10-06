@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\path\Plugin\Field\FieldType\PathItem.
- */
-
 namespace Drupal\path\Plugin\Field\FieldType;
 
 use Drupal\Component\Utility\Random;
@@ -33,7 +28,7 @@ class PathItem extends FieldItemBase {
   public static function propertyDefinitions(FieldStorageDefinitionInterface $field_definition) {
     $properties['alias'] = DataDefinition::create('string')
       ->setLabel(t('Path alias'));
-    $properties['pid'] = DataDefinition::create('string')
+    $properties['pid'] = DataDefinition::create('integer')
       ->setLabel(t('Path id'));
     return $properties;
   }
@@ -80,19 +75,17 @@ class PathItem extends FieldItemBase {
   /**
    * {@inheritdoc}
    */
-  public function delete() {
-    // Delete all aliases associated with this entity.
-    $entity = $this->getEntity();
-    \Drupal::service('path.alias_storage')->delete(array('source' => '/' . $entity->urlInfo()->getInternalPath()));
+  public static function generateSampleValue(FieldDefinitionInterface $field_definition) {
+    $random = new Random();
+    $values['alias'] = str_replace(' ', '-', strtolower($random->sentences(3)));
+    return $values;
   }
 
   /**
    * {@inheritdoc}
    */
-  public static function generateSampleValue(FieldDefinitionInterface $field_definition) {
-    $random = new Random();
-    $values['alias'] = str_replace(' ', '-', strtolower($random->sentences(3)));
-    return $values;
+  public static function mainPropertyName() {
+    return 'alias';
   }
 
 }

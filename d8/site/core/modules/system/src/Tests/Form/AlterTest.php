@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Form\AlterTest.
- */
-
 namespace Drupal\system\Tests\Form;
 
 use Drupal\Component\Utility\Xss;
@@ -40,4 +35,5 @@ class AlterTest extends WebTestBase {
     $content = preg_replace('/\s+/', ' ', Xss::filter($this->content, array()));
     $this->assert(strpos($content, implode(' ', $expected)) !== FALSE, 'Form alter hooks executed in the expected order.');
   }
+
 }

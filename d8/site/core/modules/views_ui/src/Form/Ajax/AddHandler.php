@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views_ui\Form\Ajax\AddHandler.
- */
-
 namespace Drupal\views_ui\Form\Ajax;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -100,7 +95,7 @@ class AddHandler extends ViewsFormBase {
       $groups = array('all' => $this->t('- All -'));
       $form['override']['controls']['group'] = array(
         '#type' => 'select',
-        '#title' => $this->t('Type'),
+        '#title' => $this->t('Category'),
         '#options' => array(),
       );
 
@@ -165,7 +160,7 @@ class AddHandler extends ViewsFormBase {
     }
     else {
       $form['options']['markup'] = array(
-        '#markup' => '<div class="js-form-item form-item">' . $this->t('There are no @types available to add.', array('@types' =>  $ltitle)) . '</div>',
+        '#markup' => '<div class="js-form-item form-item">' . $this->t('There are no @types available to add.', array('@types' => $ltitle)) . '</div>',
       );
     }
     // Add a div to show the selected items

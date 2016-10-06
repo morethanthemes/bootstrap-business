@@ -1,12 +1,8 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Tests\Entity\FilterEntityBundleTest.
- */
-
 namespace Drupal\views\Tests\Entity;
 
+use Drupal\node\Entity\Node;
 use Drupal\views\Tests\ViewTestBase;
 use Drupal\views\Tests\ViewTestData;
 use Drupal\views\Views;
@@ -54,13 +50,17 @@ class FilterEntityBundleTest extends ViewTestBase {
 
     ViewTestData::createTestViews(get_class($this), array('views_test_config'));
 
-    $this->entityBundles = entity_get_bundles('node');
+    $this->entityBundles = $this->container->get('entity_type.bundle.info')->getBundleInfo('node');
 
     $this->entities['count'] = 0;
 
     foreach ($this->entityBundles as $key => $info) {
       for ($i = 0; $i < 5; $i++) {
-        $entity = entity_create('node', array('title' => $this->randomString(), 'uid' => 1, 'type' => $key));
+        $entity = Node::create([
+          'title' => $this->randomString(),
+          'uid' => 1,
+          'type' => $key,
+        ]);
         $entity->save();
         $this->entities[$key][$entity->id()] = $entity;
         $this->entities['count']++;

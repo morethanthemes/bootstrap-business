@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\Plugin\migrate\source\d6\Role.
- */
-
 namespace Drupal\user\Plugin\migrate\source\d6;
 
 use Drupal\migrate\Row;
@@ -32,7 +27,7 @@ class Role extends DrupalSqlBase {
   public function query() {
     $query = $this->select('role', 'r')
       ->fields('r', array('rid', 'name'))
-      ->orderBy('rid');
+      ->orderBy('r.rid');
     return $query;
   }
 

@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\Tests\migrate\Unit\process\StaticMapTest.
- */
 
 namespace Drupal\Tests\migrate\Unit\process;
 
@@ -67,6 +63,17 @@ class StaticMapTest extends MigrateProcessTestCase {
     $this->plugin = new StaticMap($configuration, 'map', array());
     $value = $this->plugin->transform(array('bar'), $this->migrateExecutable, $this->row, 'destinationproperty');
     $this->assertSame($value, 'test');
+  }
+
+  /**
+   * Tests when the source is invalid but there's a default value of NULL.
+   */
+  public function testMapWithInvalidSourceWithANullDefaultValue() {
+    $configuration['map']['foo']['bar'] = 'baz';
+    $configuration['default_value'] = NULL;
+    $this->plugin = new StaticMap($configuration, 'map', []);
+    $value = $this->plugin->transform(array('bar'), $this->migrateExecutable, $this->row, 'destinationproperty');
+    $this->assertNull($value);
   }
 
   /**

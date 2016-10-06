@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\aggregator\Tests\AggregatorAdminTest.
- */
-
 namespace Drupal\aggregator\Tests;
 
 /**
@@ -19,7 +14,7 @@ class AggregatorAdminTest extends AggregatorTestBase {
    */
   public function testSettingsPage() {
     $this->drupalGet('admin/config');
-    $this->clickLink('Feed aggregator');
+    $this->clickLink('Aggregator');
     $this->clickLink('Settings');
     // Make sure that test plugins are present.
     $this->assertText('Test fetcher');
@@ -85,4 +80,5 @@ class AggregatorAdminTest extends AggregatorTestBase {
     $count = $this->container->get('entity.manager')->getStorage('aggregator_item')->getItemCount($feed);
     $this->assertEqual(\Drupal::translation()->formatPlural($count, '1 item', '@count items'), (string) $result[0]->td[1]);
   }
+
 }

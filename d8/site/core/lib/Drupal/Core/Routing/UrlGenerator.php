@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Routing\UrlGenerator.
- */
-
 namespace Drupal\Core\Routing;
 
 use Drupal\Core\GeneratedUrl;
@@ -68,7 +63,7 @@ class UrlGenerator implements UrlGeneratorInterface {
   ];
 
   /**
-   *  Constructs a new generator object.
+   * Constructs a new generator object.
    *
    * @param \Drupal\Core\Routing\RouteProviderInterface $provider
    *   The route provider to be searched for routes.
@@ -158,15 +153,14 @@ class UrlGenerator implements UrlGeneratorInterface {
    * @param string $name
    *   The route name or other identifying string from ::getRouteDebugMessage().
    *
-   *
    * @return string
    *   The url path, without any base path, including possible query string.
    *
    * @throws MissingMandatoryParametersException
-   *   When some parameters are missing that are mandatory for the route
+   *   When some parameters are missing that are mandatory for the route.
    * @throws InvalidParameterException
    *   When a parameter value for a placeholder is not correct because it does
-   *   not match the requirement
+   *   not match the requirement.
    */
   protected function doGenerate(array $variables, array $defaults, array $tokens, array $parameters, array $query_params, $name) {
     $variables = array_flip($variables);
@@ -194,7 +188,7 @@ class UrlGenerator implements UrlGeneratorInterface {
       if ('variable' === $token[0]) {
         if (!$optional || !array_key_exists($token[3], $defaults) || (isset($mergedParams[$token[3]]) && (string) $mergedParams[$token[3]] !== (string) $defaults[$token[3]])) {
           // check requirement
-          if (!preg_match('#^'.$token[2].'$#', $mergedParams[$token[3]])) {
+          if (!preg_match('#^' . $token[2] . '$#', $mergedParams[$token[3]])) {
             $message = sprintf('Parameter "%s" for route "%s" must match "%s" ("%s" given) to generate a corresponding URL.', $token[3], $name, $token[2], $mergedParams[$token[3]]);
             throw new InvalidParameterException($message);
           }
@@ -235,10 +229,8 @@ class UrlGenerator implements UrlGeneratorInterface {
 
     // Add a query string if needed, including extra parameters.
     $query_params += array_diff_key($parameters, $variables, $defaults);
-    if ($query_params && $query = http_build_query($query_params, '', '&')) {
-      // "/" and "?" can be left decoded for better user experience, see
-      // http://tools.ietf.org/html/rfc3986#section-3.4
-      $url .= '?'.strtr($query, array('%2F' => '/'));
+    if ($query_params && $query = UrlHelper::buildQuery($query_params)) {
+      $url .= '?' . $query;
     }
 
     return $url;
@@ -250,16 +242,16 @@ class UrlGenerator implements UrlGeneratorInterface {
    * @param $name
    *   The route name or other debug message.
    * @param \Symfony\Component\Routing\Route $route
-   *  The route object.
+   *   The route object.
    * @param array $parameters
-   *  An array of parameters as passed to
-   *  \Symfony\Component\Routing\Generator\UrlGeneratorInterface::generate().
+   *   An array of parameters as passed to
+   *   \Symfony\Component\Routing\Generator\UrlGeneratorInterface::generate().
    * @param array $query_params
    *   An array of query string parameter, which will get any extra values from
    *   $parameters merged in.
    *
    * @return string
-   *  The url path corresponding to the route, without the base path.
+   *   The url path corresponding to the route, without the base path.
    */
   protected function getInternalPathFromRoute($name, SymfonyRoute $route, $parameters = array(), $query_params = array()) {
     // The Route has a cache of its own and is not recompiled as long as it does
@@ -272,8 +264,8 @@ class UrlGenerator implements UrlGeneratorInterface {
   /**
    * {@inheritdoc}
    */
-  public function generate($name, $parameters = array(), $absolute = FALSE) {
-    $options['absolute'] = $absolute;
+  public function generate($name, $parameters = array(), $referenceType = self::ABSOLUTE_PATH) {
+    $options['absolute'] = is_bool($referenceType) ? $referenceType : $referenceType === self::ABSOLUTE_URL;
     return $this->generateFromRoute($name, $parameters, $options);
   }
 
@@ -305,14 +297,18 @@ class UrlGenerator implements UrlGeneratorInterface {
       return $collect_bubbleable_metadata ? $generated_url->setGeneratedUrl($url) : $url;
     }
 
-    $options += array('prefix' => '');
+    $options += $route->getOption('default_url_options') ?: [];
+    $options += array('prefix' => '', 'path_processing' => TRUE);
+
     $name = $this->getRouteDebugMessage($name);
     $this->processRoute($name, $route, $parameters, $generated_url);
     $path = $this->getInternalPathFromRoute($name, $route, $parameters, $query_params);
     // Outbound path processors might need the route object for the path, e.g.
     // to get the path pattern.
     $options['route'] = $route;
-    $path = $this->processPath($path, $options, $generated_url);
+    if ($options['path_processing']) {
+      $path = $this->processPath($path, $options, $generated_url);
+    }
 
     if (!empty($options['prefix'])) {
       $path = ltrim($path, '/');
@@ -360,7 +356,8 @@ class UrlGenerator implements UrlGeneratorInterface {
     $port = '';
     if ('http' === $scheme && 80 != $this->context->getHttpPort()) {
       $port = ':' . $this->context->getHttpPort();
-    } elseif ('https' === $scheme && 443 != $this->context->getHttpsPort()) {
+    }
+    elseif ('https' === $scheme && 443 != $this->context->getHttpsPort()) {
       $port = ':' . $this->context->getHttpsPort();
     }
     if ($collect_bubbleable_metadata) {
@@ -453,4 +450,5 @@ class UrlGenerator implements UrlGeneratorInterface {
 
     return serialize($name);
   }
+
 }

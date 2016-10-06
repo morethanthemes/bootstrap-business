@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Theme\ThemeEarlyInitializationTest.
- */
-
 namespace Drupal\system\Tests\Theme;
 
 use Drupal\simpletest\WebTestBase;
@@ -35,4 +30,5 @@ class ThemeEarlyInitializationTest extends WebTestBase {
     // system was initialized early.
     $this->assertRaw('classy/css/components/action-links.css');
   }
+
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Queue\Memory.
- */
-
 namespace Drupal\Core\Queue;
 
 /**
@@ -108,4 +103,5 @@ class Memory implements QueueInterface {
     $this->queue = array();
     $this->idSequence = 0;
   }
+
 }

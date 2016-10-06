@@ -66,6 +66,20 @@ function editor_element_info_alter(&$types) {
 }
 
 /**
+ * Implements hook_form_FORM_ID_alter() for \Drupal\filter\FilterFormatListBuilder.
+ *
+ * Implements hook_field_formatter_info_alter().
+ *
+ * @see quickedit_field_formatter_info_alter()
+ */
+function editor_field_formatter_info_alter(&$info) {
+  // Update \Drupal\text\Plugin\Field\FieldFormatter\TextDefaultFormatter's
+  // annotation to indicate that it supports the 'editor' in-place editor
+  // provided by this module.
+  $info['text_default']['quickedit'] = ['editor' => 'editor'];
+}
+
+/**
  * Implements hook_form_FORM_ID_alter().
  */
 function editor_form_filter_admin_overview_alter(&$form, FormStateInterface $form_state) {
@@ -88,7 +102,7 @@ function editor_form_filter_admin_overview_alter(&$form, FormStateInterface $for
 }
 
 /**
- * Implements hook_form_BASE_FORM_ID_alter() for 'filter_format_form'.
+ * Implements hook_form_BASE_FORM_ID_alter() for \Drupal\filter\FilterFormatEditForm.
  */
 function editor_form_filter_format_form_alter(&$form, FormStateInterface $form_state) {
   $editor = $form_state->get('editor');
@@ -178,10 +192,10 @@ function editor_form_filter_admin_format_editor_configure($form, FormStateInterf
     }
     elseif (empty($editor) || $editor_value !== $editor->getEditor()) {
       $format = $form_state->getFormObject()->getEntity();
-      $editor = entity_create('editor', array(
+      $editor = Editor::create([
         'format' => $format->isNew() ? NULL : $format->id(),
         'editor' => $editor_value,
-      ));
+      ]);
       $form_state->set('editor', $editor);
     }
   }
@@ -249,7 +263,7 @@ function editor_load($format_id) {
   // than one editor will be needed on a page (such as having multiple text
   // formats for administrators). Loading a small number of editors all at once
   // is more efficient than loading multiple editors individually.
-  $editors = entity_load_multiple('editor');
+  $editors = Editor::loadMultiple();
   return isset($editors[$format_id]) ? $editors[$format_id] : NULL;
 }
 
@@ -471,6 +485,9 @@ function _editor_get_file_uuids_by_field(EntityInterface $entity) {
     $field_items = $entity->get($formatted_text_field);
     foreach ($field_items as $field_item) {
       $text .= $field_item->value;
+      if ($field_item->getFieldDefinition()->getType() == 'text_with_summary') {
+        $text .= $field_item->summary;
+      }
     }
     $uuids[$formatted_text_field] = _editor_parse_file_uuids($text);
   }

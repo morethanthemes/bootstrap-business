@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\user\Unit\PrivateTempStoreTest.
- */
-
 namespace Drupal\Tests\user\Unit;
 
 use Drupal\Tests\UnitTestCase;
@@ -283,4 +278,3 @@ class PrivateTempStoreTest extends UnitTestCase {
   }
 
 }
-

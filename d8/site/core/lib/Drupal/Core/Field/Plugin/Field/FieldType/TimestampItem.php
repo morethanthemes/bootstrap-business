@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Field\Plugin\Field\FieldType\TimestampItem.
- */
-
 namespace Drupal\Core\Field\Plugin\Field\FieldType;
 
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
@@ -18,7 +13,6 @@ use Drupal\Core\TypedData\DataDefinition;
  *   id = "timestamp",
  *   label = @Translation("Timestamp"),
  *   description = @Translation("An entity field containing a UNIX timestamp value."),
- *   no_ui = TRUE,
  *   default_widget = "datetime_default",
  *   default_formatter = "timestamp",
  *   constraints = {

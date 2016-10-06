@@ -11,6 +11,9 @@
    * Initialize dialogs for Ajax purposes.
    *
    * @type {Drupal~behavior}
+   *
+   * @prop {Drupal~behaviorAttach} attach
+   *   Attaches the behaviors for dialog ajax functionality.
    */
   Drupal.behaviors.dialog = {
     attach: function (context, settings) {
@@ -59,7 +62,7 @@
      */
     prepareDialogButtons: function ($dialog) {
       var buttons = [];
-      var $buttons = $dialog.find('.form-actions input[type=submit]');
+      var $buttons = $dialog.find('.form-actions input[type=submit], .form-actions a.button');
       $buttons.each(function () {
         // Hidden form buttons need special attention. For browser consistency,
         // the button needs to be "visible" in order to have the enter key fire
@@ -71,14 +74,22 @@
           width: 0,
           height: 0,
           padding: 0,
-          border: 0
+          border: 0,
+          overflow: 'hidden'
         });
         buttons.push({
           text: $originalButton.html() || $originalButton.attr('value'),
           class: $originalButton.attr('class'),
           click: function (e) {
-            $originalButton.trigger('mousedown').trigger('mouseup').trigger('click');
-            e.preventDefault();
+            // If the original button is an anchor tag, triggering the "click"
+            // event will not simulate a click. Use the click method instead.
+            if ($originalButton.is('a')) {
+              $originalButton[0].click();
+            }
+            else {
+              $originalButton.trigger('mousedown').trigger('mouseup').trigger('click');
+              e.preventDefault();
+            }
           }
         });
       });
@@ -90,10 +101,14 @@
    * Command to open a dialog.
    *
    * @param {Drupal.Ajax} ajax
+   *   The Drupal Ajax object.
    * @param {object} response
+   *   Object holding the server response.
    * @param {number} [status]
+   *   The HTTP status code.
    *
    * @return {bool|undefined}
+   *   Returns false if there was no selector property in the response object.
    */
   Drupal.AjaxCommands.prototype.openDialog = function (ajax, response, status) {
     if (!response.selector) {
@@ -146,10 +161,15 @@
    * If no selector is given, it defaults to trying to close the modal.
    *
    * @param {Drupal.Ajax} [ajax]
+   *   The ajax object.
    * @param {object} response
+   *   Object holding the server response.
    * @param {string} response.selector
+   *   The selector of the dialog.
    * @param {bool} response.persist
+   *   Whether to persist the dialog element or not.
    * @param {number} [status]
+   *   The HTTP status code.
    */
   Drupal.AjaxCommands.prototype.closeDialog = function (ajax, response, status) {
     var $dialog = $(response.selector);
@@ -170,11 +190,17 @@
    * JQuery UI specific way of setting dialog options.
    *
    * @param {Drupal.Ajax} [ajax]
+   *   The Drupal Ajax object.
    * @param {object} response
+   *   Object holding the server response.
    * @param {string} response.selector
+   *   Selector for the dialog element.
    * @param {string} response.optionsName
+   *   Name of a key to set.
    * @param {string} response.optionValue
+   *   Value to set.
    * @param {number} [status]
+   *   The HTTP status code.
    */
   Drupal.AjaxCommands.prototype.setDialogOption = function (ajax, response, status) {
     var $dialog = $(response.selector);
@@ -187,9 +213,13 @@
    * Binds a listener on dialog creation to handle the cancel link.
    *
    * @param {jQuery.Event} e
+   *   The event triggered.
    * @param {Drupal.dialog~dialogDefinition} dialog
+   *   The dialog instance.
    * @param {jQuery} $element
-   * @param {object} settings
+   *   The jQuery collection of the dialog element.
+   * @param {object} [settings]
+   *   Dialog settings.
    */
   $(window).on('dialog:aftercreate', function (e, dialog, $element, settings) {
     $element.on('click.dialog', '.dialog-cancel', function (e) {
@@ -203,8 +233,11 @@
    * Removes all 'dialog' listeners.
    *
    * @param {jQuery.Event} e
+   *   The event triggered.
    * @param {Drupal.dialog~dialogDefinition} dialog
+   *   The dialog instance.
    * @param {jQuery} $element
+   *   jQuery collection of the dialog element.
    */
   $(window).on('dialog:beforeclose', function (e, dialog, $element) {
     $element.off('.dialog');

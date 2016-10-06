@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\file_test\Form\FileTestForm.
- */
 
 namespace Drupal\file_test\Form;
 
@@ -121,4 +117,5 @@ class FileTestForm implements FormInterface {
       drupal_set_message(t('Epic upload FAIL!'), 'error');
     }
   }
+
 }

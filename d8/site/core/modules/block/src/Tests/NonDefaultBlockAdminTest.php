@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\block\Tests\NonDefaultBlockAdminTest.
- */
-
 namespace Drupal\block\Tests;
 
 use Drupal\simpletest\WebTestBase;
@@ -43,4 +38,5 @@ class NonDefaultBlockAdminTest extends WebTestBase {
     $this->drupalGet('admin/structure/block/list/' . $new_theme);
     $this->assertText('Bartik(' . t('active tab') . ')', 'Tab for non-default theme found.');
   }
+
 }

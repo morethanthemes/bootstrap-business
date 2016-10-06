@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\language\LanguageServiceProvider.
- */
-
 namespace Drupal\language;
 
 use Drupal\Core\Config\BootstrapConfigStorageFactory;
@@ -105,4 +100,5 @@ class LanguageServiceProvider extends ServiceProviderBase {
     }
     return FALSE;
   }
+
 }

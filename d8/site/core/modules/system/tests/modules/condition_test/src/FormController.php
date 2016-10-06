@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\condition_test\FormController.
- */
-
 namespace Drupal\condition_test;
 
 use Drupal\Core\Form\FormInterface;
@@ -53,7 +48,6 @@ class FormController implements FormInterface {
 
   /**
    * Implements \Drupal\Core\Form\FormInterface::validateForm().
-   *
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
     $this->condition->validateConfigurationForm($form, $form_state);
@@ -75,4 +69,5 @@ class FormController implements FormInterface {
       drupal_set_message(t('Executed successfully.'));
     }
   }
+
 }

@@ -1,15 +1,11 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\editor\Tests\QuickEditIntegrationLoadingTest.
- */
-
 namespace Drupal\editor\Tests;
 
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\EventSubscriber\MainContentViewSubscriber;
 use Drupal\simpletest\WebTestBase;
+use Drupal\filter\Entity\FilterFormat;
 
 /**
  * Tests Quick Edit module integration endpoints.
@@ -36,7 +32,7 @@ class QuickEditIntegrationLoadingTest extends WebTestBase {
     parent::setUp();
 
     // Create a text format.
-    $filtered_html_format = entity_create('filter_format', array(
+    $filtered_html_format = FilterFormat::create(array(
       'format' => 'filtered_html',
       'name' => 'Filtered HTML',
       'weight' => 0,
@@ -106,7 +102,7 @@ class QuickEditIntegrationLoadingTest extends WebTestBase {
     // Ensure the text is transformed.
     $this->assertRaw('<p>Do you also love Drupal?</p><figure role="group" class="caption caption-img"><img src="druplicon.png" /><figcaption>Druplicon</figcaption></figure>');
 
-    $response = $this->drupalPost('editor/' . 'node/1/body/en/full', 'application/vnd.drupal-ajax', array());
+    $response = $this->drupalPost('editor/' . 'node/1/body/en/full', '', [], ['query' => [MainContentViewSubscriber::WRAPPER_FORMAT => 'drupal_ajax']]);
     $this->assertResponse(200);
     $ajax_commands = Json::decode($response);
     $this->assertIdentical(1, count($ajax_commands), 'The untransformed text POST request results in one AJAX command.');

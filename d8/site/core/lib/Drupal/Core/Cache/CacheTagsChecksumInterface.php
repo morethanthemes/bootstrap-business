@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Cache\CacheTagsChecksumInterface.
- */
-
 namespace Drupal\Core\Cache;
 
 /**
@@ -59,4 +54,5 @@ interface CacheTagsChecksumInterface {
    * This is only used by tests.
    */
   public function reset();
+
 }

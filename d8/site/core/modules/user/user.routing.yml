@@ -129,6 +129,34 @@ user.login:
   options:
     _maintenance_access: TRUE
 
+user.login.http:
+  path: '/user/login'
+  defaults:
+    _controller: \Drupal\user\Controller\UserAuthenticationController::login
+  methods: [POST]
+  requirements:
+    _user_is_logged_in: 'FALSE'
+    _format: 'json'
+
+user.login_status.http:
+  path: '/user/login_status'
+  defaults:
+    _controller: \Drupal\user\Controller\UserAuthenticationController::loginStatus
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+    _format: 'json'
+
+user.logout.http:
+  path: '/user/logout'
+  defaults:
+    _controller: \Drupal\user\Controller\UserAuthenticationController::logout
+  methods: [POST]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+    _format: 'json'
+    _csrf_token: 'TRUE'
+
 user.cancel_confirm:
   path: '/user/{user}/cancel/confirm/{timestamp}/{hashed_pass}'
   defaults:
@@ -140,6 +168,17 @@ user.cancel_confirm:
     _entity_access: 'user.delete'
     user: \d+
 
+user.reset.login:
+  path: '/user/reset/{uid}/{timestamp}/{hash}/login'
+  defaults:
+    _controller: '\Drupal\user\Controller\UserController::resetPassLogin'
+    _title: 'Reset password'
+  requirements:
+    _user_is_logged_in: 'FALSE'
+  options:
+    _maintenance_access: TRUE
+    no_cache: TRUE
+
 user.reset:
   path: '/user/reset/{uid}/{timestamp}/{hash}'
   defaults:
@@ -147,6 +186,17 @@ user.reset:
     _title: 'Reset password'
   requirements:
     _access: 'TRUE'
+  options:
+    _maintenance_access: TRUE
+    no_cache: TRUE
+
+user.reset.form:
+  path: '/user/reset/{uid}'
+  defaults:
+    _controller: '\Drupal\user\Controller\UserController::getResetPassForm'
+    _title: 'Reset password'
+  requirements:
+    _user_is_logged_in: 'FALSE'
   options:
     _maintenance_access: TRUE
     no_cache: TRUE

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Lock\LockBackendInterface.
- */
-
 namespace Drupal\Core\Lock;
 
 /**
@@ -14,11 +9,11 @@ namespace Drupal\Core\Lock;
  *
  * In most environments, multiple Drupal page requests (a.k.a. threads or
  * processes) will execute in parallel. This leads to potential conflicts or
- * race conditions when two requests execute the same code at the same time. A
- * common example of this is a rebuild like menu_router_rebuild() where we
- * invoke many hook implementations to get and process data from all active
- * modules, and then delete the current data in the database to insert the new
- * afterwards.
+ * race conditions when two requests execute the same code at the same time. For
+ * instance, some implementations of hook_cron() implicitly assume they are
+ * running only once, rather than having multiple calls in parallel. To prevent
+ * problems with such code, the cron system uses a locking process to ensure
+ * that cron is not started again if it is already running.
  *
  * This is a cooperative, advisory lock system. Any long-running operation
  * that could potentially be attempted in parallel by multiple requests should
@@ -73,8 +68,8 @@ interface LockBackendInterface {
    *
    * @param string $name
    *   Lock name. Limit of name's length is 255 characters.
-   * @param float $timeout = 30.0
-   *   (optional) Lock lifetime in seconds.
+   * @param float $timeout
+   *   (optional) Lock lifetime in seconds. Defaults to 30.0.
    *
    * @return bool
    */
@@ -100,8 +95,8 @@ interface LockBackendInterface {
    *
    * @param string $name
    *   Lock name currently being locked.
-   * @param int $delay = 30
-   *   Milliseconds to wait for.
+   * @param int $delay
+   *   Milliseconds to wait for. Defaults to 30.
    *
    * @return bool
    *   TRUE if the lock holds, FALSE if it may be available. You still need to
@@ -133,4 +128,5 @@ interface LockBackendInterface {
    * @return string
    */
   public function getLockId();
+
 }

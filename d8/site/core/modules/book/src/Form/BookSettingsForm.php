@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\book\Form\BookSettingsForm.
- */
-
 namespace Drupal\book\Form;
 
 use Drupal\Core\Form\ConfigFormBase;
@@ -86,4 +81,3 @@ class BookSettingsForm extends ConfigFormBase {
   }
 
 }
-

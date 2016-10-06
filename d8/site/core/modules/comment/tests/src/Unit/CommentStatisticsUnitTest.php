@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\comment\Unit\CommentStatisticsUnitTest.
- */
-
 namespace Drupal\Tests\comment\Unit;
 
 use Drupal\comment\CommentStatistics;
@@ -116,13 +111,13 @@ class CommentStatisticsUnitTest extends UnitTestCase {
     switch ($this->calls_to_fetch) {
       case 1:
         return 'something';
-        break;
+
       case 2:
         return 'something-else';
-        break;
+
       default:
         return FALSE;
-        break;
     }
   }
+
 }

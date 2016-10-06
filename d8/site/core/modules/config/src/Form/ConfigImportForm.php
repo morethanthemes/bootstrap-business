@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\config\Form\ConfigImportForm.
- */
-
 namespace Drupal\config\Form;
 
 use Drupal\Core\Archiver\ArchiveTar;
@@ -55,6 +50,11 @@ class ConfigImportForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
+    $directory = config_get_config_directory(CONFIG_SYNC_DIRECTORY);
+    $directory_is_writable = is_writable($directory);
+    if (!$directory_is_writable) {
+      drupal_set_message($this->t('The directory %directory is not writable.', ['%directory' => $directory]), 'error');
+    }
     $form['import_tarball'] = array(
       '#type' => 'file',
       '#title' => $this->t('Configuration archive'),
@@ -64,6 +64,7 @@ class ConfigImportForm extends FormBase {
     $form['submit'] = array(
       '#type' => 'submit',
       '#value' => $this->t('Upload'),
+      '#disabled' => !$directory_is_writable,
     );
     return $form;
   }
@@ -72,13 +73,16 @@ class ConfigImportForm extends FormBase {
    * {@inheritdoc}
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
-    $file_upload = $this->getRequest()->files->get('files[import_tarball]', NULL, TRUE);
-    if ($file_upload && $file_upload->isValid()) {
-      $form_state->setValue('import_tarball', $file_upload->getRealPath());
+    $all_files = $this->getRequest()->files->get('files', []);
+    if (!empty($all_files['import_tarball'])) {
+      $file_upload = $all_files['import_tarball'];
+      if ($file_upload->isValid()) {
+        $form_state->setValue('import_tarball', $file_upload->getRealPath());
+        return;
+      }
     }
-    else {
-      $form_state->setErrorByName('import_tarball', $this->t('The file could not be uploaded.'));
-    }
+
+    $form_state->setErrorByName('import_tarball', $this->t('The file could not be uploaded.'));
   }
 
   /**
@@ -105,4 +109,3 @@ class ConfigImportForm extends FormBase {
   }
 
 }
-

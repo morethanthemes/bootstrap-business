@@ -58,6 +58,8 @@ class ElementInfoManagerTest extends UnitTestCase {
    * @covers ::__construct
    */
   protected function setUp() {
+    parent::setUp();
+
     $this->cache = $this->getMock('Drupal\Core\Cache\CacheBackendInterface');
     $this->cacheTagsInvalidator = $this->getMock('Drupal\Core\Cache\CacheTagsInvalidatorInterface');
     $this->moduleHandler = $this->getMock('Drupal\Core\Extension\ModuleHandlerInterface');
@@ -151,6 +153,7 @@ class ElementInfoManagerTest extends UnitTestCase {
     $this->assertNull($element_info->getInfoProperty('foo', '#non_existing_property'));
     $this->assertSame('qux', $element_info->getInfoProperty('foo', '#non_existing_property', 'qux'));
   }
+
 }
 
 /**

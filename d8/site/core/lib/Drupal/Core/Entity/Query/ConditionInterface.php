@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\Query\ConditionInterface.
- */
-
 namespace Drupal\Core\Entity\Query;
 
 /**
@@ -77,4 +72,5 @@ interface ConditionInterface {
    *   The query object this conditional clause belongs to.
    */
   public function compile($query);
+
 }

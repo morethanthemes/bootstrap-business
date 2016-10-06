@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\taxonomy\Tests\VocabularyLanguageTest.
- */
-
 namespace Drupal\taxonomy\Tests;
 
 use Drupal\Component\Utility\Unicode;
@@ -126,4 +121,5 @@ class VocabularyLanguageTest extends TaxonomyTestBase {
     $this->assertEqual($new_settings->getDefaultLangcode(), 'authors_default', 'The langcode was saved.');
     $this->assertFalse($new_settings->isLanguageAlterable(), 'The new visibility setting was saved.');
   }
+
 }

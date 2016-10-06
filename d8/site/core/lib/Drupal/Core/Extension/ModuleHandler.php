@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Extension\ModuleHandler.
- */
-
 namespace Drupal\Core\Extension;
 
 use Drupal\Component\Graph\Graph;
@@ -88,6 +83,13 @@ class ModuleHandler implements ModuleHandlerInterface {
    * @var string
    */
   protected $root;
+
+  /**
+   * A list of module include file keys.
+   *
+   * @var array
+   */
+  protected $includeFileKeys = [];
 
   /**
    * Constructs a ModuleHandler object.
@@ -263,14 +265,21 @@ class ModuleHandler implements ModuleHandlerInterface {
     }
 
     $name = $name ?: $module;
+    $key = $type . ':' . $module . ':' . $name;
+    if (isset($this->includeFileKeys[$key])) {
+      return $this->includeFileKeys[$key];
+    }
     if (isset($this->moduleList[$module])) {
       $file = $this->root . '/' . $this->moduleList[$module]->getPath() . "/$name.$type";
       if (is_file($file)) {
         require_once $file;
+        $this->includeFileKeys[$key] = $file;
         return $file;
       }
+      else {
+        $this->includeFileKeys[$key] = FALSE;
+      }
     }
-
     return FALSE;
   }
 
@@ -572,8 +581,8 @@ class ModuleHandler implements ModuleHandlerInterface {
       $this->alter('module_implements', $implementations, $hook);
       // Verify new or modified implementations.
       foreach (array_diff_assoc($implementations, $implementations_before) as $module => $group) {
-        // If drupal_alter('module_implements') changed or added a $group, the
-        // respective file needs to be included.
+        // If an implementation of hook_module_implements_alter() changed or
+        // added a group, the respective file needs to be included.
         if ($group) {
           $this->loadInclude($module, 'inc', "$module.$group");
         }

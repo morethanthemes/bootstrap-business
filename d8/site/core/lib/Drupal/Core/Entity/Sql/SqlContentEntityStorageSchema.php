@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\Sql\SqlContentEntityStorageSchema.
- */
-
 namespace Drupal\Core\Entity\Sql;
 
 use Drupal\Core\Database\Connection;
@@ -1448,7 +1443,7 @@ class SqlContentEntityStorageSchema implements DynamicallyFieldableEntityStorage
    *
    * @param array $entity_schema
    *   The entity schema definition.
-   * @param \Drupal\Core\Field\FieldStorageDefinitionInterface|NULL $storage_definition
+   * @param \Drupal\Core\Field\FieldStorageDefinitionInterface|null $storage_definition
    *   (optional) If a field storage definition is specified, only indexes and
    *   keys involving its columns will be processed. Otherwise all defined
    *   entity indexes and keys will be processed.
@@ -1505,7 +1500,7 @@ class SqlContentEntityStorageSchema implements DynamicallyFieldableEntityStorage
    *
    * @param array $entity_schema_data
    *   The entity schema data definition.
-   * @param \Drupal\Core\Field\FieldStorageDefinitionInterface|NULL $storage_definition
+   * @param \Drupal\Core\Field\FieldStorageDefinitionInterface|null $storage_definition
    *   (optional) If a field storage definition is specified, only indexes and
    *   keys involving its columns will be processed. Otherwise all defined
    *   entity indexes and keys will be processed.
@@ -1838,6 +1833,24 @@ class SqlContentEntityStorageSchema implements DynamicallyFieldableEntityStorage
         }
         else {
           $data_schema['indexes'][$real_name][] = $table_mapping->getFieldColumnName($storage_definition, $column_name);
+        }
+      }
+    }
+
+    // Add unique keys.
+    foreach ($schema['unique keys'] as $index_name => $columns) {
+      $real_name = $this->getFieldIndexName($storage_definition, $index_name);
+      foreach ($columns as $column_name) {
+        // Unique keys can be specified as either a column name or an array with
+        // column name and length. Allow for either case.
+        if (is_array($column_name)) {
+          $data_schema['unique keys'][$real_name][] = array(
+            $table_mapping->getFieldColumnName($storage_definition, $column_name[0]),
+            $column_name[1],
+          );
+        }
+        else {
+          $data_schema['unique keys'][$real_name][] = $table_mapping->getFieldColumnName($storage_definition, $column_name);
         }
       }
     }

@@ -1,14 +1,10 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\taxonomy\Plugin\migrate\source\d6\Vocabulary.
- */
-
 namespace Drupal\taxonomy\Plugin\migrate\source\d6;
 
 use Drupal\migrate\Row;
 use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
+use Drupal\Core\Field\FieldStorageDefinitionInterface;
 
 /**
  * Drupal 6 vocabularies source from database.
@@ -72,6 +68,7 @@ class Vocabulary extends DrupalSqlBase {
       ->execute()
       ->fetchCol();
     $row->setSourceProperty('node_types', $node_types);
+    $row->setSourceProperty('cardinality', ($row->getSourceProperty('tags') == 1 || $row->getSourceProperty('multiple') == 1) ? FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED : 1);
     return parent::prepareRow($row);
   }
 

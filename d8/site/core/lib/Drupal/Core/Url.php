@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Url.
- */
-
 namespace Drupal\Core;
 
 use Drupal\Component\Utility\UrlHelper;
@@ -60,6 +55,8 @@ class Url {
   /**
    * The URL options.
    *
+   * See \Drupal\Core\Url::fromUri() for details on the options.
+   *
    * @var array
    */
   protected $options = array();
@@ -106,21 +103,7 @@ class Url {
    * @param array $route_parameters
    *   (optional) An associative array of parameter names and values.
    * @param array $options
-   *   (optional) An associative array of additional options, with the following
-   *   elements:
-   *   - 'query': An array of query key/value-pairs (without any URL-encoding)
-   *     to append to the URL. Merged with the parameters array.
-   *   - 'fragment': A fragment identifier (named anchor) to append to the URL.
-   *     Do not include the leading '#' character.
-   *   - 'absolute': Defaults to FALSE. Whether to force the output to be an
-   *     absolute link (beginning with http:). Useful for links that will be
-   *     displayed outside the site, such as in an RSS feed.
-   *   - 'language': An optional language object used to look up the alias
-   *     for the URL. If $options['language'] is omitted, it defaults to the
-   *     current language for the language type LanguageInterface::TYPE_URL.
-   *   - 'https': Whether this URL should point to a secure location. If not
-   *     defined, the current scheme is used, so the user stays on HTTP or HTTPS
-   *     respectively. TRUE enforces HTTPS and FALSE enforces HTTP.
+   *   See \Drupal\Core\Url::fromUri() for details.
    *
    * @see static::fromRoute()
    * @see static::fromUri()
@@ -146,21 +129,7 @@ class Url {
    * @param array $route_parameters
    *   (optional) An associative array of route parameter names and values.
    * @param array $options
-   *   (optional) An associative array of additional URL options, with the
-   *   following elements:
-   *   - 'query': An array of query key/value-pairs (without any URL-encoding)
-   *     to append to the URL. Merged with the parameters array.
-   *   - 'fragment': A fragment identifier (named anchor) to append to the URL.
-   *     Do not include the leading '#' character.
-   *   - 'absolute': Defaults to FALSE. Whether to force the output to be an
-   *     absolute link (beginning with http:). Useful for links that will be
-   *     displayed outside the site, such as in an RSS feed.
-   *   - 'language': An optional language object used to look up the alias
-   *     for the URL. If $options['language'] is omitted, it defaults to the
-   *     current language for the language type LanguageInterface::TYPE_URL.
-   *   - 'https': Whether this URL should point to a secure location. If not
-   *     defined, the current scheme is used, so the user stays on HTTP or HTTPS
-   *     respectively. TRUE enforces HTTPS and FALSE enforces HTTP.
+   *   See \Drupal\Core\Url::fromUri() for details.
    *
    * @return \Drupal\Core\Url
    *   A new Url object for a routed (internal to Drupal) URL.
@@ -259,7 +228,10 @@ class Url {
    *   that are known not to be handled by the Drupal routing system (such as
    *   static files), use base: for the scheme to get a link relative to the
    *   Drupal base path (like the <base> HTML element). For a link to an entity
-   *   you may use entity:{entity_type}/{entity_id} URIs.
+   *   you may use entity:{entity_type}/{entity_id} URIs. The internal: scheme
+   *   should be avoided except when processing actual user input that may or
+   *   may not correspond to a Drupal route. Normally use Url::fromRoute() for
+   *   code linking to any any Drupal page.
    * @param array $options
    *   (optional) An associative array of additional URL options, with the
    *   following elements:
@@ -270,6 +242,9 @@ class Url {
    *   - 'absolute': Defaults to FALSE. Whether to force the output to be an
    *     absolute link (beginning with http:). Useful for links that will be
    *     displayed outside the site, such as in an RSS feed.
+   *   - 'attributes': An associative array of HTML attributes that will be
+   *     added to the anchor tag if you use the \Drupal\Core\Link class to make
+   *     the link.
    *   - 'language': An optional language object used to look up the alias
    *     for the URL. If $options['language'] is omitted, it defaults to the
    *     current language for the language type LanguageInterface::TYPE_URL.
@@ -277,14 +252,9 @@ class Url {
    *     defined, the current scheme is used, so the user stays on HTTP or HTTPS
    *     respectively. TRUE enforces HTTPS and FALSE enforces HTTP.
    *
-   * Note: the internal: scheme should be avoided except when processing actual
-   * user input that may or may not correspond to a Drupal route. Normally use
-   * Url::fromRoute() for code linking to any any Drupal page.
-   *
-   * You can call access() on the returned object to do access checking.
-   *
    * @return \Drupal\Core\Url
-   *   A new Url object with properties depending on the URI scheme.
+   *   A new Url object with properties depending on the URI scheme. Call the
+   *   access() method on this to do access checking.
    *
    * @throws \InvalidArgumentException
    *   Thrown when the passed in path has no scheme.
@@ -302,7 +272,11 @@ class Url {
     if ($uri_parts === FALSE) {
       throw new \InvalidArgumentException("The URI '$uri' is malformed.");
     }
-    if (empty($uri_parts['scheme'])) {
+    // We support protocol-relative URLs.
+    if (strpos($uri, '//') === 0) {
+      $uri_parts['scheme'] = '';
+    }
+    elseif (empty($uri_parts['scheme'])) {
       throw new \InvalidArgumentException("The URI '$uri' is invalid. You must use a valid URI scheme.");
     }
     $uri_parts += ['path' => ''];
@@ -353,7 +327,7 @@ class Url {
    *   Parts from an URI of the form entity:{entity_type}/{entity_id} as from
    *   parse_url().
    * @param array $options
-   *   An array of options, see static::fromUri() for details.
+   *   An array of options, see \Drupal\Core\Url::fromUri() for details.
    * @param string $uri
    *   The original entered URI.
    *
@@ -405,7 +379,7 @@ class Url {
    * @param array $uri_parts
    *   Parts from an URI of the form internal:{path} as from parse_url().
    * @param array $options
-   *   An array of options, see static::fromUri() for details.
+   *   An array of options, see \Drupal\Core\Url::fromUri() for details.
    *
    * @return \Drupal\Core\Url
    *   A new Url object for a 'internal:' URI.
@@ -452,7 +426,7 @@ class Url {
    *   from parse_url(), where the path is the route name optionally followed by
    *   a ";" followed by route parameters in key=value format with & separators.
    * @param array $options
-   *   An array of options, see static::fromUri() for details.
+   *   An array of options, see \Drupal\Core\Url::fromUri() for details.
    * @param string $uri
    *   The original passed in URI.
    *
@@ -524,7 +498,7 @@ class Url {
   }
 
   /**
-   * Generates a URI string that represents tha data in the Url object.
+   * Generates a URI string that represents the data in the Url object.
    *
    * The URI will typically have the scheme of route: even if the object was
    * constructed using an entity: or internal: scheme. A internal: URI that
@@ -643,6 +617,8 @@ class Url {
    * Returns the URL options.
    *
    * @return array
+   *   The array of options. See \Drupal\Core\Url::fromUri() for details on what
+   *   it contains.
    */
   public function getOptions() {
     return $this->options;
@@ -650,6 +626,8 @@ class Url {
 
   /**
    * Gets a specific option.
+   *
+   * See \Drupal\Core\Url::fromUri() for details on the options.
    *
    * @param string $name
    *   The name of the option.
@@ -669,7 +647,8 @@ class Url {
    * Sets the URL options.
    *
    * @param array $options
-   *   The array of options.
+   *   The array of options. See \Drupal\Core\Url::fromUri() for details on what
+   *   it contains.
    *
    * @return $this
    */
@@ -680,6 +659,8 @@ class Url {
 
   /**
    * Sets a specific option.
+   *
+   * See \Drupal\Core\Url::fromUri() for details on the options.
    *
    * @param string $name
    *   The name of the option.
@@ -864,7 +845,7 @@ class Url {
   /**
    * Sets the URL generator.
    *
-   * @param \Drupal\Core\Routing\UrlGeneratorInterface
+   * @param \Drupal\Core\Routing\UrlGeneratorInterface $url_generator
    *   (optional) The URL generator, specify NULL to reset it.
    *
    * @return $this
@@ -878,7 +859,7 @@ class Url {
   /**
    * Sets the unrouted URL assembler.
    *
-   * @param \Drupal\Core\Utility\UnroutedUrlAssemblerInterface
+   * @param \Drupal\Core\Utility\UnroutedUrlAssemblerInterface $url_assembler
    *   The unrouted URL assembler.
    *
    * @return $this

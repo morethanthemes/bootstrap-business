@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\Component\Plugin\Factory\ReflectionFactory.
- */
 
 namespace Drupal\Component\Plugin\Factory;
 
@@ -80,4 +76,5 @@ class ReflectionFactory extends DefaultFactory {
     }
     return $arguments;
   }
+
 }

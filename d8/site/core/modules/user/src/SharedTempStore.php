@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\SharedTempStore.
- */
-
 namespace Drupal\user;
 
 use Drupal\Core\KeyValueStore\KeyValueStoreExpirableInterface;
@@ -168,7 +163,7 @@ class SharedTempStore {
    *
    * @return bool
    *   TRUE if the data was set, or FALSE if it already exists and is not owned
-   * by $this->user.
+   *   by $this->user.
    */
   public function setIfOwner($key, $value) {
     if ($this->setIfNotExists($key, $value)) {

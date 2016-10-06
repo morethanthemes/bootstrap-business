@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\Query\ConditionBase.
- */
-
 namespace Drupal\Core\Entity\Query;
 
 /**
@@ -25,4 +20,5 @@ abstract class ConditionBase extends ConditionFundamentals implements ConditionI
 
     return $this;
   }
+
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\search\Tests\SearchNumbersTest.
- */
-
 namespace Drupal\search\Tests;
 
 use Drupal\Core\Language\LanguageInterface;
@@ -105,4 +100,5 @@ class SearchNumbersTest extends SearchTestBase {
       $this->assertText($node->label(), format_string('%type: node title shown (search found the node) in search for number %number.', array('%type' => $type, '%number' => $number)));
     }
   }
+
 }

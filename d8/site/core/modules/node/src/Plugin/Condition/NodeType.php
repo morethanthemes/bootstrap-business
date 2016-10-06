@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Plugin\Condition\NodeType.
- */
-
 namespace Drupal\node\Plugin\Condition;
 
 use Drupal\Core\Condition\ConditionPluginBase;
@@ -23,7 +18,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *     "node" = @ContextDefinition("entity:node", label = @Translation("Node"))
  *   }
  * )
- *
  */
 class NodeType extends ConditionPluginBase implements ContainerFactoryPluginInterface {
 

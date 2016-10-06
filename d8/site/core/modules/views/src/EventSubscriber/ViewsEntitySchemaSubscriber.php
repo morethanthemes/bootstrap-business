@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\EventSubscriber\ViewsEntitySchemaSubscriber.
- */
-
 namespace Drupal\views\EventSubscriber;
 
 use Drupal\Core\Entity\EntityManagerInterface;
@@ -274,7 +269,6 @@ class ViewsEntitySchemaSubscriber implements EntityTypeListenerInterface, EventS
   }
 
   /**
-   *
    * Updates views if a data table is renamed.
    *
    * @param \Drupal\views\Entity\View[] $all_views

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Queue\QueueDatabaseFactory.
- */
-
 namespace Drupal\Core\Queue;
 
 use Drupal\Core\Database\Connection;
@@ -43,4 +38,5 @@ class QueueDatabaseFactory {
   public function get($name) {
     return new DatabaseQueue($name, $this->connection);
   }
+
 }

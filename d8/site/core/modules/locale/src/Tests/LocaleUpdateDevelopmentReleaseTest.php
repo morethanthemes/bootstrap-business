@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\locale\Tests\LocaleUpdateDevelopmentReleaseTest.
- */
-
 namespace Drupal\locale\Tests;
 
 use Drupal\simpletest\WebTestBase;
@@ -33,4 +28,5 @@ class LocaleUpdateDevelopmentReleaseTest extends WebTestBase {
     $this->verbose($projects['contrib']->info['version']);
     $this->assertEqual($projects['contrib']->info['version'], '12.x-10.x', 'The branch of the contrib module dev release.');
   }
+
 }

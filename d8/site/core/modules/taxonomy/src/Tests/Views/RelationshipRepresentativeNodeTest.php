@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\taxonomy\Tests\Views\RelationshipRepresentativeNodeTest.
- */
-
 namespace Drupal\taxonomy\Tests\Views;
 
 use Drupal\views\Views;
@@ -42,4 +37,5 @@ class RelationshipRepresentativeNodeTest extends TaxonomyTestBase {
     );
     $this->assertIdenticalResultset($view, $expected_result, $map);
   }
+
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\EntityManager.
- */
-
 namespace Drupal\Core\Entity;
 
 use Drupal\Core\Field\FieldDefinitionInterface;
@@ -15,7 +10,9 @@ use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 /**
  * Provides a wrapper around many other services relating to entities.
  *
- * @deprecated in Drupal 8.0.0, will be removed before Drupal 9.0.0.
+ * Deprecated in Drupal 8.0.0, will be removed before Drupal 9.0.0. We cannot
+ * use the deprecated PHPDoc tag because this service class is still used in
+ * legacy code paths. Symfony would fail test cases with deprecation warnings.
  *
  * @todo Enforce the deprecation of each method once
  *   https://www.drupal.org/node/2578361 is in.
@@ -126,7 +123,7 @@ class EntityManager implements EntityManagerInterface, ContainerAwareInterface {
    *
    * @deprecated in Drupal 8.0.0, will be removed before Drupal 9.0.0.
    */
-  public function createHandlerInstance($class, EntityTypeInterface $definition = null) {
+  public function createHandlerInstance($class, EntityTypeInterface $definition = NULL) {
     return $this->container->get('entity_type.manager')->createHandlerInstance($class, $definition);
   }
 

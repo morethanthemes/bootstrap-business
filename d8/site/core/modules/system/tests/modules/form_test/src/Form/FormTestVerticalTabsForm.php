@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\form_test\Form\FormTestVerticalTabsForm.
- */
-
 namespace Drupal\form_test\Form;
 
 use Drupal\Core\Form\FormBase;
@@ -57,4 +52,5 @@ class FormTestVerticalTabsForm extends FormBase {
     print Json::encode($form_state->getValues());
     exit;
   }
+
 }

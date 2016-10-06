@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\field_test\Plugin\Field\FieldFormatter\TestFieldApplicableFormatter.
- */
-
 namespace Drupal\field_test\Plugin\Field\FieldFormatter;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
@@ -41,4 +36,5 @@ class TestFieldApplicableFormatter extends FormatterBase {
   public function viewElements(FieldItemListInterface $items, $langcode) {
     return array('#markup' => 'Nothing to see here');
   }
+
 }

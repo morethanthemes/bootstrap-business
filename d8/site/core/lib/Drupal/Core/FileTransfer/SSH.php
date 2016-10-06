@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\FileTransfer\SSH.
- */
-
 namespace Drupal\Core\FileTransfer;
 
 /**
@@ -147,4 +142,5 @@ class SSH extends FileTransfer implements ChmodInterface {
     $form['advanced']['port']['#default_value'] = 22;
     return $form;
   }
+
 }

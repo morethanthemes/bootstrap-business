@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Plugin\views\row\EntityReference.
- */
-
 namespace Drupal\views\Plugin\views\row;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -58,4 +53,5 @@ class EntityReference extends Fields {
 
     return parent::preRender($row);
   }
+
 }

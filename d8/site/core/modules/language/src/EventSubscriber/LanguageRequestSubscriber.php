@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\language\EventSubscriber\LanguageRequestSubscriber.
- */
-
 namespace Drupal\language\EventSubscriber;
 
 use Drupal\Core\Session\AccountInterface;
@@ -54,7 +49,7 @@ class LanguageRequestSubscriber implements EventSubscriberInterface {
    *
    * @param \Drupal\language\ConfigurableLanguageManagerInterface $language_manager
    *   The language manager service.
-   * @param \Drupal\language\LanguageNegotiatorInterface
+   * @param \Drupal\language\LanguageNegotiatorInterface $negotiator
    *   The language negotiator.
    * @param \Drupal\Core\StringTranslation\Translator\TranslatorInterface $translation;
    *   The translation service.

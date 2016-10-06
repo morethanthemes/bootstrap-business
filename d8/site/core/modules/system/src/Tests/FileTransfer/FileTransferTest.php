@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\FileTransfer\FileTransferTest.
- */
-
 namespace Drupal\system\Tests\FileTransfer;
 
 use Drupal\Core\FileTransfer\FileTransferException;
@@ -94,4 +89,5 @@ class FileTransferTest extends WebTestBase {
     }
     $this->assertTrue($gotit, 'Was able to copy a directory inside of the jailed area');
   }
+
 }

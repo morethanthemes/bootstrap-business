@@ -1,16 +1,12 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\comment\Tests\CommentNewIndicatorTest.
- */
-
 namespace Drupal\comment\Tests;
 
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\comment\CommentInterface;
 use Drupal\Core\Url;
+use Drupal\comment\Entity\Comment;
 
 /**
  * Tests the 'new' indicator posted on comments.
@@ -85,7 +81,7 @@ class CommentNewIndicatorTest extends CommentTestBase {
     // Create a new comment. This helper function may be run with different
     // comment settings so use $comment->save() to avoid complex setup.
     /** @var \Drupal\comment\CommentInterface $comment */
-    $comment = entity_create('comment', array(
+    $comment = Comment::create(array(
       'cid' => NULL,
       'entity_id' => $this->node->id(),
       'entity_type' => 'node',
@@ -108,7 +104,7 @@ class CommentNewIndicatorTest extends CommentTestBase {
     // value, the drupal.node-new-comments-link library would determine that the
     // node received a comment after the user last viewed it, and hence it would
     // perform an HTTP request to render the "new comments" node link.
-    $this->assertIdentical(1, count($this->xpath('//*[@data-history-node-last-comment-timestamp="' . $comment->getChangedTime() .  '"]')), 'data-history-node-last-comment-timestamp attribute is set to the correct value.');
+    $this->assertIdentical(1, count($this->xpath('//*[@data-history-node-last-comment-timestamp="' . $comment->getChangedTime() . '"]')), 'data-history-node-last-comment-timestamp attribute is set to the correct value.');
     $this->assertIdentical(1, count($this->xpath('//*[@data-history-node-field-name="comment"]')), 'data-history-node-field-name attribute is set to the correct value.');
     // The data will be pre-seeded on this particular page in drupalSettings, to
     // avoid the need for the client to make a separate request to the server.

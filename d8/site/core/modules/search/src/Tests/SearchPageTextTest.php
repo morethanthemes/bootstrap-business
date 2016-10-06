@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\search\Tests\SearchPageTextTest.
- */
-
 namespace Drupal\search\Tests;
 
 use Drupal\Component\Utility\Html;
@@ -164,4 +159,5 @@ class SearchPageTextTest extends SearchTestBase {
     $this->assertResponse(200, 'Searching for .something does not lead to a 403 error');
     $this->assertText('no results', 'Searching for .something gives you a no search results page');
   }
+
 }

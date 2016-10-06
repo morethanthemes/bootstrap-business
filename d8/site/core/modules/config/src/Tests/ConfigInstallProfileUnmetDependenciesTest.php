@@ -1,14 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\config\Tests\ConfigInstallProfileUnmetDependenciesTest.
- */
-
 namespace Drupal\config\Tests;
 
-use Drupal\Component\Serialization\Yaml;
 use Drupal\Core\Config\InstallStorage;
+use Drupal\Core\Serialization\Yaml;
 use Drupal\simpletest\InstallerTestBase;
 
 /**

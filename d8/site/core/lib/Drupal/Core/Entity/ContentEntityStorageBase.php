@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\ContentEntityStorageBase.
- */
-
 namespace Drupal\Core\Entity;
 
 use Drupal\Core\Cache\Cache;
@@ -139,7 +134,7 @@ abstract class ContentEntityStorageBase extends EntityStorageBase implements Con
     $values[$this->langcodeKey] = $langcode;
     $values[$this->getEntityType()->getKey('default_langcode')] = FALSE;
     $this->initFieldValues($translation, $values, $field_names);
-    $this->invokeHook('translation_create', $entity);
+    $this->invokeHook('translation_create', $translation);
     return $translation;
   }
 
@@ -441,6 +436,13 @@ abstract class ContentEntityStorageBase extends EntityStorageBase implements Con
     $result = [];
     $args = array_slice(func_get_args(), 2);
     $langcodes = array_keys($entity->getTranslationLanguages());
+    // Ensure that the field method is invoked as first on the current entity
+    // translation and then on all other translations.
+    $current_entity_langcode = $entity->language()->getId();
+    if (reset($langcodes) != $current_entity_langcode) {
+      $langcodes = array_diff($langcodes, [$current_entity_langcode]);
+      array_unshift($langcodes, $current_entity_langcode);
+    }
     foreach ($langcodes as $langcode) {
       $translation = $entity->getTranslation($langcode);
       // For non translatable fields, there is only one field object instance

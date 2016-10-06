@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Plugin\views\HandlerBase.
- */
-
 namespace Drupal\views\Plugin\views;
 
 use Drupal\Component\Utility\Html;
@@ -50,13 +45,6 @@ abstract class HandlerBase extends PluginBase implements ViewsHandlerInterface {
   public $tableAlias;
 
   /**
-   * When a table has been moved this property is set.
-   *
-   * @var string
-   */
-  public $actualTable;
-
-  /**
    * The actual field in the database table, maybe different
    * on other kind of query plugins/special handlers.
    *
@@ -70,13 +58,6 @@ abstract class HandlerBase extends PluginBase implements ViewsHandlerInterface {
    * @var string
    */
   public $field;
-
-  /**
-   * When a field has been moved this property is set.
-   *
-   * @var string
-   */
-  public $actualField;
 
   /**
    * The relationship used for this field.
@@ -123,15 +104,6 @@ abstract class HandlerBase extends PluginBase implements ViewsHandlerInterface {
     // Check to see if this handler type is defaulted. Note that
     // we have to do a lookup because the type is singular but the
     // option is stored as the plural.
-
-    // If the 'moved to' keyword moved our handler, let's fix that now.
-    if (isset($this->actualTable)) {
-      $options['table'] = $this->actualTable;
-    }
-
-    if (isset($this->actualField)) {
-      $options['field'] = $this->actualField;
-    }
 
     $this->unpackOptions($this->options, $options);
 
@@ -287,7 +259,7 @@ abstract class HandlerBase extends PluginBase implements ViewsHandlerInterface {
 
     $form['admin_label'] = array(
       '#type' => 'details',
-      '#title' =>$this->t('Administrative title'),
+      '#title' => $this->t('Administrative title'),
       '#weight' => 150,
     );
     $form['admin_label']['admin_label'] = array(
@@ -735,12 +707,12 @@ abstract class HandlerBase extends PluginBase implements ViewsHandlerInterface {
 
     // Determine if the string has 'or' operators (plus signs) or 'and'
     // operators (commas) and split the string accordingly.
-    if (preg_match('/^([\w0-9-_]+[+ ]+)+[\w0-9-_]+$/u', $str)) {
+    if (preg_match('/^([\w0-9-_\.]+[+ ]+)+[\w0-9-_\.]+$/u', $str)) {
       // The '+' character in a query string may be parsed as ' '.
       $operator = 'or';
       $value = preg_split('/[+ ]/', $str);
     }
-    elseif (preg_match('/^([\w0-9-_]+[, ]+)*[\w0-9-_]+$/u', $str)) {
+    elseif (preg_match('/^([\w0-9-_\.]+[, ]+)*[\w0-9-_\.]+$/u', $str)) {
       $operator = 'and';
       $value = explode(',', $str);
     }
@@ -843,4 +815,20 @@ abstract class HandlerBase extends PluginBase implements ViewsHandlerInterface {
     // Write to cache
     $view->cacheSet();
   }
+
+  /**
+   * Calculates options stored on the handler
+   *
+   * @param array $options
+   *   The options stored in the handler
+   * @param array $form_state_options
+   *   The newly submitted form state options.
+   *
+   * @return array
+   *   The new options
+   */
+  public function submitFormCalculateOptions(array $options, array $form_state_options) {
+    return $form_state_options + $options;
+  }
+
 }

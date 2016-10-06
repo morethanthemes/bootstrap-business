@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Tests\NodeBlockFunctionalTest.
- */
-
 namespace Drupal\node\Tests;
 
 use Drupal\block\Entity\Block;
@@ -128,7 +123,7 @@ class NodeBlockFunctionalTest extends NodeTestBase {
       'region' => 'sidebar_first',
       'visibility[node_type][bundles][article]' => 'article',
     ];
-    $theme =  \Drupal::service('theme_handler')->getDefault();
+    $theme = \Drupal::service('theme_handler')->getDefault();
     $this->drupalPostForm("admin/structure/block/add/system_powered_by_block/$theme", $edit, t('Save block'));
 
     $block = Block::load($edit['id']);

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\KeyValueStore\Query\QueryFactory.
- */
-
 namespace Drupal\Core\Entity\KeyValueStore\Query;
 
 use Drupal\Core\Entity\EntityTypeInterface;
@@ -33,7 +28,6 @@ class QueryFactory implements QueryFactoryInterface {
 
   /**
    * Constructs a QueryFactory object.
-   *
    */
   public function __construct(KeyValueFactoryInterface $key_value_factory) {
     $this->keyValueFactory = $key_value_factory;

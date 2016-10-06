@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Plugin\views\filter\BooleanOperator.
- */
-
 namespace Drupal\views\Plugin\views\filter;
 
 use Drupal\Core\Database\Query\Condition;
@@ -49,9 +44,9 @@ class BooleanOperator extends FilterPluginBase {
   // exposed filter options
   protected $alwaysMultiple = TRUE;
   // Don't display empty space where the operator would be.
-  var $no_operator = TRUE;
+  public $no_operator = TRUE;
   // Whether to accept NULL as a false value or not
-  var $accept_null = FALSE;
+  public $accept_null = FALSE;
 
 
 
@@ -76,14 +71,14 @@ class BooleanOperator extends FilterPluginBase {
     return array(
       '=' => array(
         'title' => $this->t('Is equal to'),
-        'method' => '_queryOperatorBoolean',
+        'method' => 'queryOpBoolean',
         'short' => $this->t('='),
         'values' => 1,
         'query_operator' => static::EQUAL,
       ),
       '!=' => array(
         'title' => $this->t('Is not equal to'),
-        'method' => '_queryOperatorBoolean',
+        'method' => 'queryOpBoolean',
         'short' => $this->t('!='),
         'values' => 1,
         'query_operator' => static::NOT_EQUAL,
@@ -98,9 +93,14 @@ class BooleanOperator extends FilterPluginBase {
     parent::init($view, $display, $options);
 
     $this->value_value = $this->t('True');
+
     if (isset($this->definition['label'])) {
       $this->value_value = $this->definition['label'];
     }
+    elseif (isset($this->definition['title'])) {
+      $this->value_value = $this->definition['title'];
+    }
+
     if (isset($this->definition['accept null'])) {
       $this->accept_null = (bool) $this->definition['accept null'];
     }
@@ -226,29 +226,15 @@ class BooleanOperator extends FilterPluginBase {
   }
 
   /**
-   * Adds a where condition to the query for a boolean value. This function
-   * remains to prevent breaks in public-facing API's.
-   *
-   * @param string $field
-   *   The field name to add the where condition for.
-   */
-  protected function queryOpBoolean($field) {
-    $this->_queryOperatorBoolean($field, static::EQUAL);
-  }
-
-  /**
    * Adds a where condition to the query for a boolean value.
    *
    * @param string $field
    *   The field name to add the where condition for.
    * @param string $query_operator
-   *   Either static::EQUAL or static::NOT_EQUAL.
-   *
-   * @internal
-   *   This method will be removed in 8.1.0 and is here to maintain backwards-
-   *   compatibility in 8.0.x releases.
+   *   (optional) Either static::EQUAL or static::NOT_EQUAL. Defaults to
+   *   static::EQUAL.
    */
-  protected function _queryOperatorBoolean($field, $query_operator) {
+  protected function queryOpBoolean($field, $query_operator = EQUAL) {
     if (empty($this->value)) {
       if ($this->accept_null) {
         if ($query_operator == static::EQUAL) {

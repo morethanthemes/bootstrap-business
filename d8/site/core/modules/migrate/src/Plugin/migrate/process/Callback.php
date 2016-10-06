@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\migrate\Plugin\migrate\process\Callback.
- */
-
 namespace Drupal\migrate\Plugin\migrate\process;
 
 use Drupal\migrate\MigrateExecutableInterface;
@@ -19,6 +14,8 @@ use Drupal\migrate\Row;
  * callable takes the value as the single mandatory argument. No additional
  * arguments can be passed to the callback as this would make the migration YAML
  * file too complex.
+ *
+ * @link https://www.drupal.org/node/2181783 Online handbook documentation for callback process plugin @endlink
  *
  * @MigrateProcessPlugin(
  *   id = "callback"

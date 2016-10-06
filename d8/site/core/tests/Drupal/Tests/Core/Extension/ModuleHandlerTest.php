@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Extension\ModuleHandlerTest.
- */
-
 namespace Drupal\Tests\Core\Extension;
 
 use Drupal\Core\Extension\Extension;
@@ -243,7 +238,7 @@ class ModuleHandlerTest extends UnitTestCase {
    * @covers ::loadAllIncludes
    */
   public function testLoadAllIncludes() {
-    $this->assertTrue(true);
+    $this->assertTrue(TRUE);
     $module_handler = $this->getMockBuilder('Drupal\Core\Extension\ModuleHandler')
       ->setConstructorArgs(array(
         $this->root,
@@ -516,4 +511,5 @@ class ModuleHandlerTest extends UnitTestCase {
     $this->moduleHandler->addModule('module', 'place');
     $this->assertEquals(array('module' => $this->root . '/place'), $this->moduleHandler->getModuleDirectories());
   }
+
 }

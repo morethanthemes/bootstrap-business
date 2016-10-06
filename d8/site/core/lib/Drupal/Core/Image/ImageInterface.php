@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Image\ImageInterface.
- */
-
 namespace Drupal\Core\Image;
 
 /**
@@ -243,4 +238,5 @@ interface ImageInterface {
    *   TRUE on success, FALSE on failure.
    */
   public function rotate($degrees, $background = NULL);
+
 }

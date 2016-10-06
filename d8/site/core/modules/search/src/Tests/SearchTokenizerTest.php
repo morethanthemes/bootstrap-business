@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\search\Tests\SearchTokenizerTest.
- */
-
 namespace Drupal\search\Tests;
 use Drupal\Component\Utility\Unicode;
 
@@ -152,4 +147,5 @@ class SearchTokenizerTest extends SearchTestBase {
 
     return '';
   }
+
 }

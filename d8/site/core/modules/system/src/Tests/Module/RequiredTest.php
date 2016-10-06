@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Module\RequiredTest.
- */
-
 namespace Drupal\system\Tests\Module;
 
 /**
@@ -33,4 +28,5 @@ class RequiredTest extends ModuleTestBase {
       }
     }
   }
+
 }

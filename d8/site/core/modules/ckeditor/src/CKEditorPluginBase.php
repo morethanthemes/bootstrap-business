@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\ckeditor\CKEditorPluginBase.
- */
-
 namespace Drupal\ckeditor;
 
 use Drupal\Core\Plugin\PluginBase;
@@ -55,4 +50,5 @@ abstract class CKEditorPluginBase extends PluginBase implements CKEditorPluginIn
   function getLibraries(Editor $editor) {
     return array();
   }
+
 }

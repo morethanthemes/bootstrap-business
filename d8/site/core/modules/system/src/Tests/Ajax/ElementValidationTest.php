@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Ajax\ElementValidationTest.
- */
-
 namespace Drupal\system\Tests\Ajax;
 
 /**
@@ -39,4 +34,5 @@ class ElementValidationTest extends AjaxTestBase {
     $this->assertNoText(t('Error message'), 'No error message in resultant JSON');
     $this->assertText('ajax_forms_test_validation_number_form_callback invoked', 'The correct callback was invoked');
   }
+
 }

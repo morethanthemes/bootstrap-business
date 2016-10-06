@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\Tests\migrate\Unit\process\IteratorTest.
- */
 
 namespace Drupal\Tests\migrate\Unit\process;
 
@@ -82,4 +78,5 @@ class IteratorTest extends MigrateTestCase {
     $this->assertSame($new_value[42]['foo'], 'test');
     $this->assertSame($new_value[42]['id'], 42);
   }
+
 }

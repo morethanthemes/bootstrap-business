@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\datetime\Plugin\Field\FieldFormatter\DateTimeDefaultFormatter.
- */
-
 namespace Drupal\datetime\Plugin\Field\FieldFormatter;
 
 use Drupal\Core\Datetime\DrupalDateTime;
@@ -46,13 +41,15 @@ class DateTimeDefaultFormatter extends DateTimeFormatterBase {
       if ($item->date) {
         /** @var \Drupal\Core\Datetime\DrupalDateTime $date */
         $date = $item->date;
-        // Create the ISO date in Universal Time.
-        $iso_date = $date->format("Y-m-d\TH:i:s") . 'Z';
 
         if ($this->getFieldSetting('datetime_type') == 'date') {
           // A date without time will pick up the current time, use the default.
           datetime_date_default_time($date);
         }
+
+        // Create the ISO date in Universal Time.
+        $iso_date = $date->format("Y-m-d\TH:i:s") . 'Z';
+
         $this->setTimeZone($date);
 
         $output = $this->formatDate($date);
@@ -89,7 +86,7 @@ class DateTimeDefaultFormatter extends DateTimeFormatterBase {
    */
   protected function formatDate($date) {
     $format_type = $this->getSetting('format_type');
-    $timezone = $this->getSetting('timezone_override');
+    $timezone = $this->getSetting('timezone_override') ?: $date->getTimezone()->getName();
     return $this->dateFormatter->format($date->getTimestamp(), $format_type, '', $timezone != '' ? $timezone : NULL);
   }
 

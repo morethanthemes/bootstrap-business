@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\Diff\Engine\DiffOpCopy.
- */
-
 namespace Drupal\Component\Diff\Engine;
 
 /**
@@ -13,7 +8,7 @@ namespace Drupal\Component\Diff\Engine;
  * @subpackage DifferenceEngine
  */
 class DiffOpCopy extends DiffOp {
-  var $type = 'copy';
+  public $type = 'copy';
 
   public function __construct($orig, $closing = FALSE) {
     if (!is_array($closing)) {
@@ -26,4 +21,5 @@ class DiffOpCopy extends DiffOp {
   public function reverse() {
     return new DiffOpCopy($this->closing, $this->orig);
   }
+
 }

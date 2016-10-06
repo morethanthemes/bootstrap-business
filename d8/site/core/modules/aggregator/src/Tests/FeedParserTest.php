@@ -1,13 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\aggregator\Tests\FeedParserTest.
- */
-
 namespace Drupal\aggregator\Tests;
 
 use Drupal\Core\Url;
+use Drupal\aggregator\Entity\Feed;
 
 /**
  * Tests the built-in feed parser with valid feed samples.
@@ -89,7 +85,7 @@ class FeedParserTest extends AggregatorTestBase {
    */
   public function testRedirectFeed() {
     $redirect_url = Url::fromRoute('aggregator_test.redirect')->setAbsolute()->toString();
-    $feed = entity_create('aggregator_feed', array('url' => $redirect_url, 'title' => $this->randomMachineName()));
+    $feed = Feed::create(array('url' => $redirect_url, 'title' => $this->randomMachineName()));
     $feed->save();
     $feed->refreshItems();
 
@@ -103,7 +99,7 @@ class FeedParserTest extends AggregatorTestBase {
   public function testInvalidFeed() {
     // Simulate a typo in the URL to force a curl exception.
     $invalid_url = 'http:/www.drupal.org';
-    $feed = entity_create('aggregator_feed', array('url' => $invalid_url, 'title' => $this->randomMachineName()));
+    $feed = Feed::create(array('url' => $invalid_url, 'title' => $this->randomMachineName()));
     $feed->save();
 
     // Update the feed. Use the UI to be able to check the message easily.
@@ -111,4 +107,5 @@ class FeedParserTest extends AggregatorTestBase {
     $this->clickLink(t('Update items'));
     $this->assertRaw(t('The feed from %title seems to be broken because of error', array('%title' => $feed->label())));
   }
+
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\image\Plugin\ImageEffect\ScaleImageEffect.
- */
-
 namespace Drupal\image\Plugin\ImageEffect;
 
 use Drupal\Component\Utility\Image;
@@ -75,7 +70,7 @@ class ScaleImageEffect extends ResizeImageEffect {
       '#type' => 'checkbox',
       '#default_value' => $this->configuration['upscale'],
       '#title' => t('Allow Upscaling'),
-      '#description' => t('Let scale make images larger than their original size'),
+      '#description' => t('Let scale make images larger than their original size.'),
     );
     return $form;
   }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\field_ui\Plugin\Derivative\FieldUiLocalTask.
- */
-
 namespace Drupal\field_ui\Plugin\Derivative;
 
 use Drupal\Core\Entity\EntityManagerInterface;
@@ -191,4 +186,5 @@ class FieldUiLocalTask extends DeriverBase implements ContainerDeriverInterface 
       }
     }
   }
+
 }

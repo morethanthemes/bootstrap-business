@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\filter\Tests\FilterNoFormatTest.
- */
-
 namespace Drupal\filter\Tests;
 
 use Drupal\simpletest\WebTestBase;
@@ -38,4 +33,5 @@ class FilterNoFormatTest extends WebTestBase {
     // format, it is filtered as though it is in the fallback format.
     $this->assertEqual(check_markup($text), check_markup($text, filter_fallback_format()), 'Text with no format is filtered the same as text in the fallback format.');
   }
+
 }

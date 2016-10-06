@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\search\Tests\SearchSimplifyTest.
- */
-
 namespace Drupal\search\Tests;
 use Drupal\Component\Utility\Unicode;
 
@@ -29,7 +24,7 @@ class SearchSimplifyTest extends SearchTestBase {
     $basestrings = explode(chr(10), $input);
     $strings = array();
     foreach ($basestrings as $key => $string) {
-      if ($key %2) {
+      if ($key % 2) {
         // Even line - should simplify down to a space.
         $simplified = search_simplify($string);
         $this->assertIdentical($simplified, ' ', "Line $key is excluded from the index");
@@ -82,4 +77,5 @@ class SearchSimplifyTest extends SearchTestBase {
       $this->assertEqual($out, $case[1], $case[2]);
     }
   }
+
 }

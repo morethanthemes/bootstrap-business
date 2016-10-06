@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\search\Tests\SearchBlockTest.
- */
-
 namespace Drupal\search\Tests;
 
 /**
@@ -24,7 +19,7 @@ class SearchBlockTest extends SearchTestBase {
   protected function setUp() {
     parent::setUp();
 
-    // Create and login user.
+    // Create and log in user.
     $admin_user = $this->drupalCreateUser(array('administer blocks', 'search content'));
     $this->drupalLogin($admin_user);
   }
@@ -44,6 +39,11 @@ class SearchBlockTest extends SearchTestBase {
 
     $this->drupalGet('');
     $this->assertText($block->label(), 'Block title was found.');
+
+    // Check that name attribute is not empty.
+    $pattern = "//input[@type='submit' and @name='']";
+    $elements = $this->xpath($pattern);
+    $this->assertTrue(empty($elements), 'The search input field does not have empty name attribute.');
 
     // Test a normal search via the block form, from the front page.
     $terms = array('keys' => 'test');
@@ -73,7 +73,7 @@ class SearchBlockTest extends SearchTestBase {
     $this->assertEqual(
       $this->getUrl(),
       \Drupal::url('search.view_' . $entity_id, array(), array('query' => array('keys' => $terms['keys']), 'absolute' => TRUE)),
-      'Submitted to correct url.'
+      'Submitted to correct URL.'
     );
 
     // Test an empty search via the block form, from the front page.
@@ -87,7 +87,7 @@ class SearchBlockTest extends SearchTestBase {
     $this->assertEqual(
       $this->getUrl(),
       \Drupal::url('search.view_' . $entity_id, array(), array('query' => array('keys' => ''), 'absolute' => TRUE)),
-      'Redirected to correct url.'
+      'Redirected to correct URL.'
     );
 
     // Test that after entering a too-short keyword in the form, you can then

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Extension\ThemeHandler.
- */
-
 namespace Drupal\Core\Extension;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -59,7 +54,7 @@ class ThemeHandler implements ThemeHandlerInterface {
   protected $state;
 
   /**
-   *  The config installer to install configuration.
+   * The config installer to install configuration.
    *
    * @var \Drupal\Core\Config\ConfigInstallerInterface
    */
@@ -203,8 +198,10 @@ class ThemeHandler implements ThemeHandlerInterface {
    * {@inheritdoc}
    */
   public function addTheme(Extension $theme) {
-    foreach ($theme->info['libraries'] as $library => $name) {
-      $theme->libraries[$library] = $name;
+    if (!empty($theme->info['libraries'])) {
+      foreach ($theme->info['libraries'] as $library => $name) {
+        $theme->libraries[$library] = $name;
+      }
     }
     if (isset($theme->info['engine'])) {
       $theme->engine = $theme->info['engine'];
@@ -500,4 +497,5 @@ class ThemeHandler implements ThemeHandlerInterface {
     }
     return FALSE;
   }
+
 }

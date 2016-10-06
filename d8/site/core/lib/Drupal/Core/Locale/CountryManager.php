@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Locale\CountryManager.
- */
-
 namespace Drupal\Core\Locale;
 
 use Drupal\Core\Extension\ModuleHandlerInterface;
@@ -26,7 +21,7 @@ class CountryManager implements CountryManagerInterface {
    */
   protected $countries;
 
-  /*
+  /**
    * Constructor.
    *
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler

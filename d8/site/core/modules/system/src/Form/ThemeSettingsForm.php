@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Form\ThemeSettingsForm.
- */
-
 namespace Drupal\system\Form;
 
 use Drupal\Core\Extension\ThemeHandlerInterface;
@@ -157,9 +152,8 @@ class ThemeSettingsForm extends ConfigFormBase {
 
     $form['theme_settings'] = array(
       '#type' => 'details',
-      '#title' => t('Toggle display'),
+      '#title' => t('Page element display'),
       '#open' => TRUE,
-      '#description' => t('Enable or disable the display of certain page elements.'),
     );
     foreach ($toggles as $name => $title) {
       if ((!$theme) || in_array($name, $features)) {
@@ -181,12 +175,12 @@ class ThemeSettingsForm extends ConfigFormBase {
     if ((!$theme || in_array('logo', $features)) && $this->moduleHandler->moduleExists('file')) {
       $form['logo'] = array(
         '#type' => 'details',
-        '#title' => t('Logo image settings'),
+        '#title' => t('Logo image'),
         '#open' => TRUE,
       );
       $form['logo']['default_logo'] = array(
         '#type' => 'checkbox',
-        '#title' => t('Use the default logo supplied by the theme'),
+        '#title' => t('Use the logo supplied by the theme'),
         '#default_value' => theme_get_setting('logo.use_default', $theme),
         '#tree' => FALSE,
       );
@@ -215,9 +209,9 @@ class ThemeSettingsForm extends ConfigFormBase {
     if (((!$theme) || in_array('favicon', $features)) && $this->moduleHandler->moduleExists('file')) {
       $form['favicon'] = array(
         '#type' => 'details',
-        '#title' => t('Shortcut icon settings'),
+        '#title' => t('Favicon'),
         '#open' => TRUE,
-        '#description' => t("Your shortcut icon, or 'favicon', is displayed in the address bar and bookmarks of most browsers."),
+        '#description' => t("Your shortcut icon, or favicon, is displayed in the address bar and bookmarks of most browsers."),
         '#states' => array(
           // Hide the shortcut icon settings fieldset when shortcut icon display
           // is disabled.
@@ -228,7 +222,7 @@ class ThemeSettingsForm extends ConfigFormBase {
       );
       $form['favicon']['default_favicon'] = array(
         '#type' => 'checkbox',
-        '#title' => t('Use the default shortcut icon supplied by the theme'),
+        '#title' => t('Use the favicon supplied by the theme'),
         '#default_value' => theme_get_setting('favicon.use_default', $theme),
       );
       $form['favicon']['settings'] = array(
@@ -247,7 +241,7 @@ class ThemeSettingsForm extends ConfigFormBase {
       );
       $form['favicon']['settings']['favicon_upload'] = array(
         '#type' => 'file',
-        '#title' => t('Upload icon image'),
+        '#title' => t('Upload favicon image'),
         '#description' => t("If you don't have direct file access to the server, use this field to upload your shortcut icon.")
       );
     }
@@ -382,6 +376,16 @@ class ThemeSettingsForm extends ConfigFormBase {
           // File upload failed.
           $form_state->setErrorByName('favicon_upload', $this->t('The favicon could not be uploaded.'));
         }
+      }
+
+      // When intending to use the default logo, unset the logo_path.
+      if ($form_state->getValue('default_logo')) {
+        $form_state->unsetValue('logo_path');
+      }
+
+      // When intending to use the default favicon, unset the favicon_path.
+      if ($form_state->getValue('default_favicon')) {
+        $form_state->unsetValue('favicon_path');
       }
 
       // If the user provided a path for a logo or favicon file, make sure a file

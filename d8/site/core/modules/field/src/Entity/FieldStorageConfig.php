@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\field\Entity\FieldStorageConfig.
- */
-
 namespace Drupal\field\Entity;
 
 use Drupal\Component\Utility\Unicode;
@@ -227,6 +222,10 @@ class FieldStorageConfig extends ConfigEntityBase implements FieldStorageConfigI
   /**
    * Constructs a FieldStorageConfig object.
    *
+   * In most cases, Field entities are created via
+   * FieldStorageConfig::create($values)), where $values is the same parameter
+   * as in this constructor.
+   *
    * @param array $values
    *   An array of field properties, keyed by property name. Most array
    *   elements will be used to set the corresponding properties on the class;
@@ -236,10 +235,6 @@ class FieldStorageConfig extends ConfigEntityBase implements FieldStorageConfigI
    *     a 'field_name' property can be accepted in place of 'id'.
    *   - entity_type: required.
    *   - type: required.
-   *
-   * In most cases, Field entities are created via
-   * entity_create('field_storage_config', $values)), where $values is the same
-   * parameter as in this constructor.
    *
    * @see entity_create()
    */
@@ -303,7 +298,8 @@ class FieldStorageConfig extends ConfigEntityBase implements FieldStorageConfigI
    * @param \Drupal\Core\Entity\EntityStorageInterface $storage
    *   The entity storage.
    *
-   * @throws \Drupal\Core\Field\FieldException If the field definition is invalid.
+   * @throws \Drupal\Core\Field\FieldException
+   *   If the field definition is invalid.
    */
   protected function preSaveNew(EntityStorageInterface $storage) {
     $entity_manager = \Drupal::entityManager();
@@ -649,7 +645,7 @@ class FieldStorageConfig extends ConfigEntityBase implements FieldStorageConfigI
     // If the field item class implements the interface, create an orphaned
     // runtime item object, so that it can be used as the options provider
     // without modifying the entity being worked on.
-    if (is_subclass_of($this->getFieldItemClass(), '\Drupal\Core\TypedData\OptionsProviderInterface')) {
+    if (is_subclass_of($this->getFieldItemClass(), OptionsProviderInterface::class)) {
       $items = $entity->get($this->getName());
       return \Drupal::service('plugin.manager.field.field_type')->createFieldItem($items, 0);
     }

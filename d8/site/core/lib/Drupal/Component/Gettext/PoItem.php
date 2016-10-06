@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\Gettext\PoItem.
- */
-
 namespace Drupal\Component\Gettext;
 
 /**
@@ -165,7 +160,7 @@ class PoItem {
   /**
    * Set the comment of this translation.
    *
-   * @param String $comment
+   * @param string $comment
    */
   function setComment($comment) {
     $this->_comment = $comment;
@@ -174,7 +169,7 @@ class PoItem {
   /**
    * Create the PoItem from a structured array.
    *
-   * @param array values
+   * @param array $values
    */
   public function setFromArray(array $values = array()) {
     if (isset($values['context'])) {
@@ -186,7 +181,7 @@ class PoItem {
     if (isset($values['translation'])) {
       $this->setTranslation($values['translation']);
     }
-    if (isset($values['comment'])){
+    if (isset($values['comment'])) {
       $this->setComment($values['comment']);
     }
     if (isset($this->_source) &&

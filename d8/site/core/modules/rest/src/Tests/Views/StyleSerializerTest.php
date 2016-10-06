@@ -1,17 +1,14 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rest\Tests\Views\StyleSerializerTest.
- */
-
 namespace Drupal\rest\Tests\Views;
 
 use Drupal\Core\Cache\Cache;
+use Drupal\Core\EventSubscriber\MainContentViewSubscriber;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\entity_test\Entity\EntityTest;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\language\Entity\ConfigurableLanguage;
 use Drupal\system\Tests\Cache\AssertPageCacheContextsAndTagsTrait;
 use Drupal\views\Entity\View;
 use Drupal\views\Plugin\views\display\DisplayPluginBase;
@@ -43,14 +40,14 @@ class StyleSerializerTest extends PluginTestBase {
    *
    * @var array
    */
-  public static $modules = array('views_ui', 'entity_test', 'hal', 'rest_test_views', 'node', 'text', 'field');
+  public static $modules = array('views_ui', 'entity_test', 'hal', 'rest_test_views', 'node', 'text', 'field', 'language', 'basic_auth');
 
   /**
    * Views used by this test.
    *
    * @var array
    */
-  public static $testViews = array('test_serializer_display_field', 'test_serializer_display_entity', 'test_serializer_node_display_field', 'test_serializer_node_exposed_filter');
+  public static $testViews = array('test_serializer_display_field', 'test_serializer_display_entity', 'test_serializer_display_entity_translated', 'test_serializer_node_display_field', 'test_serializer_node_exposed_filter');
 
   /**
    * A user with administrative privileges to look at test entity and configure views.
@@ -66,10 +63,43 @@ class StyleSerializerTest extends PluginTestBase {
 
     // Save some entity_test entities.
     for ($i = 1; $i <= 10; $i++) {
-      entity_create('entity_test', array('name' => 'test_' . $i, 'user_id' => $this->adminUser->id()))->save();
+      EntityTest::create(array('name' => 'test_' . $i, 'user_id' => $this->adminUser->id()))->save();
     }
 
     $this->enableViewsTestModule();
+  }
+
+  /**
+   * Checks that the auth options restricts access to a REST views display.
+   */
+  public function testRestViewsAuthentication() {
+    // Assume the view is hidden behind a permission.
+    $this->drupalGetWithFormat('test/serialize/auth_with_perm', 'json');
+    $this->assertResponse(401);
+
+    // Not even logging in would make it possible to see the view, because then
+    // we are denied based on authentication method (cookie).
+    $this->drupalLogin($this->adminUser);
+    $this->drupalGetWithFormat('test/serialize/auth_with_perm', 'json');
+    $this->assertResponse(403);
+    $this->drupalLogout();
+
+    // But if we use the basic auth authentication strategy, we should be able
+    // to see the page.
+    $url = $this->buildUrl('test/serialize/auth_with_perm');
+    $response = \Drupal::httpClient()->get($url, [
+      'auth' => [$this->adminUser->getUsername(), $this->adminUser->pass_raw],
+    ]);
+
+    // Ensure that any changes to variables in the other thread are picked up.
+    $this->refreshVariables();
+
+    $headers = $response->getHeaders();
+    $this->verbose('GET request to: ' . $url .
+      '<hr />Code: ' . curl_getinfo($this->curlHandle, CURLINFO_HTTP_CODE) .
+      '<hr />Response headers: ' . nl2br(print_r($headers, TRUE)) .
+      '<hr />Response body: ' . (string) $response->getBody());
+    $this->assertResponse(200);
   }
 
   /**
@@ -184,6 +214,22 @@ class StyleSerializerTest extends PluginTestBase {
     $expected = $serializer->serialize($entities, 'xml');
     $actual_xml = $this->drupalGetWithFormat('test/serialize/entity', 'xml');
     $this->assertIdentical($actual_xml, $expected, 'The expected XML output was found.');
+  }
+
+  /**
+   * Verifies site maintenance mode functionality.
+   */
+  protected function testSiteMaintenance() {
+    $view = Views::getView('test_serializer_display_field');
+    $view->initDisplay();
+    $this->executeView($view);
+
+    // Set the site to maintenance mode.
+    $this->container->get('state')->set('system.maintenance_mode', TRUE);
+
+    $this->drupalGetWithFormat('test/serialize/entity', 'json');
+    // Verify that the endpoint is unavailable for anonymous users.
+    $this->assertResponse(503);
   }
 
   /**
@@ -307,7 +353,7 @@ class StyleSerializerTest extends PluginTestBase {
     $this->drupalGetWithFormat('test/serialize/field', 'json');
     $this->assertHeader('content-type', 'application/json');
     $this->assertResponse(406, 'A 406 response was returned when JSON was requested.');
-     // Should return a 200.
+    // Should return a 200.
     $this->drupalGetWithFormat('test/serialize/field', 'xml');
     $this->assertHeader('content-type', 'text/xml; charset=UTF-8');
     $this->assertResponse(200, 'A 200 response was returned when XML was requested.');
@@ -504,9 +550,8 @@ class StyleSerializerTest extends PluginTestBase {
   public function testLivePreview() {
     // We set up a request so it looks like an request in the live preview.
     $request = new Request();
-    $request->setFormat('drupal_ajax', 'application/vnd.drupal-ajax');
-    $request->headers->set('Accept', 'application/vnd.drupal-ajax');
-      /** @var \Symfony\Component\HttpFoundation\RequestStack $request_stack */
+    $request->query->add([MainContentViewSubscriber::WRAPPER_FORMAT => 'drupal_ajax']);
+    /** @var \Symfony\Component\HttpFoundation\RequestStack $request_stack */
     $request_stack = \Drupal::service('request_stack');
     $request_stack->push($request);
 
@@ -755,4 +800,39 @@ class StyleSerializerTest extends PluginTestBase {
     $this->assertEqual($result, $expected, 'Querying a view with a starts with exposed filter on the title returns nodes whose title starts with value provided.');
     $this->assertCacheContexts($cache_contexts);
   }
+
+  /**
+   * Test multilingual entity rows.
+   */
+  public function testMulEntityRows() {
+    // Create some languages.
+    ConfigurableLanguage::createFromLangcode('l1')->save();
+    ConfigurableLanguage::createFromLangcode('l2')->save();
+
+    // Create an entity with no translations.
+    $storage = \Drupal::entityTypeManager()->getStorage('entity_test_mul');
+    $storage->create(['langcode' => 'l1', 'name' => 'mul-none'])->save();
+
+    // Create some entities with translations.
+    $entity = $storage->create(['langcode' => 'l1', 'name' => 'mul-l1-orig']);
+    $entity->save();
+    $entity->addTranslation('l2', ['name' => 'mul-l1-l2'])->save();
+    $entity = $storage->create(['langcode' => 'l2', 'name' => 'mul-l2-orig']);
+    $entity->save();
+    $entity->addTranslation('l1', ['name' => 'mul-l2-l1'])->save();
+
+    // Get the names of the output.
+    $json = $this->drupalGetWithFormat('test/serialize/translated_entity', 'json');
+    $decoded = $this->container->get('serializer')->decode($json, 'hal_json');
+    $names = [];
+    foreach ($decoded as $item) {
+      $names[] = $item['name'][0]['value'];
+    }
+    sort($names);
+
+    // Check that the names are correct.
+    $expected = ['mul-l1-l2', 'mul-l1-orig', 'mul-l2-l1', 'mul-l2-orig', 'mul-none'];
+    $this->assertIdentical($names, $expected, 'The translated content was found in the JSON.');
+  }
+
 }

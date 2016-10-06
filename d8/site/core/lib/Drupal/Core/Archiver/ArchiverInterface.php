@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Archiver\ArchiverInterface.
- */
-
 namespace Drupal\Core\Archiver;
 
 /**
@@ -61,4 +56,5 @@ interface ArchiverInterface {
    *   An array of file names relative to the root of the archive.
    */
   public function listContents();
+
 }

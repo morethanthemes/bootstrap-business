@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Field\Plugin\Field\FieldWidget\BooleanCheckboxWidget.
- */
-
 namespace Drupal\Core\Field\Plugin\Field\FieldWidget;
 
 use Drupal\Core\Field\FieldItemListInterface;
@@ -30,7 +25,7 @@ class BooleanCheckboxWidget extends WidgetBase {
    */
   public static function defaultSettings() {
     return array(
-      'display_label' => FALSE,
+      'display_label' => TRUE,
     ) + parent::defaultSettings();
   }
 

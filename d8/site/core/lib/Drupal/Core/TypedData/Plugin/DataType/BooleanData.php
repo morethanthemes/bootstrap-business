@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\TypedData\Plugin\DataType\BooleanData.
- */
-
 namespace Drupal\Core\TypedData\Plugin\DataType;
 
 use Drupal\Core\TypedData\PrimitiveBase;
@@ -29,4 +24,5 @@ class BooleanData extends PrimitiveBase implements BooleanInterface {
   public function getCastedValue() {
     return (bool) $this->value;
   }
+
 }

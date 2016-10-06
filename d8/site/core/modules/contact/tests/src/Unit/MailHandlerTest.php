@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\contact\Unit\MailHandlerTest.
- */
-
 namespace Drupal\Tests\contact\Unit;
 
 use Drupal\contact\MailHandler;
@@ -304,7 +299,7 @@ class MailHandlerTest extends UnitTestCase {
       ->method('getEmail')
       ->willReturn($mail_address);
     $sender->expects($this->any())
-      ->method('getUsername')
+      ->method('getDisplayName')
       ->willReturn('user');
     // User ID 1 has special implications, use 3 instead.
     $sender->expects($this->any())
@@ -369,12 +364,12 @@ class MailHandlerTest extends UnitTestCase {
     $message->expects($this->once())
       ->method('copySender')
       ->willReturn($copy_sender);
-    $recipient =$this->getMock('\Drupal\user\UserInterface');
+    $recipient = $this->getMock('\Drupal\user\UserInterface');
     $recipient->expects($this->once())
       ->method('getEmail')
       ->willReturn('user2@drupal.org');
     $recipient->expects($this->once())
-      ->method('getUsername')
+      ->method('getDisplayName')
       ->willReturn('user2');
     $recipient->expects($this->once())
       ->method('getPreferredLangcode')

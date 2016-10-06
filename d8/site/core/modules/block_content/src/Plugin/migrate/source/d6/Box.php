@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\block_content\Plugin\migrate\source\d6\Box.
- */
-
 namespace Drupal\block_content\Plugin\migrate\source\d6;
 
 use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
@@ -24,7 +19,7 @@ class Box extends DrupalSqlBase {
   public function query() {
     $query = $this->select('boxes', 'b')
       ->fields('b', array('bid', 'body', 'info', 'format'));
-    $query->orderBy('bid');
+    $query->orderBy('b.bid');
 
     return $query;
   }

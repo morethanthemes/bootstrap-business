@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\locale\StringStorageInterface.
- */
-
 namespace Drupal\locale;
 
 /**
@@ -181,4 +176,5 @@ interface StringStorageInterface {
    *   New string translation object.
    */
   public function createTranslation($values = array());
+
 }

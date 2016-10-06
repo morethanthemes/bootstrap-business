@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\DependencyInjection\Compiler\ProxyServicesPass.
- */
-
 namespace Drupal\Core\DependencyInjection\Compiler;
 
 use Drupal\Component\ProxyBuilder\ProxyBuilder;
@@ -55,7 +50,7 @@ class ProxyServicesPass implements CompilerPassInterface {
             $root_namespace_dir = $namespaces[$root_namespace];
           }
 
-          $message =<<<EOF
+          $message = <<<EOF
 
 Missing proxy class '$proxy_class' for lazy service '$service_id'.
 Use the following command to generate the proxy class:

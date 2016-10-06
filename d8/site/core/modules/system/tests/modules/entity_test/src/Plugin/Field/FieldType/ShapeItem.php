@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\entity_test\Plugin\Field\FieldType\ShapeItem.
- */
-
 namespace Drupal\entity_test\Plugin\Field\FieldType;
 
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
@@ -80,6 +75,13 @@ class ShapeItem extends FieldItemBase {
   public function isEmpty() {
     $item = $this->getValue();
     return empty($item['shape']) && empty($item['color']);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function mainPropertyName() {
+    return 'shape';
   }
 
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\path\Unit\Migrate\d6\UrlAliasTest.
- */
-
 namespace Drupal\Tests\path\Unit\Migrate\d6;
 
 use Drupal\Tests\path\Unit\Migrate\UrlAliasTestBase;
@@ -20,7 +15,6 @@ class UrlAliasTest extends UrlAliasTestBase {
 
   protected $migrationConfiguration = array(
     'id' => 'test',
-    'highWaterProperty' => array('field' => 'test'),
     'source' => array(
       'plugin' => 'd6_url_alias',
     ),

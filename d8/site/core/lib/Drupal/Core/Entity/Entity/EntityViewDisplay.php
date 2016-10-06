@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\Entity\EntityViewDisplay.
- */
-
 namespace Drupal\Core\Entity\Entity;
 
 use Drupal\Component\Utility\NestedArray;
@@ -282,7 +277,7 @@ class EntityViewDisplay extends EntityDisplayBase implements EntityViewDisplayIn
         'view_mode' => $this->originalMode,
         'display' => $this,
       );
-      \Drupal::moduleHandler()->alter('entity_display_build', $build_list[$key], $context);
+      \Drupal::moduleHandler()->alter('entity_display_build', $build_list[$id], $context);
     }
 
     return $build_list;
@@ -306,4 +301,5 @@ class EntityViewDisplay extends EntityDisplayBase implements EntityViewDisplayIn
       'formatters' => new EntityDisplayPluginCollection($this->pluginManager, $configurations)
     );
   }
+
 }

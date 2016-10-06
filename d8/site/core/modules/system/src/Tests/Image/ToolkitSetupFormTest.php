@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Image\ToolkitSetupFormTest.
- */
-
 namespace Drupal\system\Tests\Image;
 
 use Drupal\simpletest\WebTestBase;
@@ -75,4 +70,5 @@ class ToolkitSetupFormTest extends WebTestBase {
     $this->drupalGet('admin/config/media/image-toolkit');
     $this->assertResponse(403);
   }
+
 }

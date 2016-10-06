@@ -1,17 +1,15 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\quickedit\Tests\QuickEditAutocompleteTermTest.
- */
-
 namespace Drupal\quickedit\Tests;
 
 use Drupal\Component\Serialization\Json;
+use Drupal\Core\EventSubscriber\MainContentViewSubscriber;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\field\Tests\EntityReference\EntityReferenceTestTrait;
 use Drupal\simpletest\WebTestBase;
+use Drupal\taxonomy\Entity\Vocabulary;
+use Drupal\taxonomy\Entity\Term;
 
 /**
  * Tests in-place editing of autocomplete tags.
@@ -78,7 +76,7 @@ class QuickEditAutocompleteTermTest extends WebTestBase {
       'type' => 'article',
     ));
     // Create the vocabulary for the tag field.
-    $this->vocabulary = entity_create('taxonomy_vocabulary', [
+    $this->vocabulary = Vocabulary::create([
       'name' => 'quickedit testing tags',
       'vid' => 'quickedit_testing_tags',
     ]);
@@ -131,9 +129,9 @@ class QuickEditAutocompleteTermTest extends WebTestBase {
   public function testAutocompleteQuickEdit() {
     $this->drupalLogin($this->editorUser);
 
-    $quickedit_uri = 'quickedit/form/node/'. $this->node->id() . '/' . $this->fieldName . '/' . $this->node->language()->getId() . '/full';
+    $quickedit_uri = 'quickedit/form/node/' . $this->node->id() . '/' . $this->fieldName . '/' . $this->node->language()->getId() . '/full';
     $post = array('nocssjs' => 'true') + $this->getAjaxPageStatePostData();
-    $response = $this->drupalPost($quickedit_uri, 'application/vnd.drupal-ajax', $post);
+    $response = $this->drupalPost($quickedit_uri, '', $post, ['query' => [MainContentViewSubscriber::WRAPPER_FORMAT => 'drupal_ajax']]);
     $ajax_commands = Json::decode($response);
 
     // Prepare form values for submission. drupalPostAJAX() is not suitable for
@@ -151,7 +149,7 @@ class QuickEditAutocompleteTermTest extends WebTestBase {
       );
 
       // Submit field form and check response. Should render back all the terms.
-      $response = $this->drupalPost($quickedit_uri, 'application/vnd.drupal-ajax', $post);
+      $response = $this->drupalPost($quickedit_uri, '', $post, ['query' => [MainContentViewSubscriber::WRAPPER_FORMAT => 'drupal_ajax']]);
       $this->assertResponse(200);
       $ajax_commands = Json::decode($response);
       $this->setRawContent($ajax_commands[0]['data']);
@@ -162,9 +160,9 @@ class QuickEditAutocompleteTermTest extends WebTestBase {
 
       // Load the form again, which should now get it back from
       // PrivateTempStore.
-      $quickedit_uri = 'quickedit/form/node/'. $this->node->id() . '/' . $this->fieldName . '/' . $this->node->language()->getId() . '/full';
+      $quickedit_uri = 'quickedit/form/node/' . $this->node->id() . '/' . $this->fieldName . '/' . $this->node->language()->getId() . '/full';
       $post = array('nocssjs' => 'true') + $this->getAjaxPageStatePostData();
-      $response = $this->drupalPost($quickedit_uri, 'application/vnd.drupal-ajax', $post);
+      $response = $this->drupalPost($quickedit_uri, '', $post, ['query' => [MainContentViewSubscriber::WRAPPER_FORMAT => 'drupal_ajax']]);
       $ajax_commands = Json::decode($response);
 
       // The AjaxResponse's first command is an InsertCommand which contains
@@ -202,14 +200,14 @@ class QuickEditAutocompleteTermTest extends WebTestBase {
   protected function createTerm() {
     $filter_formats = filter_formats();
     $format = array_pop($filter_formats);
-    $term = entity_create('taxonomy_term', array(
+    $term = Term::create([
       'name' => $this->randomMachineName(),
       'description' => $this->randomMachineName(),
       // Use the first available text format.
       'format' => $format->id(),
       'vid' => $this->vocabulary->id(),
       'langcode' => LanguageInterface::LANGCODE_NOT_SPECIFIED,
-    ));
+    ]);
     $term->save();
     return $term;
   }

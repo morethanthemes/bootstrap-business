@@ -1,11 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Config\Entity\ConfigDependencyDeleteFormTrait.
- */
-
-
 namespace Drupal\Core\Config\Entity;
 
 use Drupal\Core\Config\ConfigManagerInterface;
@@ -127,4 +121,5 @@ trait ConfigDependencyDeleteFormTrait {
     }
 
   }
+
 }

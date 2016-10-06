@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Ajax\SetDialogTitleCommand.
- */
-
 namespace Drupal\Core\Ajax;
 
 /**
@@ -28,4 +23,5 @@ class SetDialogTitleCommand extends SetDialogOptionCommand {
     $this->optionName = 'title';
     $this->optionValue = $title;
   }
+
 }

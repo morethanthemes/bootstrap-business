@@ -1,16 +1,11 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\aggregator\ItemViewBuilder.
- */
-
 namespace Drupal\aggregator;
 
 use Drupal\Core\Entity\EntityViewBuilder;
 
 /**
- * Render controller for aggregator feed items.
+ * View builder handler for aggregator feed items.
  */
 class ItemViewBuilder extends EntityViewBuilder {
 

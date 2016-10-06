@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Plugin\views\filter\FilterPluginBase.
- */
-
 namespace Drupal\views\Plugin\views\filter;
 
 use Drupal\Core\Cache\Cache;
@@ -12,6 +7,7 @@ use Drupal\Core\Cache\CacheableDependencyInterface;
 use Drupal\Core\Form\FormHelper;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
+use Drupal\Core\Render\Element\Checkboxes;
 use Drupal\user\RoleInterface;
 use Drupal\views\Plugin\views\HandlerBase;
 use Drupal\Component\Utility\Html;
@@ -53,17 +49,17 @@ abstract class FilterPluginBase extends HandlerBase implements CacheableDependen
    * Contains the actual value of the field,either configured in the views ui
    * or entered in the exposed filters.
    */
-  var $value = NULL;
+  public $value = NULL;
 
   /**
    * Contains the operator which is used on the query.
    */
-  var $operator = '=';
+  public $operator = '=';
 
   /**
    * Contains the information of the selected item in a grouped filter.
    */
-  var $group_info = NULL;
+  public $group_info = NULL;
 
   /**
    * @var bool
@@ -75,13 +71,13 @@ abstract class FilterPluginBase extends HandlerBase implements CacheableDependen
    * @var bool
    * Disable the possibility to use operators.
    */
-  var $no_operator = FALSE;
+  public $no_operator = FALSE;
 
   /**
    * @var bool
    * Disable the possibility to allow a exposed input to be optional.
    */
-  var $always_required = FALSE;
+  public $always_required = FALSE;
 
   /**
    * Overrides \Drupal\views\Plugin\views\HandlerBase::init().
@@ -412,7 +408,6 @@ abstract class FilterPluginBase extends HandlerBase implements CacheableDependen
         '#type' => 'submit',
         '#value' => $this->t('Grouped filters'),
         '#submit' => array(array($this, 'buildGroupForm')),
-        '#attributes' => array('class' => array('use-ajax-submit')),
       );
       $form['group_button']['radios']['radios']['#default_value'] = 0;
     }
@@ -422,7 +417,6 @@ abstract class FilterPluginBase extends HandlerBase implements CacheableDependen
         '#type' => 'submit',
         '#value' => $this->t('Single filter'),
         '#submit' => array(array($this, 'buildGroupForm')),
-        '#attributes' => array('class' => array('use-ajax-submit')),
       );
       $form['group_button']['radios']['radios']['#default_value'] = 1;
     }
@@ -487,7 +481,6 @@ abstract class FilterPluginBase extends HandlerBase implements CacheableDependen
         '#type' => 'submit',
         '#value' => $this->t('Expose filter'),
         '#submit' => array(array($this, 'displayExposedForm')),
-        '#attributes' => array('class' => array('use-ajax-submit')),
       );
       $form['expose_button']['checkbox']['checkbox']['#default_value'] = 0;
     }
@@ -500,7 +493,6 @@ abstract class FilterPluginBase extends HandlerBase implements CacheableDependen
         '#type' => 'submit',
         '#value' => $this->t('Hide filter'),
         '#submit' => array(array($this, 'displayExposedForm')),
-        '#attributes' => array('class' => array('use-ajax-submit')),
       );
       $form['expose_button']['checkbox']['checkbox']['#default_value'] = 1;
     }
@@ -548,7 +540,7 @@ abstract class FilterPluginBase extends HandlerBase implements CacheableDependen
     );
 
     if (!empty($form['operator']['#type'])) {
-       // Increase the width of the left (operator) column.
+      // Increase the width of the left (operator) column.
       $form['operator']['#prefix'] = '<div class="views-group-box views-left-40">';
       $form['operator']['#suffix'] = '</div>';
       $form['value']['#prefix'] = '<div class="views-group-box views-right-60">';
@@ -614,7 +606,7 @@ abstract class FilterPluginBase extends HandlerBase implements CacheableDependen
       '#default_value' => $this->options['expose']['identifier'],
       '#title' => $this->t('Filter identifier'),
       '#size' => 40,
-      '#description' => $this->t('This will appear in the URL after the ? to identify this filter. Cannot be blank.'),
+      '#description' => $this->t('This will appear in the URL after the ? to identify this filter. Cannot be blank. Only letters, digits and the dot ("."), hyphen ("-"), underscore ("_"), and tilde ("~") characters are allowed.'),
     );
   }
 
@@ -623,17 +615,40 @@ abstract class FilterPluginBase extends HandlerBase implements CacheableDependen
    */
   public function validateExposeForm($form, FormStateInterface $form_state) {
     $identifier = $form_state->getValue(array('options', 'expose', 'identifier'));
-    if (empty($identifier)) {
-      $form_state->setError($form['expose']['identifier'], $this->t('The identifier is required if the filter is exposed.'));
-    }
-    elseif ($identifier == 'value') {
-      $form_state->setError($form['expose']['identifier'], $this->t('This identifier is not allowed.'));
-    }
-
-    if (!$this->view->display_handler->isIdentifierUnique($form_state->get('id'), $identifier)) {
-      $form_state->setError($form['expose']['identifier'], $this->t('This identifier is used by another handler.'));
-    }
+    $this->validateIdentifier($identifier, $form_state, $form['expose']['identifier']);
   }
+
+  /**
+   * Determines if the given grouped filter entry has a valid value.
+   *
+   * @param array $group
+   *   A group entry as defined by buildGroupForm().
+   *
+   * @return bool
+   */
+  protected function hasValidGroupedValue(array $group) {
+    $operators = $this->operators();
+    if ($operators[$group['operator']]['values'] == 0) {
+      // Some filters, such as "is empty," do not require a value to be
+      // specified in order to be valid entries.
+      return TRUE;
+    }
+    else {
+      if (is_string($group['value'])) {
+        return trim($group['value']) != '';
+      }
+      elseif (is_array($group['value'])) {
+        // Some filters allow multiple options to be selected (for example, node
+        // types). Ensure at least the minimum number of values is present for
+        // this entry to be considered valid.
+        $min_values = $operators[$group['operator']]['values'];
+        $actual_values = count(array_filter($group['value'], 'static::arrayFilterZero'));
+        return $actual_values >= $min_values;
+      }
+    }
+    return FALSE;
+  }
+
 
   /**
    * Validate the build group options form.
@@ -641,43 +656,64 @@ abstract class FilterPluginBase extends HandlerBase implements CacheableDependen
   protected function buildGroupValidate($form, FormStateInterface $form_state) {
     if (!$form_state->isValueEmpty(array('options', 'group_info'))) {
       $identifier = $form_state->getValue(array('options', 'group_info', 'identifier'));
-      if (empty($identifier)) {
-        $form_state->setError($form['group_info']['identifier'], $this->t('The identifier is required if the filter is exposed.'));
-      }
-
-      elseif ($identifier == 'value') {
-        $form_state->setError($form['group_info']['identifier'], $this->t('This identifier is not allowed.'));
-      }
-
-      if (!$this->view->display_handler->isIdentifierUnique($form_state->get('id'), $identifier)) {
-        $form_state->setError($form['group_info']['identifier'], $this->t('This identifier is used by another handler.'));
-      }
+      $this->validateIdentifier($identifier, $form_state, $form['group_info']['identifier']);
     }
 
     if ($group_items = $form_state->getValue(array('options', 'group_info', 'group_items'))) {
-      $operators = $this->operators();
-
       foreach ($group_items as $id => $group) {
         if (empty($group['remove'])) {
-
-          // Check if the title is defined but value wasn't defined.
-          if (!empty($group['title']) && $operators[$group['operator']]['values'] > 0) {
-            if ((!is_array($group['value']) && trim($group['value']) == "") ||
-                (is_array($group['value']) && count(array_filter($group['value'], 'static::arrayFilterZero')) == 0)) {
-              $form_state->setError($form['group_info']['group_items'][$id]['value'], $this->t('The value is required if title for this item is defined.'));
+          $has_valid_value = $this->hasValidGroupedValue($group);
+          if ($has_valid_value && $group['title'] == '') {
+            $operators = $this->operators();
+            if ($operators[$group['operator']]['values'] == 0) {
+              $form_state->setError($form['group_info']['group_items'][$id]['title'], $this->t('A label is required for the specified operator.'));
+            }
+            else {
+              $form_state->setError($form['group_info']['group_items'][$id]['title'], $this->t('A label is required if the value for this item is defined.'));
             }
           }
-
-          // Check if the value is defined but title wasn't defined.
-          if ((!is_array($group['value']) && trim($group['value']) != "") ||
-              (is_array($group['value']) && count(array_filter($group['value'], 'static::arrayFilterZero')) > 0)) {
-            if (empty($group['title'])) {
-              $form_state->setError($form['group_info']['group_items'][$id]['title'], $this->t('The title is required if value for this item is defined.'));
-            }
+          if (!$has_valid_value && $group['title'] != '') {
+            $form_state->setError($form['group_info']['group_items'][$id]['value'], $this->t('A value is required if the label for this item is defined.'));
           }
         }
       }
     }
+  }
+
+  /**
+   * Validates a filter identifier.
+   *
+   * Sets the form error if $form_state is passed or a error string if
+   * $form_state is not passed.
+   *
+   * @param string $identifier
+   *   The identifier to check.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   * @param array $form_group
+   *   The form element to set any errors on.
+   *
+   * @return string
+   */
+  protected function validateIdentifier($identifier, FormStateInterface $form_state = NULL, &$form_group = array()) {
+    $error = '';
+    if (empty($identifier)) {
+      $error = $this->t('The identifier is required if the filter is exposed.');
+    }
+    elseif ($identifier == 'value') {
+      $error = $this->t('This identifier is not allowed.');
+    }
+    elseif (preg_match('/[^a-zA-z0-9_~\.\-]/', $identifier)) {
+      $error = $this->t('This identifier has illegal characters.');
+    }
+
+    if ($form_state && !$this->view->display_handler->isIdentifierUnique($form_state->get('id'), $identifier)) {
+      $error = $this->t('This identifier is used by another handler.');
+    }
+
+    if (!empty($form_state) && !empty($error)) {
+      $form_state->setError($form_group, $error);
+    }
+    return $error;
   }
 
   /**
@@ -868,7 +904,7 @@ abstract class FilterPluginBase extends HandlerBase implements CacheableDependen
       '#default_value' => $identifier,
       '#title' => $this->t('Filter identifier'),
       '#size' => 40,
-      '#description' => $this->t('This will appear in the URL after the ? to identify this filter. Cannot be blank.'),
+      '#description' => $this->t('This will appear in the URL after the ? to identify this filter. Cannot be blank. Only letters, digits and the dot ("."), hyphen ("-"), underscore ("_"), and tilde ("~") characters are allowed.'),
     );
     $form['group_info']['label'] = array(
       '#type' => 'textfield',
@@ -922,7 +958,7 @@ abstract class FilterPluginBase extends HandlerBase implements CacheableDependen
       '#default_value' => $identifier,
       '#title' => $this->t('Filter identifier'),
       '#size' => 40,
-      '#description' => $this->t('This will appear in the URL after the ? to identify this filter. Cannot be blank.'),
+      '#description' => $this->t('This will appear in the URL after the ? to identify this filter. Cannot be blank. Only letters, digits and the dot ("."), hyphen ("-"), underscore ("_"), and tilde ("~") characters are allowed.'),
     );
     $form['group_info']['label'] = array(
       '#type' => 'textfield',
@@ -1075,7 +1111,6 @@ abstract class FilterPluginBase extends HandlerBase implements CacheableDependen
       '#type' => 'submit',
       '#value' => $this->t('Add another item'),
       '#submit' => array(array($this, 'addGroupForm')),
-      '#attributes' => array('class' => array('use-ajax-submit')),
     );
 
     $js = array();
@@ -1220,7 +1255,7 @@ abstract class FilterPluginBase extends HandlerBase implements CacheableDependen
     );
   }
 
-  /*
+  /**
    * Transform the input from a grouped filter into a standard filter.
    *
    * When a filter is a group, find the set of operator and values
@@ -1272,7 +1307,7 @@ abstract class FilterPluginBase extends HandlerBase implements CacheableDependen
    */
   public function groupMultipleExposedInput(&$input) {
     if (!empty($input[$this->options['group_info']['identifier']])) {
-    return array_filter($input[$this->options['group_info']['identifier']]);
+      return array_filter($input[$this->options['group_info']['identifier']]);
     }
     return array();
   }
@@ -1325,14 +1360,19 @@ abstract class FilterPluginBase extends HandlerBase implements CacheableDependen
   }
 
   /**
-   * Check to see if input from the exposed filters should change
-   * the behavior of this filter.
+   * Determines if the input from a filter should change the generated query.
+   *
+   * @param array $input
+   *   The exposed data for this view.
+   *
+   * @return bool
+   *   TRUE if the input for this filter should be included in the view query.
+   *   FALSE otherwise.
    */
   public function acceptExposedInput($input) {
     if (empty($this->options['exposed'])) {
       return TRUE;
     }
-
 
     if (!empty($this->options['expose']['use_operator']) && !empty($this->options['expose']['operator_id']) && isset($input[$this->options['expose']['operator_id']])) {
       $this->operator = $input[$this->options['expose']['operator_id']];
@@ -1349,6 +1389,12 @@ abstract class FilterPluginBase extends HandlerBase implements CacheableDependen
 
         if ($this->operator != 'empty' && $this->operator != 'not empty') {
           if ($value == 'All' || $value === array()) {
+            return FALSE;
+          }
+
+          // If checkboxes are used to render this filter, do not include the
+          // filter if no options are checked.
+          if (is_array($value) && Checkboxes::detectEmptyCheckboxes($value)) {
             return FALSE;
           }
         }
@@ -1445,21 +1491,8 @@ abstract class FilterPluginBase extends HandlerBase implements CacheableDependen
    *
    * @return bool
    */
-   public function canGroup() {
-     return TRUE;
-   }
-
-  /**
-   * Filter by no empty values, though allow to use "0".
-   *
-   * @param string $var
-   *   The variable to evaluate.
-   *
-   * @return bool
-   *   TRUE if the value is equal to an empty string, FALSE otherwise.
-   */
-  protected static function arrayFilterZero($var) {
-    return trim($var) != '';
+  public function canGroup() {
+    return TRUE;
   }
 
   /**
@@ -1488,6 +1521,31 @@ abstract class FilterPluginBase extends HandlerBase implements CacheableDependen
    */
   public function getCacheTags() {
     return [];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function validate() {
+    if (!empty($this->options['exposed']) && $error = $this->validateIdentifier($this->options['expose']['identifier'])) {
+      return [$error];
+    }
+  }
+
+  /**
+   * Filter by no empty values, though allow the use of (string) "0".
+   *
+   * @param string $var
+   *   The variable to evaluate.
+   *
+   * @return bool
+   *   TRUE if the value is equal to an empty string, FALSE otherwise.
+   */
+  protected static function arrayFilterZero($var) {
+    if (is_int($var)) {
+      return $var != 0;
+    }
+    return trim($var) != '';
   }
 
 }

@@ -1,16 +1,10 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Tests\NodeTypeTest.
- */
-
 namespace Drupal\node\Tests;
 
 use Drupal\field\Entity\FieldConfig;
 use Drupal\node\Entity\NodeType;
 use Drupal\Core\Url;
-use Drupal\node\NodeTypeInterface;
 
 /**
  * Ensures that node type functions work correctly.
@@ -55,7 +49,7 @@ class NodeTypeTest extends NodeTestBase {
     $type_exists = (bool) NodeType::load($type->id());
     $this->assertTrue($type_exists, 'The new content type has been created in the database.');
 
-    // Login a test user.
+    // Log in a test user.
     $web_user = $this->drupalCreateUser(array('create ' . $type->label() . ' content'));
     $this->drupalLogin($web_user);
 
@@ -126,7 +120,7 @@ class NodeTypeTest extends NodeTestBase {
     $this->assertRaw('Body', 'Body field was found.');
 
     // Change the name through the API
-    /** @var NodeTypeInterface $node_type */
+    /** @var \Drupal\node\NodeTypeInterface $node_type */
     $node_type = NodeType::load('page');
     $node_type->set('name', 'NewBar');
     $node_type->save();

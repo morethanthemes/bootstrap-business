@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\Element\Range.
- */
-
 namespace Drupal\Core\Render\Element;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -23,8 +18,8 @@ use Drupal\Core\Render\Element;
  * Usage example:
  * @code
  * $form['quantity'] = array(
- *   '#type' => 'number',
- *   '#title' => t('Quantity'),
+ *   '#type' => 'range',
+ *   '#title' => $this->t('Quantity'),
  * );
  * @endcode
  *

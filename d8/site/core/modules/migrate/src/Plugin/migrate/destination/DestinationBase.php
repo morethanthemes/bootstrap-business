@@ -1,14 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\migrate\Plugin\migrate\destination\DestinationBase.
- */
-
 namespace Drupal\migrate\Plugin\migrate\destination;
 
 use Drupal\Core\Plugin\PluginBase;
-use Drupal\migrate\Entity\MigrationInterface;
+use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate\Exception\RequirementsException;
 use Drupal\migrate\Plugin\MigrateDestinationInterface;
 use Drupal\migrate\Plugin\MigrateIdMapInterface;
@@ -43,7 +38,7 @@ abstract class DestinationBase extends PluginBase implements MigrateDestinationI
   /**
    * The migration.
    *
-   * @var \Drupal\migrate\Entity\MigrationInterface
+   * @var \Drupal\migrate\Plugin\MigrationInterface
    */
   protected $migration;
 
@@ -56,7 +51,7 @@ abstract class DestinationBase extends PluginBase implements MigrateDestinationI
    *   The plugin_id for the plugin instance.
    * @param mixed $plugin_definition
    *   The plugin implementation definition.
-   * @param MigrationInterface $migration
+   * @param \Drupal\migrate\Plugin\MigrationInterface $migration
    *   The migration.
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition, MigrationInterface $migration) {
@@ -99,8 +94,10 @@ abstract class DestinationBase extends PluginBase implements MigrateDestinationI
    *
    * @param array $id_map
    *   The map row data for the item.
+   * @param int $update_action
+   *   The rollback action to take if we are updating an existing item.
    */
-  protected function setRollbackAction(array $id_map) {
+  protected function setRollbackAction(array $id_map, $update_action = MigrateIdMapInterface::ROLLBACK_PRESERVE) {
     // If the entity we're updating was previously migrated by us, preserve the
     // existing rollback action.
     if (isset($id_map['sourceid1'])) {
@@ -109,7 +106,7 @@ abstract class DestinationBase extends PluginBase implements MigrateDestinationI
     // Otherwise, we're updating an entity which already existed on the
     // destination and want to make sure we do not delete it on rollback.
     else {
-      $this->rollbackAction = MigrateIdMapInterface::ROLLBACK_PRESERVE;
+      $this->rollbackAction = $update_action;
     }
   }
 

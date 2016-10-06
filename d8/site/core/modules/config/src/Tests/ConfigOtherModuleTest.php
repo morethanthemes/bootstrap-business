@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\config\Tests\ConfigOtherModuleTest.
- */
-
 namespace Drupal\config\Tests;
 
 use Drupal\simpletest\WebTestBase;
@@ -64,9 +59,14 @@ class ConfigOtherModuleTest extends WebTestBase {
 
     // Ensure that optional configuration with unmet dependencies is only
     // installed once all the dependencies are met.
-    $this->assertNull(entity_load('config_test', 'other_module_test_unmet', TRUE), 'The optional configuration whose dependencies are met is not created.');
+    $this->assertNull(entity_load('config_test', 'other_module_test_unmet', TRUE), 'The optional configuration config_test.dynamic.other_module_test_unmet whose dependencies are not met is not created.');
+    $this->assertNull(entity_load('config_test', 'other_module_test_optional_entity_unmet', TRUE), 'The optional configuration config_test.dynamic.other_module_test_optional_entity_unmet whose dependencies are not met is not created.');
     $this->installModule('config_install_dependency_test');
-    $this->assertTrue(entity_load('config_test', 'other_module_test_unmet', TRUE), 'The optional configuration whose dependencies are met is now created.');
+    $this->assertTrue(entity_load('config_test', 'other_module_test_unmet', TRUE), 'The optional configuration config_test.dynamic.other_module_test_unmet whose dependencies are met is now created.');
+    // Although the following configuration entity's are now met it is not
+    // installed because it does not have a direct dependency on the
+    // config_install_dependency_test module.
+    $this->assertNull(entity_load('config_test', 'other_module_test_optional_entity_unmet', TRUE), 'The optional configuration config_test.dynamic.other_module_test_optional_entity_unmet whose dependencies are met is not created.');
   }
 
   /**
@@ -85,11 +85,16 @@ class ConfigOtherModuleTest extends WebTestBase {
    */
   public function testUninstall() {
     $this->installModule('views');
-    $this->assertTrue(entity_load('view', 'frontpage', TRUE) === NULL, 'After installing Views, frontpage view which is dependant on the Node and Views modules does not exist.');
+    $storage = $this->container->get('entity_type.manager')->getStorage('view');
+    $storage->resetCache(array('frontpage'));
+    $this->assertTrue($storage->load('frontpage') === NULL, 'After installing Views, frontpage view which is dependant on the Node and Views modules does not exist.');
     $this->installModule('node');
-    $this->assertTrue(entity_load('view', 'frontpage', TRUE) !== NULL, 'After installing Node, frontpage view which is dependant on the Node and Views modules exists.');
+    $storage->resetCache(array('frontpage'));
+    $this->assertTrue($storage->load('frontpage') !== NULL, 'After installing Node, frontpage view which is dependant on the Node and Views modules exists.');
     $this->uninstallModule('node');
-    $this->assertTrue(entity_load('view', 'frontpage', TRUE) === NULL, 'After uninstalling Node, frontpage view which is dependant on the Node and Views modules does not exist.');
+    $storage = $this->container->get('entity_type.manager')->getStorage('view');
+    $storage->resetCache(array('frontpage'));
+    $this->assertTrue($storage->load('frontpage') === NULL, 'After uninstalling Node, frontpage view which is dependant on the Node and Views modules does not exist.');
   }
 
   /**

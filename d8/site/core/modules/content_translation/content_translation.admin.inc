@@ -19,11 +19,14 @@ use Drupal\Core\Render\Element;
  *
  * @param \Drupal\Core\Field\FieldDefinitionInterface $field
  *   A field definition object.
+ * @param string $element_name
+ *   (optional) The element name, which is added to drupalSettings so that
+ *   javascript can manipulate the form element.
  *
  * @return array
  *   A form element to configure field synchronization.
  */
-function content_translation_field_sync_widget(FieldDefinitionInterface $field) {
+function content_translation_field_sync_widget(FieldDefinitionInterface $field, $element_name = 'third_party_settings[content_translation][translation_sync]') {
   // No way to store field sync information on this field.
   if (!($field instanceof ThirdPartySettingsInterface)) {
     return array();
@@ -33,15 +36,18 @@ function content_translation_field_sync_widget(FieldDefinitionInterface $field) 
   $definition = \Drupal::service('plugin.manager.field.field_type')->getDefinition($field->getType());
   $column_groups = $definition['column_groups'];
   if (!empty($column_groups) && count($column_groups) > 1) {
-    $options = array();
-    $default = array();
+    $options = [];
+    $default = [];
+    $require_all_groups_for_translation = [];
 
     foreach ($column_groups as $group => $info) {
       $options[$group] = $info['label'];
       $default[$group] = !empty($info['translatable']) ? $group : FALSE;
+      if (!empty($info['require_all_groups_for_translation'])) {
+        $require_all_groups_for_translation[] = $group;
+      }
     }
 
-    $settings = array('dependent_selectors' => array('instance[third_party_settings][content_translation][translation_sync]' => array('file')));
     $default = $field->getThirdPartySetting('content_translation', 'translation_sync', $default);
 
     $element = array(
@@ -49,15 +55,19 @@ function content_translation_field_sync_widget(FieldDefinitionInterface $field) 
       '#title' => t('Translatable elements'),
       '#options' => $options,
       '#default_value' => $default,
-      '#attached' => array(
-        'library' => array(
-          'content_translation/drupal.content_translation.admin',
-        ),
-        'drupalSettings' => [
-          'contentTranslationDependentOptions' => $settings,
-        ],
-      ),
     );
+
+    if ($require_all_groups_for_translation) {
+      // The actual checkboxes are sometimes rendered separately and the parent
+      // element is ignored. Attach to the first option to ensure that this
+      // does not get lost.
+      $element[key($options)]['#attached']['drupalSettings']['contentTranslationDependentOptions'] = [
+        'dependent_selectors' => [
+          $element_name => $require_all_groups_for_translation
+        ],
+      ];
+      $element[key($options)]['#attached']['library'][] = 'content_translation/drupal.content_translation.admin';
+    }
   }
 
   return $element;
@@ -82,14 +92,14 @@ function _content_translation_form_language_content_settings_form_alter(array &$
 
   $form['#attached']['library'][] = 'content_translation/drupal.content_translation.admin';
 
-  $dependent_options_settings = array();
   $entity_manager = Drupal::entityManager();
+  $bundle_info_service = \Drupal::service('entity_type.bundle.info');
   foreach ($form['#labels'] as $entity_type_id => $label) {
     $entity_type = $entity_manager->getDefinition($entity_type_id);
     $storage_definitions = $entity_type instanceof ContentEntityTypeInterface ? $entity_manager->getFieldStorageDefinitions($entity_type_id) : array();
 
     $entity_type_translatable = $content_translation_manager->isSupported($entity_type_id);
-    foreach (entity_get_bundles($entity_type_id) as $bundle => $bundle_info) {
+    foreach ($bundle_info_service->getBundleInfo($entity_type_id) as $bundle => $bundle_info) {
       // Here we do not want the widget to be altered and hold also the "Enable
       // translation" checkbox, which would be redundant. Hence we add this key
       // to be able to skip alterations. Alter the title and display the message
@@ -103,20 +113,16 @@ function _content_translation_form_language_content_settings_form_alter(array &$
       $fields = $entity_manager->getFieldDefinitions($entity_type_id, $bundle);
       if ($fields) {
         foreach ($fields as $field_name => $definition) {
-          if (!empty($storage_definitions[$field_name]) && _content_translation_is_field_translatability_configurable($entity_type, $storage_definitions[$field_name])) {
+          if ($definition->isComputed() || (!empty($storage_definitions[$field_name]) && _content_translation_is_field_translatability_configurable($entity_type, $storage_definitions[$field_name]))) {
             $form['settings'][$entity_type_id][$bundle]['fields'][$field_name] = array(
               '#label' => $definition->getLabel(),
               '#type' => 'checkbox',
               '#default_value' => $definition->isTranslatable(),
             );
             // Display the column translatability configuration widget.
-            $column_element = content_translation_field_sync_widget($definition);
+            $column_element = content_translation_field_sync_widget($definition, "settings[{$entity_type_id}][{$bundle}][columns][{$field_name}]");
             if ($column_element) {
               $form['settings'][$entity_type_id][$bundle]['columns'][$field_name] = $column_element;
-              // @todo This should not concern only files.
-              if (isset($column_element['#options']['file'])) {
-                $dependent_options_settings["settings[{$entity_type_id}][{$bundle}][columns][{$field_name}]"] = array('file');
-              }
             }
           }
         }
@@ -132,8 +138,6 @@ function _content_translation_form_language_content_settings_form_alter(array &$
     }
   }
 
-  $settings = array('dependent_selectors' => $dependent_options_settings);
-  $form['#attached']['drupalSettings']['contentTranslationDependentOptions'] = $settings;
   $form['#validate'][] = 'content_translation_form_language_content_settings_validate';
   $form['#submit'][] = 'content_translation_form_language_content_settings_submit';
 }

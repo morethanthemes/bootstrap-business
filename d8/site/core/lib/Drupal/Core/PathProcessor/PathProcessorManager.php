@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\PathProcessor\PathProcessorManager.
- */
-
 namespace Drupal\Core\PathProcessor;
 
 use Drupal\Core\Render\BubbleableMetadata;
@@ -145,4 +140,5 @@ class PathProcessorManager implements InboundPathProcessorInterface, OutboundPat
     }
     return $sorted;
   }
+
 }

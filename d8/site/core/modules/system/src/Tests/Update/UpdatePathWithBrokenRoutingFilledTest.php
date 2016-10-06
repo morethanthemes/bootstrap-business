@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Update\UpdatePathWithBrokenRoutingFilledTest.
- */
-
 namespace Drupal\system\Tests\Update;
 
 /**
@@ -19,7 +14,7 @@ class UpdatePathWithBrokenRoutingFilledTest extends UpdatePathWithBrokenRoutingT
    */
   protected function setDatabaseDumpFiles() {
     parent::setDatabaseDumpFiles();
-    $this->databaseDumpFiles[0] =  __DIR__ . '/../../../tests/fixtures/update/drupal-8.filled.standard.php.gz';
+    $this->databaseDumpFiles[0] = __DIR__ . '/../../../tests/fixtures/update/drupal-8.filled.standard.php.gz';
   }
 
 }

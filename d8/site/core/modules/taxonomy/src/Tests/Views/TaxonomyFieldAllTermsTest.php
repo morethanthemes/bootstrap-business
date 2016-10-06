@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\taxonomy\Tests\Views\TaxonomyFieldAllTermsTest.
- */
-
 namespace Drupal\taxonomy\Tests\Views;
 
 use Drupal\views\Views;
@@ -66,7 +61,7 @@ class TaxonomyFieldAllTermsTest extends TaxonomyTestBase {
 
     // The name for the vocabulary the term belongs to: {{ term_node_tid__vocabulary }}
     $vocabulary = Vocabulary::load($this->term1->bundle());
-    $this->assertText('The name for the vocabulary the term belongs to: ' .  $vocabulary->label());
+    $this->assertText('The name for the vocabulary the term belongs to: ' . $vocabulary->label());
   }
 
 }

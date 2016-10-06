@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Session\AccountProxy.
- */
-
 namespace Drupal\Core\Session;
 
 /**
@@ -184,7 +179,7 @@ class AccountProxy implements AccountProxyInterface {
    * @param int $account_id
    *   The id of an account to load.
    *
-   * @return \Drupal\Core\Session\AccountInterface|NULL
+   * @return \Drupal\Core\Session\AccountInterface|null
    *   An account or NULL if none is found.
    */
   protected function loadUserEntity($account_id) {

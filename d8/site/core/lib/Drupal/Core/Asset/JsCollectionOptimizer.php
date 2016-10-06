@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Asset\JsCollectionOptimizer.
- */
-
 namespace Drupal\Core\Asset;
 
 use Drupal\Core\State\StateInterface;
@@ -46,13 +41,13 @@ class JsCollectionOptimizer implements AssetCollectionOptimizerInterface {
   /**
    * Constructs a JsCollectionOptimizer.
    *
-   * @param \Drupal\Core\Asset\AssetCollectionGrouperInterface
+   * @param \Drupal\Core\Asset\AssetCollectionGrouperInterface $grouper
    *   The grouper for JS assets.
-   * @param \Drupal\Core\Asset\AssetOptimizerInterface
+   * @param \Drupal\Core\Asset\AssetOptimizerInterface $optimizer
    *   The optimizer for a single JS asset.
-   * @param \Drupal\Core\Asset\AssetDumperInterface
+   * @param \Drupal\Core\Asset\AssetDumperInterface $dumper
    *   The dumper for optimized JS assets.
-   * @param \Drupal\Core\State\StateInterface
+   * @param \Drupal\Core\State\StateInterface $state
    *   The state key/value store.
    */
   public function __construct(AssetCollectionGrouperInterface $grouper, AssetOptimizerInterface $optimizer, AssetDumperInterface $dumper, StateInterface $state) {
@@ -143,10 +138,8 @@ class JsCollectionOptimizer implements AssetCollectionOptimizerInterface {
           break;
 
         case 'external':
-        case 'setting':
-        case 'inline':
-          // We don't do any aggregation and hence also no caching for external,
-          // setting or inline JS assets.
+          // We don't do any aggregation and hence also no caching for external
+          // JS assets.
           $uri = $js_group['items'][0]['data'];
           $js_assets[$order]['data'] = $uri;
           break;

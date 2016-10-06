@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\SystemConfigSubscriber.
- */
-
 namespace Drupal\system;
 
 use Drupal\Core\Config\ConfigCrudEvent;
@@ -93,4 +88,5 @@ class SystemConfigSubscriber implements EventSubscriberInterface {
     $events[ConfigEvents::IMPORT_VALIDATE][] = array('onConfigImporterValidateSiteUUID', 256);
     return $events;
   }
+
 }

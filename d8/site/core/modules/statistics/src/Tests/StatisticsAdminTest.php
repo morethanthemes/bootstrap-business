@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\statistics\Tests\StatisticsAdminTest.
- */
-
 namespace Drupal\statistics\Tests;
 
 use Drupal\simpletest\WebTestBase;
@@ -80,7 +75,7 @@ class StatisticsAdminTest extends WebTestBase {
     $nid = $this->testNode->id();
     $post = array('nid' => $nid);
     global $base_url;
-    $stats_path = $base_url . '/' . drupal_get_path('module', 'statistics'). '/statistics.php';
+    $stats_path = $base_url . '/' . drupal_get_path('module', 'statistics') . '/statistics.php';
     $this->client->post($stats_path, array('form_params' => $post));
 
     // Hit the node again (the counter is incremented after the hit, so
@@ -115,7 +110,7 @@ class StatisticsAdminTest extends WebTestBase {
     $nid = $this->testNode->id();
     $post = array('nid' => $nid);
     global $base_url;
-    $stats_path = $base_url . '/' . drupal_get_path('module', 'statistics'). '/statistics.php';
+    $stats_path = $base_url . '/' . drupal_get_path('module', 'statistics') . '/statistics.php';
     $this->client->post($stats_path, array('form_params' => $post));
 
     $result = db_select('node_counter', 'n')
@@ -149,7 +144,7 @@ class StatisticsAdminTest extends WebTestBase {
     $nid = $this->testNode->id();
     $post = array('nid' => $nid);
     global $base_url;
-    $stats_path = $base_url . '/' . drupal_get_path('module', 'statistics'). '/statistics.php';
+    $stats_path = $base_url . '/' . drupal_get_path('module', 'statistics') . '/statistics.php';
     $this->client->post($stats_path, array('form_params' => $post));
     $this->drupalGet('node/' . $this->testNode->id());
     $this->client->post($stats_path, array('form_params' => $post));
@@ -172,4 +167,5 @@ class StatisticsAdminTest extends WebTestBase {
       ->fetchField();
     $this->assertFalse($result, 'Daycounter is zero.');
   }
+
 }

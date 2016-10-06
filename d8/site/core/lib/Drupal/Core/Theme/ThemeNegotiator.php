@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Theme\ThemeNegotiator.
- */
-
 namespace Drupal\Core\Theme;
 
 use Drupal\Core\Routing\RouteMatchInterface;
@@ -29,7 +24,7 @@ class ThemeNegotiator implements ThemeNegotiatorInterface {
    *
    * Set to NULL if the array needs to be re-calculated.
    *
-   * @var array|NULL
+   * @var array|null
    */
   protected $sortedNegotiators;
 

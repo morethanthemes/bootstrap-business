@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Cache\BackendChainImplementationUnitTest.
- */
-
 namespace Drupal\Tests\Core\Cache;
 
 use Drupal\Core\Cache\BackendChain;
@@ -302,4 +297,5 @@ class BackendChainImplementationUnitTest extends UnitTestCase {
 
     $chain->removeBin();
   }
+
 }

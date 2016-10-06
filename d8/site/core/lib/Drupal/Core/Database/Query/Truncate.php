@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Database\Query\Truncate.
- */
-
 namespace Drupal\Core\Database\Query;
 
 use Drupal\Core\Database\Database;
@@ -85,4 +80,5 @@ class Truncate extends Query {
       return $comments . 'TRUNCATE {' . $this->connection->escapeTable($this->table) . '} ';
     }
   }
+
 }

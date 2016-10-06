@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\datetime\Plugin\Field\FieldWidget\DateTimeDatelistWidget.
- */
 
 namespace Drupal\datetime\Plugin\Field\FieldWidget;
 
@@ -65,22 +61,22 @@ class DateTimeDatelistWidget extends DateTimeWidgetBase {
         break;
     }
     switch ($time_type) {
-       case '24':
-         $date_part_order = array_merge($date_part_order, array('hour', 'minute'));
-         break;
+      case '24':
+        $date_part_order = array_merge($date_part_order, array('hour', 'minute'));
+        break;
 
-       case '12':
-         $date_part_order = array_merge($date_part_order, array('hour', 'minute', 'ampm'));
-         break;
+      case '12':
+        $date_part_order = array_merge($date_part_order, array('hour', 'minute', 'ampm'));
+        break;
 
-       case 'none':
-         break;
+      case 'none':
+        break;
     }
 
     $element['value'] = array(
       '#type' => 'datelist',
       '#date_increment' => $increment,
-      '#date_part_order'=> $date_part_order,
+      '#date_part_order' => $date_part_order,
     ) + $element['value'];
 
     return $element;

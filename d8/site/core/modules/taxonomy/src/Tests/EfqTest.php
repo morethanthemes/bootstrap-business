@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\taxonomy\Tests\EfqTest.
- */
-
 namespace Drupal\taxonomy\Tests;
 
 /**
@@ -70,4 +65,5 @@ class EfqTest extends TaxonomyTestBase {
     $term = _field_create_entity_from_ids($ids);
     $this->assertEqual($term->id(), $tid, 'Taxonomy term can be created based on the IDs.');
   }
+
 }

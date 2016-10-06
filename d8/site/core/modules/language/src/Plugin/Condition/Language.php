@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\language\Plugin\Condition\Language.
- */
-
 namespace Drupal\language\Plugin\Condition;
 
 use Drupal\Core\Condition\ConditionPluginBase;
@@ -24,7 +19,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *     "language" = @ContextDefinition("language", label = @Translation("Language"))
  *   }
  * )
- *
  */
 class Language extends ConditionPluginBase implements ContainerFactoryPluginInterface {
 

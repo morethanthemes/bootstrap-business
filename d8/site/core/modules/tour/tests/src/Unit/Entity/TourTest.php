@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\Tests\tour\Unit\Entity\TourTest.
- */
 
 namespace Drupal\Tests\tour\Unit\Entity;
 
@@ -45,7 +41,7 @@ class TourTest extends UnitTestCase {
     $tour->resetKeyedRoutes();
   }
 
-  /*
+  /**
    * Provides sample routes for testing.
    */
   public function routeProvider() {

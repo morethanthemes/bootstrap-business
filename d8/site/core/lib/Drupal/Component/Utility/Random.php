@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\Utility\Random.
- */
-
 namespace Drupal\Component\Utility;
 
 /**
@@ -139,12 +134,12 @@ class Random {
    * Generate a string that looks like a word (letters only, alternating consonants and vowels).
    *
    * @param int $length
-   *  The desired word length.
+   *   The desired word length.
    *
    * @return string
    */
   public function word($length) {
-    mt_srand((double) microtime()*1000000);
+    mt_srand((double) microtime() * 1000000);
 
     $vowels = array("a", "e", "i", "o", "u");
     $cons = array("b", "c", "d", "g", "h", "j", "k", "l", "m", "n", "p", "r", "s", "t", "u", "v", "w", "tr",
@@ -154,7 +149,7 @@ class Random {
     $num_cons = count($cons);
     $word = '';
 
-    while(strlen($word) < $length){
+    while (strlen($word) < $length) {
       $word .= $cons[mt_rand(0, $num_cons - 1)] . $vowels[mt_rand(0, $num_vowels - 1)];
     }
 
@@ -256,7 +251,7 @@ class Random {
   public function paragraphs($paragraph_count = 12) {
     $output = '';
     for ($i = 1; $i <= $paragraph_count; $i++) {
-      $output .= $this->sentences(mt_rand(20, 60)) ."\n\n";
+      $output .= $this->sentences(mt_rand(20, 60)) . "\n\n";
     }
     return $output;
   }
@@ -296,7 +291,7 @@ class Random {
     $smaller_dimension = ($smaller_dimension % 2) ? $smaller_dimension : $smaller_dimension;
     imageellipse($im, $width / 2, $height / 2, $smaller_dimension, $smaller_dimension, $color);
 
-    $save_function = 'image'. ($extension == 'jpg' ? 'jpeg' : $extension);
+    $save_function = 'image' . ($extension == 'jpg' ? 'jpeg' : $extension);
     $save_function($im, $destination);
     return $destination;
   }

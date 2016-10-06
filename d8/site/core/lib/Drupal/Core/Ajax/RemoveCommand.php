@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Ajax\RemoveCommand.
- */
-
 namespace Drupal\Core\Ajax;
 
 /**
@@ -21,7 +16,7 @@ namespace Drupal\Core\Ajax;
  *
  * @ingroup ajax
  */
-class RemoveCommand Implements CommandInterface {
+class RemoveCommand implements CommandInterface {
 
   /**
    * The CSS selector for the element(s) to be removed.
@@ -34,7 +29,6 @@ class RemoveCommand Implements CommandInterface {
    * Constructs a RemoveCommand object.
    *
    * @param string $selector
-   *
    */
   public function __construct($selector) {
     $this->selector = $selector;

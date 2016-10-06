@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Routing\RouteProvider.
- */
-
 namespace Drupal\Core\Routing;
 
 use Drupal\Core\Cache\Cache;
@@ -139,7 +134,8 @@ class RouteProvider implements PreloadableRouteProviderInterface, PagedRouteProv
    * very large route sets to be filtered down to likely candidates, which
    * may then be filtered in memory more completely.
    *
-   * @param Request $request A request against which to match.
+   * @param Request $request
+   *   A request against which to match.
    *
    * @return \Symfony\Component\Routing\RouteCollection with all urls that
    *      could potentially match $request. Empty collection if nothing can
@@ -148,7 +144,7 @@ class RouteProvider implements PreloadableRouteProviderInterface, PagedRouteProv
   public function getRouteCollectionForRequest(Request $request) {
     // Cache both the system path as well as route parameters and matching
     // routes.
-    $cid = 'route:' . $request->getPathInfo() . ':' .  $request->getQueryString();
+    $cid = 'route:' . $request->getPathInfo() . ':' . $request->getQueryString();
     if ($cached = $this->cache->get($cid)) {
       $this->currentPath->setPath($cached->data['path'], $request);
       $request->query->replace($cached->data['query']);
@@ -210,10 +206,15 @@ class RouteProvider implements PreloadableRouteProviderInterface, PagedRouteProv
         $routes = $cache->data;
       }
       else {
-        $result = $this->connection->query('SELECT name, route FROM {' . $this->connection->escapeTable($this->tableName) . '} WHERE name IN ( :names[] )', array(':names[]' => $routes_to_load));
-        $routes = $result->fetchAllKeyed();
+        try {
+          $result = $this->connection->query('SELECT name, route FROM {' . $this->connection->escapeTable($this->tableName) . '} WHERE name IN ( :names[] )', array(':names[]' => $routes_to_load));
+          $routes = $result->fetchAllKeyed();
 
-        $this->cache->set($cid, $routes, Cache::PERMANENT, ['routes']);
+          $this->cache->set($cid, $routes, Cache::PERMANENT, ['routes']);
+        }
+        catch (\Exception $e) {
+          $routes = [];
+        }
       }
 
       $this->serializedRoutes += $routes;
@@ -336,10 +337,15 @@ class RouteProvider implements PreloadableRouteProviderInterface, PagedRouteProv
     // The >= check on number_parts allows us to match routes with optional
     // trailing wildcard parts as long as the pattern matches, since we
     // dump the route pattern without those optional parts.
-    $routes = $this->connection->query("SELECT name, route, fit FROM {" . $this->connection->escapeTable($this->tableName) . "} WHERE pattern_outline IN ( :patterns[] ) AND number_parts >= :count_parts", array(
-      ':patterns[]' => $ancestors, ':count_parts' => count($parts),
-    ))
-      ->fetchAll(\PDO::FETCH_ASSOC);
+    try {
+      $routes = $this->connection->query("SELECT name, route, fit FROM {" . $this->connection->escapeTable($this->tableName) . "} WHERE pattern_outline IN ( :patterns[] ) AND number_parts >= :count_parts", array(
+        ':patterns[]' => $ancestors, ':count_parts' => count($parts),
+      ))
+        ->fetchAll(\PDO::FETCH_ASSOC);
+    }
+    catch (\Exception $e) {
+      $routes = [];
+    }
 
     // We sort by fit and name in PHP to avoid a SQL filesort.
     usort($routes, array($this, 'routeProviderRouteCompare'));

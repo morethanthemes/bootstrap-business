@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Field\Plugin\Field\FieldFormatter\TimestampFormatter.
- */
-
 namespace Drupal\Core\Field\Plugin\Field\FieldFormatter;
 
 use Drupal\Core\Datetime\DateFormatterInterface;
@@ -126,12 +121,12 @@ class TimestampFormatter extends FormatterBase implements ContainerFactoryPlugin
     $elements['custom_date_format'] = array(
       '#type' => 'textfield',
       '#title' => $this->t('Custom date format'),
-      '#description' => $this->t('See <a href=":url" target="_blank">the documentation for PHP date formats</a>.', [':url' => 'http://php.net/manual/function.date.php']),
+      '#description' => $this->t('See <a href="http://php.net/manual/function.date.php" target="_blank">the documentation for PHP date formats</a>.'),
       '#default_value' => $this->getSetting('custom_date_format') ?: '',
     );
 
     $elements['custom_date_format']['#states']['visible'][] = array(
-      ':input[name="name="fields[' . $this->fieldDefinition->getName() . '][settings_edit_form][settings][date_format]"]' => array('value' => 'custom'),
+      ':input[name="fields[' . $this->fieldDefinition->getName() . '][settings_edit_form][settings][date_format]"]' => array('value' => 'custom'),
     );
 
     $elements['timezone'] = array(

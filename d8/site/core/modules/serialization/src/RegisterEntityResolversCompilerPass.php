@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\serialization\RegisterEntityResolversCompilerPass.
- */
-
 namespace Drupal\serialization;
 
 use Symfony\Component\DependencyInjection\Reference;
@@ -63,4 +58,5 @@ class RegisterEntityResolversCompilerPass implements CompilerPassInterface {
 
     return $sorted;
   }
+
 }

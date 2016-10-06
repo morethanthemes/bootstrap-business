@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views_ui\Tests\UITestBase.
- */
-
 namespace Drupal\views_ui\Tests;
 
 use Drupal\views\Tests\ViewTestBase;
@@ -91,6 +86,5 @@ abstract class UITestBase extends ViewTestBase {
 
     return parent::drupalGet($path, $options, $headers);
   }
-
 
 }

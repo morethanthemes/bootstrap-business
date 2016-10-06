@@ -1,11 +1,7 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\migrate\Plugin\MigrateSourceInterface.
- */
-
 namespace Drupal\migrate\Plugin;
+
 use Drupal\Component\Plugin\PluginInspectionInterface;
 use Drupal\migrate\Row;
 

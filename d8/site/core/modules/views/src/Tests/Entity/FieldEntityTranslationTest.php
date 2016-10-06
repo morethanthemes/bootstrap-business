@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Tests\Entity\FieldEntityTranslationTest.
- */
-
 namespace Drupal\views\Tests\Entity;
 
 use Drupal\Core\Language\Language;
@@ -12,7 +7,7 @@ use Drupal\language\Entity\ConfigurableLanguage;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
 use Drupal\views\Tests\ViewTestBase;
-use Symfony\Component\CssSelector\CssSelector;
+use Symfony\Component\CssSelector\CssSelectorConverter;
 
 /**
  * Tests the rendering of fields (base fields) and their translations.
@@ -46,9 +41,7 @@ class FieldEntityTranslationTest extends ViewTestBase {
     /** @var \Drupal\content_translation\ContentTranslationManagerInterface $content_translation_manager */
     $content_translation_manager = \Drupal::service('content_translation.manager');
 
-    $content_translation_manager->setEnabled('node', 'article', 'title');
-    $content_translation_manager->setEnabled('node', 'article', 'sticky');
-    $content_translation_manager->setEnabled('node', 'article', 'published');
+    $content_translation_manager->setEnabled('node', 'article', TRUE);
 
     $language = ConfigurableLanguage::create([
       'id' => 'es',
@@ -66,18 +59,17 @@ class FieldEntityTranslationTest extends ViewTestBase {
     $node = Node::create([
       'type' => 'article',
       'title' => 'example EN',
-      'sticky' => false,
+      'sticky' => FALSE,
     ]);
     $node->save();
 
     $translation = $node->addTranslation('es');
     $translation->title->value = 'example ES';
-    $translation->sticky->value = true;
+    $translation->sticky->value = TRUE;
     $translation->save();
 
     $this->drupalGet('test_entity_field_renderers/entity_translation');
-    $this->assertRows(
-    [
+    $this->assertRows([
       [
         'title' => 'example EN',
         'sticky' => 'Off',
@@ -89,82 +81,76 @@ class FieldEntityTranslationTest extends ViewTestBase {
     ]);
 
     $this->drupalGet('test_entity_field_renderers/entity_default');
-    $this->assertRows(
+    $this->assertRows([
       [
-        [
-          'title' => 'example EN',
-          'sticky' => 'Off',
-        ],
-        [
-          'title' => 'example EN',
-          'sticky' => 'Off',
-        ],
-      ]);
+        'title' => 'example EN',
+        'sticky' => 'Off',
+      ],
+      [
+        'title' => 'example EN',
+        'sticky' => 'Off',
+      ],
+    ]);
 
     $this->drupalGet('test_entity_field_renderers/site_default');
-    $this->assertRows(
+    $this->assertRows([
       [
-        [
-          'title' => 'example EN',
-          'sticky' => 'Off',
-        ],
-        [
-          'title' => 'example EN',
-          'sticky' => 'Off',
-        ],
-      ]);
+        'title' => 'example EN',
+        'sticky' => 'Off',
+      ],
+      [
+        'title' => 'example EN',
+        'sticky' => 'Off',
+      ],
+    ]);
 
     $this->drupalGet('test_entity_field_renderers/language_interface');
-    $this->assertRows(
+    $this->assertRows([
       [
-        [
-          'title' => 'example EN',
-          'sticky' => 'Off',
-        ],
-        [
-          'title' => 'example EN',
-          'sticky' => 'Off',
-        ],
-      ]);
+        'title' => 'example EN',
+        'sticky' => 'Off',
+      ],
+      [
+        'title' => 'example EN',
+        'sticky' => 'Off',
+      ],
+    ]);
 
     $this->drupalGet('test_entity_field_renderers/language_interface', ['language' => new Language(['id' => 'es'])]);
-    $this->assertRows(
+    $this->assertRows([
       [
-        [
-          'title' => 'example ES',
-          'sticky' => 'On',
-        ],
-        [
-          'title' => 'example ES',
-          'sticky' => 'On',
-        ],
-      ]);
+        'title' => 'example ES',
+        'sticky' => 'On',
+      ],
+      [
+        'title' => 'example ES',
+        'sticky' => 'On',
+      ],
+    ]);
 
     $this->drupalGet('test_entity_field_renderers/en');
-    $this->assertRows(
+    $this->assertRows([
       [
-        [
-          'title' => 'example EN',
-          'sticky' => 'Off',
-        ],
-        [
-          'title' => 'example EN',
-          'sticky' => 'Off',
-        ],
-      ]);
+        'title' => 'example EN',
+        'sticky' => 'Off',
+      ],
+      [
+        'title' => 'example EN',
+        'sticky' => 'Off',
+      ],
+    ]);
 
     $this->drupalGet('test_entity_field_renderers/es');
-    $this->assertRows(
+    $this->assertRows([
       [
-        [
-          'title' => 'example ES',
-          'sticky' => 'On',
-        ],
-        [
-          'title' => 'example ES',
-          'sticky' => 'On',
-        ],
-      ]);
+        'title' => 'example ES',
+        'sticky' => 'On',
+      ],
+      [
+        'title' => 'example ES',
+        'sticky' => 'On',
+      ],
+    ]);
   }
 
   /**
@@ -178,8 +164,8 @@ class FieldEntityTranslationTest extends ViewTestBase {
     $rows = $this->cssSelect('div.views-row');
     foreach ($rows as $row) {
       $actual[] = [
-        'title' => (string) $row->xpath(CssSelector::toXPath('.views-field-title span.field-content a'))[0],
-        'sticky' => (string) $row->xpath(CssSelector::toXPath('.views-field-sticky span.field-content'))[0],
+        'title' => (string) $row->xpath((new CssSelectorConverter())->toXPath('.views-field-title span.field-content a'))[0],
+        'sticky' => (string) $row->xpath((new CssSelectorConverter())->toXPath('.views-field-sticky span.field-content'))[0],
       ];
     }
     $this->assertEqual($actual, $expected);

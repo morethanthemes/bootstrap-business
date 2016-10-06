@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Extension\ModuleInstallerInterface.
- */
-
 namespace Drupal\Core\Extension;
 
 /**
@@ -26,7 +21,7 @@ interface ModuleInstallerInterface {
    * To install test modules add
    * @code
    * $settings['extension_discovery_scan_tests'] = TRUE;
-   * @encode
+   * @endcode
    * to your settings.php.
    *
    * @param string[] $module_list
@@ -87,4 +82,3 @@ interface ModuleInstallerInterface {
   public function validateUninstall(array $module_list);
 
 }
-

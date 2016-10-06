@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\EntityHandlerInterface.
- */
-
 namespace Drupal\Core\Entity;
 
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -14,6 +9,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *
  * This interface can be implemented by entity handlers that require
  * dependency injection.
+ *
+ * @ingroup entity_api
  */
 interface EntityHandlerInterface {
 

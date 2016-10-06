@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Cache\ListCacheBinsPass.
- */
-
 namespace Drupal\Core\Cache;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -33,4 +28,5 @@ class ListCacheBinsPass implements CompilerPassInterface {
     $container->setParameter('cache_bins', $cache_bins);
     $container->setParameter('cache_default_bin_backends', $cache_default_bin_backends);
   }
+
 }

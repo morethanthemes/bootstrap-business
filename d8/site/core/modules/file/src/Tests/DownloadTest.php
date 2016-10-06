@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\file\Tests\DownloadTest.
- */
-
 namespace Drupal\file\Tests;
 
 /**
@@ -23,7 +18,7 @@ class DownloadTest extends FileManagedTestBase {
    * Test the public file transfer system.
    */
   function testPublicFileTransfer() {
-    // Test generating an URL to a created file.
+    // Test generating a URL to a created file.
     $file = $this->createFile();
     $url = file_create_url($file->getFileUri());
     // URLs can't contain characters outside the ASCII set so $filename has to be
@@ -33,7 +28,7 @@ class DownloadTest extends FileManagedTestBase {
     $this->drupalHead($url);
     $this->assertResponse(200, 'Confirmed that the generated URL is correct by downloading the created file.');
 
-    // Test generating an URL to a shipped file (i.e. a file that is part of
+    // Test generating a URL to a shipped file (i.e. a file that is part of
     // Drupal core, a module or a theme, for example a JavaScript file).
     $filepath = 'core/assets/vendor/jquery/jquery.min.js';
     $url = file_create_url($filepath);
@@ -95,7 +90,7 @@ class DownloadTest extends FileManagedTestBase {
 
     // Tilde (~) is excluded from this test because it is encoded by
     // rawurlencode() in PHP 5.2 but not in PHP 5.3, as per RFC 3986.
-    // @see http://www.php.net/manual/function.rawurlencode.php#86506
+    // @see http://php.net/manual/function.rawurlencode.php#86506
     $basename = " -._!$'\"()*@[]?&+%#,;=:\n\x00" . // "Special" ASCII characters.
       "%23%25%26%2B%2F%3F" . // Characters that look like a percent-escaped string.
       "éøïвβ中國書۞"; // Characters from various non-ASCII alphabets.
@@ -173,4 +168,5 @@ class DownloadTest extends FileManagedTestBase {
 
     $file->delete();
   }
+
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\image\Plugin\migrate\source\d6\ImageCachePreset.
- */
-
 namespace Drupal\image\Plugin\migrate\source\d6;
 
 use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
@@ -59,7 +54,7 @@ class ImageCachePreset extends DrupalSqlBase {
       ->condition('presetid', $row->getSourceProperty('presetid'))
       ->execute();
 
-    foreach($results as $key => $result) {
+    foreach ($results as $key => $result) {
       $actions[$key] = $result;
       $actions[$key]['data'] = unserialize($result['data']);
     }

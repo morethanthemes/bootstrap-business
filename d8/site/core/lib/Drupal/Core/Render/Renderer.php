@@ -1,14 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\Renderer.
- */
-
 namespace Drupal\Core\Render;
 
+use Drupal\Component\Render\MarkupInterface;
 use Drupal\Component\Utility\Html;
-use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Component\Utility\Xss;
 use Drupal\Core\Access\AccessResultInterface;
 use Drupal\Core\Cache\Cache;
@@ -343,7 +338,9 @@ class Renderer implements RendererInterface {
     // If instructed to create a placeholder, and a #lazy_builder callback is
     // present (without such a callback, it would be impossible to replace the
     // placeholder), replace the current element with a placeholder.
-    if (isset($elements['#create_placeholder']) && $elements['#create_placeholder'] === TRUE) {
+    // @todo remove the isMethodSafe() check when
+    //       https://www.drupal.org/node/2367555 lands.
+    if (isset($elements['#create_placeholder']) && $elements['#create_placeholder'] === TRUE && $this->requestStack->getCurrentRequest()->isMethodSafe()) {
       if (!isset($elements['#lazy_builder'])) {
         throw new \LogicException('When #create_placeholder is set, a #lazy_builder callback must be present as well.');
       }
@@ -368,11 +365,6 @@ class Renderer implements RendererInterface {
       $elements['#lazy_builder_built'] = TRUE;
     }
 
-    // All render elements support #markup and #plain_text.
-    if (!empty($elements['#markup']) || !empty($elements['#plain_text'])) {
-      $elements = $this->ensureMarkupIsSafe($elements);
-    }
-
     // Make any final changes to the element before it is rendered. This means
     // that the $element or the children can be altered or corrected before the
     // element is rendered into the final text.
@@ -383,6 +375,11 @@ class Renderer implements RendererInterface {
         }
         $elements = call_user_func($callable, $elements);
       }
+    }
+
+    // All render elements support #markup and #plain_text.
+    if (!empty($elements['#markup']) || !empty($elements['#plain_text'])) {
+      $elements = $this->ensureMarkupIsSafe($elements);
     }
 
     // Defaults for bubbleable rendering metadata.
@@ -639,8 +636,33 @@ class Renderer implements RendererInterface {
       return FALSE;
     }
 
-    foreach (array_keys($elements['#attached']['placeholders']) as $placeholder) {
-      $elements = $this->renderPlaceholder($placeholder, $elements);
+    // The 'status messages' placeholder needs to be special cased, because it
+    // depends on global state that can be modified when other placeholders are
+    // being rendered: any code can add messages to render.
+    // This violates the principle that each lazy builder must be able to render
+    // itself in isolation, and therefore in any order. However, we cannot
+    // change the way drupal_set_message() works in the Drupal 8 cycle. So we
+    // have to accommodate its special needs.
+    // Allowing placeholders to be rendered in a particular order (in this case:
+    // last) would violate this isolation principle. Thus a monopoly is granted
+    // to this one special case, with this hard-coded solution.
+    // @see \Drupal\Core\Render\Element\StatusMessages
+    // @see https://www.drupal.org/node/2712935#comment-11368923
+
+    // First render all placeholders except 'status messages' placeholders.
+    $message_placeholders = [];
+    foreach ($elements['#attached']['placeholders'] as $placeholder => $placeholder_element) {
+      if (isset($placeholder_element['#lazy_builder']) && $placeholder_element['#lazy_builder'][0] === 'Drupal\Core\Render\Element\StatusMessages::renderMessages') {
+        $message_placeholders[] = $placeholder;
+      }
+      else {
+        $elements = $this->renderPlaceholder($placeholder, $elements);
+      }
+    }
+
+    // Then render 'status messages' placeholders.
+    foreach ($message_placeholders as $message_placeholder) {
+      $elements = $this->renderPlaceholder($message_placeholder, $elements);
     }
 
     return TRUE;
@@ -675,11 +697,12 @@ class Renderer implements RendererInterface {
    *   A string.
    *
    * @return \Drupal\Core\Render\Markup
-   *   The escaped string wrapped in a Markup object. If
-   *   SafeMarkup::isSafe($string) returns TRUE, it won't be escaped again.
+   *   The escaped string wrapped in a Markup object. If the string is an
+   *   instance of \Drupal\Component\Render\MarkupInterface, it won't be escaped
+   *   again.
    */
   protected function xssFilterAdminIfUnsafe($string) {
-    if (!SafeMarkup::isSafe($string)) {
+    if (!($string instanceof MarkupInterface)) {
       $string = Xss::filterAdmin($string);
     }
     return Markup::create($string);
@@ -704,13 +727,13 @@ class Renderer implements RendererInterface {
    *   A render array with #markup set.
    *
    * @return \Drupal\Component\Render\MarkupInterface|string
-   *   The escaped markup wrapped in a Markup object. If
-   *   SafeMarkup::isSafe($elements['#markup']) returns TRUE, it won't be
+   *   The escaped markup wrapped in a Markup object. If $elements['#markup']
+   *   is an instance of \Drupal\Component\Render\MarkupInterface, it won't be
    *   escaped or filtered again.
    *
    * @see \Drupal\Component\Utility\Html::escape()
    * @see \Drupal\Component\Utility\Xss::filter()
-   * @see \Drupal\Component\Utility\Xss::adminFilter()
+   * @see \Drupal\Component\Utility\Xss::filterAdmin()
    */
   protected function ensureMarkupIsSafe(array $elements) {
     if (empty($elements['#markup']) && empty($elements['#plain_text'])) {
@@ -720,7 +743,7 @@ class Renderer implements RendererInterface {
     if (!empty($elements['#plain_text'])) {
       $elements['#markup'] = Markup::create(Html::escape($elements['#plain_text']));
     }
-    elseif (!SafeMarkup::isSafe($elements['#markup'])) {
+    elseif (!($elements['#markup'] instanceof MarkupInterface)) {
       // The default behaviour is to XSS filter using the admin tag list.
       $tags = isset($elements['#allowed_tags']) ? $elements['#allowed_tags'] : Xss::getAdminTagList();
       $elements['#markup'] = Markup::create(Xss::filter($elements['#markup'], $tags));

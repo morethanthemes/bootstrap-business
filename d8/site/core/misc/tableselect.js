@@ -11,6 +11,9 @@
    * Initialize tableSelects.
    *
    * @type {Drupal~behavior}
+   *
+   * @prop {Drupal~behaviorAttach} attach
+   *   Attaches tableSelect functionality.
    */
   Drupal.behaviors.tableSelect = {
     attach: function (context, settings) {
@@ -98,7 +101,7 @@
       // range. Also make sure that we are actually checking checkboxes
       // over a range and that a checkbox has been checked or unchecked before.
       if (e.shiftKey && lastChecked && lastChecked !== e.target) {
-        // We use the checkbox's parent TR to do our range searching.
+        // We use the checkbox's parent <tr> to do our range searching.
         Drupal.tableSelectRange($(e.target).closest('tr')[0], $(lastChecked).closest('tr')[0], e.target.checked);
       }
 
@@ -117,8 +120,11 @@
 
   /**
    * @param {HTMLElement} from
+   *   The HTML element representing the "from" part of the range.
    * @param {HTMLElement} to
+   *   The HTML element representing the "to" part of the range.
    * @param {bool} state
+   *   The state to set on the range.
    */
   Drupal.tableSelectRange = function (from, to, state) {
     // We determine the looping mode based on the order of from and to.

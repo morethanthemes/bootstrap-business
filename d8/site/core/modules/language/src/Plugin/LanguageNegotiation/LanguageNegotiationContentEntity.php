@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\language\Plugin\LanguageNegotiation\LanguageNegotiationContentEntity.
- */
-
 namespace Drupal\language\Plugin\LanguageNegotiation;
 
 use Drupal\Component\Utility\UrlHelper;
@@ -96,7 +91,7 @@ class LanguageNegotiationContentEntity extends LanguageNegotiationMethodBase imp
    * {@inheritdoc}
    */
   public function getLangcode(Request $request = NULL) {
-    $langcode = $request->get(static::QUERY_PARAMETER);
+    $langcode = $request->query->get(static::QUERY_PARAMETER);
 
     $language_enabled = array_key_exists($langcode, $this->languageManager->getLanguages());
     return $language_enabled ? $langcode : NULL;
@@ -181,8 +176,8 @@ class LanguageNegotiationContentEntity extends LanguageNegotiationMethodBase imp
    * \Drupal\language\Plugin\LanguageNegotiation\LanguageNegotiationContentEntity::processOutbound().
    *
    * @return bool
-   *   TRUE if the content entity language negotiator has higher priority than
-   *   the url language negotiator, FALSE otherwise.
+   *   TRUE if the the content entity language negotiator has higher priority
+   *   than the url language negotiator, FALSE otherwise.
    */
   protected function hasLowerLanguageNegotiationWeight() {
     if (!isset($this->hasLowerLanguageNegotiationWeightResult)) {

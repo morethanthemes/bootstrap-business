@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Plugin\views\cache\Time.
- */
-
 namespace Drupal\views\Plugin\views\cache;
 
 use Drupal\Core\Datetime\DateFormatterInterface;
@@ -142,7 +137,7 @@ class Time extends CachePluginBase {
     foreach ($custom_fields as $field) {
       $cache_options = $form_state->getValue('cache_options');
       if ($cache_options[$field] == 'custom' && !is_numeric($cache_options[$field . '_custom'])) {
-        $form_state->setError($form[$field .'_custom'], $this->t('Custom time values must be numeric.'));
+        $form_state->setError($form[$field . '_custom'], $this->t('Custom time values must be numeric.'));
       }
     }
   }

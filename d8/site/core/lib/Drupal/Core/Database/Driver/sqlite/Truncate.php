@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Database\Driver\sqlite\Truncate.
- */
-
 namespace Drupal\Core\Database\Driver\sqlite;
 
 use Drupal\Core\Database\Query\Truncate as QueryTruncate;
@@ -22,4 +17,5 @@ class Truncate extends QueryTruncate {
 
     return $comments . 'DELETE FROM {' . $this->connection->escapeTable($this->table) . '} ';
   }
+
 }

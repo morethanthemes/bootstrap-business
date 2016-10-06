@@ -1,14 +1,13 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\text\Tests\TextFieldTest.
- */
-
 namespace Drupal\text\Tests;
 
 use Drupal\Component\Utility\Unicode;
+use Drupal\entity_test\Entity\EntityTest;
+use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Tests\String\StringFieldTest;
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\filter\Entity\FilterFormat;
 
 /**
  * Tests the creation of text fields.
@@ -39,7 +38,7 @@ class TextFieldTest extends StringFieldTest {
     // Create a field with settings to validate.
     $max_length = 3;
     $field_name = Unicode::strtolower($this->randomMachineName());
-    $field_storage = entity_create('field_storage_config', array(
+    $field_storage = FieldStorageConfig::create(array(
       'field_name' => $field_name,
       'entity_type' => 'entity_test',
       'type' => 'text',
@@ -48,13 +47,13 @@ class TextFieldTest extends StringFieldTest {
       )
     ));
     $field_storage->save();
-    entity_create('field_config', array(
+    FieldConfig::create([
       'field_storage' => $field_storage,
       'bundle' => 'entity_test',
-    ))->save();
+    ])->save();
 
     // Test validation with valid and invalid values.
-    $entity = entity_create('entity_test');
+    $entity = EntityTest::create();
     for ($i = 0; $i <= $max_length + 2; $i++) {
       $entity->{$field_name}->value = str_repeat('x', $i);
       $violations = $entity->{$field_name}->validate();
@@ -73,32 +72,32 @@ class TextFieldTest extends StringFieldTest {
   function testRequiredLongTextWithFileUpload() {
     // Create a text field.
     $text_field_name = 'text_long';
-    $field_storage = entity_create('field_storage_config', array(
+    $field_storage = FieldStorageConfig::create(array(
       'field_name' => $text_field_name,
       'entity_type' => 'entity_test',
       'type' => 'text_with_summary',
     ));
     $field_storage->save();
-    entity_create('field_config', array(
+    FieldConfig::create([
       'field_storage' => $field_storage,
       'bundle' => 'entity_test',
       'label' => $this->randomMachineName() . '_label',
       'required' => TRUE,
-    ))->save();
+    ])->save();
 
     // Create a file field.
     $file_field_name = 'file_field';
-    $field_storage = entity_create('field_storage_config', array(
+    $field_storage = FieldStorageConfig::create(array(
       'field_name' => $file_field_name,
       'entity_type' => 'entity_test',
       'type' => 'file'
     ));
     $field_storage->save();
-    entity_create('field_config', array(
+    FieldConfig::create([
       'field_storage' => $field_storage,
       'bundle' => 'entity_test',
       'label' => $this->randomMachineName() . '_label',
-    ))->save();
+    ])->save();
 
     entity_get_form_display('entity_test', 'entity_test', 'default')
       ->setComponent($text_field_name, array(
@@ -151,17 +150,17 @@ class TextFieldTest extends StringFieldTest {
 
     // Create a field.
     $field_name = Unicode::strtolower($this->randomMachineName());
-    $field_storage = entity_create('field_storage_config', array(
+    $field_storage = FieldStorageConfig::create(array(
       'field_name' => $field_name,
       'entity_type' => 'entity_test',
       'type' => $field_type
     ));
     $field_storage->save();
-    entity_create('field_config', array(
+    FieldConfig::create([
       'field_storage' => $field_storage,
       'bundle' => 'entity_test',
       'label' => $this->randomMachineName() . '_label',
-    ))->save();
+    ])->save();
     entity_get_form_display('entity_test', 'entity_test', 'default')
       ->setComponent($field_name, array(
         'type' => $widget_type,
@@ -197,7 +196,7 @@ class TextFieldTest extends StringFieldTest {
     $this->assertText(t('entity_test @id has been created.', array('@id' => $id)), 'Entity was created');
 
     // Display the entity.
-    $entity = entity_load('entity_test', $id);
+    $entity = EntityTest::load($id);
     $display = entity_get_display($entity->getEntityTypeId(), $entity->bundle(), 'full');
     $content = $display->build($entity);
     $this->setRawContent($renderer->renderRoot($content));
@@ -213,7 +212,7 @@ class TextFieldTest extends StringFieldTest {
     );
     $this->drupalPostForm('admin/config/content/formats/add', $edit, t('Save configuration'));
     filter_formats_reset();
-    $format = entity_load('filter_format', $edit['format']);
+    $format = FilterFormat::load($edit['format']);
     $format_id = $format->id();
     $permission = $format->getPermissionName();
     $roles = $this->webUser->getRoles();
@@ -236,7 +235,7 @@ class TextFieldTest extends StringFieldTest {
 
     // Display the entity.
     $this->container->get('entity.manager')->getStorage('entity_test')->resetCache(array($id));
-    $entity = entity_load('entity_test', $id);
+    $entity = EntityTest::load($id);
     $display = entity_get_display($entity->getEntityTypeId(), $entity->bundle(), 'full');
     $content = $display->build($entity);
     $this->setRawContent($renderer->renderRoot($content));

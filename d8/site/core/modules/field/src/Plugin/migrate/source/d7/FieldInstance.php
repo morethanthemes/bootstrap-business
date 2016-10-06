@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\field\Plugin\migrate\source\d7\FieldInstance.
- */
-
 namespace Drupal\field\Plugin\migrate\source\d7;
 
 use Drupal\migrate\Row;
@@ -15,6 +10,7 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
  *
  * @MigrateSource(
  *   id = "d7_field_instance",
+ *   source_provider = "field"
  * )
  */
 class FieldInstance extends DrupalSqlBase {
@@ -35,10 +31,10 @@ class FieldInstance extends DrupalSqlBase {
 
     // Optionally filter by entity type and bundle.
     if (isset($this->configuration['entity_type'])) {
-      $query->condition('entity_type', $this->configuration['entity_type']);
+      $query->condition('fci.entity_type', $this->configuration['entity_type']);
 
       if (isset($this->configuration['bundle'])) {
-        $query->condition('bundle', $this->configuration['bundle']);
+        $query->condition('fci.bundle', $this->configuration['bundle']);
       }
     }
 
@@ -107,4 +103,5 @@ class FieldInstance extends DrupalSqlBase {
       ),
     );
   }
+
 }

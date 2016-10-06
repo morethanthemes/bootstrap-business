@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\taxonomy\Unit\Migrate\TermTestBase.
- */
-
 namespace Drupal\Tests\taxonomy\Unit\Migrate;
 
 use Drupal\Tests\migrate\Unit\MigrateSqlSourceTestCase;
@@ -18,7 +13,6 @@ abstract class TermTestBase extends MigrateSqlSourceTestCase {
 
   protected $migrationConfiguration = array(
     'id' => 'test',
-    'highWaterProperty' => array('field' => 'test'),
     'source' => array(
       'plugin' => 'd6_taxonomy_term',
     ),

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Theme\EngineTwigTest.
- */
-
 namespace Drupal\system\Tests\Theme;
 
 use Drupal\Core\Url;
@@ -77,7 +72,7 @@ class EngineTwigTest extends WebTestBase {
   public function testTwigLinkGenerator() {
     $this->drupalGet('twig-theme-test/link-generator');
 
-     /** @var \Drupal\Core\Utility\LinkGenerator $link_generator */
+    /** @var \Drupal\Core\Utility\LinkGenerator $link_generator */
     $link_generator = $this->container->get('link_generator');
 
     $expected = [

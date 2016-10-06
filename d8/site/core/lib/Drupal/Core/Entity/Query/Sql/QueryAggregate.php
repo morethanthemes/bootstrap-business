@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\Query\Sql\QueryAggregate.
- */
-
 namespace Drupal\Core\Entity\Query\Sql;
 
 use Drupal\Core\Entity\Query\QueryAggregateInterface;
@@ -123,7 +118,7 @@ class QueryAggregate extends Query implements QueryAggregateInterface {
    *   Returns the called object.
    */
   protected function addSortAggregate() {
-    if(!$this->count) {
+    if (!$this->count) {
       foreach ($this->sortAggregate as $alias => $sort) {
         $this->sqlQuery->orderBy($alias, $sort['direction']);
       }

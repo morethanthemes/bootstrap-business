@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Config\ConfigInstaller.
- */
-
 namespace Drupal\Core\Config;
 
 use Drupal\Component\Utility\Crypt;
@@ -190,24 +185,35 @@ class ConfigInstaller implements ConfigInstallerInterface {
     });
 
     $all_config = array_merge($existing_config, $list);
+    $all_config = array_combine($all_config, $all_config);
     $config_to_create = $storage->readMultiple($list);
     // Check to see if the corresponding override storage has any overrides or
     // new configuration that can be installed.
     if ($profile_storage) {
       $config_to_create = $profile_storage->readMultiple($list) + $config_to_create;
     }
+    // Sort $config_to_create in the order of the least dependent first.
+    $dependency_manager = new ConfigDependencyManager();
+    $dependency_manager->setData($config_to_create);
+    $config_to_create = array_merge(array_flip($dependency_manager->sortAll()), $config_to_create);
+
     foreach ($config_to_create as $config_name => $data) {
-      // Exclude configuration where its dependencies cannot be met.
-      if (!$this->validateDependencies($config_name, $data, $enabled_extensions, $all_config)) {
-        unset($config_to_create[$config_name]);
-      }
-      // Exclude configuration that does not have a matching dependency.
-      elseif (!empty($dependency)) {
+      // Remove configuration where its dependencies cannot be met.
+      $remove = !$this->validateDependencies($config_name, $data, $enabled_extensions, $all_config);
+      // If $dependency is defined, remove configuration that does not have a
+      // matching dependency.
+      if (!$remove && !empty($dependency)) {
         // Create a light weight dependency object to check dependencies.
         $config_entity = new ConfigEntityDependency($config_name, $data);
-        if (!$config_entity->hasDependency(key($dependency), reset($dependency))) {
-          unset($config_to_create[$config_name]);
-        }
+        $remove = !$config_entity->hasDependency(key($dependency), reset($dependency));
+      }
+
+      if ($remove) {
+        // Remove from the list of configuration to create.
+        unset($config_to_create[$config_name]);
+        // Remove from the list of all configuration. This ensures that any
+        // configuration that depends on this configuration is also removed.
+        unset($all_config[$config_name]);
       }
     }
     if (!empty($config_to_create)) {
@@ -221,7 +227,7 @@ class ConfigInstaller implements ConfigInstallerInterface {
    * @param StorageInterface $storage
    *   The configuration storage to read configuration from.
    * @param string $collection
-   *  The configuration collection to use.
+   *   The configuration collection to use.
    * @param string $prefix
    *   (optional) Limit to configuration starting with the provided string.
    * @param \Drupal\Core\Config\StorageInterface[] $profile_storages
@@ -505,6 +511,7 @@ class ConfigInstaller implements ConfigInstallerInterface {
    *   TRUE if the dependencies are met, FALSE if not.
    */
   protected function validateDependencies($config_name, array $data, array $enabled_extensions, array $all_config) {
+    list($provider) = explode('.', $config_name, 2);
     if (isset($data['dependencies'])) {
       $all_dependencies = $data['dependencies'];
 
@@ -515,7 +522,6 @@ class ConfigInstaller implements ConfigInstallerInterface {
       }
       // Ensure the configuration entity type provider is in the list of
       // dependencies.
-      list($provider) = explode('.', $config_name, 2);
       if (!isset($all_dependencies['module'])) {
         $all_dependencies['module'][] = $provider;
       }
@@ -541,6 +547,10 @@ class ConfigInstaller implements ConfigInstallerInterface {
           }
         }
       }
+    }
+    else {
+      // Simple config or a config entity without dependencies.
+      return in_array($provider, $enabled_extensions, TRUE);
     }
     return TRUE;
   }

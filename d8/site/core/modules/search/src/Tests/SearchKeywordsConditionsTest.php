@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\search\Tests\SearchKeywordsConditionsTest.
- */
-
 namespace Drupal\search\Tests;
 
 use Drupal\Component\Utility\Html;
@@ -39,7 +34,7 @@ class SearchKeywordsConditionsTest extends SearchTestBase {
 
     // Create searching user.
     $this->searchingUser = $this->drupalCreateUser(array('search content', 'access content', 'access comments', 'skip comment approval'));
-    // Login with sufficient privileges.
+    // Log in with sufficient privileges.
     $this->drupalLogin($this->searchingUser);
   }
 
@@ -63,4 +58,5 @@ class SearchKeywordsConditionsTest extends SearchTestBase {
     $this->assertText("Dummy search snippet to display.");
     $this->assertRaw(Html::escape(print_r(array('keys' => 'bike', 'search_conditions' => $keys), TRUE)));
   }
+
 }

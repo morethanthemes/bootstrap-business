@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\taxonomy\Tests\TaxonomyTestBase.
- */
-
 namespace Drupal\taxonomy\Tests;
 
 use Drupal\field\Tests\EntityReference\EntityReferenceTestTrait;
@@ -37,4 +32,5 @@ abstract class TaxonomyTestBase extends WebTestBase {
       $this->drupalCreateContentType(array('type' => 'article', 'name' => 'Article'));
     }
   }
+
 }

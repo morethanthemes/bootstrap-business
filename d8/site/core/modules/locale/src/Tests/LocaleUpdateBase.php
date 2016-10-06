@@ -1,13 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\locale\Tests\LocaleUpdateBase.
- */
-
 namespace Drupal\locale\Tests;
 
 use Drupal\Core\StreamWrapper\PublicStream;
+use Drupal\file\Entity\File;
 use Drupal\simpletest\WebTestBase;
 use Drupal\Component\Utility\SafeMarkup;
 
@@ -133,14 +129,14 @@ EOF;
     }
 
     file_prepare_directory($path, FILE_CREATE_DIRECTORY);
-    $file = entity_create('file', array(
+    $file = File::create([
       'uid' => 1,
       'filename' => $filename,
       'uri' => $path . '/' . $filename,
       'filemime' => 'text/x-gettext-translation',
       'timestamp' => $timestamp,
       'status' => FILE_STATUS_PERMANENT,
-    ));
+    ]);
     file_put_contents($file->getFileUri(), $po_header . $text);
     touch(drupal_realpath($file->getFileUri()), $timestamp);
     $file->save();
@@ -305,4 +301,5 @@ EOF;
     $db_translation = $db_translation == FALSE ? '' : $db_translation;
     $this->assertEqual($translation, $db_translation, $message ? $message : format_string('Correct translation of %source (%language)', array('%source' => $source, '%language' => $langcode)));
   }
+
 }

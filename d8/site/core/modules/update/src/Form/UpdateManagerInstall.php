@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\update\Form\UpdateManagerInstall.
- */
-
 namespace Drupal\update\Form;
 
 use Drupal\Core\Extension\ModuleHandlerInterface;
@@ -127,8 +122,8 @@ class UpdateManagerInstall extends FormBase {
    * {@inheritdoc}
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
-    $uploaded_file = $this->getRequest()->files->get('files[project_upload]', NULL, TRUE);
-    if (!($form_state->getValue('project_url') XOR !empty($uploaded_file))) {
+    $all_files = $this->getRequest()->files->get('files', []);
+    if (!($form_state->getValue('project_url') xor !empty($all_files['project_upload']))) {
       $form_state->setErrorByName('project_url', $this->t('You must either provide a URL or upload an archive file to install.'));
     }
   }
@@ -224,12 +219,17 @@ class UpdateManagerInstall extends FormBase {
       'local_url' => $project_real_location,
     );
 
+    // This process is inherently difficult to test therefore use a state flag.
+    $test_authorize = FALSE;
+    if (drupal_valid_test_ua()) {
+      $test_authorize = \Drupal::state()->get('test_uploaders_via_prompt', FALSE);
+    }
     // If the owner of the directory we extracted is the same as the owner of
     // our configuration directory (e.g. sites/default) where we're trying to
     // install the code, there's no need to prompt for FTP/SSH credentials.
     // Instead, we instantiate a Drupal\Core\FileTransfer\Local and invoke
     // update_authorize_run_install() directly.
-    if (fileowner($project_real_location) == fileowner($this->sitePath)) {
+    if (fileowner($project_real_location) == fileowner($this->sitePath) && !$test_authorize) {
       $this->moduleHandler->loadInclude('update', 'inc', 'update.authorize');
       $filetransfer = new Local($this->root);
       $response = call_user_func_array('update_authorize_run_install', array_merge(array($filetransfer), $arguments));
@@ -245,7 +245,7 @@ class UpdateManagerInstall extends FormBase {
       // The page title must be passed here to ensure it is initially used when
       // authorize.php loads for the first time with the FTP/SSH credentials
       // form.
-      system_authorized_init('update_authorize_run_install', drupal_get_path('module', 'update') . '/update.authorize.inc', $arguments, $this->t('Update manager'));
+      system_authorized_init('update_authorize_run_install', __DIR__ . '/../../update.authorize.inc', $arguments, $this->t('Update manager'));
       $form_state->setRedirectUrl(system_authorized_get_url());
     }
   }

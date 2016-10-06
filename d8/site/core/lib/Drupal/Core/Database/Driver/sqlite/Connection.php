@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Database\Driver\sqlite\Connection.
- */
-
 namespace Drupal\Core\Database\Driver\sqlite;
 
 use Drupal\Core\Database\Database;
@@ -46,7 +41,7 @@ class Connection extends DatabaseConnection {
    *
    * @var bool
    */
-  var $tableDropped = FALSE;
+  public $tableDropped = FALSE;
 
   /**
    * Constructs a \Drupal\Core\Database\Driver\sqlite\Connection object.
@@ -128,6 +123,16 @@ class Connection extends DatabaseConnection {
 
     // Create a user-space case-insensitive collation with UTF-8 support.
     $pdo->sqliteCreateCollation('NOCASE_UTF8', array('Drupal\Component\Utility\Unicode', 'strcasecmp'));
+
+    // Set SQLite init_commands if not already defined. Enable the Write-Ahead
+    // Logging (WAL) for SQLite. See https://www.drupal.org/node/2348137 and
+    // https://www.sqlite.org/wal.html.
+    $connection_options += array(
+      'init_commands' => array(),
+    );
+    $connection_options['init_commands'] += array(
+      'wal' => "PRAGMA journal_mode=WAL",
+    );
 
     // Execute sqlite init_commands.
     if (isset($connection_options['init_commands'])) {

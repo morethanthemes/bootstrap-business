@@ -1,12 +1,8 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Ajax\DialogTest.
- */
-
 namespace Drupal\system\Tests\Ajax;
 
+use Drupal\ajax_test\Controller\AjaxTestController;
 use Drupal\Core\EventSubscriber\MainContentViewSubscriber;
 use Drupal\Core\Form\FormBuilderInterface;
 use Drupal\Core\Url;
@@ -34,7 +30,7 @@ class DialogTest extends AjaxTestBase {
     $this->drupalGet('ajax-test/dialog');
 
     // Set up variables for this test.
-    $dialog_renderable = \Drupal\ajax_test\Controller\AjaxTestController::dialogContents();
+    $dialog_renderable = AjaxTestController::dialogContents();
     $dialog_contents = \Drupal::service('renderer')->renderRoot($dialog_renderable);
     $modal_expected_response = array(
       'command' => 'openDialog',

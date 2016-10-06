@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\locale\Form\ImportForm.
- */
-
 namespace Drupal\locale\Form;
 
 use Drupal\Core\Form\FormBase;
@@ -197,4 +192,5 @@ class ImportForm extends FormBase {
 
     $form_state->setRedirect('locale.translate_page');
   }
+
 }

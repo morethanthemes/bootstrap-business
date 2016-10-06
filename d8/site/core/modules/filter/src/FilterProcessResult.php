@@ -1,16 +1,10 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\filter\FilterProcessResult.
- */
-
 namespace Drupal\filter;
 
 use Drupal\Component\Utility\Html;
 use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Render\BubbleableMetadata;
-use Drupal\Core\Template\Attribute;
 
 /**
  * Used to return values from a text filter plugin's processing method.
@@ -35,7 +29,7 @@ use Drupal\Core\Template\Attribute;
  * public function process($text, $langcode) {
  *   // Modify $text.
  *
- *   return new FilterProcess($text);
+ *   return new FilterProcessResult($text);
  * }
  * @endcode
  *
@@ -44,7 +38,7 @@ use Drupal\Core\Template\Attribute;
  * public function process($text, $langcode) {
  *   // Modify $text.
  *
- *   $result = new FilterProcess($text);
+ *   $result = new FilterProcessResult($text);
  *
  *   // Associate assets to be attached.
  *   $result->setAttachments(array(

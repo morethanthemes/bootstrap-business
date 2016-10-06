@@ -2,14 +2,12 @@ id: d7_node
 label: Nodes
 migration_tags:
   - Drupal 7
-builder:
-  plugin: d7_node
+deriver: Drupal\node\Plugin\migrate\D7NodeDeriver
 source:
   plugin: d7_node
 process:
   nid: nid
   vid: vid
-  type: type
   langcode:
     plugin: default_value
     source: language

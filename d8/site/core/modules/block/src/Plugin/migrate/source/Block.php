@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\block\Plugin\migrate\source\Block.
- */
-
 namespace Drupal\block\Plugin\migrate\source;
 
 use Drupal\migrate\Row;
@@ -49,6 +44,13 @@ class Block extends DrupalSqlBase {
   protected $blockRoleTable;
 
   /**
+   * Table listing user roles.
+   *
+   * @var string
+   */
+  protected $userRoleTable;
+
+  /**
    * {@inheritdoc}
    */
   public function query() {
@@ -60,6 +62,9 @@ class Block extends DrupalSqlBase {
       $this->blockTable = 'blocks';
       $this->blockRoleTable = 'blocks_roles';
     }
+    // Drupal 6 & 7 both use the same name for the user roles table.
+    $this->userRoleTable = 'role';
+
     return $this->select($this->blockTable, 'b')->fields('b');
   }
 
@@ -68,7 +73,7 @@ class Block extends DrupalSqlBase {
    */
   protected function initializeIterator() {
     $this->defaultTheme = $this->variableGet('theme_default', 'Garland');
-    $this->adminTheme = $this->variableGet('admin_theme', null);
+    $this->adminTheme = $this->variableGet('admin_theme', NULL);
     return parent::initializeIterator();
   }
 
@@ -111,11 +116,12 @@ class Block extends DrupalSqlBase {
     $module = $row->getSourceProperty('module');
     $delta = $row->getSourceProperty('delta');
 
-    $roles = $this->select($this->blockRoleTable, 'br')
+    $query = $this->select($this->blockRoleTable, 'br')
       ->fields('br', array('rid'))
       ->condition('module', $module)
-      ->condition('delta', $delta)
-      ->execute()
+      ->condition('delta', $delta);
+    $query->join($this->userRoleTable, 'ur', 'br.rid = ur.rid');
+    $roles = $query->execute()
       ->fetchCol();
     $row->setSourceProperty('roles', $roles);
 
@@ -143,7 +149,7 @@ class Block extends DrupalSqlBase {
         $settings['book']['block_mode'] = $this->variableGet('book_block_mode', 'all pages');
         break;
       case 'forum':
-        $settings['forum']['block_num'] = $this->variableGet('forum_block_num_'. $delta, 5);
+        $settings['forum']['block_num'] = $this->variableGet('forum_block_num_' . $delta, 5);
         break;
       case 'statistics':
         foreach (array('statistics_block_top_day_num', 'statistics_block_top_all_num', 'statistics_block_top_last_num') as $name) {

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Routing\RedirectDestinationTest.
- */
-
 namespace Drupal\Tests\Core\Routing;
 
 use Drupal\Core\Routing\RedirectDestination;
@@ -106,7 +101,7 @@ class RedirectDestinationTest extends UnitTestCase {
     // A request with a destination query.
     $data[] = [$request, '/example'];
 
-      // A request without a destination query,
+    // A request without a destination query,
     $request = Request::create('/');
     $data[] = [$request, '/current-path'];
 

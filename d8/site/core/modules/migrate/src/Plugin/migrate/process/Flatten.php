@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\migrate\Plugin\migrate\process\Flatten.
- */
-
 namespace Drupal\migrate\Plugin\migrate\process;
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\ProcessPluginBase;
@@ -17,7 +12,7 @@ use Drupal\migrate\Row;
  * once a single value gets transformed into multiple values. This plugin will
  * flatten them back down to single values again.
  *
- * @see https://www.drupal.org/node/2154215
+ * @link https://www.drupal.org/node/2154215 Online handbook documentation for flatten process plugin @endlink
  *
  * @MigrateProcessPlugin(
  *   id = "flatten",

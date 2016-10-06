@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Mail\HtmlToTextTest.
- */
-
 namespace Drupal\system\Tests\Mail;
 
 use Drupal\Component\Utility\Html;
@@ -388,4 +383,5 @@ class HtmlToTextTest extends WebTestBase {
     $mail_lines = explode("\n", MailFormatHelper::wrapMail($text));
     $this->assertEqual("--", $mail_lines[1], 'Trailing whitespace removed for incorrect dash-dash-space signatures.');
   }
+
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\FileTransfer\Local.
- */
-
 namespace Drupal\Core\FileTransfer;
 
 /**
@@ -107,4 +102,5 @@ class Local extends FileTransfer implements ChmodInterface {
       throw new FileTransferException('Cannot chmod %path.', NULL, array('%path' => $path));
     }
   }
+
 }

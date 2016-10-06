@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\search\Tests\SearchAdvancedSearchFormTest.
- */
-
 namespace Drupal\search\Tests;
 
 /**
@@ -23,7 +18,7 @@ class SearchAdvancedSearchFormTest extends SearchTestBase {
 
   protected function setUp() {
     parent::setUp();
-    // Create and login user.
+    // Create and log in user.
     $test_user = $this->drupalCreateUser(array('access content', 'search content', 'use advanced search', 'administer nodes'));
     $this->drupalLogin($test_user);
 

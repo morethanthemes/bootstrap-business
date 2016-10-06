@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\Tests\UserAdminSettingsFormTest.
- */
-
 namespace Drupal\user\Tests;
 
 use Drupal\system\Tests\System\SystemConfigFormTestBase;
@@ -49,4 +44,5 @@ class UserAdminSettingsFormTest extends SystemConfigFormTestBase {
       ),
     );
   }
+
 }

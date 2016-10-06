@@ -9,7 +9,6 @@ namespace Drupal\Tests\Core\Render;
 
 use Drupal\Core\Cache\MemoryBackend;
 use Drupal\Core\KeyValueStore\KeyValueMemoryFactory;
-use Drupal\Core\Render\Element;
 use Drupal\Core\State\State;
 use Drupal\Core\Cache\Cache;
 
@@ -327,9 +326,9 @@ class RendererBubblingTest extends RendererTestBase {
           ],
           'grandgrandchild' => [
             '#access_callback' => function () use (&$current_user_role) {
-                // Only role C can access this subtree.
-                return $current_user_role === 'C';
-              },
+              // Only role C can access this subtree.
+              return $current_user_role === 'C';
+            },
             '#cache' => [
               'contexts' => ['bar'],
               'tags' => ['d'],
@@ -588,6 +587,7 @@ class RendererBubblingTest extends RendererTestBase {
     ];
     $this->renderer->renderRoot($data);
   }
+
 }
 
 

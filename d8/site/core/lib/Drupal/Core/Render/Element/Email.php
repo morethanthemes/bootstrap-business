@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\Element\Email.
- */
-
 namespace Drupal\Core\Render\Element;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -20,7 +15,7 @@ use Drupal\Core\Render\Element;
  * @code
  * $form['email'] = array(
  *   '#type' => 'email',
- *   '#title' => t('Email'),
+ *   '#title' => $this->t('Email'),
  * );
  * @end
  *

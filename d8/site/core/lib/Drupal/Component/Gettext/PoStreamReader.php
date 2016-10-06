@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\Gettext\PoStreamReader.
- */
-
 namespace Drupal\Component\Gettext;
 
 use Drupal\Component\Utility\SafeMarkup;
@@ -224,7 +219,7 @@ class PoStreamReader implements PoStreamInterface, PoReaderInterface {
     if (!$item) {
       return;
     }
-    $header = new PoHeader;
+    $header = new PoHeader();
     $header->setFromString(trim($item->getTranslation()));
     $this->_header = $header;
   }

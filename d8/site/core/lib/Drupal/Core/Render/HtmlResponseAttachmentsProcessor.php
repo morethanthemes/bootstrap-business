@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\Core\Render\HtmlResponseAttachmentsProcessor.
- */
 
 namespace Drupal\Core\Render;
 
@@ -446,7 +442,7 @@ class HtmlResponseAttachmentsProcessor implements AttachmentsResponseProcessorIn
    */
   protected function processFeed($attached_feed) {
     $html_head_link = [];
-    foreach($attached_feed as $item) {
+    foreach ($attached_feed as $item) {
       $feed_link = [
         'href' => $item[0],
         'rel' => 'alternate',

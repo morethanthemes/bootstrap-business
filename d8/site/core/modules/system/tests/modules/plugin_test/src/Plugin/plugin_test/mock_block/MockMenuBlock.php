@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\plugin_test\Plugin\plugin_test\mock_block\MockMenuBlock.
- */
-
 namespace Drupal\plugin_test\Plugin\plugin_test\mock_block;
 
 /**
@@ -41,12 +36,13 @@ class MockMenuBlock {
     // nesting level. For depth=2, this returns:
     // '<ul><li>1<ul><li>1.1</li></ul></li></ul>'.
     $content = '';
-    for ($i=0; $i < $this->depth; $i++) {
-      $content .= '<ul><li>' . implode('.', array_fill(0, $i+1, '1'));
+    for ($i = 0; $i < $this->depth; $i++) {
+      $content .= '<ul><li>' . implode('.', array_fill(0, $i + 1, '1'));
     }
-    for ($i=0; $i < $this->depth; $i++) {
+    for ($i = 0; $i < $this->depth; $i++) {
       $content .= '</li></ul>';
     }
     return $content;
   }
+
 }

@@ -1,14 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\Transliteration\PhpTransliteration.
- *
- * Some parts of this code were derived from the MediaWiki project's UtfNormal
- * class, Copyright © 2004 Brion Vibber <brion@pobox.com>,
- * http://www.mediawiki.org/
- */
-
 namespace Drupal\Component\Transliteration;
 
 /**
@@ -25,6 +16,10 @@ namespace Drupal\Component\Transliteration;
  * PhpTransliteration::readGenericData()). If looking up the character in the
  * generic table results in a NULL value, or an illegal character is
  * encountered, then a substitute character is returned.
+ *
+ * Some parts of this code were derived from the MediaWiki project's UtfNormal
+ * class, Copyright © 2004 Brion Vibber <brion@pobox.com>,
+ * http://www.mediawiki.org/
  */
 class PhpTransliteration implements TransliterationInterface {
 
@@ -95,7 +90,7 @@ class PhpTransliteration implements TransliterationInterface {
       $replacement = $character;
       if (($range1 && !in_array($code, $exclusions_range1)) || ($range2 && !in_array($code, $exclusions_range2))) {
         $to_add = $this->lookupReplacement($code, 'xyz');
-        if(strlen($to_add) === 1) {
+        if (strlen($to_add) === 1) {
           $replacement = $to_add;
         }
       }
@@ -285,4 +280,5 @@ class PhpTransliteration implements TransliterationInterface {
     // Save this data.
     $this->genericMap[$bank] = $base;
   }
+
 }

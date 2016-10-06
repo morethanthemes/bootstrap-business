@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\path\Form\PathFilterForm.
- */
-
 namespace Drupal\path\Form;
 
 use Drupal\Core\Form\FormBase;
@@ -43,7 +38,6 @@ class PathFilterForm extends FormBase {
     );
     $form['basic']['submit'] = array(
       '#type' => 'submit',
-      '#button_type' => 'primary',
       '#value' => $this->t('Filter'),
     );
     if ($keys) {

@@ -1,17 +1,12 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\taxonomy\TermForm.
- */
-
 namespace Drupal\taxonomy;
 
 use Drupal\Core\Entity\ContentEntityForm;
 use Drupal\Core\Form\FormStateInterface;
 
 /**
- * Base for controller for taxonomy term edit forms.
+ * Base for handler for taxonomy term edit forms.
  */
 class TermForm extends ContentEntityForm {
 
@@ -128,15 +123,16 @@ class TermForm extends ContentEntityForm {
 
     $result = $term->save();
 
-    $link = $term->link($this->t('Edit'), 'edit-form');
+    $edit_link = $term->link($this->t('Edit'), 'edit-form');
+    $view_link = $term->link($term->getName());
     switch ($result) {
       case SAVED_NEW:
-        drupal_set_message($this->t('Created new term %term.', array('%term' => $term->getName())));
-        $this->logger('taxonomy')->notice('Created new term %term.', array('%term' => $term->getName(), 'link' => $link));
+        drupal_set_message($this->t('Created new term %term.', array('%term' => $view_link)));
+        $this->logger('taxonomy')->notice('Created new term %term.', array('%term' => $term->getName(), 'link' => $edit_link));
         break;
       case SAVED_UPDATED:
-        drupal_set_message($this->t('Updated term %term.', array('%term' => $term->getName())));
-        $this->logger('taxonomy')->notice('Updated term %term.', array('%term' => $term->getName(), 'link' => $link));
+        drupal_set_message($this->t('Updated term %term.', array('%term' => $view_link)));
+        $this->logger('taxonomy')->notice('Updated term %term.', array('%term' => $term->getName(), 'link' => $edit_link));
         break;
     }
 

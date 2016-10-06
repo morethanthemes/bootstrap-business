@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\Element\Number.
- */
-
 namespace Drupal\Core\Render\Element;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -26,7 +21,7 @@ use Drupal\Component\Utility\Number as NumberUtility;
  * @code
  * $form['quantity'] = array(
  *   '#type' => 'number',
- *   '#title' => t('Quantity'),
+ *   '#title' => $this->t('Quantity'),
  * );
  * @endcode
  *

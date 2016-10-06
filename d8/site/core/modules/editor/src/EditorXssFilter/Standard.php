@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\editor\EditorXssFilter\Standard.
- */
-
 namespace Drupal\editor\EditorXssFilter;
 
 use Drupal\Component\Utility\Html;
@@ -125,7 +120,7 @@ class Standard extends Xss implements EditorXssFilterInterface {
   /**
    * Get all allowed tags from a restrictions data structure.
    *
-   * @param array|FALSE $restrictions
+   * @param array|false $restrictions
    *   Restrictions as returned by FilterInterface::getHTMLRestrictions().
    *
    * @return array
@@ -149,7 +144,7 @@ class Standard extends Xss implements EditorXssFilterInterface {
   /**
    * Get all forbidden tags from a restrictions data structure.
    *
-   * @param array|FALSE $restrictions
+   * @param array|false $restrictions
    *   Restrictions as returned by FilterInterface::getHTMLRestrictions().
    *
    * @return array

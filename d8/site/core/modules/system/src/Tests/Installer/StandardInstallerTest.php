@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Installer\StandardInstallerTest.
- */
-
 namespace Drupal\system\Tests\Installer;
 
 /**
@@ -60,15 +55,15 @@ class StandardInstallerTest extends ConfigAfterInstallerTestBase {
     $skipped_config = [];
     // \Drupal\simpletest\WebTestBase::installParameters() uses
     // simpletest@example.com as mail address.
-    $skipped_config['contact.form.feedback'][] = ' - simpletest@example.com';
+    $skipped_config['contact.form.feedback'][] = '- simpletest@example.com';
     // \Drupal\filter\Entity\FilterFormat::toArray() drops the roles of filter
     // formats.
     $skipped_config['filter.format.basic_html'][] = 'roles:';
-    $skipped_config['filter.format.basic_html'][] = ' - authenticated';
+    $skipped_config['filter.format.basic_html'][] = '- authenticated';
     $skipped_config['filter.format.full_html'][] = 'roles:';
-    $skipped_config['filter.format.full_html'][] = ' - administrator';
+    $skipped_config['filter.format.full_html'][] = '- administrator';
     $skipped_config['filter.format.restricted_html'][] = 'roles:';
-    $skipped_config['filter.format.restricted_html'][] = ' - anonymous';
+    $skipped_config['filter.format.restricted_html'][] = '- anonymous';
 
     $this->assertInstalledConfig($skipped_config);
   }

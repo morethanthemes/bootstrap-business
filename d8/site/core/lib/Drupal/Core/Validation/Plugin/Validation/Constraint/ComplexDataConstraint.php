@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Validation\Plugin\Validation\Constraint\ComplexDataConstraint.
- */
-
 namespace Drupal\Core\Validation\Plugin\Validation\Constraint;
 
 use Symfony\Component\Validator\Constraint;
@@ -62,4 +57,5 @@ class ComplexDataConstraint extends Constraint {
   public function getRequiredOptions() {
     return array('properties');
   }
+
 }

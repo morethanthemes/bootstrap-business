@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\book\BookOutlineStorage.
- */
-
 namespace Drupal\book;
 
 use Drupal\Core\Database\Connection;
@@ -203,4 +198,5 @@ class BookOutlineStorage implements BookOutlineStorageInterface {
     }
     return $query->execute();
   }
+
 }

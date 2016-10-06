@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Entity\Sql\DefaultTableMappingTest.
- */
-
 namespace Drupal\Tests\Core\Entity\Sql;
 
 use Drupal\Core\Entity\Sql\DefaultTableMapping;
@@ -223,6 +218,15 @@ class DefaultTableMappingTest extends UnitTestCase {
     $table_mapping = new DefaultTableMapping($this->entityType, $definitions);
     $expected = ['value' => 'test__value', 'format' => 'test__format'];
     $this->assertSame($expected, $table_mapping->getColumnNames('test'));
+
+    $definitions['test'] = $this->setUpDefinition('test', ['value']);
+    // Set custom storage.
+    $definitions['test']->expects($this->any())
+      ->method('hasCustomStorage')
+      ->wilLReturn(TRUE);
+    $table_mapping = new DefaultTableMapping($this->entityType, $definitions);
+    // Should return empty for column names.
+    $this->assertSame([], $table_mapping->getColumnNames('test'));
   }
 
   /**

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\System\AdminMetaTagTest.
- */
-
 namespace Drupal\system\Tests\System;
 
 use Drupal\simpletest\WebTestBase;
@@ -24,4 +19,5 @@ class AdminMetaTagTest extends WebTestBase {
     $this->drupalGet('node');
     $this->assertRaw($string, 'Fingerprinting meta tag generated correctly.', 'System');
   }
+
 }

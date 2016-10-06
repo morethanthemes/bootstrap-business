@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\syslog\Tests\SyslogTest.
- */
-
 namespace Drupal\syslog\Tests;
 
 use Drupal\simpletest\WebTestBase;
@@ -42,4 +37,5 @@ class SyslogTest extends WebTestBase {
       }
     }
   }
+
 }

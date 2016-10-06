@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Controller\AdminController.
- */
-
 namespace Drupal\system\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
@@ -18,7 +13,7 @@ class AdminController extends ControllerBase {
    * Prints a listing of admin tasks, organized by module.
    *
    * @return array
-   *  A render array containing the listing.
+   *   A render array containing the listing.
    */
   public function index() {
     $module_info = system_get_info('module');

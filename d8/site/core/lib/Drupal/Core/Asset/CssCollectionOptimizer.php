@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Asset\CssCollectionOptimizer.
- */
-
 namespace Drupal\Core\Asset;
 
 use Drupal\Core\State\StateInterface;
@@ -45,13 +40,13 @@ class CssCollectionOptimizer implements AssetCollectionOptimizerInterface {
   /**
    * Constructs a CssCollectionOptimizer.
    *
-   * @param \Drupal\Core\Asset\AssetCollectionGrouperInterface
+   * @param \Drupal\Core\Asset\AssetCollectionGrouperInterface $grouper
    *   The grouper for CSS assets.
-   * @param \Drupal\Core\Asset\AssetOptimizerInterface
+   * @param \Drupal\Core\Asset\AssetOptimizerInterface $optimizer
    *   The optimizer for a single CSS asset.
-   * @param \Drupal\Core\Asset\AssetDumperInterface
+   * @param \Drupal\Core\Asset\AssetDumperInterface $dumper
    *   The dumper for optimized CSS assets.
-   * @param \Drupal\Core\State\StateInterface
+   * @param \Drupal\Core\State\StateInterface $state
    *   The state key/value store.
    */
   public function __construct(AssetCollectionGrouperInterface $grouper, AssetOptimizerInterface $optimizer, AssetDumperInterface $dumper, StateInterface $state) {
@@ -136,16 +131,6 @@ class CssCollectionOptimizer implements AssetCollectionOptimizerInterface {
             }
             $css_assets[$order]['preprocessed'] = TRUE;
           }
-          break;
-
-        case 'inline':
-          // We don't do any caching for inline CSS assets.
-          $data = '';
-          foreach ($css_group['items'] as $css_asset) {
-            $data .= $this->optimizer->optimize($css_asset);
-          }
-          unset($css_assets[$order]['data']['items']);
-          $css_assets[$order]['data'] = $data;
           break;
 
         case 'external':

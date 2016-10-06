@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\datetime\Plugin\Field\FieldType\DateTimeItem.
- */
-
 namespace Drupal\datetime\Plugin\Field\FieldType;
 
 use Drupal\Core\Field\FieldDefinitionInterface;
@@ -97,6 +92,7 @@ class DateTimeItem extends FieldItemBase {
         static::DATETIME_TYPE_DATETIME => t('Date and time'),
         static::DATETIME_TYPE_DATE => t('Date only'),
       ),
+      '#disabled' => $has_data,
     );
 
     return $element;
@@ -110,7 +106,7 @@ class DateTimeItem extends FieldItemBase {
 
     // Just pick a date in the past year. No guidance is provided by this Field
     // type.
-    $timestamp = REQUEST_TIME - mt_rand(0, 86400*365);
+    $timestamp = REQUEST_TIME - mt_rand(0, 86400 * 365);
     if ($type == DateTimeItem::DATETIME_TYPE_DATE) {
       $values['value'] = gmdate(DATETIME_DATE_STORAGE_FORMAT, $timestamp);
     }

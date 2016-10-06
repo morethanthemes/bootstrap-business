@@ -1,11 +1,6 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\views\Unit\Controller\ViewAjaxControllerTest.
- */
-
-namespace Drupal\Tests\views\Unit\Controller {
+namespace Drupal\Tests\views\Unit\Controller;
 
 use Drupal\Core\Render\RenderContext;
 use Drupal\Tests\UnitTestCase;
@@ -363,6 +358,3 @@ class ViewAjaxControllerTest extends UnitTestCase {
   }
 
 }
-
-}
-

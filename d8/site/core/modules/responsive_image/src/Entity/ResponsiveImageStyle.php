@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\responsive_image\Entity\ResponsiveImageStyle.
- */
-
 namespace Drupal\responsive_image\Entity;
 
 use Drupal\Core\Config\Entity\ConfigEntityBase;
@@ -138,7 +133,7 @@ class ResponsiveImageStyle extends ConfigEntityBase implements ResponsiveImageSt
   public function getKeyedImageStyleMappings() {
     if (!$this->keyedImageStyleMappings) {
       $this->keyedImageStyleMappings = array();
-      foreach($this->image_style_mappings as $mapping) {
+      foreach ($this->image_style_mappings as $mapping) {
         if (!static::isEmptyImageStyleMapping($mapping)) {
           $this->keyedImageStyleMappings[$mapping['breakpoint_id']][$mapping['multiplier']] = $mapping;
         }

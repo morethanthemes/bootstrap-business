@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\file_test\StreamWrapper\DummyStreamWrapper.
- */
-
 namespace Drupal\file_test\StreamWrapper;
 
 use Drupal\Core\StreamWrapper\LocalStream;
@@ -51,4 +46,5 @@ class DummyStreamWrapper extends LocalStream {
   function getExternalUrl() {
     return '/dummy/example.txt';
   }
+
 }

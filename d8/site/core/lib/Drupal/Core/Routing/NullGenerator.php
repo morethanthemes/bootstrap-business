@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Routing\NullGenerator.
- */
-
 namespace Drupal\Core\Routing;
 
 use Drupal\Core\Render\BubbleableMetadata;
@@ -79,4 +74,5 @@ class NullGenerator extends UrlGenerator {
   protected function processPath($path, &$options = array(), BubbleableMetadata $bubbleable_metadata = NULL) {
     return $path;
   }
+
 }

@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\migrate\MigrateMessageInterface.
- */
 
 namespace Drupal\migrate;
 
@@ -18,4 +14,5 @@ interface MigrateMessageInterface {
    *   The type of message, for example: status or warning.
    */
   public function display($message, $type = 'status');
+
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Validation\Plugin\Validation\Constraint\RangeConstraint.
- */
-
 namespace Drupal\Core\Validation\Plugin\Validation\Constraint;
 
 use Symfony\Component\Validator\Constraints\Range;
@@ -33,4 +28,5 @@ class RangeConstraint extends Range {
   public function validatedBy() {
     return '\Symfony\Component\Validator\Constraints\RangeValidator';
   }
+
 }

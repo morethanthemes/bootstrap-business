@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Ajax\InsertCommand.
- */
-
 namespace Drupal\Core\Ajax;
 
 /**
@@ -43,7 +38,7 @@ class InsertCommand implements CommandInterface, CommandWithAttachedAssetsInterf
   protected $content;
 
   /**
-   * A settings array to be passed to any any attached JavaScript behavior.
+   * A settings array to be passed to any attached JavaScript behavior.
    *
    * @var array
    */

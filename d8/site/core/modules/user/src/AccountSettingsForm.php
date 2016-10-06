@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\AccountSettingsForm.
- */
-
 namespace Drupal\user;
 
 use Drupal\Core\Form\ConfigFormBase;
@@ -219,7 +214,7 @@ class AccountSettingsForm extends ConfigFormBase {
     $form['email_admin_created']['user_mail_register_admin_created_body'] = array(
       '#type' => 'textarea',
       '#title' => $this->t('Body'),
-      '#default_value' =>  $mail_config->get('register_admin_created.body'),
+      '#default_value' => $mail_config->get('register_admin_created.body'),
       '#rows' => 15,
     );
 

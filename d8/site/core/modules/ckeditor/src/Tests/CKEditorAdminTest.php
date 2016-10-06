@@ -1,16 +1,12 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\ckeditor\Tests\CKEditorAdminTest.
- */
-
 namespace Drupal\ckeditor\Tests;
 
 use Drupal\Component\Serialization\Json;
 use Drupal\editor\Entity\Editor;
 use Drupal\filter\FilterFormatInterface;
 use Drupal\simpletest\WebTestBase;
+use Drupal\filter\Entity\FilterFormat;
 
 /**
  * Tests administration of CKEditor.
@@ -37,7 +33,7 @@ class CKEditorAdminTest extends WebTestBase {
     parent::setUp();
 
     // Create text format.
-    $filtered_html_format = entity_create('filter_format', array(
+    $filtered_html_format = FilterFormat::create(array(
       'format' => 'filtered_html',
       'name' => 'Filtered HTML',
       'weight' => 0,
@@ -59,7 +55,7 @@ class CKEditorAdminTest extends WebTestBase {
     $this->drupalGet('admin/config/content/formats/manage/filtered_html');
 
     // Ensure no Editor config entity exists yet.
-    $editor = entity_load('editor', 'filtered_html');
+    $editor = Editor::load('filtered_html');
     $this->assertFalse($editor, 'No Editor config entity exists yet.');
 
     // Verify the "Text Editor" <select> when a text editor is available.
@@ -109,13 +105,13 @@ class CKEditorAdminTest extends WebTestBase {
           ),
         ),
       ),
-      'plugins' => array(),
+      'plugins' => ['language' => ['language_list' => 'un']],
     );
     $this->assertIdentical($this->castSafeStrings($ckeditor->getDefaultSettings()), $expected_default_settings);
 
     // Keep the "CKEditor" editor selected and click the "Configure" button.
     $this->drupalPostAjaxForm(NULL, $edit, 'editor_configure');
-    $editor = entity_load('editor', 'filtered_html');
+    $editor = Editor::load('filtered_html');
     $this->assertFalse($editor, 'No Editor config entity exists yet.');
 
     // Ensure that drupalSettings is correct.
@@ -146,9 +142,9 @@ class CKEditorAdminTest extends WebTestBase {
     // Ensure an Editor object exists now, with the proper settings.
     $expected_settings = $expected_default_settings;
     $expected_settings['plugins']['stylescombo']['styles'] = '';
-    $editor = entity_load('editor', 'filtered_html');
+    $editor = Editor::load('filtered_html');
     $this->assertTrue($editor instanceof Editor, 'An Editor config entity exists now.');
-    $this->assertIdentical($expected_settings, $editor->getSettings(), 'The Editor config entity has the correct settings.');
+    $this->assertEqual($expected_settings, $editor->getSettings(), 'The Editor config entity has the correct settings.');
 
     // Configure the Styles plugin, and ensure the updated settings are saved.
     $this->drupalGet('admin/config/content/formats/manage/filtered_html');
@@ -157,9 +153,9 @@ class CKEditorAdminTest extends WebTestBase {
     );
     $this->drupalPostForm(NULL, $edit, t('Save configuration'));
     $expected_settings['plugins']['stylescombo']['styles'] = "h1.title|Title\np.callout|Callout\n\n";
-    $editor = entity_load('editor', 'filtered_html');
+    $editor = Editor::load('filtered_html');
     $this->assertTrue($editor instanceof Editor, 'An Editor config entity exists.');
-    $this->assertIdentical($expected_settings, $editor->getSettings(), 'The Editor config entity has the correct settings.');
+    $this->assertEqual($expected_settings, $editor->getSettings(), 'The Editor config entity has the correct settings.');
 
     // Change the buttons that appear on the toolbar (in JavaScript, this is
     // done via drag and drop, but here we can only emulate the end result of
@@ -173,9 +169,9 @@ class CKEditorAdminTest extends WebTestBase {
       'editor[settings][toolbar][button_groups]' => json_encode($expected_settings['toolbar']['rows']),
     );
     $this->drupalPostForm(NULL, $edit, t('Save configuration'));
-    $editor = entity_load('editor', 'filtered_html');
+    $editor = Editor::load('filtered_html');
     $this->assertTrue($editor instanceof Editor, 'An Editor config entity exists.');
-    $this->assertIdentical($expected_settings, $editor->getSettings(), 'The Editor config entity has the correct settings.');
+    $this->assertEqual($expected_settings, $editor->getSettings(), 'The Editor config entity has the correct settings.');
 
     // Check that the markup we're setting for the toolbar buttons (actually in
     // JavaScript's drupalSettings, and Unicode-escaped) is correctly rendered.
@@ -201,9 +197,9 @@ class CKEditorAdminTest extends WebTestBase {
     $this->drupalGet('admin/config/content/formats/manage/filtered_html');
     $ultra_llama_mode_checkbox = $this->xpath('//input[@type="checkbox" and @name="editor[settings][plugins][llama_contextual_and_button][ultra_llama_mode]" and not(@checked)]');
     $this->assertTrue(count($ultra_llama_mode_checkbox) === 1, 'The "Ultra llama mode" checkbox exists and is not checked.');
-    $editor = entity_load('editor', 'filtered_html');
+    $editor = Editor::load('filtered_html');
     $this->assertTrue($editor instanceof Editor, 'An Editor config entity exists.');
-    $this->assertIdentical($expected_settings, $editor->getSettings(), 'The Editor config entity has the correct settings.');
+    $this->assertEqual($expected_settings, $editor->getSettings(), 'The Editor config entity has the correct settings.');
 
     // Finally, check the "Ultra llama mode" checkbox.
     $this->drupalGet('admin/config/content/formats/manage/filtered_html');
@@ -215,9 +211,9 @@ class CKEditorAdminTest extends WebTestBase {
     $ultra_llama_mode_checkbox = $this->xpath('//input[@type="checkbox" and @name="editor[settings][plugins][llama_contextual_and_button][ultra_llama_mode]" and @checked="checked"]');
     $this->assertTrue(count($ultra_llama_mode_checkbox) === 1, 'The "Ultra llama mode" checkbox exists and is checked.');
     $expected_settings['plugins']['llama_contextual_and_button']['ultra_llama_mode'] = TRUE;
-    $editor = entity_load('editor', 'filtered_html');
+    $editor = Editor::load('filtered_html');
     $this->assertTrue($editor instanceof Editor, 'An Editor config entity exists.');
-    $this->assertIdentical($expected_settings, $editor->getSettings());
+    $this->assertEqual($expected_settings, $editor->getSettings());
   }
 
   /**
@@ -249,9 +245,9 @@ class CKEditorAdminTest extends WebTestBase {
       'editor[editor]' => 'ckeditor',
     );
     $this->drupalPostAjaxForm(NULL, $edit, 'editor_configure');
-    $filter_format = entity_load('filter_format', 'amazing_format');
+    $filter_format = FilterFormat::load('amazing_format');
     $this->assertFalse($filter_format, 'No FilterFormat config entity exists yet.');
-    $editor = entity_load('editor', 'amazing_format');
+    $editor = Editor::load('amazing_format');
     $this->assertFalse($editor, 'No Editor config entity exists yet.');
 
     // Ensure the toolbar buttons configuration value is initialized to the
@@ -274,15 +270,15 @@ class CKEditorAdminTest extends WebTestBase {
     $this->drupalPostForm(NULL, $edit, t('Save configuration'));
 
     // Ensure a FilterFormat object exists now.
-    $filter_format = entity_load('filter_format', 'amazing_format');
+    $filter_format = FilterFormat::load('amazing_format');
     $this->assertTrue($filter_format instanceof FilterFormatInterface, 'A FilterFormat config entity exists now.');
 
     // Ensure an Editor object exists now, with the proper settings.
     $expected_settings = $default_settings;
     $expected_settings['plugins']['stylescombo']['styles'] = '';
-    $editor = entity_load('editor', 'amazing_format');
+    $editor = Editor::load('amazing_format');
     $this->assertTrue($editor instanceof Editor, 'An Editor config entity exists now.');
-    $this->assertIdentical($this->castSafeStrings($expected_settings), $this->castSafeStrings($editor->getSettings()), 'The Editor config entity has the correct settings.');
+    $this->assertEqual($this->castSafeStrings($expected_settings), $this->castSafeStrings($editor->getSettings()), 'The Editor config entity has the correct settings.');
   }
 
 }

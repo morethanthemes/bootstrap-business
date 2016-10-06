@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Archiver\Tar.
- */
-
 namespace Drupal\Core\Archiver;
 
 /**
@@ -92,4 +87,5 @@ class Tar implements ArchiverInterface {
   public function getArchive() {
     return $this->tar;
   }
+
 }

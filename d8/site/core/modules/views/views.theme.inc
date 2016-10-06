@@ -277,11 +277,29 @@ function template_preprocess_views_view_summary(&$variables) {
 
     if (!empty($argument->options['summary_options']['base_path'])) {
       $base_path = $argument->options['summary_options']['base_path'];
-      $tokens = $this->getArgumentsTokens();
-      $base_path = $this->viewsTokenReplace($base_path, $tokens);
+      $tokens = $view->getDisplay()->getArgumentsTokens();
+      $base_path = $argument->globalTokenReplace($base_path, $tokens);
       // @todo Views should expect and store a leading /. See:
       //   https://www.drupal.org/node/2423913
       $url = Url::fromUserInput('/' . $base_path);
+      try {
+        /** @var \Symfony\Component\Routing\Route $route */
+        $route_name = $url->getRouteName();
+        $route = \Drupal::service('router.route_provider')->getRouteByName($route_name);
+
+        $route_variables = $route->compile()->getVariables();
+        $parameters = $url->getRouteParameters();
+
+        foreach ($route_variables as $variable_name) {
+          $parameters[$variable_name] = array_shift($args);
+        }
+
+        $url->setRouteParameters($parameters);
+      }
+      catch (Exception $e) {
+        // If the given route doesn't exist, default to <front>
+        $url = Url::fromRoute('<front>');
+      }
     }
     else {
       $url = $view->getUrl($args)->setOptions($url_options);
@@ -307,6 +325,7 @@ function template_preprocess_views_view_summary(&$variables) {
  *       visually distinct.
  */
 function template_preprocess_views_view_summary_unformatted(&$variables) {
+  /** @var \Drupal\views\ViewExecutable $view */
   $view = $variables['view'];
   $argument = $view->argument[$view->build_info['summary_level']];
 
@@ -346,11 +365,27 @@ function template_preprocess_views_view_summary_unformatted(&$variables) {
 
     if (!empty($argument->options['summary_options']['base_path'])) {
       $base_path = $argument->options['summary_options']['base_path'];
-      $tokens = $this->getArgumentsTokens();
-      $base_path = $this->viewsTokenReplace($base_path, $tokens);
+      $tokens = $view->getDisplay()->getArgumentsTokens();
+      $base_path = $argument->globalTokenReplace($base_path, $tokens);
       // @todo Views should expect and store a leading /. See:
       //   https://www.drupal.org/node/2423913
       $url = Url::fromUserInput('/' . $base_path);
+      try {
+        /** @var \Symfony\Component\Routing\Route $route */
+        $route = \Drupal::service('router.route_provider')->getRouteByName($url->getRouteName());
+        $route_variables = $route->compile()->getVariables();
+        $parameters = $url->getRouteParameters();
+
+        foreach ($route_variables as $variable_name) {
+          $parameters[$variable_name] = array_shift($args);
+        }
+
+        $url->setRouteParameters($parameters);
+      }
+      catch (Exception $e) {
+        // If the given route doesn't exist, default to <front>
+        $url = Url::fromRoute('<front>');
+      }
     }
     else {
       $url = $view->getUrl($args)->setOptions($url_options);
@@ -397,6 +432,12 @@ function template_preprocess_views_view_table(&$variables) {
   // A boolean variable which stores whether the table has a responsive class.
   $responsive = FALSE;
 
+  // For the actual site we want to not render full URLs, because this would
+  // make pagers cacheable per URL, which is problematic in blocks, for example.
+  // For the actual live preview though the javascript relies on properly
+  // working URLs.
+  $route_name = !empty($view->live_preview) ? '<current>' : '<none>';
+
   $query = tablesort_get_query_parameters();
   if (isset($view->exposed_raw_input)) {
     $query += $view->exposed_raw_input;
@@ -438,9 +479,7 @@ function template_preprocess_views_view_table(&$variables) {
         $link_options = array(
           'query' => $query,
         );
-        // It is ok to specify no URL path here as we will always reload the
-        // current page.
-        $url = new Url('<none>', [], $link_options);
+        $url = new Url($route_name, [], $link_options);
         $variables['header'][$field]['url'] = $url->toString();
         $variables['header'][$field]['content'] = $label;
         $variables['header'][$field]['title'] = $title;

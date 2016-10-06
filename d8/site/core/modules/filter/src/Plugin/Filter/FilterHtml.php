@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\filter\Plugin\Filter\FilterHtml.
- */
-
 namespace Drupal\filter\Plugin\Filter;
 
 use Drupal\Component\Utility\Xss;
@@ -159,7 +154,7 @@ class FilterHtml extends FilterBase {
    */
   protected function filterElementAttributes(\DOMElement $element, array $allowed_attributes) {
     $modified_attributes = [];
-    foreach($element->attributes as $name => $attribute) {
+    foreach ($element->attributes as $name => $attribute) {
       // Remove attributes not in the whitelist.
       $allowed_value = $this->findAllowedValue($allowed_attributes, $name);
       if (empty($allowed_value)) {

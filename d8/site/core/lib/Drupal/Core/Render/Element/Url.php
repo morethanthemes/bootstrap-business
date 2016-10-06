@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\Element\Url.
- */
-
 namespace Drupal\Core\Render\Element;
 
 use Drupal\Component\Utility\UrlHelper;
@@ -21,7 +16,7 @@ use Drupal\Core\Render\Element;
  * @code
  * $form['homepage'] = array(
  *   '#type' => 'url',
- *   '#title' => t('Home Page'),
+ *   '#title' => $this->t('Home Page'),
  *   '#size' => 30,
  *   ...
  * );

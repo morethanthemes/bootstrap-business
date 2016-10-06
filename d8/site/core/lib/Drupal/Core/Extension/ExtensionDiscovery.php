@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Extension\ExtensionDiscovery.
- */
-
 namespace Drupal\Core\Extension;
 
 use Drupal\Component\FileCache\FileCacheFactory;
@@ -19,9 +14,8 @@ use Symfony\Component\HttpFoundation\Request;
  * To also discover test modules, add
  * @code
  * $settings['extension_discovery_scan_tests'] = TRUE;
- * @encode
+ * @endcode
  * to your settings.php.
- *
  */
 class ExtensionDiscovery {
 
@@ -84,7 +78,7 @@ class ExtensionDiscovery {
   protected $profileDirectories;
 
   /**
-   * The app root.
+   * The app root for the current operation.
    *
    * @var string
    */
@@ -144,7 +138,7 @@ class ExtensionDiscovery {
    * To also find test modules, add
    * @code
    * $settings['extension_discovery_scan_tests'] = TRUE;
-   * @encode
+   * @endcode
    * to your settings.php.
    *
    * The information is returned in an associative array, keyed by the extension
@@ -214,12 +208,12 @@ class ExtensionDiscovery {
     $files = array();
     foreach ($searchdirs as $dir) {
       // Discover all extensions in the directory, unless we did already.
-      if (!isset(static::$files[$dir][$include_tests])) {
-        static::$files[$dir][$include_tests] = $this->scanDirectory($dir, $include_tests);
+      if (!isset(static::$files[$this->root][$dir][$include_tests])) {
+        static::$files[$this->root][$dir][$include_tests] = $this->scanDirectory($dir, $include_tests);
       }
       // Only return extensions of the requested type.
-      if (isset(static::$files[$dir][$include_tests][$type])) {
-        $files += static::$files[$dir][$include_tests][$type];
+      if (isset(static::$files[$this->root][$dir][$include_tests][$type])) {
+        $files += static::$files[$this->root][$dir][$include_tests][$type];
       }
     }
 
@@ -433,11 +427,17 @@ class ExtensionDiscovery {
     $flags |= \FilesystemIterator::CURRENT_AS_SELF;
     $directory_iterator = new \RecursiveDirectoryIterator($absolute_dir, $flags);
 
+    // Allow directories specified in settings.php to be ignored. You can use
+    // this to not check for files in common special-purpose directories. For
+    // example, node_modules and bower_components. Ignoring irrelevant
+    // directories is a performance boost.
+    $ignore_directories = Settings::get('file_scan_ignore_directories', []);
+
     // Filter the recursive scan to discover extensions only.
     // Important: Without a RecursiveFilterIterator, RecursiveDirectoryIterator
     // would recurse into the entire filesystem directory tree without any kind
     // of limitations.
-    $filter = new RecursiveExtensionFilterIterator($directory_iterator);
+    $filter = new RecursiveExtensionFilterIterator($directory_iterator, $ignore_directories);
     $filter->acceptTests($include_tests);
 
     // The actual recursive filesystem scan is only invoked by instantiating the
@@ -484,7 +484,7 @@ class ExtensionDiscovery {
       else {
         $filename = $name . '.' . $type;
       }
-      if (!file_exists(dirname($pathname) . '/' . $filename)) {
+      if (!file_exists($this->root . '/' . dirname($pathname) . '/' . $filename)) {
         $filename = NULL;
       }
 

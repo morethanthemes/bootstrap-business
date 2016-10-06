@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\statistics\StatisticsSettingsForm.
- */
 
 namespace Drupal\statistics;
 
@@ -100,5 +96,5 @@ class StatisticsSettingsForm extends ConfigFormBase {
 
     parent::submitForm($form, $form_state);
   }
-}
 
+}

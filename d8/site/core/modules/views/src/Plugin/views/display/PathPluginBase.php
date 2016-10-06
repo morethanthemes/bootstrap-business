@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Plugin\views\display\PathPluginBase.
- */
-
 namespace Drupal\views\Plugin\views\display;
 
 use Drupal\Component\Utility\UrlHelper;
@@ -242,8 +237,8 @@ abstract class PathPluginBase extends DisplayPluginBase implements DisplayRouter
       $route_path = RouteCompiler::getPathWithoutDefaults($route);
       $route_path = RouteCompiler::getPatternOutline($route_path);
       // Ensure that we don't override a route which is already controlled by
-      // views.
-      if (!$route->hasDefault('view_id') && ('/' . $view_path == $route_path)) {
+      // views. Also ensure that we don't override for example REST routes.
+      if (!$route->hasDefault('view_id') && ('/' . $view_path == $route_path) && (!$route->getMethods() || in_array('GET', $route->getMethods()))) {
         $parameters = $route->compile()->getPathVariables();
 
         // @todo Figure out whether we need to merge some settings (like
@@ -309,7 +304,7 @@ abstract class PathPluginBase extends DisplayPluginBase implements DisplayRouter
     $path = implode('/', $bits);
     $view_id = $this->view->storage->id();
     $display_id = $this->display['id'];
-    $view_id_display =  "{$view_id}.{$display_id}";
+    $view_id_display = "{$view_id}.{$display_id}";
     $menu_link_id = 'views.' . str_replace('/', '.', $view_id_display);
 
     if ($path) {
@@ -327,6 +322,8 @@ abstract class PathPluginBase extends DisplayPluginBase implements DisplayRouter
         $links[$menu_link_id]['title'] = $menu['title'];
         $links[$menu_link_id]['description'] = $menu['description'];
         $links[$menu_link_id]['parent'] = $menu['parent'];
+        $links[$menu_link_id]['enabled'] = $menu['enabled'];
+        $links[$menu_link_id]['expanded'] = $menu['expanded'];
 
         if (isset($menu['weight'])) {
           $links[$menu_link_id]['weight'] = intval($menu['weight']);

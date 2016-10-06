@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Config\ConfigModuleOverridesEvent.
- */
-
 namespace Drupal\Core\Config;
 
 use Drupal\Component\Utility\NestedArray;
@@ -42,7 +37,7 @@ class ConfigModuleOverridesEvent extends Event {
    *
    * @param array $names
    *   A list of configuration names.
-   * @param \Drupal\Core\Language\LanguageInterface
+   * @param \Drupal\Core\Language\LanguageInterface $language
    *   (optional) The language for this configuration.
    */
   public function __construct(array $names, LanguageInterface $language = NULL) {
@@ -104,5 +99,5 @@ class ConfigModuleOverridesEvent extends Event {
     }
     return $this;
   }
-}
 
+}

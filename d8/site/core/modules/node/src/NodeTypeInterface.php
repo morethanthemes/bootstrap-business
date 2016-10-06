@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\NodeTypeInterface.
- */
-
 namespace Drupal\node;
 
 use Drupal\Core\Config\Entity\ConfigEntityInterface;
@@ -85,4 +80,5 @@ interface NodeTypeInterface extends ConfigEntityInterface {
    *   The description of this node type.
    */
   public function getDescription();
+
 }

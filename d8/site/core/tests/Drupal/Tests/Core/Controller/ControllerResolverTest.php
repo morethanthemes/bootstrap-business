@@ -14,7 +14,8 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Routing\RouteMatch;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Tests\UnitTestCase;
-use Symfony\Component\DependencyInjection\ContainerAware;
+use Symfony\Component\DependencyInjection\ContainerAwareInterface;
+use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
@@ -278,14 +279,18 @@ class MockContainerInjection implements ContainerInjectionInterface {
   public function getResult() {
     return $this->result;
   }
+
 }
-class MockContainerAware extends ContainerAware {
+class MockContainerAware implements ContainerAwareInterface {
+  use ContainerAwareTrait;
   public function getResult() {
     return 'This is container aware.';
   }
+
 }
 class MockInvokeController {
   public function __invoke() {
     return 'This used __invoke().';
   }
+
 }

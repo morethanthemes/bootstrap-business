@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Routing\RouterPermissionTest.
- */
-
 namespace Drupal\system\Tests\Routing;
 
 use Drupal\simpletest\WebTestBase;
@@ -41,4 +36,5 @@ class RouterPermissionTest extends WebTestBase {
     $this->assertNoRaw('Access denied');
     $this->assertRaw('test7text', 'The correct string was returned because the route was successful.');
   }
+
 }

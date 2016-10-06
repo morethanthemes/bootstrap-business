@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\Utility\UserAgent.
- */
-
 namespace Drupal\Component\Utility;
 
 /**
@@ -127,8 +122,7 @@ class UserAgent {
           $qvalue = $ua_langcodes[$prefix];
           break;
         }
-      }
-      while ($prefix = substr($prefix, 0, strrpos($prefix, '-')));
+      } while ($prefix = substr($prefix, 0, strrpos($prefix, '-')));
 
       // Find the best match.
       if ($qvalue > $max_qvalue) {

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\EntityDisplayModeInterface.
- */
-
 namespace Drupal\Core\Entity;
 
 use Drupal\Core\Config\Entity\ConfigEntityInterface;
@@ -31,4 +26,5 @@ interface EntityDisplayModeInterface extends ConfigEntityInterface {
    * @return $this
    */
   public function setTargetType($target_entity_type);
+
 }

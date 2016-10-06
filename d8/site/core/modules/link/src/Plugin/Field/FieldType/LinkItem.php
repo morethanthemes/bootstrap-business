@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\link\Plugin\Field\FieldType\LinkItem.
- */
-
 namespace Drupal\link\Plugin\Field\FieldType;
 
 use Drupal\Component\Utility\Random;
@@ -174,7 +169,7 @@ class LinkItem extends FieldItemBase implements LinkItemInterface {
    * {@inheritdoc}
    */
   public function getUrl() {
-    return Url::fromUri($this->uri);
+    return Url::fromUri($this->uri, (array) $this->options);
   }
 
   /**

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\StackMiddleware\ReverseProxyMiddlewareTest.
- */
-
 namespace Drupal\Tests\Core\StackMiddleware;
 
 use Drupal\Core\Site\Settings;
@@ -54,9 +49,9 @@ class ReverseProxyMiddlewareTest extends UnitTestCase {
    * @dataProvider reverseProxyEnabledProvider
    */
   public function testReverseProxyEnabled($provided_settings) {
-      // Enable reverse proxy and add test values.
-      $settings = new Settings(array('reverse_proxy' => 1) + $provided_settings);
-      $this->trustedHeadersAreSet($settings);
+    // Enable reverse proxy and add test values.
+    $settings = new Settings(array('reverse_proxy' => 1) + $provided_settings);
+    $this->trustedHeadersAreSet($settings);
   }
 
   /**
@@ -99,4 +94,5 @@ class ReverseProxyMiddlewareTest extends UnitTestCase {
     $this->assertSame($settings->get('reverse_proxy_forwarded_header'), $request->getTrustedHeaderName($request::HEADER_FORWARDED));
     $this->assertSame($settings->get('reverse_proxy_addresses'), $request->getTrustedProxies());
   }
+
 }

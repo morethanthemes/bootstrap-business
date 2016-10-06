@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\UnitTestCase.
- */
-
 namespace Drupal\Tests;
 
 use Drupal\Component\FileCache\FileCacheFactory;
@@ -47,7 +42,9 @@ abstract class UnitTestCase extends \PHPUnit_Framework_TestCase {
 
     // Ensure that the NullFileCache implementation is used for the FileCache as
     // unit tests should not be relying on caches implicitly.
-    FileCacheFactory::setConfiguration(['default' => ['class' => '\Drupal\Component\FileCache\NullFileCache']]);
+    FileCacheFactory::setConfiguration([FileCacheFactory::DISABLE_CACHE => TRUE]);
+    // Ensure that FileCacheFactory has a prefix.
+    FileCacheFactory::setPrefix('prefix');
 
     $this->root = dirname(dirname(substr(__DIR__, 0, -strlen(__NAMESPACE__))));
   }
@@ -203,8 +200,8 @@ abstract class UnitTestCase extends \PHPUnit_Framework_TestCase {
   /**
    * Returns a stub translation manager that just returns the passed string.
    *
-   * @return \PHPUnit_Framework_MockObject_MockBuilder
-   *   A MockBuilder of \Drupal\Core\StringTranslation\TranslationInterface
+   * @return \PHPUnit_Framework_MockObject_MockObject|\Drupal\Core\StringTranslation\TranslationInterface
+   *   A mock translation object.
    */
   public function getStringTranslationStub() {
     $translation = $this->getMock('Drupal\Core\StringTranslation\TranslationInterface');

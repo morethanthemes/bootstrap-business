@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\simpletest\Tests\InstallationProfileModuleTestsTest.
- */
-
 namespace Drupal\simpletest\Tests;
 
 use Drupal\simpletest\WebTestBase;
@@ -63,4 +58,5 @@ class InstallationProfileModuleTestsTest extends WebTestBase {
     $this->drupalPostForm(NULL, $edit, t('Run tests'));
     $this->assertText('SystemListingCompatibleTest test executed.');
   }
+
 }

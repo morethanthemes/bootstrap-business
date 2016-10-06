@@ -5,12 +5,11 @@
  * Primarily Drupal hooks and global API functions to manipulate views.
  */
 
+use Drupal\Component\Render\MarkupInterface;
 use Drupal\Component\Utility\Html;
-use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Core\Database\Query\AlterableInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Render\Element;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Url;
 use Drupal\views\Plugin\Derivative\ViewsLocalTask;
@@ -30,7 +29,7 @@ function views_help($route_name, RouteMatchInterface $route_match) {
       $output .= '<h3>' . t('About') . '</h3>';
       $output .= '<p>' . t('The Views module provides a back end to fetch information from content, user accounts, taxonomy terms, and other entities from the database and present it to the user as a grid, HTML list, table, unformatted list, etc. The resulting displays are known generally as <em>views</em>.') . '</p>';
       $output .= '<p>' . t('For more information, see the <a href=":views">online documentation for the Views module</a>.', array(':views' => 'https://www.drupal.org/documentation/modules/views')) . '</p>';
-      $output .= '<p>' . t('In order to create and modify your own views using the administration and configuration user interface, you will need to enable either the Views UI module in core or a contributed module that provides a user interface for Views. See the <a href=":views-ui">Views UI module help page</a> for more information.', array(':views-ui' => (\Drupal::moduleHandler()->moduleExists('views_ui')) ? \Drupal::url('help.page', array('name' => 'views_ui'))  : '#')) . '</p>';
+      $output .= '<p>' . t('In order to create and modify your own views using the administration and configuration user interface, you will need to enable either the Views UI module in core or a contributed module that provides a user interface for Views. See the <a href=":views-ui">Views UI module help page</a> for more information.', array(':views-ui' => (\Drupal::moduleHandler()->moduleExists('views_ui')) ? \Drupal::url('help.page', array('name' => 'views_ui')) : '#')) . '</p>';
       $output .= '<h3>' . t('Uses') . '</h3>';
       $output .= '<dl>';
       $output .= '<dt>' . t('Adding functionality to administrative pages') . '</dt>';
@@ -190,7 +189,7 @@ function views_theme($existing, $type, $theme, $path) {
       // Whenever we have a theme file, we include it directly so we can
       // auto-detect the theme function.
       if (isset($def['theme_file'])) {
-        $include = \Drupal::root() . '/' . $module_dir. '/' . $def['theme_file'];
+        $include = \Drupal::root() . '/' . $module_dir . '/' . $def['theme_file'];
         if (is_file($include)) {
           require_once $include;
         }
@@ -622,7 +621,7 @@ function views_pre_render_views_form_views_form($element) {
   foreach ($substitutions as $placeholder => $substitution) {
     $search[] = Html::escape($placeholder);
     // Ensure that any replacements made are safe to make.
-    if (!SafeMarkup::isSafe($substitution)) {
+    if (!($substitution instanceof MarkupInterface)) {
       $substitution = Html::escape($substitution);
     }
     $replace[] = $substitution;
@@ -728,6 +727,10 @@ function _views_query_tag_alter_condition(AlterableInterface $query, &$condition
  *   valid. But things like 'page' or 'block' should work here.
  * @param ...
  *   Any additional parameters will be passed as arguments.
+ *
+ * @return array|null
+ *   A renderable array containing the view output or NULL if the display ID
+ *   of the view to be executed doesn't exist.
  */
 function views_embed_view($name, $display_id = 'default') {
   $args = func_get_args();
@@ -739,7 +742,12 @@ function views_embed_view($name, $display_id = 'default') {
     return;
   }
 
-  return $view->preview($display_id, $args);
+  return [
+    '#type' => 'view',
+    '#name' => $name,
+    '#display_id' => $display_id,
+    '#arguments' => $args,
+  ];
 }
 
 /**
@@ -751,7 +759,7 @@ function views_embed_view($name, $display_id = 'default') {
  *   The display id. On the edit page for the view in question, you'll find
  *   a list of displays at the left side of the control area. "Master"
  *   will be at the top of that list. Hover your cursor over the name of the
- *   display you want to use. An URL will appear in the status bar of your
+ *   display you want to use. A URL will appear in the status bar of your
  *   browser. This is usually at the bottom of the window, in the chrome.
  *   Everything after #views-tab- is the display ID, e.g. page_1.
  * @param ...

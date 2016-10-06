@@ -320,16 +320,16 @@ function node_type_load($name) {
  *   A Body field object.
  */
 function node_add_body_field(NodeTypeInterface $type, $label = 'Body') {
-   // Add or remove the body field, as needed.
+  // Add or remove the body field, as needed.
   $field_storage = FieldStorageConfig::loadByName('node', 'body');
   $field = FieldConfig::loadByName('node', $type->id(), 'body');
   if (empty($field)) {
-    $field = entity_create('field_config', array(
+    $field = FieldConfig::create([
       'field_storage' => $field_storage,
       'bundle' => $type->id(),
       'label' => $label,
       'settings' => array('display_summary' => TRUE),
-    ));
+    ]);
     $field->save();
 
     // Assign widget settings for the 'default' form mode.
@@ -463,14 +463,11 @@ function node_revision_load($vid = NULL) {
 /**
  * Deletes a node revision.
  *
- * @param $revision_id
+ * @param int $revision_id
  *   The revision ID to delete.
- *
- * @return bool
- *   TRUE if the revision deletion was successful; otherwise, FALSE.
  */
 function node_revision_delete($revision_id) {
-  entity_revision_delete('node', $revision_id);
+  \Drupal::entityTypeManager()->getStorage('node')->deleteRevision($revision_id);
 }
 
 /**
@@ -742,7 +739,7 @@ function node_get_recent($number = 10) {
     // If the user is able to view their own unpublished nodes, allow them
     // to see these in addition to published nodes. Check that they actually
     // have some unpublished nodes to view before adding the condition.
-    $access_query =  \Drupal::entityQuery('node')
+    $access_query = \Drupal::entityQuery('node')
       ->condition('uid', $account->id())
       ->condition('status', NODE_NOT_PUBLISHED);
     if ($account->hasPermission('view own unpublished content') && ($own_unpublished = $access_query->execute())) {
@@ -754,7 +751,7 @@ function node_get_recent($number = 10) {
       // If not, restrict the query to published nodes.
       $query->condition('status', NODE_PUBLISHED);
     }
-   }
+  }
   $nids = $query
     ->sort('changed', 'DESC')
     ->range(0, $number)
@@ -832,6 +829,7 @@ function node_form_system_themes_admin_form_alter(&$form, FormStateInterface $fo
   $form['admin_theme']['use_admin_theme'] = array(
     '#type' => 'checkbox',
     '#title' => t('Use the administration theme when editing or creating content'),
+    '#description' => t('Control which roles can "View the administration theme" on the <a href=":permissions">Permissions page</a>.', array(':permissions' => Url::fromRoute('user.admin_permissions')->toString())),
     '#default_value' => \Drupal::configFactory()->getEditable('node.settings')->get('use_admin_theme'),
   );
   $form['#submit'][] = 'node_form_system_themes_admin_form_submit';
@@ -914,7 +912,7 @@ function node_node_access(NodeInterface $node, $op, $account) {
         return AccessResult::allowed()->cachePerPermissions();
       }
       else {
-        return AccessResult::allowedIf($account->hasPermission('edit own ' . $type . ' content', $account) && ($account->id() == $node->getOwnerId()))->cachePerPermissions()->cachePerUser()->cacheUntilEntityChanges($node);
+        return AccessResult::allowedIf($account->hasPermission('edit own ' . $type . ' content', $account) && ($account->id() == $node->getOwnerId()))->cachePerPermissions()->cachePerUser()->addCacheableDependency($node);
       }
 
     case 'delete':
@@ -922,7 +920,7 @@ function node_node_access(NodeInterface $node, $op, $account) {
         return AccessResult::allowed()->cachePerPermissions();
       }
       else {
-        return AccessResult::allowedIf($account->hasPermission('delete own ' . $type . ' content', $account) && ($account->id() == $node->getOwnerId()))->cachePerPermissions()->cachePerUser()->cacheUntilEntityChanges($node);
+        return AccessResult::allowedIf($account->hasPermission('delete own ' . $type . ' content', $account) && ($account->id() == $node->getOwnerId()))->cachePerPermissions()->cachePerUser()->addCacheableDependency($node);
       }
 
     default:
@@ -1046,18 +1044,29 @@ function node_query_node_access_alter(AlterableInterface $query) {
 
   $tables = $query->getTables();
   $base_table = $query->getMetaData('base_table');
-  // If the base table is not given, default to node if present.
+  // If the base table is not given, default to one of the node base tables.
   if (!$base_table) {
+    /** @var \Drupal\Core\Entity\Sql\DefaultTableMapping $table_mapping */
+    $table_mapping = \Drupal::entityTypeManager()->getStorage('node')->getTableMapping();
+    $node_base_tables = $table_mapping->getTableNames();
+
     foreach ($tables as $table_info) {
       if (!($table_info instanceof SelectInterface)) {
         $table = $table_info['table'];
-        // If the node table is in the query, it wins immediately.
+        // Ensure that 'node' and 'node_field_data' are always preferred over
+        // 'node_revision' and 'node_field_revision'.
         if ($table == 'node' || $table == 'node_field_data') {
           $base_table = $table;
           break;
         }
+        // If one of the node base tables are in the query, add it to the list
+        // of possible base tables to join against.
+        if (in_array($table, $node_base_tables)) {
+          $base_table = $table;
+        }
       }
     }
+
     // Bail out if the base table is missing.
     if (!$base_table) {
       throw new Exception(t('Query tagged for node access but there is no node table, specify the base_table using meta data.'));
@@ -1069,8 +1078,9 @@ function node_query_node_access_alter(AlterableInterface $query) {
 
   // Bubble the 'user.node_grants:$op' cache context to the current render
   // context.
+  $request = \Drupal::requestStack()->getCurrentRequest();
   $renderer = \Drupal::service('renderer');
-  if ($renderer->hasRenderContext()) {
+  if ($request->isMethodSafe() && $renderer->hasRenderContext()) {
     $build = ['#cache' => ['contexts' => ['user.node_grants:' . $op]]];
     $renderer->render($build);
   }
@@ -1133,6 +1143,7 @@ function node_access_needs_rebuild($rebuild = NULL) {
  */
 function node_access_rebuild($batch_mode = FALSE) {
   $node_storage = \Drupal::entityManager()->getStorage('node');
+  /** @var \Drupal\node\NodeAccessControlHandlerInterface $access_control_handler */
   $access_control_handler = \Drupal::entityManager()->getAccessControlHandler('node');
   $access_control_handler->deleteGrants();
   // Only recalculate if the site is using a node_access module.
@@ -1155,6 +1166,11 @@ function node_access_rebuild($batch_mode = FALSE) {
       // quickly.
       $entity_query = \Drupal::entityQuery('node');
       $entity_query->sort('nid', 'DESC');
+      // Disable access checking since all nodes must be processed even if the
+      // user does not have access. And unless the current user has the bypass
+      // node access permission, no nodes are accessible since the grants have
+      // just been deleted.
+      $entity_query->accessCheck(FALSE);
       $nids = $entity_query->execute();
       foreach ($nids as $nid) {
         $node_storage->resetCache(array($nid));
@@ -1162,7 +1178,8 @@ function node_access_rebuild($batch_mode = FALSE) {
         // To preserve database integrity, only write grants if the node
         // loads successfully.
         if (!empty($node)) {
-          $access_control_handler->writeGrants($node);
+          $grants = $access_control_handler->acquireGrants($node);
+          \Drupal::service('node.grant_storage')->write($node, $grants);
         }
       }
     }
@@ -1196,7 +1213,7 @@ function _node_access_rebuild_batch_operation(&$context) {
     // Initiate multistep processing.
     $context['sandbox']['progress'] = 0;
     $context['sandbox']['current_node'] = 0;
-    $context['sandbox']['max'] = \Drupal::entityQuery('node')->count()->execute();
+    $context['sandbox']['max'] = \Drupal::entityQuery('node')->accessCheck(FALSE)->count()->execute();
   }
 
   // Process the next 20 nodes.
@@ -1204,6 +1221,11 @@ function _node_access_rebuild_batch_operation(&$context) {
   $nids = \Drupal::entityQuery('node')
     ->condition('nid', $context['sandbox']['current_node'], '>')
     ->sort('nid', 'ASC')
+    // Disable access checking since all nodes must be processed even if the
+    // user does not have access. And unless the current user has the bypass
+    // node access permission, no nodes are accessible since the grants have
+    // just been deleted.
+    ->accessCheck(FALSE)
     ->range(0, $limit)
     ->execute();
   $node_storage->resetCache($nids);
@@ -1212,7 +1234,10 @@ function _node_access_rebuild_batch_operation(&$context) {
     // To preserve database integrity, only write grants if the node
     // loads successfully.
     if (!empty($node)) {
-      \Drupal::entityManager()->getAccessControlHandler('node')->writeGrants($node);
+      /** @var \Drupal\node\NodeAccessControlHandlerInterface $access_control_handler */
+      $access_control_handler = \Drupal::entityManager()->getAccessControlHandler('node');
+      $grants = $access_control_handler->acquireGrants($node);
+      \Drupal::service('node.grant_storage')->write($node, $grants);
     }
     $context['sandbox']['progress']++;
     $context['sandbox']['current_node'] = $nid;
@@ -1265,22 +1290,6 @@ function node_modules_installed($modules) {
  * Implements hook_modules_uninstalled().
  */
 function node_modules_uninstalled($modules) {
-  // Remove module-specific settings from all node types.
-  $config_names = \Drupal::configFactory()->listAll('node.type.');
-  foreach ($config_names as $config_name) {
-    $config = \Drupal::config($config_name);
-    $changed = FALSE;
-    foreach ($modules as $module) {
-      if ($config->get('settings.' . $module)) {
-        $config->clear('settings.' . $module);
-        $changed = TRUE;
-      }
-    }
-    if ($changed) {
-      $config->save();
-    }
-  }
-
   // Check whether any of the disabled modules implemented hook_node_grants(),
   // in which case the node access table needs to be rebuilt.
   foreach ($modules as $module) {

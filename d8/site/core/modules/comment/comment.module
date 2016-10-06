@@ -14,6 +14,7 @@ use Drupal\comment\CommentInterface;
 use Drupal\comment\Entity\CommentType;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\comment\Plugin\Field\FieldType\CommentItemInterface;
+use Drupal\Core\Entity\Entity\EntityViewMode;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
@@ -194,15 +195,15 @@ function comment_field_config_delete(FieldConfigInterface $field) {
 /**
  * Implements hook_node_links_alter().
  */
-function comment_node_links_alter(array &$node_links, NodeInterface $node, array &$context) {
+function comment_node_links_alter(array &$links, NodeInterface $node, array &$context) {
   // Comment links are only added to node entity type for backwards
   // compatibility. Should you require comment links for other entity types you
   // can do so by implementing a new field formatter.
   // @todo Make this configurable from the formatter. See
   //   https://www.drupal.org/node/1901110.
 
-  $links = \Drupal::service('comment.link_builder')->buildCommentedEntityLinks($node, $context);
-  $node_links += $links;
+  $comment_links = \Drupal::service('comment.link_builder')->buildCommentedEntityLinks($node, $context);
+  $links += $comment_links;
 }
 
 /**
@@ -244,10 +245,10 @@ function comment_node_view_alter(array &$build, EntityInterface $node, EntityVie
  *
  * @param \Drupal\comment\CommentInterface $comment
  *   The comment object.
- * @param $view_mode
+ * @param string $view_mode
  *   (optional) View mode; for instance, 'full', 'teaser', etc. Defaults to
  *   'full'.
- * @param $langcode
+ * @param string $langcode
  *   (optional) A language code to use for rendering. Defaults to the global
  *   content language of the current request.
  *
@@ -264,12 +265,12 @@ function comment_view(CommentInterface $comment, $view_mode = 'full', $langcode 
 /**
  * Constructs render array from an array of loaded comments.
  *
- * @param $comments
+ * @param \Drupal\comment\CommentInterface[] $comments
  *   An array of comments as returned by entity_load_multiple().
- * @param $view_mode
+ * @param string $view_mode
  *   (optional) View mode; for instance, 'full', 'teaser', etc. Defaults to
  *   'full'.
- * @param $langcode
+ * @param string $langcode
  *   (optional) A string indicating the language field values are to be shown
  *   in. If no language is provided the current content language is used.
  *   Defaults to NULL.
@@ -656,7 +657,7 @@ function template_preprocess_comment(&$variables) {
     $variables['permalink'] = \Drupal::l(t('Permalink'), new Url('<front>'));
   }
   else {
-    $uri = $comment->urlInfo();
+    $uri = $comment->permalink();
     $attributes = $uri->getOption('attributes') ?: array();
     $attributes += array('class' => array('permalink'), 'rel' => 'bookmark');
     $uri->setOption('attributes', $attributes);
@@ -755,4 +756,44 @@ function comment_preprocess_field(&$variables) {
  */
 function comment_ranking() {
   return \Drupal::service('comment.statistics')->getRankingInfo();
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_presave() for entity_view_display entities.
+ */
+function comment_entity_view_display_presave(EntityViewDisplayInterface $display) {
+  // Act only on comment view displays being disabled.
+  if ($display->isNew() || $display->getTargetEntityTypeId() !== 'comment' || $display->status()) {
+    return;
+  }
+  $storage = \Drupal::entityTypeManager()->getStorage('entity_view_display');
+  if (!$storage->loadUnchanged($display->getOriginalId())->status()) {
+    return;
+  }
+
+  // Disable the comment field formatter when the used view display is disabled.
+  foreach ($storage->loadMultiple() as $id => $view_display) {
+    $changed = FALSE;
+    /** @var \Drupal\Core\Entity\Display\EntityViewDisplayInterface $view_display */
+    foreach ($view_display->getComponents() as $field => $component) {
+      if (isset($component['type']) && ($component['type'] === 'comment_default')) {
+        if ($component['settings']['view_mode'] === $display->getMode()) {
+          $view_display->removeComponent($field);
+          /** @var \Drupal\Core\Entity\EntityViewModeInterface $mode */
+          $mode = EntityViewMode::load($display->getTargetEntityTypeId() . '.' . $display->getMode());
+          $arguments = [
+            '@id' => $view_display->id(),
+            '@name' => $field,
+            '@display' => $mode->label(),
+            '@mode' => $display->getMode(),
+          ];
+          \Drupal::logger('system')->warning("View display '@id': Comment field formatter '@name' was disabled because it is using the comment view display '@display' (@mode) that was just disabled.", $arguments);
+          $changed = TRUE;
+        }
+      }
+    }
+    if ($changed) {
+      $view_display->save();
+    }
+  }
 }

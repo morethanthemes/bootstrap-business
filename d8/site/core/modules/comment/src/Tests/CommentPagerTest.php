@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\comment\Tests\CommentPagerTest.
- */
-
 namespace Drupal\comment\Tests;
 
 use Drupal\comment\CommentManagerInterface;
@@ -96,6 +91,38 @@ class CommentPagerTest extends CommentTestBase {
   }
 
   /**
+   * Confirms comment paging works correctly with flat and threaded comments.
+   */
+  function testCommentPermalink() {
+    $this->drupalLogin($this->adminUser);
+
+    // Set comment variables.
+    $this->setCommentForm(TRUE);
+    $this->setCommentSubject(TRUE);
+    $this->setCommentPreview(DRUPAL_DISABLED);
+
+    // Create a node and three comments.
+    $node = $this->drupalCreateNode(array('type' => 'article', 'promote' => 1));
+    $comments = array();
+    $comments[] = $this->postComment($node, 'comment 1: ' . $this->randomMachineName(), $this->randomMachineName(), TRUE);
+    $comments[] = $this->postComment($node, 'comment 2: ' . $this->randomMachineName(), $this->randomMachineName(), TRUE);
+    $comments[] = $this->postComment($node, 'comment 3: ' . $this->randomMachineName(), $this->randomMachineName(), TRUE);
+
+    $this->setCommentSettings('default_mode', CommentManagerInterface::COMMENT_MODE_FLAT, 'Comment paging changed.');
+
+    // Set comments to one per page so that we are able to test paging without
+    // needing to insert large numbers of comments.
+    $this->setCommentsPerPage(1);
+
+    // Navigate to each comment permalink as anonymous and assert it appears on
+    // the page.
+    foreach ($comments as $index => $comment) {
+      $this->drupalGet($comment->toUrl());
+      $this->assertTrue($this->commentExists($comment), sprintf('Comment %d appears on page %d.', $index + 1, $index + 1));
+    }
+  }
+
+  /**
    * Tests comment ordering and threading.
    */
   function testCommentOrderingThreading() {
@@ -173,9 +200,9 @@ class CommentPagerTest extends CommentTestBase {
   /**
    * Asserts that the comments are displayed in the correct order.
    *
-   * @param $comments
-   *   And array of comments.
-   * @param $expected_order
+   * @param \Drupal\comment\CommentInterface[] $comments
+   *   An array of comments, must be of the type CommentInterface.
+   * @param array $expected_order
    *   An array of keys from $comments describing the expected order.
    */
   function assertCommentOrder(array $comments, array $expected_order) {
@@ -288,6 +315,7 @@ class CommentPagerTest extends CommentTestBase {
         'weight' => 30,
         'settings' => array(
           'pager_id' => 1,
+          'view_mode' => 'default',
         )
       ))
       ->save();

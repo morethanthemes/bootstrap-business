@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Mail\MailTest.
- */
-
 namespace Drupal\system\Tests\Mail;
 
 use Drupal\Core\Mail\Plugin\Mail\TestMailCollector;
@@ -103,4 +98,5 @@ class MailTest extends WebTestBase {
     $this->assertFalse(isset($sent_message['headers']['Reply-to']), 'Message reply-to is not set if not specified.');
     $this->assertFalse(isset($sent_message['headers']['Errors-To']), 'Errors-to header must not be set, it is deprecated.');
   }
+
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\Element\Actions.
- */
-
 namespace Drupal\Core\Render\Element;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -22,7 +17,7 @@ use Drupal\Core\Render\Element;
  * $form['actions'] = array('#type' => 'actions');
  * $form['actions']['submit'] = array(
  *   '#type' => 'submit',
- *   '#value' => t('Save'),
+ *   '#value' => $this->t('Save'),
  * );
  * @endcode
  *

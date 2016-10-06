@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\System\DefaultMobileMetaTagsTest.
- */
-
 namespace Drupal\system\Tests\System;
 
 use Drupal\Component\Utility\SafeMarkup;
@@ -50,4 +45,5 @@ class DefaultMobileMetaTagsTest extends WebTestBase {
       $this->assertNoRaw($metatag, SafeMarkup::format('Default Mobile meta tag "@name" removed properly.', array('@name' => $name)), 'System');
     }
   }
+
 }

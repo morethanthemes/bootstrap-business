@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rest\Annotation\RestResource.
- */
-
 namespace Drupal\rest\Annotation;
 
 use \Drupal\Component\Annotation\Plugin;
@@ -42,5 +37,12 @@ class RestResource extends Plugin {
    * @var \Drupal\Core\Annotation\Translation
    */
   public $label;
+
+  /**
+   * The serialization class to deserialize serialized data into.
+   *
+   * @var string (optional)
+   */
+  public $serialization_class;
 
 }

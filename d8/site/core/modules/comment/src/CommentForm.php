@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\comment\CommentForm.
- */
-
 namespace Drupal\comment;
 
 use Drupal\comment\Plugin\Field\FieldType\CommentItemInterface;
@@ -20,7 +15,7 @@ use Drupal\Core\Session\AccountInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Base for controller for comment forms.
+ * Base handler for comment forms.
  */
 class CommentForm extends ContentEntityForm {
 
@@ -167,7 +162,7 @@ class CommentForm extends ContentEntityForm {
       '#maxlength' => 60,
       '#access' => $this->currentUser->isAnonymous() || $is_admin,
       '#size' => 30,
-      '#attributes'=> [
+      '#attributes' => [
         'data-drupal-default-value' => $config->get('anonymous'),
       ],
     );
@@ -335,9 +330,9 @@ class CommentForm extends ContentEntityForm {
   /**
    * Form submission handler for the 'preview' action.
    *
-   * @param $form
+   * @param array $form
    *   An associative array containing the structure of the form.
-   * @param $form_state
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The current state of the form.
    */
   public function preview(array &$form, FormStateInterface $form_state) {
@@ -394,4 +389,5 @@ class CommentForm extends ContentEntityForm {
     }
     $form_state->setRedirectUrl($uri);
   }
+
 }

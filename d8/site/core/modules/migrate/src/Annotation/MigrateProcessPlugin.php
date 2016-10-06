@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\migrate\Annotation\MigrateProcessPlugin.
- */
-
 namespace Drupal\migrate\Annotation;
 
 use Drupal\Component\Annotation\Plugin;
@@ -49,4 +44,5 @@ class MigrateProcessPlugin extends Plugin {
    * @var bool (optional)
    */
   public $handle_multiples = FALSE;
+
 }

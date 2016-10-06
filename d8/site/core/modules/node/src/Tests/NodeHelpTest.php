@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Tests\NodeHelpTest.
- */
-
 namespace Drupal\node\Tests;
 
 use Drupal\simpletest\WebTestBase;
@@ -78,4 +73,5 @@ class NodeHelpTest extends WebTestBase {
     $this->assertResponse(200);
     $this->assertText($this->testText);
   }
+
 }

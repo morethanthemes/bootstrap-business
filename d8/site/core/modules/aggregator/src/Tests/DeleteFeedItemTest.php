@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\aggregator\Tests\DeleteFeedItemTest.
- */
-
 namespace Drupal\aggregator\Tests;
 
 /**
@@ -41,4 +36,5 @@ class DeleteFeedItemTest extends AggregatorTestBase {
       $this->deleteFeed($feed);
     }
   }
+
 }

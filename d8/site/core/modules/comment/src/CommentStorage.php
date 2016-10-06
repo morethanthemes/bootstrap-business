@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\comment\CommentStorage.
- */
-
 namespace Drupal\comment;
 
 use Drupal\Core\Cache\CacheBackendInterface;
@@ -19,7 +14,7 @@ use Drupal\Core\Language\LanguageManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Defines the controller class for comments.
+ * Defines the storage handler class for comments.
  *
  * This extends the Drupal\Core\Entity\Sql\SqlContentEntityStorage class,
  * adding required special handling for comment entities.

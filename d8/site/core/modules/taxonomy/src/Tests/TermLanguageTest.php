@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\taxonomy\Tests\TermLanguageTest.
- */
-
 namespace Drupal\taxonomy\Tests;
 
 use Drupal\Core\Language\LanguageInterface;
@@ -111,4 +106,5 @@ class TermLanguageTest extends TaxonomyTestBase {
     $this->drupalGet('admin/structure/taxonomy/manage/' . $this->vocabulary->id() . '/add');
     $this->assertOptionSelected('edit-langcode-0-value', 'cc', "The expected langcode, 'cc', was selected.");
   }
+
 }

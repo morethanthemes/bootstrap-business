@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\field_ui\Form\FieldConfigEditForm.
- */
-
 namespace Drupal\field_ui\Form;
 
 use Drupal\Core\Entity\EntityForm;
@@ -100,7 +95,7 @@ class FieldConfigEditForm extends EntityForm {
 
     // Add handling for default value.
     if ($element = $items->defaultValuesForm($form, $form_state)) {
-      $element = array_merge($element , array(
+      $element = array_merge($element, array(
         '#type' => 'details',
         '#title' => $this->t('Default value'),
         '#open' => TRUE,
@@ -172,7 +167,7 @@ class FieldConfigEditForm extends EntityForm {
       $default_value = $items->defaultValuesFormSubmit($form['default_value'], $form, $form_state);
     }
     $this->entity->setDefaultValue($default_value);
-}
+  }
 
   /**
    * {@inheritdoc}

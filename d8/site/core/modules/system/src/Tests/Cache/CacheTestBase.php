@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Cache\CacheTestBase.
- */
-
 namespace Drupal\system\Tests\Cache;
 
 use Drupal\simpletest\WebTestBase;
@@ -87,4 +82,5 @@ abstract class CacheTestBase extends WebTestBase {
     $cached = \Drupal::cache($bin)->get($cid);
     $this->assertFalse($cached, $message);
   }
+
 }

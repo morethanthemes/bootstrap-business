@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\path\Tests\PathLanguageTest.
- */
-
 namespace Drupal\path\Tests;
 
 /**
@@ -43,7 +38,7 @@ class PathLanguageTest extends PathTestBase {
       'edit any page content',
       'translate any entity',
     );
-    // Create and login user.
+    // Create and log in user.
     $this->webUser = $this->drupalCreateUser($permissions);
     $this->drupalLogin($this->webUser);
 
@@ -191,5 +186,11 @@ class PathLanguageTest extends PathTestBase {
     $english_node->removeTranslation('fr');
     $english_node->save();
     $this->assertFalse($this->container->get('path.alias_storage')->aliasExists('/' . $french_alias, 'fr'), 'Alias for French translation is removed when translation is deleted.');
+
+    // Check that the English alias still works.
+    $this->drupalGet($english_alias);
+    $this->assertTrue($this->container->get('path.alias_storage')->aliasExists('/' . $english_alias, 'en'), 'English alias is not deleted when French translation is removed.');
+    $this->assertText($english_node->body->value, 'English alias still works');
   }
+
 }

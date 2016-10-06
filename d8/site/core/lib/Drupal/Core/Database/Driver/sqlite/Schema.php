@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Database\Driver\sqlite\Schema.
- */
-
 namespace Drupal\Core\Database\Driver\sqlite;
 
 use Drupal\Component\Utility\Unicode;
@@ -321,6 +316,11 @@ class Schema extends DatabaseSchema {
           ->fields(array($field => $specification['initial']))
           ->execute();
       }
+      if (isset($specification['initial_from_field'])) {
+        $this->connection->update($table)
+          ->expression($field, $specification['initial_from_field'])
+          ->execute();
+      }
     }
     else {
       // We cannot add the field directly. Use the slower table alteration
@@ -338,6 +338,13 @@ class Schema extends DatabaseSchema {
         $mapping[$field] = array(
           'expression' => ':newfieldinitial',
           'arguments' => array(':newfieldinitial' => $specification['initial']),
+        );
+      }
+      elseif (isset($specification['initial_from_field'])) {
+        // If we have a initial value, copy it over.
+        $mapping[$field] = array(
+          'expression' => $specification['initial_from_field'],
+          'arguments' => [],
         );
       }
       else {
@@ -425,8 +432,12 @@ class Schema extends DatabaseSchema {
    *
    * @param $table
    *   Name of the table.
+   *
    * @return
    *   An array representing the schema, from drupal_get_schema().
+   *
+   * @throws \Exception
+   *   If a column of the table could not be parsed.
    */
   protected function introspectSchema($table) {
     $mapped_fields = array_flip($this->getFieldTypeMap());
@@ -464,7 +475,7 @@ class Schema extends DatabaseSchema {
         }
       }
       else {
-        new \Exception("Unable to parse the column type " . $row->type);
+        throw new \Exception("Unable to parse the column type " . $row->type);
       }
     }
     $indexes = array();
@@ -715,7 +726,7 @@ class Schema extends DatabaseSchema {
       // Can't use query placeholders for the schema because the query would
       // have to be :prefixsqlite_master, which does not work. We also need to
       // ignore the internal SQLite tables.
-      $result = db_query("SELECT name FROM " . $schema . ".sqlite_master WHERE type = :type AND name LIKE :table_name AND name NOT LIKE :pattern", array(
+      $result = $this->connection->query("SELECT name FROM " . $schema . ".sqlite_master WHERE type = :type AND name LIKE :table_name AND name NOT LIKE :pattern", array(
         ':type' => 'table',
         ':table_name' => $table_expression,
         ':pattern' => 'sqlite_%',

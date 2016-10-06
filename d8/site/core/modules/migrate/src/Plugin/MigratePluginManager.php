@@ -1,17 +1,11 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\migrate\Plugin\MigratePluginManager.
- */
-
 namespace Drupal\migrate\Plugin;
 
 use Drupal\Component\Plugin\Factory\DefaultFactory;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Plugin\DefaultPluginManager;
-use Drupal\migrate\Entity\MigrationInterface;
 
 /**
  * Manages migrate plugins.
@@ -27,7 +21,7 @@ use Drupal\migrate\Entity\MigrationInterface;
  *
  * @ingroup migration
  */
-class MigratePluginManager extends DefaultPluginManager {
+class MigratePluginManager extends DefaultPluginManager implements MigratePluginManagerInterface {
 
   /**
    * Constructs a MigratePluginManager object.
@@ -55,8 +49,6 @@ class MigratePluginManager extends DefaultPluginManager {
 
   /**
    * {@inheritdoc}
-   *
-   * A specific createInstance method is necessary to pass the migration on.
    */
   public function createInstance($plugin_id, array $configuration = array(), MigrationInterface $migration = NULL) {
     $plugin_definition = $this->getDefinition($plugin_id);

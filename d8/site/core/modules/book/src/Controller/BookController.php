@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\book\Controller\BookController.
- */
-
 namespace Drupal\book\Controller;
 
 use Drupal\book\BookExport;
@@ -76,7 +71,6 @@ class BookController extends ControllerBase {
    *
    * @return array
    *   A render array representing the administrative page content.
-   *
    */
   public function adminOverview() {
     $rows = array();

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\search\Tests\SearchMultilingualEntityTest.
- */
-
 namespace Drupal\search\Tests;
 
 use Drupal\field\Entity\FieldStorageConfig;
@@ -187,7 +182,7 @@ class SearchMultilingualEntityTest extends SearchTestBase {
     $this->assertEqual(count($search_result), 2, 'The search found 2 results');
 
     // Test to check for the language of result items.
-    foreach($search_result as $result) {
+    foreach ($search_result as $result) {
       $this->assertEqual($result['langcode'], 'hu', 'The search found the correct Hungarian result');
     }
 
@@ -323,4 +318,5 @@ class SearchMultilingualEntityTest extends SearchTestBase {
     $this->assertEqual($count_foo, count($results), 'Foo count was ' . $count_foo . ' for ' . $message);
 
   }
+
 }

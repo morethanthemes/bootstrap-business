@@ -2,8 +2,7 @@ id: d7_user
 label: User accounts
 migration_tags:
   - Drupal 7
-builder:
-  plugin: d7_user
+class: Drupal\user\Plugin\migrate\User
 source:
   plugin: d7_user
 process:
@@ -42,3 +41,4 @@ migration_dependencies:
     - user_picture_field_instance
     - user_picture_entity_display
     - user_picture_entity_form_display
+    - d7_field_instance

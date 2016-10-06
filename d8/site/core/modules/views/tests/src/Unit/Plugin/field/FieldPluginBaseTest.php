@@ -5,7 +5,7 @@
  * Contains \Drupal\Tests\views\Unit\Plugin\field\FieldPluginBaseTest.
  */
 
-namespace Drupal\Tests\views\Unit\Plugin\field {
+namespace Drupal\Tests\views\Unit\Plugin\field;
 
 use Drupal\Core\GeneratedUrl;
 use Drupal\Core\Language\Language;
@@ -343,6 +343,8 @@ class FieldPluginBaseTest extends UnitTestCase {
 
     // External URL.
     $data[] = ['https://www.drupal.org', [], [], '<a href="https://www.drupal.org">value</a>'];
+    $data[] = ['www.drupal.org', ['external' => TRUE], [], '<a href="http://www.drupal.org">value</a>'];
+    $data[] = ['', ['external' => TRUE], [], 'value'];
 
     return $data;
   }
@@ -393,46 +395,46 @@ class FieldPluginBaseTest extends UnitTestCase {
 
     // Simple path with default options.
     $url = Url::fromRoute('test_route');
-    $data[]= [$url, [], clone $url, '/test-path', clone $url, '<a href="/test-path">value</a>'];
+    $data[] = [$url, [], clone $url, '/test-path', clone $url, '<a href="/test-path">value</a>'];
 
     // Simple url with parameters.
     $url_parameters = Url::fromRoute('test_route', ['key' => 'value']);
-    $data[]= [$url_parameters, [], clone $url_parameters, '/test-path/value', clone $url_parameters, '<a href="/test-path/value">value</a>'];
+    $data[] = [$url_parameters, [], clone $url_parameters, '/test-path/value', clone $url_parameters, '<a href="/test-path/value">value</a>'];
 
     // Add a fragment.
     $url = Url::fromRoute('test_route');
     $url_with_fragment = Url::fromRoute('test_route');
     $options = ['fragment' => 'test'] + $this->defaultUrlOptions;
     $url_with_fragment->setOptions($options);
-    $data[]= [$url, ['fragment' => 'test'], $url_with_fragment, '/test-path#test', clone $url_with_fragment, '<a href="/test-path#test">value</a>'];
+    $data[] = [$url, ['fragment' => 'test'], $url_with_fragment, '/test-path#test', clone $url_with_fragment, '<a href="/test-path#test">value</a>'];
 
     // Rel attributes.
     $url = Url::fromRoute('test_route');
     $url_with_rel = Url::fromRoute('test_route');
     $options = ['attributes' => ['rel' => 'up']] + $this->defaultUrlOptions;
     $url_with_rel->setOptions($options);
-    $data[]= [$url, ['rel' => 'up'], clone $url, '/test-path', $url_with_rel, '<a href="/test-path" rel="up">value</a>'];
+    $data[] = [$url, ['rel' => 'up'], clone $url, '/test-path', $url_with_rel, '<a href="/test-path" rel="up">value</a>'];
 
     // Target attributes.
     $url = Url::fromRoute('test_route');
     $url_with_target = Url::fromRoute('test_route');
     $options = ['attributes' => ['target' => '_blank']] + $this->defaultUrlOptions;
     $url_with_target->setOptions($options);
-    $data[]= [$url, ['target' => '_blank'], $url_with_target, '/test-path', clone $url_with_target, '<a href="/test-path" target="_blank">value</a>'];
+    $data[] = [$url, ['target' => '_blank'], $url_with_target, '/test-path', clone $url_with_target, '<a href="/test-path" target="_blank">value</a>'];
 
     // Link attributes.
     $url = Url::fromRoute('test_route');
     $url_with_link_attributes = Url::fromRoute('test_route');
     $options = ['attributes' => ['foo' => 'bar']] + $this->defaultUrlOptions;
     $url_with_link_attributes->setOptions($options);
-    $data[]= [$url, ['link_attributes' => ['foo' => 'bar']], clone $url, '/test-path', $url_with_link_attributes, '<a href="/test-path" foo="bar">value</a>'];
+    $data[] = [$url, ['link_attributes' => ['foo' => 'bar']], clone $url, '/test-path', $url_with_link_attributes, '<a href="/test-path" foo="bar">value</a>'];
 
     // Manual specified query.
     $url = Url::fromRoute('test_route');
     $url_with_query = Url::fromRoute('test_route');
     $options = ['query' => ['foo' => 'bar']] + $this->defaultUrlOptions;
     $url_with_query->setOptions($options);
-    $data[]= [$url, ['query' => ['foo' => 'bar']], clone $url_with_query, '/test-path?foo=bar', $url_with_query, '<a href="/test-path?foo=bar">value</a>'];
+    $data[] = [$url, ['query' => ['foo' => 'bar']], clone $url_with_query, '/test-path?foo=bar', $url_with_query, '<a href="/test-path?foo=bar">value</a>'];
 
     // Query specified as part of the path.
     $url = Url::fromRoute('test_route')->setOption('query', ['foo' => 'bar']);
@@ -508,9 +510,9 @@ class FieldPluginBaseTest extends UnitTestCase {
     $field->field_alias = 'key';
     $row = new ResultRow(['key' => 'value']);
 
-    $build =[
+    $build = [
       '#type' => 'inline_template',
-      '#template' => 'base:test-path/' . explode('/', $path)[1],
+      '#template' => 'test-path/' . explode('/', $path)[1],
       '#context' => ['foo' => 123],
       '#post_render' => [function() {}],
     ];
@@ -545,6 +547,62 @@ class FieldPluginBaseTest extends UnitTestCase {
     $data[] = ['test-path/{{  foo }}', $tokens, $link_html];
     $data[] = ['test-path/{{ foo  }}', $tokens, $link_html];
     $data[] = ['test-path/{{  foo  }}', $tokens, $link_html];
+
+    return $data;
+  }
+
+  /**
+   * Test rendering of a link with a path and options.
+   *
+   * @dataProvider providerTestRenderAsExternalLinkWithPathAndTokens
+   * @covers ::renderAsLink
+   */
+  public function testRenderAsExternalLinkWithPathAndTokens($path, $tokens, $link_html, $context) {
+    $alter = [
+      'make_link' => TRUE,
+      'path' => $path,
+      'url' => '',
+    ];
+    if (isset($context['alter'])) {
+      $alter += $context['alter'];
+    }
+
+    $this->setUpUrlIntegrationServices();
+    $this->setupDisplayWithEmptyArgumentsAndFields();
+    $this->executable->build_info['substitutions'] = $tokens;
+    $field = $this->setupTestField(['alter' => $alter]);
+    $field->field_alias = 'key';
+    $row = new ResultRow(['key' => 'value']);
+
+    $build = [
+      '#type' => 'inline_template',
+      '#template' => $path,
+      '#context' => ['foo' => $context['context_path']],
+      '#post_render' => [function() {}],
+    ];
+
+    $this->renderer->expects($this->once())
+      ->method('renderPlain')
+      ->with($build)
+      ->willReturn($context['context_path']);
+
+    $result = $field->advancedRender($row);
+    $this->assertEquals($link_html, $result);
+  }
+
+  /**
+   * Data provider for ::testRenderAsExternalLinkWithPathAndTokens().
+   *
+   * @return array
+   *   Test data.
+   */
+  public function providerTestRenderAsExternalLinkWithPathAndTokens() {
+    $data = [];
+
+    $data[] = ['{{ foo }}', ['{{ foo }}' => 'http://www.drupal.org'], '<a href="http://www.drupal.org">value</a>', ['context_path' => 'http://www.drupal.org']];
+    $data[] = ['{{ foo }}', ['{{ foo }}' => ''], 'value', ['context_path' => '']];
+    $data[] = ['{{ foo }}', ['{{ foo }}' => ''], 'value', ['context_path' => '', 'alter' => ['external' => TRUE]]];
+    $data[] = ['{{ foo }}', ['{{ foo }}' => '/test-path/123'], '<a href="/test-path/123">value</a>', ['context_path' => '/test-path/123']];
 
     return $data;
   }
@@ -634,12 +692,12 @@ class FieldPluginBaseTestField extends FieldPluginBase {
   }
 
 }
-}
+
 // @todo Remove as part of https://www.drupal.org/node/2529170.
-namespace {
-  if (!function_exists('base_path')) {
-    function base_path() {
-      return '/';
-    }
+namespace Drupal\views\Plugin\views\field;
+
+if (!function_exists('base_path')) {
+  function base_path() {
+    return '/';
   }
 }

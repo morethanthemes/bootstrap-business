@@ -1,16 +1,11 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\taxonomy\VocabularyStorage.
- */
-
 namespace Drupal\taxonomy;
 
 use Drupal\Core\Config\Entity\ConfigEntityStorage;
 
 /**
- * Defines a controller class for taxonomy vocabularies.
+ * Defines a storage handler class for taxonomy vocabularies.
  */
 class VocabularyStorage extends ConfigEntityStorage implements VocabularyStorageInterface {
 

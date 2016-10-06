@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Cache\BackendChain.
- */
-
 namespace Drupal\Core\Cache;
 /**
  * Defines a chained cache implementation for combining multiple cache backends.
@@ -24,7 +19,6 @@ namespace Drupal\Core\Cache;
  *
  * @ingroup cache
  */
-
 class BackendChain implements CacheBackendInterface, CacheTagsInvalidatorInterface {
 
   /**

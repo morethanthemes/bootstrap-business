@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Tests\Plugin\ViewsFormTest.
- */
-
 namespace Drupal\views\Tests\Plugin;
 
 use Drupal\simpletest\WebTestBase;
@@ -35,4 +30,5 @@ class ViewsFormTest extends WebTestBase {
     $result = (bool) preg_match('#<form[^>]*?>(?!/form).*<form#s', $this->getRawContent());
     $this->assertFalse($result, 'The views form element is not nested.');
   }
+
 }

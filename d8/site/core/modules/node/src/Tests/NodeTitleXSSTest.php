@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Tests\NodeTitleXSSTest.
- */
-
 namespace Drupal\node\Tests;
 
 use Drupal\Component\Utility\Html;
@@ -43,4 +38,5 @@ class NodeTitleXSSTest extends NodeTestBase {
     $this->drupalGet('node/' . $node->id() . '/edit');
     $this->assertNoRaw($xss, 'Harmful tags are escaped when editing a node.');
   }
+
 }

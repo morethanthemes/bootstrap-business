@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\path\Tests\PathLanguageUiTest.
- */
-
 namespace Drupal\path\Tests;
 
 /**
@@ -24,7 +19,7 @@ class PathLanguageUiTest extends PathTestBase {
   protected function setUp() {
     parent::setUp();
 
-    // Create and login user.
+    // Create and log in user.
     $web_user = $this->drupalCreateUser(array('edit any page content', 'create page content', 'administer url aliases', 'create url aliases', 'administer languages', 'access administration pages'));
     $this->drupalLogin($web_user);
 
@@ -46,7 +41,7 @@ class PathLanguageUiTest extends PathTestBase {
     $name = $this->randomMachineName(8);
     $edit = array();
     $edit['source'] = '/admin/config/search/path';
-    $edit['alias'] ='/' . $name;
+    $edit['alias'] = '/' . $name;
     $this->drupalPostForm('admin/config/search/path/add', $edit, t('Save'));
 
     $this->drupalGet($name);
@@ -82,4 +77,5 @@ class PathLanguageUiTest extends PathTestBase {
     $this->drupalGet('fr/' . $name);
     $this->assertText(t('Filter aliases'), 'Foreign URL alias works');
   }
+
 }

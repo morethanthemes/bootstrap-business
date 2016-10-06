@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\EventSubscriber\AuthenticationSubscriber.
- */
-
 namespace Drupal\Core\EventSubscriber;
 
 use Drupal\Core\Authentication\AuthenticationProviderFilterInterface;
@@ -35,14 +30,14 @@ class AuthenticationSubscriber implements EventSubscriberInterface {
   /**
    * Authentication provider filter.
    *
-   * @var \Drupal\Core\Authentication\AuthenticationProviderFilterInterface|NULL
+   * @var \Drupal\Core\Authentication\AuthenticationProviderFilterInterface|null
    */
   protected $filter;
 
   /**
    * Authentication challenge provider.
    *
-   * @var \Drupal\Core\Authentication\AuthenticationProviderChallengeInterface|NULL
+   * @var \Drupal\Core\Authentication\AuthenticationProviderChallengeInterface|null
    */
   protected $challengeProvider;
 

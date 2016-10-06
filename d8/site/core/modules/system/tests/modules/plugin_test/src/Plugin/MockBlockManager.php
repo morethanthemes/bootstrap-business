@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\plugin_test\Plugin\MockBlockManager.
- */
-
 namespace Drupal\plugin_test\Plugin;
 
 use Drupal\Component\Plugin\PluginManagerBase;
@@ -138,4 +133,5 @@ class MockBlockManager extends PluginManagerBase {
     // printing TranslatableMarkup objects.
     return new ContextDefinition($data_type, (string) $label, $required);
   }
+
 }

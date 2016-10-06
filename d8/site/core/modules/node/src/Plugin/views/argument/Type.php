@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Plugin\views\argument\Type.
- */
-
 namespace Drupal\node\Plugin\views\argument;
 
 use Drupal\Core\Entity\EntityStorageInterface;
@@ -19,7 +14,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class Type extends StringArgument {
 
   /**
-   * NodeType storage controller.
+   * NodeType storage handler.
    *
    * @var \Drupal\Core\Entity\EntityStorageInterface
    */

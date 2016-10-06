@@ -267,6 +267,10 @@ namespace Drupal\Tests\Component\DependencyInjection\Dumper {
       ) + $base_service_definition;
 
       $service_definitions[] = array(
+        'shared' => FALSE,
+      ) + $base_service_definition;
+
+      $service_definitions[] = array(
         'lazy' => TRUE,
       ) + $base_service_definition;
 
@@ -358,6 +362,10 @@ namespace Drupal\Tests\Component\DependencyInjection\Dumper {
         'shared' => FALSE,
       ) + $base_service_definition;
 
+      $service_definitions[] = array(
+          'shared' => FALSE,
+        ) + $base_service_definition;
+
       // Test factory.
       $service_definitions[] = array(
         'factory' => array(new Reference('bar'), 'factoryMethod'),
@@ -397,6 +405,7 @@ namespace Drupal\Tests\Component\DependencyInjection\Dumper {
         $definition->getProperties()->willReturn($service_definition['properties']);
         $definition->getMethodCalls()->willReturn($service_definition['calls']);
         $definition->getScope()->willReturn($service_definition['scope']);
+        $definition->isShared()->willReturn($service_definition['shared']);
         $definition->getDecoratedService()->willReturn(NULL);
         $definition->getFactory()->willReturn($service_definition['factory']);
         $definition->getConfigurator()->willReturn($service_definition['configurator']);
@@ -482,6 +491,60 @@ namespace Drupal\Tests\Component\DependencyInjection\Dumper {
 
       $this->containerBuilder->getDefinitions()->willReturn($services);
       $this->dumper->getArray();
+    }
+
+    /**
+     * Tests that references to aliases work correctly.
+     *
+     * @covers ::getReferenceCall
+     *
+     * @dataProvider publicPrivateDataProvider
+     */
+    public function testGetServiceDefinitionWithReferenceToAlias($public) {
+      $bar_definition = new Definition('\stdClass');
+      $bar_definition_php_array = array(
+        'class' => '\stdClass',
+      );
+      if (!$public) {
+        $bar_definition->setPublic(FALSE);
+        $bar_definition_php_array['public'] = FALSE;
+      }
+      $bar_definition_php_array['arguments_count'] = 0;
+
+      $services['bar'] = $bar_definition;
+
+      $aliases['bar.alias'] = 'bar';
+
+      $foo = new Definition('\stdClass');
+      $foo->addArgument(new Reference('bar.alias'));
+
+      $services['foo'] = $foo;
+
+      $this->containerBuilder->getAliases()->willReturn($aliases);
+      $this->containerBuilder->getDefinitions()->willReturn($services);
+      $this->containerBuilder->getDefinition('bar')->willReturn($bar_definition);
+      $dump = $this->dumper->getArray();
+      if ($public) {
+        $service_definition = $this->getServiceCall('bar');
+      }
+      else {
+        $service_definition = $this->getPrivateServiceCall('bar', $bar_definition_php_array, TRUE);
+      }
+      $data = array(
+         'class' => '\stdClass',
+         'arguments' => $this->getCollection(array(
+           $service_definition,
+         )),
+         'arguments_count' => 1,
+      );
+      $this->assertEquals($this->serializeDefinition($data), $dump['services']['foo'], 'Expected definition matches dump.');
+    }
+
+    public function publicPrivateDataProvider() {
+      return array(
+        array(TRUE),
+        array(FALSE),
+      );
     }
 
     /**

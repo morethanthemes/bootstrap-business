@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\rdf\RdfMappingInterface.
- */
 
 namespace Drupal\rdf;
 
@@ -107,4 +103,5 @@ interface RdfMappingInterface extends ConfigEntityInterface {
    *   The RdfMapping object.
    */
   public function setFieldMapping($field_name, array $mapping = array());
+
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Cache\CacheBackendInterface.
- */
-
 namespace Drupal\Core\Cache;
 
 /**
@@ -220,4 +215,5 @@ interface CacheBackendInterface {
    * Remove a cache bin.
    */
   public function removeBin();
+
 }

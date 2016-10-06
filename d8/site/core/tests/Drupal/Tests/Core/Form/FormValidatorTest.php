@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Form\FormValidatorTest.
- */
-
 namespace Drupal\Tests\Core\Form;
 
 use Drupal\Core\Form\FormState;
@@ -208,7 +203,7 @@ class FormValidatorTest extends UnitTestCase {
       array(
         array(array('test1')),
         array(
-          '#is_button' => true,
+          '#is_button' => TRUE,
           '#value' => 'baz',
           '#name' => 'op',
           '#parents' => array('submit'),

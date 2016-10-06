@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\aggregator\Tests\FeedProcessorPluginTest.
- */
-
 namespace Drupal\aggregator\Tests;
 
 use Drupal\aggregator\Entity\Feed;
@@ -68,4 +63,5 @@ class FeedProcessorPluginTest extends AggregatorTestBase {
     // Make sure its refresh rate doubled.
     $this->assertEqual($feed->getRefreshRate(), 3600);
   }
+
 }

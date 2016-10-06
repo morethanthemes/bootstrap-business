@@ -72,6 +72,8 @@ use Drupal\Core\Utility\UpdateException;
  * frequently called should be left in the main module file so that they are
  * always available.
  *
+ * See system_hook_info() for all hook groups defined by Drupal core.
+ *
  * @return
  *   An associative array whose keys are hook names and whose values are an
  *   associative array containing:
@@ -79,9 +81,7 @@ use Drupal\Core\Utility\UpdateException;
  *     system will determine whether a file with the name $module.$group.inc
  *     exists, and automatically load it when required.
  *
- * See system_hook_info() for all hook groups defined by Drupal core.
- *
- * @see hook_hook_info_alter().
+ * @see hook_hook_info_alter()
  */
 function hook_hook_info() {
   $hooks['token_info'] = array(
@@ -175,7 +175,7 @@ function hook_module_preinstall($module) {
  * This function differs from hook_install() in that it gives all other modules
  * a chance to perform actions when a module is installed, whereas
  * hook_install() is only called on the module actually being installed. See
- * \Drupal\Core\Extension\ModuleHandler::install() for a detailed description of
+ * \Drupal\Core\Extension\ModuleInstaller::install() for a detailed description of
  * the order in which install hooks are invoked.
  *
  * This hook should be implemented in a .module file, not in an .install file.
@@ -183,7 +183,7 @@ function hook_module_preinstall($module) {
  * @param $modules
  *   An array of the modules that were installed.
  *
- * @see \Drupal\Core\Extension\ModuleHandler::install()
+ * @see \Drupal\Core\Extension\ModuleInstaller::install()
  * @see hook_install()
  */
 function hook_modules_installed($modules) {
@@ -197,6 +197,12 @@ function hook_modules_installed($modules) {
  *
  * If the module implements hook_schema(), the database tables will
  * be created before this hook is fired.
+ *
+ * If the module provides a MODULE.routing.yml or alters routing information
+ * these changes will not be available when this hook is fired. If up-to-date
+ * router information is required, for example to use \Drupal\Core\Url, then
+ * (preferably) use hook_modules_installed() or rebuild the router in the
+ * hook_install() implementation.
  *
  * Implementations of this hook are by convention declared in the module's
  * .install file. The implementation can rely on the .module file being loaded.
@@ -217,7 +223,7 @@ function hook_modules_installed($modules) {
  * be removed during uninstall should be removed with hook_uninstall().
  *
  * @see hook_schema()
- * @see \Drupal\Core\Extension\ModuleHandler::install()
+ * @see \Drupal\Core\Extension\ModuleInstaller::install()
  * @see hook_uninstall()
  * @see hook_modules_installed()
  */
@@ -887,6 +893,9 @@ function hook_updater_info_alter(&$updaters) {
  * Other severity levels have no effect on the installation.
  * Module dependencies do not belong to these installation requirements,
  * but should be defined in the module's .info.yml file.
+ *
+ * During installation (when $phase == 'install'), if you need to load a class
+ * from your module, you'll need to include the class file directly.
  *
  * The 'runtime' phase is not limited to pure installation requirements
  * but can also be used for more general status information like maintenance

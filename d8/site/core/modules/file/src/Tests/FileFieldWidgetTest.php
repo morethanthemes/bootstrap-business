@@ -1,20 +1,18 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\file\Tests\FileFieldWidgetTest.
- */
-
 namespace Drupal\file\Tests;
 
 use Drupal\comment\Entity\Comment;
 use Drupal\comment\Tests\CommentTestTrait;
 use Drupal\Component\Utility\Unicode;
+use Drupal\Core\Url;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\field_ui\Tests\FieldUiTestTrait;
 use Drupal\user\RoleInterface;
 use Drupal\file\Entity\File;
+use Drupal\user\Entity\User;
+use Drupal\user\UserInterface;
 
 /**
  * Tests the file field widget, single and multi-valued, with and without AJAX,
@@ -41,6 +39,36 @@ class FileFieldWidgetTest extends FileFieldTestBase {
    * @var array
    */
   public static $modules = array('comment', 'block');
+
+  /**
+   * Creates a temporary file, for a specific user.
+   *
+   * @param string $data
+   *   A string containing the contents of the file.
+   * @param \Drupal\user\UserInterface $user
+   *   The user of the file owner.
+   *
+   * @return \Drupal\file\FileInterface
+   *   A file object, or FALSE on error.
+   */
+  protected function createTemporaryFile($data, UserInterface $user = NULL) {
+    $file = file_save_data($data, NULL, NULL);
+
+    if ($file) {
+      if ($user) {
+        $file->setOwner($user);
+      }
+      else {
+        $file->setOwner($this->adminUser);
+      }
+      // Change the file status to be temporary.
+      $file->setTemporary();
+      // Save the changes.
+      $file->save();
+    }
+
+    return $file;
+  }
 
   /**
    * Tests upload and remove buttons for a single-valued File field.
@@ -163,7 +191,7 @@ class FileFieldWidgetTest extends FileFieldTestBase {
               $check_field_name = $field_name;
             }
 
-            $this->assertIdentical((string) $button['name'], $check_field_name . '_' . $key. '_remove_button');
+            $this->assertIdentical((string) $button['name'], $check_field_name . '_' . $key . '_remove_button');
           }
 
           // "Click" the remove button (emulating either a nojs or js submission).
@@ -219,32 +247,39 @@ class FileFieldWidgetTest extends FileFieldTestBase {
       $this->assertTrue(empty($node->{$field_name}->target_id), 'Node was successfully saved without any files.');
     }
 
-    $upload_files = array($test_file, $test_file);
+    $upload_files_node_creation = array($test_file, $test_file);
     // Try to upload multiple files, but fewer than the maximum.
-    $nid = $this->uploadNodeFiles($upload_files, $field_name, $type_name);
+    $nid = $this->uploadNodeFiles($upload_files_node_creation, $field_name, $type_name);
     $node_storage->resetCache(array($nid));
     $node = $node_storage->load($nid);
-    $this->assertEqual(count($node->{$field_name}), count($upload_files), 'Node was successfully saved with mulitple files.');
+    $this->assertEqual(count($node->{$field_name}), count($upload_files_node_creation), 'Node was successfully saved with mulitple files.');
 
     // Try to upload more files than allowed on revision.
-    $this->uploadNodeFiles($upload_files, $field_name, $nid, 1);
-    $args = array(
+    $upload_files_node_revision = array($test_file, $test_file, $test_file, $test_file);
+    $this->uploadNodeFiles($upload_files_node_revision, $field_name, $nid, 1);
+    $args = [
       '%field' => $field_name,
-      '@count' => $cardinality
-    );
-    $this->assertRaw(t('%field: this field cannot hold more than @count values.', $args));
+      '@max' => $cardinality,
+      '@count' => count($upload_files_node_creation) + count($upload_files_node_revision),
+      '%list' => implode(', ', array_fill(0, 3, $test_file->getFilename())),
+    ];
+    $this->assertRaw(t('Field %field can only hold @max values but there were @count uploaded. The following files have been omitted as a result: %list.', $args));
     $node_storage->resetCache(array($nid));
     $node = $node_storage->load($nid);
-    $this->assertEqual(count($node->{$field_name}), count($upload_files), 'More files than allowed could not be saved to node.');
+    $this->assertEqual(count($node->{$field_name}), $cardinality, 'More files than allowed could not be saved to node.');
 
-    // Try to upload exactly the allowed number of files on revision.
-    $this->uploadNodeFile($test_file, $field_name, $nid, 1);
+    // Try to upload exactly the allowed number of files on revision. Create an
+    // empty node first, to fill it in its first revision.
+    $node = $this->drupalCreateNode([
+      'type' => $type_name
+    ]);
+    $this->uploadNodeFile($test_file, $field_name, $node->id(), 1);
     $node_storage->resetCache(array($nid));
     $node = $node_storage->load($nid);
     $this->assertEqual(count($node->{$field_name}), $cardinality, 'Node was successfully revised to maximum number of files.');
 
     // Try to upload exactly the allowed number of files, new node.
-    $upload_files[] = $test_file;
+    $upload_files = array_fill(0, $cardinality, $test_file);
     $nid = $this->uploadNodeFiles($upload_files, $field_name, $type_name);
     $node_storage->resetCache(array($nid));
     $node = $node_storage->load($nid);
@@ -447,6 +482,121 @@ class FileFieldWidgetTest extends FileFieldTestBase {
 
     // If the field has at least a item, the table should be visible.
     $this->assertIdentical(count($elements), 1);
+
+    // Test for AJAX error when using progress bar on file field widget
+    $key = $this->randomMachineName();
+    $this->drupalPost('file/progress/' . $key, 'application/json', []);
+    $this->assertNoResponse(500, t('No AJAX error when using progress bar on file field widget'));
+    $this->assertText('Starting upload...');
+  }
+
+  /**
+   * Tests exploiting the temporary file removal of another user using fid.
+   */
+  public function testTemporaryFileRemovalExploit() {
+    // Create a victim user.
+    $victim_user = $this->drupalCreateUser();
+
+    // Create an attacker user.
+    $attacker_user = $this->drupalCreateUser(array(
+      'access content',
+      'create article content',
+      'edit any article content',
+    ));
+
+    // Log in as the attacker user.
+    $this->drupalLogin($attacker_user);
+
+    // Perform tests using the newly created users.
+    $this->doTestTemporaryFileRemovalExploit($victim_user, $attacker_user);
+  }
+
+  /**
+   * Tests exploiting the temporary file removal for anonymous users using fid.
+   */
+  public function testTemporaryFileRemovalExploitAnonymous() {
+    // Set up an anonymous victim user.
+    $victim_user = User::getAnonymousUser();
+
+    // Set up an anonymous attacker user.
+    $attacker_user = User::getAnonymousUser();
+
+    // Set up permissions for anonymous attacker user.
+    user_role_change_permissions(RoleInterface::ANONYMOUS_ID, array(
+      'access content' => TRUE,
+      'create article content' => TRUE,
+      'edit any article content' => TRUE,
+    ));
+
+    // Log out so as to be the anonymous attacker user.
+    $this->drupalLogout();
+
+    // Perform tests using the newly set up anonymous users.
+    $this->doTestTemporaryFileRemovalExploit($victim_user, $attacker_user);
+  }
+
+  /**
+   * Helper for testing exploiting the temporary file removal using fid.
+   *
+   * @param \Drupal\user\UserInterface $victim_user
+   *   The victim user.
+   * @param \Drupal\user\UserInterface $attacker_user
+   *   The attacker user.
+   */
+  protected function doTestTemporaryFileRemovalExploit(UserInterface $victim_user, UserInterface $attacker_user) {
+    $type_name = 'article';
+    $field_name = 'test_file_field';
+    $this->createFileField($field_name, 'node', $type_name);
+
+    $test_file = $this->getTestFile('text');
+    foreach (array('nojs', 'js') as $type) {
+      // Create a temporary file owned by the victim user. This will be as if
+      // they had uploaded the file, but not saved the node they were editing
+      // or creating.
+      $victim_tmp_file = $this->createTemporaryFile('some text', $victim_user);
+      $victim_tmp_file = File::load($victim_tmp_file->id());
+      $this->assertTrue($victim_tmp_file->isTemporary(), 'New file saved to disk is temporary.');
+      $this->assertFalse(empty($victim_tmp_file->id()), 'New file has an fid.');
+      $this->assertEqual($victim_user->id(), $victim_tmp_file->getOwnerId(), 'New file belongs to the victim.');
+
+      // Have attacker create a new node with a different uploaded file and
+      // ensure it got uploaded successfully.
+      $edit = [
+        'title[0][value]' => $type . '-title' ,
+      ];
+
+      // Attach a file to a node.
+      $edit['files[' . $field_name . '_0]'] = $this->container->get('file_system')->realpath($test_file->getFileUri());
+      $this->drupalPostForm(Url::fromRoute('node.add', array('node_type' => $type_name)), $edit, t('Save'));
+      $node = $this->drupalGetNodeByTitle($edit['title[0][value]']);
+
+      /** @var \Drupal\file\FileInterface $node_file */
+      $node_file = File::load($node->{$field_name}->target_id);
+      $this->assertFileExists($node_file, 'A file was saved to disk on node creation');
+      $this->assertEqual($attacker_user->id(), $node_file->getOwnerId(), 'New file belongs to the attacker.');
+
+      // Ensure the file can be downloaded.
+      $this->drupalGet(file_create_url($node_file->getFileUri()));
+      $this->assertResponse(200, 'Confirmed that the generated URL is correct by downloading the shipped file.');
+
+      // "Click" the remove button (emulating either a nojs or js submission).
+      // In this POST request, the attacker "guesses" the fid of the victim's
+      // temporary file and uses that to remove this file.
+      $this->drupalGet($node->toUrl('edit-form'));
+      switch ($type) {
+        case 'nojs':
+          $this->drupalPostForm(NULL, [$field_name . '[0][fids]' => (string) $victim_tmp_file->id()], 'Remove');
+          break;
+
+        case 'js':
+          $this->drupalPostAjaxForm(NULL, [$field_name . '[0][fids]' => (string) $victim_tmp_file->id()], ["{$field_name}_0_remove_button" => 'Remove']);
+          break;
+      }
+
+      // The victim's temporary file should not be removed by the attacker's
+      // POST request.
+      $this->assertFileExists($victim_tmp_file);
+    }
   }
 
 }

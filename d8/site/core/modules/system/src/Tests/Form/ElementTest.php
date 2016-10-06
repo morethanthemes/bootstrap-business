@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Form\ElementTest.
- */
-
 namespace Drupal\system\Tests\Form;
 
 use Drupal\simpletest\WebTestBase;
@@ -140,6 +135,20 @@ class ElementTest extends WebTestBase {
     $this->assertTrue(count($elements) == 1);
     $elements = $this->xpath('//div[@data-vertical-tabs-panes]//details[@id="edit-meta-2"]//label');
     $this->assertTrue(count($elements) == 1);
+  }
+
+  /**
+   * Tests the #required property on details and fieldset elements.
+   */
+  public function testRequiredFieldsetsAndDetails() {
+    $this->drupalGet('form-test/group-details');
+    $this->assertFalse($this->cssSelect('summary.form-required'));
+    $this->drupalGet('form-test/group-details/1');
+    $this->assertTrue($this->cssSelect('summary.form-required'));
+    $this->drupalGet('form-test/group-fieldset');
+    $this->assertFalse($this->cssSelect('span.form-required'));
+    $this->drupalGet('form-test/group-fieldset/1');
+    $this->assertTrue($this->cssSelect('span.form-required'));
   }
 
   /**

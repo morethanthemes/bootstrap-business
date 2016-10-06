@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Controller\ViewAjaxController.
- */
-
 namespace Drupal\views\Controller;
 
 use Drupal\Component\Utility\UrlHelper;
@@ -106,10 +101,10 @@ class ViewAjaxController implements ContainerInjectionInterface {
    * Loads and renders a view via AJAX.
    *
    * @param \Symfony\Component\HttpFoundation\Request $request
-   *  The current request object.
+   *   The current request object.
    *
    * @return \Drupal\views\Ajax\ViewAjaxResponse
-   *  The view response as ajax response.
+   *   The view response as ajax response.
    *
    * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
    *   Thrown when the view was not found.

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\ComposerIntegrationTest.
- */
-
 namespace Drupal\Tests;
 
 /**
@@ -49,10 +44,27 @@ class ComposerIntegrationTest extends UnitTestCase {
     return [
       $this->root,
       $this->root . '/core',
+      $this->root . '/core/lib/Drupal/Component/Annotation',
+      $this->root . '/core/lib/Drupal/Component/Assertion',
+      $this->root . '/core/lib/Drupal/Component/Bridge',
+      $this->root . '/core/lib/Drupal/Component/Datetime',
+      $this->root . '/core/lib/Drupal/Component/DependencyInjection',
+      $this->root . '/core/lib/Drupal/Component/Diff',
+      $this->root . '/core/lib/Drupal/Component/Discovery',
+      $this->root . '/core/lib/Drupal/Component/EventDispatcher',
+      $this->root . '/core/lib/Drupal/Component/FileCache',
+      $this->root . '/core/lib/Drupal/Component/FileSystem',
       $this->root . '/core/lib/Drupal/Component/Gettext',
+      $this->root . '/core/lib/Drupal/Component/Graph',
+      $this->root . '/core/lib/Drupal/Component/HttpFoundation',
+      $this->root . '/core/lib/Drupal/Component/PhpStorage',
       $this->root . '/core/lib/Drupal/Component/Plugin',
       $this->root . '/core/lib/Drupal/Component/ProxyBuilder',
+      $this->root . '/core/lib/Drupal/Component/Render',
+      $this->root . '/core/lib/Drupal/Component/Serialization',
+      $this->root . '/core/lib/Drupal/Component/Transliteration',
       $this->root . '/core/lib/Drupal/Component/Utility',
+      $this->root . '/core/lib/Drupal/Component/Uuid',
     ];
   }
 
@@ -66,6 +78,15 @@ class ComposerIntegrationTest extends UnitTestCase {
       $result = json_decode($json);
       $this->assertNotNull($result, $this->getErrorMessages()[json_last_error()]);
     }
+  }
+
+  /**
+   * Tests composer.lock hash.
+   */
+  public function testComposerLockHash() {
+    $json = file_get_contents($this->root . '/composer.json');
+    $lock = json_decode(file_get_contents($this->root . '/composer.lock'), TRUE);
+    $this->assertSame(md5($json), $lock['hash']);
   }
 
   /**

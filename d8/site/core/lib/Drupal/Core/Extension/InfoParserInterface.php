@@ -1,16 +1,11 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Extension\InfoParserInterface.
- */
-
 namespace Drupal\Core\Extension;
 
 /**
  * Interface for classes that parses Drupal's info.yml files.
  */
-interface InfoParserInterface  {
+interface InfoParserInterface {
 
   /**
    * Parses Drupal module, theme and profile .info.yml files.
@@ -65,4 +60,3 @@ interface InfoParserInterface  {
   public function parse($filename);
 
 }
-

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\search\Tests\SearchNodeDiacriticsTest.
- */
-
 namespace Drupal\search\Tests;
 
 /**
@@ -81,4 +76,5 @@ class SearchNodeDiacriticsTest extends SearchTestBase {
     $this->drupalPostForm('search/node', $edit, t('Search'));
     $this->assertNoRaw('<strong>æll</strong>');
   }
+
 }

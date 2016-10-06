@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Ajax\AjaxResponseTest.
- */
-
 namespace Drupal\Tests\Core\Ajax;
 
 use Drupal\Core\Ajax\AjaxResponse;
@@ -95,6 +90,5 @@ class AjaxResponseTest extends UnitTestCase {
     $this->assertEquals('text/html; charset=utf-8', $response->headers->get('Content-Type'));
     $this->assertEquals($response->getContent(), '<textarea>[]</textarea>');
   }
-
 
 }
