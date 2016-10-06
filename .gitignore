@@ -12,14 +12,20 @@
 # vendor
 
 # Ignore configuration files that may contain sensitive information.
-sites/*/settings*.php
-sites/*/services*.yml
+d8/site/sites/**/settings*.php
+d8/site/sites/*/services*.yml
 
 # Ignore paths that contain user-generated content.
-sites/*/private
+d8/site/sites/*/files/css
+d8/site/sites/*/files/js
+d8/site/sites/*/files/php
+d8/site/sites/*/files/config*
+d8/site/sites/*/files/styles
+d8/site/sites/*/files/.htaccess
+d8/site/sites/*/private
 
 # Ignore SimpleTest multi-site environment.
-sites/simpletest
+d8/site/sites/simpletest
 
 # If you prefer to store your .gitignore file in the sites/ folder, comment
 # or delete the previous settings and uncomment the following ones, instead.
@@ -33,3 +39,7 @@ sites/simpletest
 
 # Ignore SimpleTest multi-site environment.
 # simpletest
+
+package.json
+Gruntfile.js
+node_modules
