@@ -4,6 +4,7 @@ namespace Drupal\Tests\Component\PhpStorage;
 
 use Drupal\Component\PhpStorage\FileStorage;
 use Drupal\Component\PhpStorage\FileReadOnlyStorage;
+use Drupal\Component\Utility\Random;
 
 /**
  * @coversDefaultClass \Drupal\Component\PhpStorage\FileReadOnlyStorage
@@ -33,23 +34,26 @@ class FileStorageReadOnlyTest extends PhpStorageTestBase {
   protected function setUp() {
     parent::setUp();
 
-    $this->standardSettings = array(
+    $this->standardSettings = [
       'directory' => $this->directory,
       'bin' => 'test',
-    );
-    $this->readonlyStorage = array(
+    ];
+    $this->readonlyStorage = [
       'directory' => $this->directory,
       // Let this read from the bin where the other instance is writing.
       'bin' => 'test',
-    );
+    ];
   }
 
   /**
    * Tests writing with one class and reading with another.
    */
   public function testReadOnly() {
+    // Random generator.
+    $random = new Random();
+
     $php = new FileStorage($this->standardSettings);
-    $name = $this->randomMachineName() . '/' . $this->randomMachineName() . '.php';
+    $name = $random->name(8, TRUE) . '/' . $random->name(8, TRUE) . '.php';
 
     // Find a global that doesn't exist.
     do {
@@ -85,8 +89,11 @@ class FileStorageReadOnlyTest extends PhpStorageTestBase {
    * @covers ::deleteAll
    */
   public function testDeleteAll() {
+    // Random generator.
+    $random = new Random();
+
     $php = new FileStorage($this->standardSettings);
-    $name = $this->randomMachineName() . '/' . $this->randomMachineName() . '.php';
+    $name = $random->name(8, TRUE) . '/' . $random->name(8, TRUE) . '.php';
 
     // Find a global that doesn't exist.
     do {

@@ -8,13 +8,13 @@
 namespace Drupal\Tests\Component\Utility;
 
 use Drupal\Component\Utility\ArgumentsResolver;
-use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @coversDefaultClass \Drupal\Component\Utility\ArgumentsResolver
  * @group Access
  */
-class ArgumentsResolverTest extends UnitTestCase {
+class ArgumentsResolverTest extends TestCase {
 
   /**
    * {@inheritdoc}
@@ -41,22 +41,22 @@ class ArgumentsResolverTest extends UnitTestCase {
 
     // Test an optional parameter with no provided value.
     $data[] = [
-      function($foo = 'foo') {}, [], [], [] , ['foo'],
+      function ($foo = 'foo') {}, [], [], [] , ['foo'],
     ];
 
     // Test an optional parameter with a provided value.
     $data[] = [
-      function($foo = 'foo') {}, ['foo' => 'bar'], [], [], ['bar'],
+      function ($foo = 'foo') {}, ['foo' => 'bar'], [], [], ['bar'],
     ];
 
     // Test with a provided value.
     $data[] = [
-      function($foo) {}, ['foo' => 'bar'], [], [], ['bar'],
+      function ($foo) {}, ['foo' => 'bar'], [], [], ['bar'],
     ];
 
     // Test with an explicitly NULL value.
     $data[] = [
-      function($foo) {}, [], ['foo' => NULL], [], [NULL],
+      function ($foo) {}, [], ['foo' => NULL], [], [NULL],
     ];
 
     // Test with a raw value that overrides the provided upcast value, since
@@ -64,7 +64,7 @@ class ArgumentsResolverTest extends UnitTestCase {
     $scalars  = ['foo' => 'baz'];
     $objects = ['foo' => new \stdClass()];
     $data[] = [
-      function($foo) {}, $scalars, $objects, [], ['baz'],
+      function ($foo) {}, $scalars, $objects, [], ['baz'],
     ];
 
     return $data;
@@ -74,7 +74,7 @@ class ArgumentsResolverTest extends UnitTestCase {
    * Tests getArgument() with an object.
    */
   public function testGetArgumentObject() {
-    $callable = function(\stdClass $object) {};
+    $callable = function (\stdClass $object) {};
 
     $object = new \stdClass();
     $arguments = (new ArgumentsResolver([], ['object' => $object], []))->getArguments($callable);
@@ -85,7 +85,7 @@ class ArgumentsResolverTest extends UnitTestCase {
    * Tests getArgument() with a wildcard object for a parameter with a custom name.
    */
   public function testGetWildcardArgument() {
-    $callable = function(\stdClass $custom_name) {};
+    $callable = function (\stdClass $custom_name) {};
 
     $object = new \stdClass();
     $arguments = (new ArgumentsResolver([], [], [$object]))->getArguments($callable);
@@ -96,9 +96,9 @@ class ArgumentsResolverTest extends UnitTestCase {
    * Tests getArgument() with a Route, Request, and Account object.
    */
   public function testGetArgumentOrder() {
-    $a1 = $this->getMock('\Drupal\Tests\Component\Utility\TestInterface1');
+    $a1 = $this->getMock('\Drupal\Tests\Component\Utility\Test1Interface');
     $a2 = $this->getMock('\Drupal\Tests\Component\Utility\TestClass');
-    $a3 = $this->getMock('\Drupal\Tests\Component\Utility\TestInterface2');
+    $a3 = $this->getMock('\Drupal\Tests\Component\Utility\Test2Interface');
 
     $objects = [
       't1' => $a1,
@@ -107,12 +107,12 @@ class ArgumentsResolverTest extends UnitTestCase {
     $wildcards = [$a3];
     $resolver = new ArgumentsResolver([], $objects, $wildcards);
 
-    $callable = function(TestInterface1 $t1, TestClass $tc, TestInterface2 $t2) {};
+    $callable = function (Test1Interface $t1, TestClass $tc, Test2Interface $t2) {};
     $arguments = $resolver->getArguments($callable);
     $this->assertSame([$a1, $a2, $a3], $arguments);
 
     // Test again, but with the arguments in a different order.
-    $callable = function(TestInterface2 $t2, TestClass $tc, TestInterface1 $t1) {};
+    $callable = function (Test2Interface $t2, TestClass $tc, Test1Interface $t1) {};
     $arguments = $resolver->getArguments($callable);
     $this->assertSame([$a3, $a2, $a1], $arguments);
   }
@@ -121,18 +121,15 @@ class ArgumentsResolverTest extends UnitTestCase {
    * Tests getArgument() with a wildcard parameter with no typehint.
    *
    * Without the typehint, the wildcard object will not be passed to the callable.
-   *
-   * @expectedException \RuntimeException
-   * @expectedExceptionMessage requires a value for the "$route" argument.
    */
   public function testGetWildcardArgumentNoTypehint() {
-    $a = $this->getMock('\Drupal\Tests\Component\Utility\TestInterface1');
+    $a = $this->getMock('\Drupal\Tests\Component\Utility\Test1Interface');
     $wildcards = [$a];
     $resolver = new ArgumentsResolver([], [], $wildcards);
 
-    $callable = function($route) {};
-    $arguments = $resolver->getArguments($callable);
-    $this->assertNull($arguments);
+    $callable = function ($route) {};
+    $this->setExpectedException(\RuntimeException::class, 'requires a value for the "$route" argument.');
+    $resolver->getArguments($callable);
   }
 
   /**
@@ -145,39 +142,33 @@ class ArgumentsResolverTest extends UnitTestCase {
     $scalars = ['route' => 'foo'];
     $resolver = new ArgumentsResolver($scalars, [], []);
 
-    $callable = function($route) {};
+    $callable = function ($route) {};
     $arguments = $resolver->getArguments($callable);
     $this->assertSame(['foo'], $arguments);
   }
 
   /**
    * Tests handleUnresolvedArgument() for a scalar argument.
-   *
-   * @expectedException \RuntimeException
-   * @expectedExceptionMessage requires a value for the "$foo" argument.
    */
   public function testHandleNotUpcastedArgument() {
     $objects = ['foo' => 'bar'];
     $scalars = ['foo' => 'baz'];
     $resolver = new ArgumentsResolver($scalars, $objects, []);
 
-    $callable = function(\stdClass $foo) {};
-    $arguments = $resolver->getArguments($callable);
-    $this->assertNull($arguments);
+    $callable = function (\stdClass $foo) {};
+    $this->setExpectedException(\RuntimeException::class, 'requires a value for the "$foo" argument.');
+    $resolver->getArguments($callable);
   }
 
   /**
    * Tests handleUnresolvedArgument() for missing arguments.
    *
-   * @expectedException \RuntimeException
-   * @expectedExceptionMessage requires a value for the "$foo" argument.
-   *
    * @dataProvider providerTestHandleUnresolvedArgument
    */
   public function testHandleUnresolvedArgument($callable) {
     $resolver = new ArgumentsResolver([], [], []);
-    $arguments = $resolver->getArguments($callable);
-    $this->assertNull($arguments);
+    $this->setExpectedException(\RuntimeException::class, 'requires a value for the "$foo" argument.');
+    $resolver->getArguments($callable);
   }
 
   /**
@@ -185,7 +176,7 @@ class ArgumentsResolverTest extends UnitTestCase {
    */
   public function providerTestHandleUnresolvedArgument() {
     $data = [];
-    $data[] = [function($foo) {}];
+    $data[] = [function ($foo) {}];
     $data[] = [[new TestClass(), 'access']];
     $data[] = ['Drupal\Tests\Component\Utility\test_access_arguments_resolver_access'];
     return $data;
@@ -205,13 +196,13 @@ class TestClass {
 /**
  * Provides a test interface.
  */
-interface TestInterface1 {
+interface Test1Interface {
 }
 
 /**
  * Provides a different test interface.
  */
-interface TestInterface2 {
+interface Test2Interface {
 }
 
 function test_access_arguments_resolver_access($foo) {

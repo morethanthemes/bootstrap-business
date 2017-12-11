@@ -158,14 +158,12 @@ class FormStateDecoratorBaseTest extends UnitTestCase {
    * @dataProvider providerSingleBooleanArgument
    *
    * @param bool $cache
-   *
-   * @expectedException \LogicException
    */
   public function testSetCachedWithLogicException($cache) {
     $this->decoratedFormState->setCached($cache)
       ->willThrow(\LogicException::class);
-
-    $this->assertSame($this->formStateDecoratorBase, $this->formStateDecoratorBase->setCached($cache));
+    $this->setExpectedException(\LogicException::class);
+    $this->formStateDecoratorBase->setCached($cache);
   }
 
   /**
@@ -1454,7 +1452,7 @@ class FormStateDecoratorBaseTest extends UnitTestCase {
   public function providerPrepareCallback() {
     $function = 'sleep';
     $shorthand_form_method = '::submit()';
-    $closure = function() {};
+    $closure = function () {};
     $static_method_string = __METHOD__;
     $static_method_array = [__CLASS__, __FUNCTION__];
     $object_method_array = [$this, __FUNCTION__];

@@ -46,6 +46,7 @@ use Drupal\taxonomy\TermInterface;
  *     "canonical" = "/taxonomy/term/{taxonomy_term}",
  *     "delete-form" = "/taxonomy/term/{taxonomy_term}/delete",
  *     "edit-form" = "/taxonomy/term/{taxonomy_term}/edit",
+ *     "create" = "/taxonomy/term",
  *   },
  *   permission_granularity = "bundle"
  * )
@@ -61,14 +62,14 @@ class Term extends ContentEntityBase implements TermInterface {
     parent::postDelete($storage, $entities);
 
     // See if any of the term's children are about to be become orphans.
-    $orphans = array();
+    $orphans = [];
     foreach (array_keys($entities) as $tid) {
       if ($children = $storage->loadChildren($tid)) {
         foreach ($children as $child) {
           // If the term has multiple parents, we don't delete it.
           $parents = $storage->loadParents($child->id());
           if (empty($parents)) {
-            $orphans[] = $child->id();
+            $orphans[] = $child;
           }
         }
       }
@@ -79,7 +80,7 @@ class Term extends ContentEntityBase implements TermInterface {
     $storage->deleteTermHierarchy(array_keys($entities));
 
     if (!empty($orphans)) {
-      entity_delete_multiple('taxonomy_term', $orphans);
+      $storage->delete($orphans);
     }
   }
 
@@ -92,7 +93,7 @@ class Term extends ContentEntityBase implements TermInterface {
     // Only change the parents if a value is set, keep the existing values if
     // not.
     if (isset($this->parent->target_id)) {
-      $storage->deleteTermHierarchy(array($this->id()));
+      $storage->deleteTermHierarchy([$this->id()]);
       $storage->updateTermHierarchy($this);
     }
   }
@@ -116,35 +117,33 @@ class Term extends ContentEntityBase implements TermInterface {
 
     $fields['name'] = BaseFieldDefinition::create('string')
       ->setLabel(t('Name'))
-      ->setDescription(t('The term name.'))
       ->setTranslatable(TRUE)
       ->setRequired(TRUE)
       ->setSetting('max_length', 255)
-      ->setDisplayOptions('view', array(
+      ->setDisplayOptions('view', [
         'label' => 'hidden',
         'type' => 'string',
         'weight' => -5,
-      ))
-      ->setDisplayOptions('form', array(
+      ])
+      ->setDisplayOptions('form', [
         'type' => 'string_textfield',
         'weight' => -5,
-      ))
+      ])
       ->setDisplayConfigurable('form', TRUE);
 
     $fields['description'] = BaseFieldDefinition::create('text_long')
       ->setLabel(t('Description'))
-      ->setDescription(t('A description of the term.'))
       ->setTranslatable(TRUE)
-      ->setDisplayOptions('view', array(
+      ->setDisplayOptions('view', [
         'label' => 'hidden',
         'type' => 'text_default',
         'weight' => 0,
-      ))
+      ])
       ->setDisplayConfigurable('view', TRUE)
-      ->setDisplayOptions('form', array(
+      ->setDisplayOptions('form', [
         'type' => 'text_textfield',
         'weight' => 0,
-      ))
+      ])
       ->setDisplayConfigurable('form', TRUE);
 
     $fields['weight'] = BaseFieldDefinition::create('integer')
@@ -231,7 +230,21 @@ class Term extends ContentEntityBase implements TermInterface {
    * {@inheritdoc}
    */
   public function getVocabularyId() {
-    return $this->get('vid')->target_id;
+    @trigger_error('The ' . __METHOD__ . ' method is deprecated since version 8.4.0 and will be removed before 9.0.0. Use ' . __CLASS__ . '::bundle() instead to get the vocabulary ID.', E_USER_DEPRECATED);
+    return $this->bundle();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function getFieldsToSkipFromTranslationChangesCheck() {
+    // @todo the current implementation of the parent field makes it impossible
+    // for ::hasTranslationChanges() to correctly check the field for changes,
+    // so it is currently skipped from the comparision and has to be fixed by
+    // https://www.drupal.org/node/2843060.
+    $fields = parent::getFieldsToSkipFromTranslationChangesCheck();
+    $fields[] = 'parent';
+    return $fields;
   }
 
 }

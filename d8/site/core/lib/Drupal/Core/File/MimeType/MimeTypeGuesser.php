@@ -17,7 +17,7 @@ class MimeTypeGuesser implements MimeTypeGuesserInterface {
    *
    * @var array
    */
-  protected $guessers = array();
+  protected $guessers = [];
 
   /**
    * Holds the array of guessers sorted by priority.
@@ -41,7 +41,7 @@ class MimeTypeGuesser implements MimeTypeGuesserInterface {
   /**
    * Constructs a MimeTypeGuesser object.
    *
-   * @param StreamWrapperManagerInterface $stream_wrapper_manager
+   * @param \Drupal\Core\StreamWrapper\StreamWrapperManagerInterface $stream_wrapper_manager
    *   The stream wrapper manager.
    */
   public function __construct(StreamWrapperManagerInterface $stream_wrapper_manager) {
@@ -98,7 +98,7 @@ class MimeTypeGuesser implements MimeTypeGuesserInterface {
    *   A sorted array of MIME type guesser objects.
    */
   protected function sortGuessers() {
-    $sorted = array();
+    $sorted = [];
     krsort($this->guessers);
 
     foreach ($this->guessers as $guesser) {

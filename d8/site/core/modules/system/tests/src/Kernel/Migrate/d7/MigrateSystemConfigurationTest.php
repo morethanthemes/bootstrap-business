@@ -24,6 +24,7 @@ class MigrateSystemConfigurationTest extends MigrateDrupal7TestBase {
         'requirements_warning' => 172800,
         'requirements_error' => 1209600,
       ],
+      'logging' => 1,
     ],
     'system.date' => [
       'country' => [
@@ -94,9 +95,6 @@ class MigrateSystemConfigurationTest extends MigrateDrupal7TestBase {
       ],
       // stale_file_threshold is not handled by the migration.
       'stale_file_threshold' => 2592000,
-      'response' => [
-        'gzip' => TRUE,
-      ],
     ],
     'system.rss' => [
       'channel' => [

@@ -22,6 +22,12 @@ package: Core
 libraries:
  - seven/global-styling
 libraries-override:
+  system/base:
+    css:
+      component:
+        /core/themes/stable/css/system/components/system-status-counter.css: css/components/system-status-counter.css
+        /core/themes/stable/css/system/components/system-status-report-counters.css: css/components/system-status-report-counters.css
+        /core/themes/stable/css/system/components/system-status-report-general-info.css: css/components/system-status-report-general-info.css
   core/drupal.vertical-tabs:
     css:
       component:
@@ -60,8 +66,8 @@ regions:
 regions_hidden:
   - sidebar_first
 
-# Information added by Drupal.org packaging script on 2016-10-05
-version: '8.2.0'
+# Information added by Drupal.org packaging script on 2017-12-06
+version: '8.4.3'
 core: '8.x'
 project: 'drupal'
-datestamp: 1475661293
+datestamp: 1512600826

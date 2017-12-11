@@ -103,7 +103,7 @@ abstract class ImageToolkitOperationBase extends PluginBase implements ImageTool
    */
   protected function prepareArguments(array $arguments) {
     foreach ($this->arguments() as $id => $argument) {
-      $argument += array('required' => TRUE);
+      $argument += ['required' => TRUE];
       // Check if the argument is required and, if so, has been provided.
       if ($argument['required']) {
         if (!array_key_exists($id, $arguments)) {
@@ -166,7 +166,7 @@ abstract class ImageToolkitOperationBase extends PluginBase implements ImageTool
   /**
    * {@inheritdoc}
    */
-  public final function apply(array $arguments) {
+  final public function apply(array $arguments) {
     $arguments = $this->prepareArguments($arguments);
     $arguments = $this->validateArguments($arguments);
     return $this->execute($arguments);

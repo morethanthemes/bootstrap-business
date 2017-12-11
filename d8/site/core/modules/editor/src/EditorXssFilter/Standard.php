@@ -19,7 +19,7 @@ class Standard extends Xss implements EditorXssFilterInterface {
     // Apply XSS filtering, but blacklist the <script>, <style>, <link>, <embed>
     // and <object> tags.
     // The <script> and <style> tags are blacklisted because their contents
-    // can be malicious (and therefor they are inherently unsafe), whereas for
+    // can be malicious (and therefore they are inherently unsafe), whereas for
     // all other tags, only their attributes can make them malicious. Since
     // \Drupal\Component\Utility\Xss::filter() protects against malicious
     // attributes, we take no blacklisting action.
@@ -35,16 +35,16 @@ class Standard extends Xss implements EditorXssFilterInterface {
     //   directly.
     // <iframe> is considered safe because it only allows HTML content to be
     // embedded, hence ensuring the same origin policy always applies.
-    $dangerous_tags = array('script', 'style', 'link', 'embed', 'object');
+    $dangerous_tags = ['script', 'style', 'link', 'embed', 'object'];
 
     // Simply blacklisting these five dangerous tags would bring safety, but
     // also user frustration: what if a text format is configured to allow
     // <embed>, for example? Then we would strip that tag, even though it is
     // allowed, thereby causing data loss!
-    // Therefor, we want to be smarter still. We want to take into account which
-    // HTML tags are allowed and forbidden by the text format we're filtering
-    // for, and if we're switching from another text format, we want to take
-    // that format's allowed and forbidden tags into account as well.
+    // Therefore, we want to be smarter still. We want to take into account
+    // which HTML tags are allowed and forbidden by the text format we're
+    // filtering for, and if we're switching from another text format, we want
+    // to take that format's allowed and forbidden tags into account as well.
     // In other words: we only expect markup allowed in both the original and
     // the new format to continue to exist.
     $format_restrictions = $format->getHtmlRestrictions();
@@ -130,13 +130,13 @@ class Standard extends Xss implements EditorXssFilterInterface {
    */
   protected static function getAllowedTags($restrictions) {
     if ($restrictions === FALSE || !isset($restrictions['allowed'])) {
-      return array();
+      return [];
     }
 
     $allowed_tags = array_keys($restrictions['allowed']);
     // Exclude the wildcard tag, which is used to set attribute restrictions on
     // all tags simultaneously.
-    $allowed_tags = array_diff($allowed_tags, array('*'));
+    $allowed_tags = array_diff($allowed_tags, ['*']);
 
     return $allowed_tags;
   }
@@ -154,7 +154,7 @@ class Standard extends Xss implements EditorXssFilterInterface {
    */
   protected static function getForbiddenTags($restrictions) {
     if ($restrictions === FALSE || !isset($restrictions['forbidden_tags'])) {
-      return array();
+      return [];
     }
     else {
       return $restrictions['forbidden_tags'];

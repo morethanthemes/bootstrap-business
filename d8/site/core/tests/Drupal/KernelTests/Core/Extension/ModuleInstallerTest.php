@@ -44,4 +44,45 @@ class ModuleInstallerTest extends KernelTestBase {
     $this->container->get('router.route_provider')->getRouteByName('router_test.1');
   }
 
+  /**
+   * Tests config changes by hook_install() are saved for dependent modules.
+   *
+   * @covers ::install
+   */
+  public function testConfigChangeOnInstall() {
+    // Install the child module so the parent is installed automatically.
+    $this->container->get('module_installer')->install(['module_handler_test_multiple_child']);
+    $modules = $this->config('core.extension')->get('module');
+
+    $this->assertArrayHasKey('module_handler_test_multiple', $modules, 'Module module_handler_test_multiple is installed');
+    $this->assertArrayHasKey('module_handler_test_multiple_child', $modules, 'Module module_handler_test_multiple_child is installed');
+    $this->assertEquals(1, $modules['module_handler_test_multiple'], 'Weight of module_handler_test_multiple is set.');
+    $this->assertEquals(1, $modules['module_handler_test_multiple_child'], 'Weight of module_handler_test_multiple_child is set.');
+  }
+
+  /**
+   * Tests cache bins defined by modules are removed when uninstalled.
+   *
+   * @covers ::removeCacheBins
+   */
+  public function testCacheBinCleanup() {
+    $schema = $this->container->get('database')->schema();
+    $table = 'cache_module_cachebin';
+
+    $module_installer = $this->container->get('module_installer');
+    $module_installer->install(['module_cachebin']);
+
+    // Prime the bin.
+    /** @var \Drupal\Core\Cache\CacheBackendInterface $cache_bin */
+    $cache_bin = $this->container->get('module_cachebin.cache_bin');
+    $cache_bin->set('foo', 'bar');
+
+    // A database backend is used so there is a convenient way check whether the
+    // backend is uninstalled.
+    $this->assertTrue($schema->tableExists($table));
+
+    $module_installer->uninstall(['module_cachebin']);
+    $this->assertFalse($schema->tableExists($table));
+  }
+
 }

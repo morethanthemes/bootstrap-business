@@ -2,6 +2,7 @@
 
 namespace Drupal\views;
 
+use Drupal\Core\Database\Query\Condition;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\views\Plugin\views\HandlerBase;
 
@@ -20,22 +21,22 @@ use Drupal\views\Plugin\views\HandlerBase;
  */
 class ManyToOneHelper {
 
-  function __construct($handler) {
+  public function __construct($handler) {
     $this->handler = $handler;
   }
 
   public static function defineOptions(&$options) {
-    $options['reduce_duplicates'] = array('default' => FALSE);
+    $options['reduce_duplicates'] = ['default' => FALSE];
   }
 
   public function buildOptionsForm(&$form, FormStateInterface $form_state) {
-    $form['reduce_duplicates'] = array(
+    $form['reduce_duplicates'] = [
       '#type' => 'checkbox',
       '#title' => t('Reduce duplicates'),
       '#description' => t("This filter can cause items that have more than one of the selected options to appear as duplicate results. If this filter causes duplicate results to occur, this checkbox can reduce those duplicates; however, the more terms it has to search for, the less performant the query will be, so use this with caution. Shouldn't be set on single-value fields, as it may cause values to disappear from display, if used on an incompatible field."),
       '#default_value' => !empty($this->handler->options['reduce_duplicates']),
       '#weight' => 4,
-    );
+    ];
   }
 
   /**
@@ -133,14 +134,14 @@ class ManyToOneHelper {
     else {
       if (!empty($view->many_to_one_tables[$field])) {
         foreach ($view->many_to_one_tables[$field] as $value) {
-          $join->extra = array(
-            array(
+          $join->extra = [
+            [
               'field' => $this->handler->realField,
               'operator' => '!=',
               'value' => $value,
               'numeric' => !empty($this->definition['numeric']),
-            ),
-          );
+            ],
+          ];
         }
       }
       return $this->addTable($join);
@@ -172,14 +173,14 @@ class ManyToOneHelper {
           $join->type = 'LEFT';
           if (!empty($this->handler->view->many_to_one_tables[$field])) {
             foreach ($this->handler->view->many_to_one_tables[$field] as $value) {
-              $join->extra = array(
-                array(
+              $join->extra = [
+                [
                   'field' => $this->handler->realField,
                   'operator' => '!=',
                   'value' => $value,
                   'numeric' => !empty($this->handler->definition['numeric']),
-                ),
-              );
+                ],
+              ];
             }
           }
 
@@ -193,19 +194,19 @@ class ManyToOneHelper {
       // We do one join per selected value.
       if ($this->handler->operator != 'not') {
         // Clone the join for each table:
-        $this->handler->tableAliases = array();
+        $this->handler->tableAliases = [];
         foreach ($this->handler->value as $value) {
           $join = $this->getJoin();
           if ($this->handler->operator == 'and') {
             $join->type = 'INNER';
           }
-          $join->extra = array(
-            array(
+          $join->extra = [
+            [
               'field' => $this->handler->realField,
               'value' => $value,
               'numeric' => !empty($this->handler->definition['numeric']),
-            ),
-          );
+            ],
+          ];
 
           // The table alias needs to be unique to this value across the
           // multiple times the filter or argument is called by the view.
@@ -229,14 +230,14 @@ class ManyToOneHelper {
       else {
         $join = $this->getJoin();
         $join->type = 'LEFT';
-        $join->extra = array();
+        $join->extra = [];
         $join->extraOperator = 'OR';
         foreach ($this->handler->value as $value) {
-          $join->extra[] = array(
+          $join->extra[] = [
             'field' => $this->handler->realField,
             'value' => $value,
             'numeric' => !empty($this->handler->definition['numeric']),
-          );
+          ];
         }
 
         $this->handler->tableAlias = $this->addTable($join);
@@ -268,8 +269,8 @@ class ManyToOneHelper {
       $options['group'] = 0;
     }
 
-    // add_condition determines whether a single expression is enough(FALSE) or the
-    // conditions should be added via an db_or()/db_and() (TRUE).
+    // If $add_condition is set to FALSE, a single expression is enough. If it
+    // is set to TRUE, conditions will be added.
     $add_condition = TRUE;
     if ($operator == 'not') {
       $value = NULL;
@@ -296,9 +297,9 @@ class ManyToOneHelper {
         else {
           $operator = "$operator $placeholder";
         }
-        $placeholders = array(
+        $placeholders = [
           $placeholder => $value,
-        ) + $this->placeholders;
+        ];
         $this->handler->query->addWhereExpression($options['group'], "$field $operator", $placeholders);
       }
       else {
@@ -310,7 +311,7 @@ class ManyToOneHelper {
             $this->handler->query->addWhereExpression(0, "$field $operator");
           }
           else {
-            $this->handler->query->addWhereExpression(0, "$field $operator($placeholder)", array($placeholder => $value));
+            $this->handler->query->addWhereExpression(0, "$field $operator($placeholder)", [$placeholder => $value]);
           }
         }
         else {
@@ -318,7 +319,7 @@ class ManyToOneHelper {
             $this->handler->query->addWhereExpression(0, "$field $operator");
           }
           else {
-            $this->handler->query->addWhereExpression(0, "$field $operator $placeholder", array($placeholder => $value));
+            $this->handler->query->addWhereExpression(0, "$field $operator $placeholder", [$placeholder => $value]);
           }
         }
       }
@@ -326,7 +327,7 @@ class ManyToOneHelper {
 
     if ($add_condition) {
       $field = $this->handler->realField;
-      $clause = $operator == 'or' ? db_or() : db_and();
+      $clause = $operator == 'or' ? new Condition('OR') : new Condition('AND');
       foreach ($this->handler->tableAliases as $value => $alias) {
         $clause->condition("$alias.$field", $value);
       }

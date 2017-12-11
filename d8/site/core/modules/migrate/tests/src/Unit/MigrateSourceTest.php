@@ -12,6 +12,7 @@ use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\KeyValueStore\KeyValueFactoryInterface;
 use Drupal\Core\KeyValueStore\KeyValueStoreInterface;
+use Drupal\migrate\MigrateException;
 use Drupal\migrate\MigrateExecutable;
 use Drupal\migrate\MigrateSkipRowException;
 use Drupal\migrate\Plugin\migrate\source\SourcePluginBase;
@@ -149,10 +150,10 @@ class MigrateSourceTest extends MigrateTestCase {
 
   /**
    * @covers ::__construct
-   * @expectedException \Drupal\migrate\MigrateException
    */
   public function testHighwaterTrackChangesIncompatible() {
     $source_config = ['track_changes' => TRUE, 'high_water_property' => ['name' => 'something']];
+    $this->setExpectedException(MigrateException::class);
     $this->getSource($source_config);
   }
 
@@ -166,7 +167,7 @@ class MigrateSourceTest extends MigrateTestCase {
     $container = new ContainerBuilder();
     $cache = $this->getMock(CacheBackendInterface::class);
     $cache->expects($this->any())->method('set')
-        ->with($this->isType('string'), $this->isType('int'), $this->isType('int'));
+      ->with($this->isType('string'), $this->isType('int'), $this->isType('int'));
     $container->set('cache.migrate', $cache);
     \Drupal::setContainer($container);
 
@@ -204,7 +205,7 @@ class MigrateSourceTest extends MigrateTestCase {
     $container = new ContainerBuilder();
     $cache = $this->getMock(CacheBackendInterface::class);
     $cache->expects($this->any())->method('set')
-        ->with('test_key', $this->isType('int'), $this->isType('int'));
+      ->with('test_key', $this->isType('int'), $this->isType('int'));
     $container->set('cache.migrate', $cache);
     \Drupal::setContainer($container);
 
@@ -286,7 +287,7 @@ class MigrateSourceTest extends MigrateTestCase {
     // Get a new migration with an id.
     $migration = $this->getMigration();
     $source = new StubSourcePlugin([], '', [], $migration);
-    $row = new Row([], []);
+    $row = new Row();
 
     $module_handler = $this->prophesize(ModuleHandlerInterface::class);
     $module_handler->invokeAll('migrate_prepare_row', [$row, $source, $migration])
@@ -328,7 +329,7 @@ class MigrateSourceTest extends MigrateTestCase {
 
     $migration = $this->getMigration();
     $source = new StubSourcePlugin([], '', [], $migration);
-    $row = new Row([], []);
+    $row = new Row();
 
     $module_handler = $this->prophesize(ModuleHandlerInterface::class);
     // Return a failure from a prepare row hook.
@@ -357,7 +358,7 @@ class MigrateSourceTest extends MigrateTestCase {
 
     $migration = $this->getMigration();
     $source = new StubSourcePlugin([], '', [], $migration);
-    $row = new Row([], []);
+    $row = new Row();
 
     $module_handler = $this->prophesize(ModuleHandlerInterface::class);
     // Return a failure from a prepare row hook.
@@ -386,7 +387,7 @@ class MigrateSourceTest extends MigrateTestCase {
 
     $migration = $this->getMigration();
     $source = new StubSourcePlugin([], '', [], $migration);
-    $row = new Row([], []);
+    $row = new Row();
 
     $module_handler = $this->prophesize(ModuleHandlerInterface::class);
     // Return a failure from a prepare row hook.

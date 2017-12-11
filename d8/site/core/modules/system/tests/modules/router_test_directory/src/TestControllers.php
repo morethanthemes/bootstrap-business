@@ -6,9 +6,9 @@ use Drupal\Core\Cache\CacheableResponse;
 use Drupal\Core\ParamConverter\ParamNotConvertedException;
 use Drupal\user\UserInterface;
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Zend\Diactoros\Response\HtmlResponse;
-
 
 /**
  * Controller routines for testing the routing system.
@@ -107,6 +107,12 @@ class TestControllers {
         'url',
       ],
       '#markup' => \Drupal::requestStack()->getCurrentRequest()->getUri(),
+    ];
+  }
+
+  public function testRouteName(Request $request) {
+    return [
+      '#markup' => $request->attributes->get(RouteObjectInterface::ROUTE_NAME),
     ];
   }
 

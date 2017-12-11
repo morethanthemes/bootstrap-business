@@ -60,10 +60,10 @@ class DrupalKernelTest extends KernelTestBase {
    */
   public function testCompileDIC() {
     // @todo: write a memory based storage backend for testing.
-    $modules_enabled = array(
+    $modules_enabled = [
       'system' => 'system',
       'user' => 'user',
-    );
+    ];
 
     $request = Request::createFromGlobals();
     $this->getTestKernel($request, $modules_enabled);
@@ -128,16 +128,16 @@ class DrupalKernelTest extends KernelTestBase {
 
     // Check that the location of the new module is registered.
     $modules = $container->getParameter('container.modules');
-    $this->assertEqual($modules['service_provider_test'], array(
+    $this->assertEqual($modules['service_provider_test'], [
       'type' => 'module',
       'pathname' => drupal_get_filename('module', 'service_provider_test'),
       'filename' => NULL,
-    ));
+    ]);
 
     // Check that the container itself is not among the persist IDs because it
     // does not make sense to persist the container itself.
     $persist_ids = $container->getParameter('persist_ids');
-    $this->assertIdentical(FALSE, array_search('service_container', $persist_ids));
+    $this->assertSame(FALSE, array_search('service_container', $persist_ids));
   }
 
   /**
@@ -169,10 +169,10 @@ class DrupalKernelTest extends KernelTestBase {
    */
   public function testPreventChangeOfSitePath() {
     // @todo: write a memory based storage backend for testing.
-    $modules_enabled = array(
+    $modules_enabled = [
       'system' => 'system',
       'user' => 'user',
-    );
+    ];
 
     $request = Request::createFromGlobals();
     $kernel = $this->getTestKernel($request, $modules_enabled);
@@ -184,6 +184,11 @@ class DrupalKernelTest extends KernelTestBase {
       $pass = TRUE;
     }
     $this->assertTrue($pass, 'Throws LogicException if DrupalKernel::setSitePath() is called after boot');
+
+    // Ensure no LogicException if DrupalKernel::setSitePath() is called with
+    // identical path after boot.
+    $path = $kernel->getSitePath();
+    $kernel->setSitePath($path);
   }
 
 }

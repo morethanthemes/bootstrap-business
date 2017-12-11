@@ -125,7 +125,7 @@ EOD;
    *   The new status of multibyte support.
    */
   public static function setStatus($status) {
-    if (!in_array($status, array(static::STATUS_SINGLEBYTE, static::STATUS_MULTIBYTE, static::STATUS_ERROR))) {
+    if (!in_array($status, [static::STATUS_SINGLEBYTE, static::STATUS_MULTIBYTE, static::STATUS_ERROR])) {
       throw new \InvalidArgumentException('Invalid status value for unicode support.');
     }
     static::$status = $status;
@@ -189,7 +189,7 @@ EOD;
    *   The name of the encoding, or FALSE if no byte order mark was present.
    */
   public static function encodingFromBOM($data) {
-    static $bomMap = array(
+    static $bomMap = [
       "\xEF\xBB\xBF" => 'UTF-8',
       "\xFE\xFF" => 'UTF-16BE',
       "\xFF\xFE" => 'UTF-16LE',
@@ -200,7 +200,7 @@ EOD;
       "\x2B\x2F\x76\x2B" => 'UTF-7',
       "\x2B\x2F\x76\x2F" => 'UTF-7',
       "\x2B\x2F\x76\x38\x2D" => 'UTF-7',
-    );
+    ];
 
     foreach ($bomMap as $bom => $encoding) {
       if (strpos($data, $bom) === 0) {
@@ -264,7 +264,9 @@ EOD;
       return substr($string, 0, $len);
     }
     // Scan backwards to beginning of the byte sequence.
-    while (--$len >= 0 && ord($string[$len]) >= 0x80 && ord($string[$len]) < 0xC0);
+    // @todo Make the code more readable in https://www.drupal.org/node/2911497.
+    while (--$len >= 0 && ord($string[$len]) >= 0x80 && ord($string[$len]) < 0xC0) {
+    }
 
     return substr($string, 0, $len);
   }
@@ -376,7 +378,7 @@ EOD;
    */
   public static function ucwords($text) {
     $regex = '/(^|[' . static::PREG_CLASS_WORD_BOUNDARY . '])([^' . static::PREG_CLASS_WORD_BOUNDARY . '])/u';
-    return preg_replace_callback($regex, function(array $matches) {
+    return preg_replace_callback($regex, function (array $matches) {
       return $matches[1] . Unicode::strtoupper($matches[2]);
     }, $text);
   }
@@ -542,7 +544,7 @@ EOD;
     }
 
     if ($wordsafe) {
-      $matches = array();
+      $matches = [];
       // Find the last word boundary, if there is one within $min_wordsafe_length
       // to $max_length characters. preg_match() is always greedy, so it will
       // find the longest string possible.
@@ -580,7 +582,7 @@ EOD;
    *   Returns < 0 if $str1 is less than $str2; > 0 if $str1 is greater than
    *   $str2, and 0 if they are equal.
    */
-  public static function strcasecmp($str1 , $str2) {
+  public static function strcasecmp($str1, $str2) {
     return strcmp(static::strtoupper($str1), static::strtoupper($str2));
   }
 
@@ -607,7 +609,8 @@ EOD;
    */
   public static function mimeHeaderEncode($string) {
     if (preg_match('/[^\x20-\x7E]/', $string)) {
-      $chunk_size = 47; // floor((75 - strlen("=?UTF-8?B??=")) * 0.75);
+      // floor((75 - strlen("=?UTF-8?B??=")) * 0.75);
+      $chunk_size = 47;
       $len = strlen($string);
       $output = '';
       while ($len > 0) {

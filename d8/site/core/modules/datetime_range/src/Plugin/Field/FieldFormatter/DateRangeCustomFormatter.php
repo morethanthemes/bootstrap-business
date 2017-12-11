@@ -38,6 +38,9 @@ class DateRangeCustomFormatter extends DateTimeCustomFormatter {
    * {@inheritdoc}
    */
   public function viewElements(FieldItemListInterface $items, $langcode) {
+    // @todo Evaluate removing this method in
+    // https://www.drupal.org/node/2793143 to determine if the behavior and
+    // markup in the base class implementation can be used instead.
     $elements = [];
     $separator = $this->getSetting('separator');
 
@@ -48,7 +51,7 @@ class DateRangeCustomFormatter extends DateTimeCustomFormatter {
         /** @var \Drupal\Core\Datetime\DrupalDateTime $end_date */
         $end_date = $item->end_date;
 
-        if ($start_date->format('U') !== $end_date->format('U')) {
+        if ($start_date->getTimestamp() !== $end_date->getTimestamp()) {
           $elements[$delta] = [
             'start_date' => $this->buildDate($start_date),
             'separator' => ['#plain_text' => ' ' . $separator . ' '],

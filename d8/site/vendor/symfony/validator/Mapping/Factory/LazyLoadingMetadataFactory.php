@@ -14,8 +14,6 @@ namespace Symfony\Component\Validator\Mapping\Factory;
 use Symfony\Component\Validator\Exception\NoSuchMetadataException;
 use Symfony\Component\Validator\Mapping\Cache\CacheInterface;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
-use Symfony\Component\Validator\Mapping\ClassMetadataInterface;
-use Symfony\Component\Validator\Mapping\Loader\LoaderChain;
 use Symfony\Component\Validator\Mapping\Loader\LoaderInterface;
 
 /**
@@ -101,8 +99,11 @@ class LazyLoadingMetadataFactory implements MetadataFactoryInterface
             return $this->loadedClasses[$class];
         }
 
-        if (null !== $this->cache && false !== ($this->loadedClasses[$class] = $this->cache->read($class))) {
-            return $this->loadedClasses[$class];
+        if (null !== $this->cache && false !== ($metadata = $this->cache->read($class))) {
+            // Include constraints from the parent class
+            $this->mergeConstraints($metadata);
+
+            return $this->loadedClasses[$class] = $metadata;
         }
 
         if (!class_exists($class) && !interface_exists($class)) {
@@ -110,19 +111,6 @@ class LazyLoadingMetadataFactory implements MetadataFactoryInterface
         }
 
         $metadata = new ClassMetadata($class);
-
-        // Include constraints from the parent class
-        if ($parent = $metadata->getReflectionClass()->getParentClass()) {
-            $metadata->mergeConstraints($this->getMetadataFor($parent->name));
-        }
-
-        // Include constraints from all implemented interfaces
-        foreach ($metadata->getReflectionClass()->getInterfaces() as $interface) {
-            if ('Symfony\Component\Validator\GroupSequenceProviderInterface' === $interface->name) {
-                continue;
-            }
-            $metadata->mergeConstraints($this->getMetadataFor($interface->name));
-        }
 
         if (null !== $this->loader) {
             $this->loader->loadClassMetadata($metadata);
@@ -132,7 +120,44 @@ class LazyLoadingMetadataFactory implements MetadataFactoryInterface
             $this->cache->write($metadata);
         }
 
+        // Include constraints from the parent class
+        $this->mergeConstraints($metadata);
+
         return $this->loadedClasses[$class] = $metadata;
+    }
+
+    private function mergeConstraints(ClassMetadata $metadata)
+    {
+        // Include constraints from the parent class
+        if ($parent = $metadata->getReflectionClass()->getParentClass()) {
+            $metadata->mergeConstraints($this->getMetadataFor($parent->name));
+        }
+
+        $interfaces = $metadata->getReflectionClass()->getInterfaces();
+
+        $interfaces = array_filter($interfaces, function ($interface) use ($parent, $interfaces) {
+            $interfaceName = $interface->getName();
+
+            if ($parent && $parent->implementsInterface($interfaceName)) {
+                return false;
+            }
+
+            foreach ($interfaces as $i) {
+                if ($i !== $interface && $i->implementsInterface($interfaceName)) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
+
+        // Include constraints from all directly implemented interfaces
+        foreach ($interfaces as $interface) {
+            if ('Symfony\Component\Validator\GroupSequenceProviderInterface' === $interface->name) {
+                continue;
+            }
+            $metadata->mergeConstraints($this->getMetadataFor($interface->name));
+        }
     }
 
     /**

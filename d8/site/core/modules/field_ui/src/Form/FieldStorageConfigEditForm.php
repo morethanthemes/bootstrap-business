@@ -62,7 +62,7 @@ class FieldStorageConfigEditForm extends EntityForm {
 
     $field_label = $form_state->get('field_config')->label();
     $form['#title'] = $field_label;
-    $form['#prefix'] = '<p>' . $this->t('These settings apply to the %field field everywhere it is used. These settings impact the way that data is stored in the database and cannot be changed once data has been created.', array('%field' => $field_label)) . '</p>';
+    $form['#prefix'] = '<p>' . $this->t('These settings apply to the %field field everywhere it is used. These settings impact the way that data is stored in the database and cannot be changed once data has been created.', ['%field' => $field_label]) . '</p>';
 
     // See if data already exists for this field.
     // If so, prevent changes to the field settings.
@@ -73,61 +73,88 @@ class FieldStorageConfigEditForm extends EntityForm {
     // Add settings provided by the field module. The field module is
     // responsible for not returning settings that cannot be changed if
     // the field already has data.
-    $form['settings'] = array(
+    $form['settings'] = [
       '#weight' => -10,
       '#tree' => TRUE,
-    );
+    ];
     // Create an arbitrary entity object, so that we can have an instantiated
     // FieldItem.
-    $ids = (object) array(
+    $ids = (object) [
       'entity_type' => $form_state->get('entity_type_id'),
       'bundle' => $form_state->get('bundle'),
       'entity_id' => NULL
-    );
+    ];
     $entity = _field_create_entity_from_ids($ids);
     $items = $entity->get($this->entity->getName());
     $item = $items->first() ?: $items->appendItem();
     $form['settings'] += $item->storageSettingsForm($form, $form_state, $this->entity->hasData());
 
-    // Build the configurable field values.
-    $cardinality = $this->entity->getCardinality();
-    $form['cardinality_container'] = array(
+    // Add the cardinality sub-form.
+    $form['cardinality_container'] = $this->getCardinalityForm();
+
+    return $form;
+  }
+
+  /**
+   * Builds the cardinality form.
+   *
+   * @return array
+   *   The cardinality form render array.
+   */
+  protected function getCardinalityForm() {
+    $form = [
       // Reset #parents so the additional container does not appear.
-      '#parents' => array(),
+      '#parents' => [],
       '#type' => 'fieldset',
       '#title' => $this->t('Allowed number of values'),
-      '#attributes' => array('class' => array(
-        'container-inline',
-        'fieldgroup',
-        'form-composite'
-      )),
-    );
-    $form['cardinality_container']['cardinality'] = array(
-      '#type' => 'select',
-      '#title' => $this->t('Allowed number of values'),
-      '#title_display' => 'invisible',
-      '#options' => array(
-        'number' => $this->t('Limited'),
-        FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED => $this->t('Unlimited'),
-      ),
-      '#default_value' => ($cardinality == FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED) ? FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED : 'number',
-    );
-    $form['cardinality_container']['cardinality_number'] = array(
-      '#type' => 'number',
-      '#default_value' => $cardinality != FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED ? $cardinality : 1,
-      '#min' => 1,
-      '#title' => $this->t('Limit'),
-      '#title_display' => 'invisible',
-      '#size' => 2,
-      '#states' => array(
-        'visible' => array(
-         ':input[name="cardinality"]' => array('value' => 'number'),
-        ),
-        'disabled' => array(
-         ':input[name="cardinality"]' => array('value' => FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED),
-        ),
-      ),
-    );
+      '#attributes' => [
+        'class' => [
+          'container-inline',
+          'fieldgroup',
+          'form-composite',
+        ],
+      ],
+    ];
+
+    if ($enforced_cardinality = $this->getEnforcedCardinality()) {
+      if ($enforced_cardinality === FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED) {
+        $markup = $this->t("This field cardinality is set to unlimited and cannot be configured.");
+      }
+      else {
+        $markup = $this->t("This field cardinality is set to @cardinality and cannot be configured.", ['@cardinality' => $enforced_cardinality]);
+      }
+      $form['cardinality'] = ['#markup' => $markup];
+    }
+    else {
+      $form['#element_validate'][] = '::validateCardinality';
+      $cardinality = $this->entity->getCardinality();
+      $form['cardinality'] = [
+        '#type' => 'select',
+        '#title' => $this->t('Allowed number of values'),
+        '#title_display' => 'invisible',
+        '#options' => [
+          'number' => $this->t('Limited'),
+          FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED => $this->t('Unlimited'),
+        ],
+        '#default_value' => ($cardinality == FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED) ? FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED : 'number',
+      ];
+      $form['cardinality_number'] = [
+        '#type' => 'number',
+        '#default_value' => $cardinality != FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED ? $cardinality : 1,
+        '#min' => 1,
+        '#title' => $this->t('Limit'),
+        '#title_display' => 'invisible',
+        '#size' => 2,
+        '#states' => [
+          'visible' => [
+            ':input[name="cardinality"]' => ['value' => 'number'],
+          ],
+          'disabled' => [
+            ':input[name="cardinality"]' => ['value' => FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED],
+          ],
+        ],
+      ];
+    }
 
     return $form;
   }
@@ -143,16 +170,19 @@ class FieldStorageConfigEditForm extends EntityForm {
   }
 
   /**
-   * {@inheritdoc}
+   * Validates the cardinality.
+   *
+   * @param array $element
+   *   The cardinality form render array.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state.
    */
-  public function validateForm(array &$form, FormStateInterface $form_state) {
-    parent::validateForm($form, $form_state);
-
+  public function validateCardinality(array &$element, FormStateInterface $form_state) {
     $field_storage_definitions = \Drupal::service('entity_field.manager')->getFieldStorageDefinitions($this->entity->getTargetEntityTypeId());
 
     // Validate field cardinality.
     if ($form_state->getValue('cardinality') === 'number' && !$form_state->getValue('cardinality_number')) {
-      $form_state->setErrorByName('cardinality_number', $this->t('Number of values is required.'));
+      $form_state->setError($element['cardinality_number'], $this->t('Number of values is required.'));
     }
     // If a specific cardinality is used, validate that there are no entities
     // with a higher delta.
@@ -166,7 +196,7 @@ class FieldStorageConfigEditForm extends EntityForm {
         ->count()
         ->execute();
       if ($entities_with_higher_delta) {
-        $form_state->setErrorByName('cardinality_number', $this->formatPlural($entities_with_higher_delta, 'There is @count entity with @delta or more values in this field.', 'There are @count entities with @delta or more values in this field.', ['@delta' => $form_state->getValue('cardinality') + 1]));
+        $form_state->setError($element['cardinality_number'], $this->formatPlural($entities_with_higher_delta, 'There is @count entity with @delta or more values in this field.', 'There are @count entities with @delta or more values in this field.', ['@delta' => $form_state->getValue('cardinality') + 1]));
       }
     }
   }
@@ -176,7 +206,7 @@ class FieldStorageConfigEditForm extends EntityForm {
    */
   public function buildEntity(array $form, FormStateInterface $form_state) {
     // Save field cardinality.
-    if ($form_state->getValue('cardinality') === 'number' && $form_state->getValue('cardinality_number')) {
+    if (!$this->getEnforcedCardinality() && $form_state->getValue('cardinality') === 'number' && $form_state->getValue('cardinality_number')) {
       $form_state->setValue('cardinality', $form_state->getValue('cardinality_number'));
     }
 
@@ -190,7 +220,7 @@ class FieldStorageConfigEditForm extends EntityForm {
     $field_label = $form_state->get('field_config')->label();
     try {
       $this->entity->save();
-      drupal_set_message($this->t('Updated field %label field settings.', array('%label' => $field_label)));
+      drupal_set_message($this->t('Updated field %label field settings.', ['%label' => $field_label]));
       $request = $this->getRequest();
       if (($destinations = $request->query->get('destinations')) && $next_destination = FieldUI::getNextDestination($destinations)) {
         $request->query->remove('destinations');
@@ -201,8 +231,23 @@ class FieldStorageConfigEditForm extends EntityForm {
       }
     }
     catch (\Exception $e) {
-      drupal_set_message($this->t('Attempt to update field %label failed: %message.', array('%label' => $field_label, '%message' => $e->getMessage())), 'error');
+      drupal_set_message($this->t('Attempt to update field %label failed: %message.', ['%label' => $field_label, '%message' => $e->getMessage()]), 'error');
     }
+  }
+
+  /**
+   * Returns the cardinality enforced by the field type.
+   *
+   * Some field types choose to enforce a fixed cardinality. This method
+   * returns that cardinality or NULL if no cardinality has been enforced.
+   *
+   * @return int|null
+   */
+  protected function getEnforcedCardinality() {
+    /** @var \Drupal\Core\Field\FieldTypePluginManager $field_type_manager */
+    $field_type_manager = \Drupal::service('plugin.manager.field.field_type');
+    $definition = $field_type_manager->getDefinition($this->entity->getType());
+    return isset($definition['cardinality']) ? $definition['cardinality'] : NULL;
   }
 
 }

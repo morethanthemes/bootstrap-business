@@ -1,7 +1,7 @@
-content_moderation.overview:
-  path: '/admin/config/workflow/moderation'
+content_moderation.workflow_type_edit_form:
+  path: '/admin/config/workflow/workflows/manage/{workflow}/type/{entity_type_id}'
   defaults:
-    _controller: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
-    _title: 'Content moderation'
+    _form: '\Drupal\content_moderation\Form\ContentModerationConfigureEntityTypesForm'
+    _title_callback: '\Drupal\content_moderation\Form\ContentModerationConfigureEntityTypesForm::getTitle'
   requirements:
-    _permission: 'access administration pages'
+    _permission: 'administer workflows'

@@ -1,6 +1,7 @@
 <?php
 
 namespace Drupal\entity_test\Entity;
+
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Entity\EntityTypeInterface;
 
@@ -25,7 +26,8 @@ use Drupal\Core\Entity\EntityTypeInterface;
  *   entity_keys = {
  *     "id" = "id",
  *     "uuid" = "uuid",
- *     "bundle" = "type"
+ *     "bundle" = "type",
+ *     "label" = "name",
  *   },
  *   links = {
  *     "canonical" = "/entity_test_string_id/manage/{entity_test_string_id}",

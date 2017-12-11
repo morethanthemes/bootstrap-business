@@ -17,7 +17,8 @@ use Drupal\Core\Field\FieldItemBase;
  *   description = @Translation("Create and store date values."),
  *   default_widget = "datetime_default",
  *   default_formatter = "datetime_default",
- *   list_class = "\Drupal\datetime\Plugin\Field\FieldType\DateTimeFieldItemList"
+ *   list_class = "\Drupal\datetime\Plugin\Field\FieldType\DateTimeFieldItemList",
+ *   constraints = {"DateTimeFormat" = {}}
  * )
  */
 class DateTimeItem extends FieldItemBase {
@@ -26,9 +27,9 @@ class DateTimeItem extends FieldItemBase {
    * {@inheritdoc}
    */
   public static function defaultStorageSettings() {
-    return array(
+    return [
       'datetime_type' => 'datetime',
-    ) + parent::defaultStorageSettings();
+    ] + parent::defaultStorageSettings();
   }
 
   /**
@@ -63,37 +64,37 @@ class DateTimeItem extends FieldItemBase {
    * {@inheritdoc}
    */
   public static function schema(FieldStorageDefinitionInterface $field_definition) {
-    return array(
-      'columns' => array(
-        'value' => array(
+    return [
+      'columns' => [
+        'value' => [
           'description' => 'The date value.',
           'type' => 'varchar',
           'length' => 20,
-        ),
-      ),
-      'indexes' => array(
-        'value' => array('value'),
-      ),
-    );
+        ],
+      ],
+      'indexes' => [
+        'value' => ['value'],
+      ],
+    ];
   }
 
   /**
    * {@inheritdoc}
    */
   public function storageSettingsForm(array &$form, FormStateInterface $form_state, $has_data) {
-    $element = array();
+    $element = [];
 
-    $element['datetime_type'] = array(
+    $element['datetime_type'] = [
       '#type' => 'select',
       '#title' => t('Date type'),
       '#description' => t('Choose the type of date to create.'),
       '#default_value' => $this->getSetting('datetime_type'),
-      '#options' => array(
+      '#options' => [
         static::DATETIME_TYPE_DATETIME => t('Date and time'),
         static::DATETIME_TYPE_DATE => t('Date only'),
-      ),
+      ],
       '#disabled' => $has_data,
-    );
+    ];
 
     return $element;
   }

@@ -12,24 +12,18 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
  * Implements hook_requirements().
  */
 function rest_requirements($phase) {
-  $requirements = array();
+  $requirements = [];
 
   if (version_compare(PHP_VERSION, '5.6.0', '>=') && version_compare(PHP_VERSION, '7', '<') && ini_get('always_populate_raw_post_data') != -1) {
-    $requirements['always_populate_raw_post_data'] = array(
+    $requirements['always_populate_raw_post_data'] = [
       'title' => t('always_populate_raw_post_data PHP setting'),
       'value' => t('Not set to -1.'),
       'severity' => REQUIREMENT_ERROR,
       'description' => t('The always_populate_raw_post_data PHP setting should be set to -1 in PHP version 5.6. Please check the <a href="https://php.net/manual/en/ini.core.php#ini.always-populate-raw-post-data">PHP manual</a> for information on how to correct this.'),
-    );
+    ];
   }
   return $requirements;
 }
-
-/**
- * @defgroup updates-8.1.x-to-8.2.x
- * @{
- * Update functions from 8.1.x to 8.2.x.
- */
 
 /**
  * Install the REST config entity type and fix old settings-based config.
@@ -92,5 +86,37 @@ function rest_update_8203() {
 }
 
 /**
- * @} End of "defgroup updates-8.1.x-to-8.2.x".
+ * Ensure the right REST authentication method is used.
+ *
+ * This fixes the bug in https://www.drupal.org/node/2825204.
  */
+function rest_update_8401() {
+  $config_factory = \Drupal::configFactory();
+  $auth_providers = \Drupal::service('authentication_collector')->getSortedProviders();
+  $process_auth = function ($auth_option) use ($auth_providers) {
+    foreach ($auth_providers as $provider_id => $provider_data) {
+      // The provider belongs to the module that declares it as a service.
+      if (strtok($provider_data->_serviceId, '.') === $auth_option) {
+        return $provider_id;
+      }
+    }
+
+    return $auth_option;
+  };
+
+  foreach ($config_factory->listAll('views.view.') as $view_config_name) {
+    $save = FALSE;
+    $view = $config_factory->getEditable($view_config_name);
+    $displays = $view->get('display');
+    foreach ($displays as $display_name => $display) {
+      if ('rest_export' === $display['display_plugin'] && !empty($display['display_options']['auth'])) {
+        $displays[$display_name]['display_options']['auth'] = array_map($process_auth, $display['display_options']['auth']);
+        $save = TRUE;
+      }
+    }
+    if ($save) {
+      $view->set('display', $displays);
+      $view->save(TRUE);
+    }
+  }
+}

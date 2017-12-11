@@ -23,14 +23,14 @@ abstract class FieldItemBase extends Map implements FieldItemInterface {
    * {@inheritdoc}
    */
   public static function defaultStorageSettings() {
-    return array();
+    return [];
   }
 
   /**
    * {@inheritdoc}
    */
   public static function defaultFieldSettings() {
-    return array();
+    return [];
   }
 
   /**
@@ -106,7 +106,7 @@ abstract class FieldItemBase extends Map implements FieldItemInterface {
     // given.
     if (isset($values) && !is_array($values)) {
       $keys = array_keys($this->definition->getPropertyDefinitions());
-      $values = array($keys[0] => $values);
+      $values = [$keys[0] => $values];
     }
     parent::setValue($values, $notify);
   }
@@ -183,7 +183,7 @@ abstract class FieldItemBase extends Map implements FieldItemInterface {
   /**
    * {@inheritdoc}
    */
-  public function view($display_options = array()) {
+  public function view($display_options = []) {
     $view_builder = \Drupal::entityManager()->getViewBuilder($this->getEntity()->getEntityTypeId());
     return $view_builder->viewFieldItem($this, $display_options);
   }
@@ -191,40 +191,40 @@ abstract class FieldItemBase extends Map implements FieldItemInterface {
   /**
    * {@inheritdoc}
    */
-  public function preSave() { }
+  public function preSave() {}
 
   /**
    * {@inheritdoc}
    */
-  public function postSave($update) { }
+  public function postSave($update) {}
 
   /**
    * {@inheritdoc}
    */
-  public function delete() { }
+  public function delete() {}
 
   /**
    * {@inheritdoc}
    */
-  public static function generateSampleValue(FieldDefinitionInterface $field_definition) { }
+  public static function generateSampleValue(FieldDefinitionInterface $field_definition) {}
 
   /**
    * {@inheritdoc}
    */
-  public function deleteRevision() { }
+  public function deleteRevision() {}
 
   /**
    * {@inheritdoc}
    */
   public function storageSettingsForm(array &$form, FormStateInterface $form_state, $has_data) {
-    return array();
+    return [];
   }
 
   /**
    * {@inheritdoc}
    */
   public function fieldSettingsForm(array $form, FormStateInterface $form_state) {
-    return array();
+    return [];
   }
 
   /**
@@ -259,7 +259,7 @@ abstract class FieldItemBase extends Map implements FieldItemInterface {
    * {@inheritdoc}
    */
   public static function calculateDependencies(FieldDefinitionInterface $field_definition) {
-    return array();
+    return [];
   }
 
   /**

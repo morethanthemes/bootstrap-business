@@ -18,13 +18,14 @@ class MigrateBundleTest extends MigrateTestBase {
    *
    * @var array
    */
-  public static $modules = ['taxonomy', 'text'];
+  public static $modules = ['taxonomy', 'text', 'user'];
 
   /**
    * {@inheritdoc}
    */
   protected function setUp() {
     parent::setUp();
+    $this->installEntitySchema('user');
     $this->installEntitySchema('taxonomy_vocabulary');
     $this->installEntitySchema('taxonomy_term');
     $this->installConfig(['taxonomy']);
@@ -65,7 +66,7 @@ class MigrateBundleTest extends MigrateTestBase {
     // Import and validate the term entity was created with the correct bundle.
     $term_executable = new MigrateExecutable($term_migration, $this);
     $term_executable->import();
-    /** @var Term $term */
+    /** @var \Drupal\taxonomy\Entity\Term $term */
     $term = Term::load(1);
     $this->assertEquals($term->bundle(), 'categories');
   }
@@ -103,7 +104,7 @@ class MigrateBundleTest extends MigrateTestBase {
     // Import and validate the term entities were created with the correct bundle.
     $term_executable = new MigrateExecutable($term_migration, $this);
     $term_executable->import();
-    /** @var Term $term */
+    /** @var \Drupal\taxonomy\Entity\Term $term */
     $term = Term::load(1);
     $this->assertEquals($term->bundle(), 'categories');
     $term = Term::load(2);
@@ -145,7 +146,7 @@ class MigrateBundleTest extends MigrateTestBase {
     // Import and validate the term entities were created with the correct bundle.
     $term_executable = new MigrateExecutable($term_migration, $this);
     $term_executable->import();
-    /** @var Term $term */
+    /** @var \Drupal\taxonomy\Entity\Term $term */
     $term = Term::load(1);
     $this->assertEquals($term->bundle(), 'categories');
     $term = Term::load(2);

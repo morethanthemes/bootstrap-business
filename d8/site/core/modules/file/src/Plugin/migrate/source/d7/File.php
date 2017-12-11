@@ -10,7 +10,8 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
  * Drupal 7 file source from database.
  *
  * @MigrateSource(
- *   id = "d7_file"
+ *   id = "d7_file",
+ *   source_module = "file"
  * )
  */
 class File extends DrupalSqlBase {
@@ -46,7 +47,7 @@ class File extends DrupalSqlBase {
 
     // Filter by scheme(s), if configured.
     if (isset($this->configuration['scheme'])) {
-      $schemes = array();
+      $schemes = [];
       // Accept either a single scheme, or a list.
       foreach ((array) $this->configuration['scheme'] as $scheme) {
         $schemes[] = rtrim($scheme) . '://';
@@ -93,7 +94,7 @@ class File extends DrupalSqlBase {
    * {@inheritdoc}
    */
   public function fields() {
-    return array(
+    return [
       'fid' => $this->t('File ID'),
       'uid' => $this->t('The {users}.uid who added the file. If set to 0, this file was added by an anonymous user.'),
       'filename' => $this->t('File name'),
@@ -101,7 +102,7 @@ class File extends DrupalSqlBase {
       'filemime' => $this->t('File MIME Type'),
       'status' => $this->t('The published status of a file.'),
       'timestamp' => $this->t('The time that the file was added.'),
-    );
+    ];
   }
 
   /**

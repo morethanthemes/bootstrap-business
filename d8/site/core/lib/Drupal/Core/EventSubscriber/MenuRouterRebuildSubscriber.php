@@ -22,7 +22,7 @@ class MenuRouterRebuildSubscriber implements EventSubscriberInterface {
   /**
    * The menu link plugin manager.
    *
-   * @var \Drupal\Core\Menu\MenuLinkManagerInterface $menuLinkManager
+   * @var \Drupal\Core\Menu\MenuLinkManagerInterface
    */
   protected $menuLinkManager;
 
@@ -47,7 +47,7 @@ class MenuRouterRebuildSubscriber implements EventSubscriberInterface {
    */
   public function onRouterRebuild(Event $event) {
     $this->menuLinksRebuild();
-    Cache::invalidateTags(array('local_task'));
+    Cache::invalidateTags(['local_task']);
   }
 
   /**
@@ -63,7 +63,7 @@ class MenuRouterRebuildSubscriber implements EventSubscriberInterface {
         db_ignore_replica();
       }
       catch (\Exception $e) {
-        $transaction->rollback();
+        $transaction->rollBack();
         watchdog_exception('menu', $e);
       }
 
@@ -80,9 +80,9 @@ class MenuRouterRebuildSubscriber implements EventSubscriberInterface {
   /**
    * {@inheritdoc}
    */
-  static function getSubscribedEvents() {
+  public static function getSubscribedEvents() {
     // Run after CachedRouteRebuildSubscriber.
-    $events[RoutingEvents::FINISHED][] = array('onRouterRebuild', 100);
+    $events[RoutingEvents::FINISHED][] = ['onRouterRebuild', 100];
     return $events;
   }
 

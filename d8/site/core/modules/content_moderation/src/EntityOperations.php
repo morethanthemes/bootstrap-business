@@ -2,19 +2,21 @@
 
 namespace Drupal\content_moderation;
 
-use Drupal\content_moderation\Entity\ContentModerationState;
+use Drupal\content_moderation\Entity\ContentModerationState as ContentModerationStateEntity;
+use Drupal\content_moderation\Entity\ContentModerationStateInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
-use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormBuilderInterface;
-use Drupal\Core\TypedData\TranslatableInterface;
 use Drupal\content_moderation\Form\EntityModerationForm;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Defines a class for reacting to entity events.
+ *
+ * @internal
  */
 class EntityOperations implements ContainerInjectionInterface {
 
@@ -40,11 +42,11 @@ class EntityOperations implements ContainerInjectionInterface {
   protected $formBuilder;
 
   /**
-   * The Revision Tracker service.
+   * The entity bundle information service.
    *
-   * @var \Drupal\content_moderation\RevisionTrackerInterface
+   * @var \Drupal\Core\Entity\EntityTypeBundleInfoInterface
    */
-  protected $tracker;
+  protected $bundleInfo;
 
   /**
    * Constructs a new EntityOperations object.
@@ -55,14 +57,14 @@ class EntityOperations implements ContainerInjectionInterface {
    *   Entity type manager service.
    * @param \Drupal\Core\Form\FormBuilderInterface $form_builder
    *   The form builder.
-   * @param \Drupal\content_moderation\RevisionTrackerInterface $tracker
-   *   The revision tracker.
+   * @param \Drupal\Core\Entity\EntityTypeBundleInfoInterface $bundle_info
+   *   The entity bundle information service.
    */
-  public function __construct(ModerationInformationInterface $moderation_info, EntityTypeManagerInterface $entity_type_manager, FormBuilderInterface $form_builder, RevisionTrackerInterface $tracker) {
+  public function __construct(ModerationInformationInterface $moderation_info, EntityTypeManagerInterface $entity_type_manager, FormBuilderInterface $form_builder, EntityTypeBundleInfoInterface $bundle_info) {
     $this->moderationInfo = $moderation_info;
     $this->entityTypeManager = $entity_type_manager;
     $this->formBuilder = $form_builder;
-    $this->tracker = $tracker;
+    $this->bundleInfo = $bundle_info;
   }
 
   /**
@@ -73,34 +75,8 @@ class EntityOperations implements ContainerInjectionInterface {
       $container->get('content_moderation.moderation_information'),
       $container->get('entity_type.manager'),
       $container->get('form_builder'),
-      $container->get('content_moderation.revision_tracker')
+      $container->get('entity_type.bundle.info')
     );
-  }
-
-  /**
-   * Determines the default moderation state on load for an entity.
-   *
-   * This method is only applicable when an entity is loaded that has
-   * no moderation state on it, but should. In those cases, failing to set
-   * one may result in NULL references elsewhere when other code tries to check
-   * the moderation state of the entity.
-   *
-   * The amount of indirection here makes performance a concern, but
-   * given how Entity API works I don't know how else to do it.
-   * This reliably gets us *A* valid state. However, that state may be
-   * not the ideal one. Suggestions on how to better select the default
-   * state here are welcome.
-   *
-   * @param \Drupal\Core\Entity\ContentEntityInterface $entity
-   *   The entity for which we want a default state.
-   *
-   * @return string
-   *   The default state for the given entity.
-   */
-  protected function getDefaultLoadStateId(ContentEntityInterface $entity) {
-    return $this->moderationInfo
-      ->loadBundleEntity($entity->getEntityType()->getBundleEntityType(), $entity->bundle())
-      ->getThirdPartySetting('content_moderation', 'default_moderation_state');
   }
 
   /**
@@ -108,31 +84,35 @@ class EntityOperations implements ContainerInjectionInterface {
    *
    * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The entity being saved.
+   *
+   * @see hook_entity_presave()
    */
   public function entityPresave(EntityInterface $entity) {
     if (!$this->moderationInfo->isModeratedEntity($entity)) {
       return;
     }
-    if ($entity->moderation_state->target_id) {
-      $moderation_state = $this->entityTypeManager
-        ->getStorage('moderation_state')
-        ->load($entity->moderation_state->target_id);
-      $published_state = $moderation_state->isPublishedState();
 
-      // This entity is default if it is new, the default revision, or the
-      // default revision is not published.
+    if ($entity->moderation_state->value) {
+      $workflow = $this->moderationInfo->getWorkflowForEntity($entity);
+      /** @var \Drupal\content_moderation\ContentModerationState $current_state */
+      $current_state = $workflow->getTypePlugin()
+        ->getState($entity->moderation_state->value);
+
+      // This entity is default if it is new, a new translation, the default
+      // revision, or the default revision is not published.
       $update_default_revision = $entity->isNew()
-        || $moderation_state->isDefaultRevisionState()
-        || !$this->isDefaultRevisionPublished($entity);
+        || $entity->isNewTranslation()
+        || $current_state->isDefaultRevisionState()
+        || !$this->moderationInfo->isDefaultRevisionPublished($entity);
 
       // Fire per-entity-type logic for handling the save process.
-      $this->entityTypeManager->getHandler($entity->getEntityTypeId(), 'moderation')->onPresave($entity, $update_default_revision, $published_state);
+      $this->entityTypeManager
+        ->getHandler($entity->getEntityTypeId(), 'moderation')
+        ->onPresave($entity, $update_default_revision, $current_state->isPublishedState());
     }
   }
 
   /**
-   * Hook bridge.
-   *
    * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The entity that was just saved.
    *
@@ -141,13 +121,10 @@ class EntityOperations implements ContainerInjectionInterface {
   public function entityInsert(EntityInterface $entity) {
     if ($this->moderationInfo->isModeratedEntity($entity)) {
       $this->updateOrCreateFromEntity($entity);
-      $this->setLatestRevision($entity);
     }
   }
 
   /**
-   * Hook bridge.
-   *
    * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The entity that was just saved.
    *
@@ -156,7 +133,6 @@ class EntityOperations implements ContainerInjectionInterface {
   public function entityUpdate(EntityInterface $entity) {
     if ($this->moderationInfo->isModeratedEntity($entity)) {
       $this->updateOrCreateFromEntity($entity);
-      $this->setLatestRevision($entity);
     }
   }
 
@@ -167,73 +143,103 @@ class EntityOperations implements ContainerInjectionInterface {
    *   The entity to update or create a moderation state for.
    */
   protected function updateOrCreateFromEntity(EntityInterface $entity) {
-    $moderation_state = $entity->moderation_state->target_id;
     /** @var \Drupal\Core\Entity\ContentEntityInterface $entity */
-    if (!$moderation_state) {
-      $moderation_state = $this->moderationInfo
-        ->loadBundleEntity($entity->getEntityType()->getBundleEntityType(), $entity->bundle())
-        ->getThirdPartySetting('content_moderation', 'default_moderation_state');
-    }
-
-    // @todo what if $entity->moderation_state->target_id is null at this point?
-    $entity_type_id = $entity->getEntityTypeId();
-    $entity_id = $entity->id();
     $entity_revision_id = $entity->getRevisionId();
-    $entity_langcode = $entity->language()->getId();
+    $workflow = $this->moderationInfo->getWorkflowForEntity($entity);
+    $content_moderation_state = ContentModerationStateEntity::loadFromModeratedEntity($entity);
 
-    $storage = $this->entityTypeManager->getStorage('content_moderation_state');
-    $entities = $storage->loadByProperties([
-      'content_entity_type_id' => $entity_type_id,
-      'content_entity_id' => $entity_id,
-    ]);
-
-    /** @var \Drupal\content_moderation\ContentModerationStateInterface $content_moderation_state */
-    $content_moderation_state = reset($entities);
     if (!($content_moderation_state instanceof ContentModerationStateInterface)) {
+      $storage = $this->entityTypeManager->getStorage('content_moderation_state');
       $content_moderation_state = $storage->create([
-        'content_entity_type_id' => $entity_type_id,
-        'content_entity_id' => $entity_id,
+        'content_entity_type_id' => $entity->getEntityTypeId(),
+        'content_entity_id' => $entity->id(),
+        // Make sure that the moderation state entity has the same language code
+        // as the moderated entity.
+        'langcode' => $entity->language()->getId(),
       ]);
+      $content_moderation_state->workflow->target_id = $workflow->id();
     }
-    else {
-      // Create a new revision.
+    elseif ($content_moderation_state->content_entity_revision_id->value != $entity_revision_id) {
+      // If a new revision of the content has been created, add a new content
+      // moderation state revision.
       $content_moderation_state->setNewRevision(TRUE);
     }
 
     // Sync translations.
-    if (!$content_moderation_state->hasTranslation($entity_langcode)) {
-      $content_moderation_state->addTranslation($entity_langcode);
-    }
-    if ($content_moderation_state->language()->getId() !== $entity_langcode) {
-      $content_moderation_state = $content_moderation_state->getTranslation($entity_langcode);
+    if ($entity->getEntityType()->hasKey('langcode')) {
+      $entity_langcode = $entity->language()->getId();
+      if (!$content_moderation_state->hasTranslation($entity_langcode)) {
+        $content_moderation_state->addTranslation($entity_langcode);
+      }
+      if ($content_moderation_state->language()->getId() !== $entity_langcode) {
+        $content_moderation_state = $content_moderation_state->getTranslation($entity_langcode);
+      }
     }
 
     // Create the ContentModerationState entity for the inserted entity.
+    $moderation_state = $entity->moderation_state->value;
+    /** @var \Drupal\Core\Entity\ContentEntityInterface $entity */
+    if (!$moderation_state) {
+      $moderation_state = $workflow->getTypePlugin()->getInitialState($entity)->id();
+    }
+
+    // @todo what if $entity->moderation_state is null at this point?
     $content_moderation_state->set('content_entity_revision_id', $entity_revision_id);
     $content_moderation_state->set('moderation_state', $moderation_state);
-    ContentModerationState::updateOrCreateFromEntity($content_moderation_state);
+    ContentModerationStateEntity::updateOrCreateFromEntity($content_moderation_state);
   }
 
   /**
-   * Set the latest revision.
-   *
    * @param \Drupal\Core\Entity\EntityInterface $entity
-   *   The content entity to create content_moderation_state entity for.
+   *   The entity being deleted.
+   *
+   * @see hook_entity_delete()
    */
-  protected function setLatestRevision(EntityInterface $entity) {
+  public function entityDelete(EntityInterface $entity) {
+    $content_moderation_state = ContentModerationStateEntity::loadFromModeratedEntity($entity);
+    if ($content_moderation_state) {
+      $content_moderation_state->delete();
+    }
+  }
+
+  /**
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity revision being deleted.
+   *
+   * @see hook_entity_revision_delete()
+   */
+  public function entityRevisionDelete(EntityInterface $entity) {
     /** @var \Drupal\Core\Entity\ContentEntityInterface $entity */
-    $this->tracker->setLatestRevision(
-      $entity->getEntityTypeId(),
-      $entity->id(),
-      $entity->language()->getId(),
-      $entity->getRevisionId()
-    );
+    if (!$entity->isDefaultRevision()) {
+      $content_moderation_state = ContentModerationStateEntity::loadFromModeratedEntity($entity);
+      if ($content_moderation_state) {
+        $this->entityTypeManager
+          ->getStorage('content_moderation_state')
+          ->deleteRevision($content_moderation_state->getRevisionId());
+      }
+    }
+  }
+
+  /**
+   * @param \Drupal\Core\Entity\EntityInterface $translation
+   *   The entity translation being deleted.
+   *
+   * @see hook_entity_translation_delete()
+   */
+  public function entityTranslationDelete(EntityInterface $translation) {
+    /** @var \Drupal\Core\Entity\ContentEntityInterface $translation */
+    if (!$translation->isDefaultTranslation()) {
+      $langcode = $translation->language()->getId();
+      $content_moderation_state = ContentModerationStateEntity::loadFromModeratedEntity($translation);
+      if ($content_moderation_state && $content_moderation_state->hasTranslation($langcode)) {
+        $content_moderation_state->removeTranslation($langcode);
+        ContentModerationStateEntity::updateOrCreateFromEntity($content_moderation_state);
+      }
+    }
   }
 
   /**
    * Act on entities being assembled before rendering.
-   *
-   * This is a hook bridge.
    *
    * @see hook_entity_view()
    * @see EntityFieldManagerInterface::getExtraFields()
@@ -245,47 +251,21 @@ class EntityOperations implements ContainerInjectionInterface {
     if (!$this->moderationInfo->isLatestRevision($entity)) {
       return;
     }
-    /** @var \Drupal\Core\Entity\ContentEntityInterface $entity */
-    if ($entity->isDefaultRevision()) {
+    if ($this->moderationInfo->isLiveRevision($entity)) {
+      return;
+    }
+    // Don't display the moderation form when when:
+    // - The revision is not translation affected.
+    // - There are more than one translation languages.
+    // - The entity has pending revisions.
+    if (!$this->moderationInfo->isPendingRevisionAllowed($entity)) {
       return;
     }
 
     $component = $display->getComponent('content_moderation_control');
     if ($component) {
       $build['content_moderation_control'] = $this->formBuilder->getForm(EntityModerationForm::class, $entity);
-      $build['content_moderation_control']['#weight'] = $component['weight'];
     }
-  }
-
-  /**
-   * Check if the default revision for the given entity is published.
-   *
-   * The default revision is the same as the entity retrieved by "default" from
-   * the storage handler. If the entity is translated, use the default revision
-   * of the same language as the given entity.
-   *
-   * @param \Drupal\Core\Entity\EntityInterface $entity
-   *   The entity being saved.
-   *
-   * @return bool
-   *   TRUE if the default revision is published. FALSE otherwise.
-   */
-  protected function isDefaultRevisionPublished(EntityInterface $entity) {
-    $storage = $this->entityTypeManager->getStorage($entity->getEntityTypeId());
-    $default_revision = $storage->load($entity->id());
-
-    // Ensure we are comparing the same translation as the current entity.
-    if ($default_revision instanceof TranslatableInterface && $default_revision->isTranslatable()) {
-      // If there is no translation, then there is no default revision and is
-      // therefore not published.
-      if (!$default_revision->hasTranslation($entity->language()->getId())) {
-        return FALSE;
-      }
-
-      $default_revision = $default_revision->getTranslation($entity->language()->getId());
-    }
-
-    return $default_revision && $default_revision->moderation_state->entity->isPublishedState();
   }
 
 }

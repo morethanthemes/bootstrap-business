@@ -3,6 +3,7 @@
 namespace Drupal\Tests\locale\Unit;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;
+use Drupal\Core\StringTranslation\PluralTranslatableMarkup;
 use Drupal\locale\LocaleLookup;
 use Drupal\Tests\UnitTestCase;
 use Symfony\Component\HttpFoundation\Request;
@@ -76,9 +77,9 @@ class LocaleLookupTest extends UnitTestCase {
     $this->user = $this->getMock('Drupal\Core\Session\AccountInterface');
     $this->user->expects($this->any())
       ->method('getRoles')
-      ->will($this->returnValue(array('anonymous')));
+      ->will($this->returnValue(['anonymous']));
 
-    $this->configFactory = $this->getConfigFactoryStub(array('locale.settings' => array('cache_strings' => FALSE)));
+    $this->configFactory = $this->getConfigFactoryStub(['locale.settings' => ['cache_strings' => FALSE]]);
 
     $this->languageManager = $this->getMock('Drupal\Core\Language\LanguageManagerInterface');
     $this->requestStack = new RequestStack();
@@ -94,15 +95,15 @@ class LocaleLookupTest extends UnitTestCase {
    * @covers ::resolveCacheMiss
    */
   public function testResolveCacheMissWithoutFallback() {
-    $args = array(
+    $args = [
       'language' => 'en',
       'source' => 'test',
       'context' => 'irrelevant',
-    );
+    ];
 
-    $result = (object) array(
+    $result = (object) [
       'translation' => 'test',
-    );
+    ];
 
     $this->cache->expects($this->once())
       ->method('get')
@@ -114,8 +115,8 @@ class LocaleLookupTest extends UnitTestCase {
       ->will($this->returnValue($result));
 
     $locale_lookup = $this->getMockBuilder('Drupal\locale\LocaleLookup')
-      ->setConstructorArgs(array('en', 'irrelevant', $this->storage, $this->cache, $this->lock, $this->configFactory, $this->languageManager, $this->requestStack))
-      ->setMethods(array('persist'))
+      ->setConstructorArgs(['en', 'irrelevant', $this->storage, $this->cache, $this->lock, $this->configFactory, $this->languageManager, $this->requestStack])
+      ->setMethods(['persist'])
       ->getMock();
     $locale_lookup->expects($this->never())
       ->method('persist');
@@ -133,46 +134,46 @@ class LocaleLookupTest extends UnitTestCase {
    */
   public function testResolveCacheMissWithFallback($langcode, $string, $context, $expected) {
     // These are fake words!
-    $translations = array(
-      'en' => array(
+    $translations = [
+      'en' => [
         'test' => 'test',
         'fake' => 'fake',
         'missing pl' => 'missing pl',
         'missing cs' => 'missing cs',
         'missing both' => 'missing both',
-      ),
-      'pl' => array(
+      ],
+      'pl' => [
         'test' => 'test po polsku',
         'fake' => 'ściema',
         'missing cs' => 'zaginiony czech',
-      ),
-      'cs' => array(
+      ],
+      'cs' => [
         'test' => 'test v české',
         'fake' => 'falešný',
         'missing pl' => 'chybějící pl',
-      ),
-    );
+      ],
+    ];
     $this->storage->expects($this->any())
       ->method('findTranslation')
       ->will($this->returnCallback(function ($argument) use ($translations) {
         if (isset($translations[$argument['language']][$argument['source']])) {
-          return (object) array('translation' => $translations[$argument['language']][$argument['source']]);
+          return (object) ['translation' => $translations[$argument['language']][$argument['source']]];
         }
         return TRUE;
       }));
 
     $this->languageManager->expects($this->any())
       ->method('getFallbackCandidates')
-      ->will($this->returnCallback(function (array $context = array()) {
+      ->will($this->returnCallback(function (array $context = []) {
         switch ($context['langcode']) {
           case 'pl':
-            return array('cs', 'en');
+            return ['cs', 'en'];
 
           case 'cs':
-            return array('en');
+            return ['en'];
 
           default:
-            return array();
+            return [];
         }
       }));
 
@@ -188,20 +189,20 @@ class LocaleLookupTest extends UnitTestCase {
    * Provides test data for testResolveCacheMissWithFallback().
    */
   public function resolveCacheMissWithFallbackProvider() {
-    return array(
-      array('cs', 'test', 'irrelevant', 'test v české'),
-      array('cs', 'fake', 'irrelevant', 'falešný'),
-      array('cs', 'missing pl', 'irrelevant', 'chybějící pl'),
-      array('cs', 'missing cs', 'irrelevant', 'missing cs'),
-      array('cs', 'missing both', 'irrelevant', 'missing both'),
+    return [
+      ['cs', 'test', 'irrelevant', 'test v české'],
+      ['cs', 'fake', 'irrelevant', 'falešný'],
+      ['cs', 'missing pl', 'irrelevant', 'chybějící pl'],
+      ['cs', 'missing cs', 'irrelevant', 'missing cs'],
+      ['cs', 'missing both', 'irrelevant', 'missing both'],
 
       // Testing PL with fallback to cs, en.
-      array('pl', 'test', 'irrelevant', 'test po polsku'),
-      array('pl', 'fake', 'irrelevant', 'ściema'),
-      array('pl', 'missing pl', 'irrelevant', 'chybějící pl'),
-      array('pl', 'missing cs', 'irrelevant', 'zaginiony czech'),
-      array('pl', 'missing both', 'irrelevant', 'missing both'),
-    );
+      ['pl', 'test', 'irrelevant', 'test po polsku'],
+      ['pl', 'fake', 'irrelevant', 'ściema'],
+      ['pl', 'missing pl', 'irrelevant', 'chybějící pl'],
+      ['pl', 'missing cs', 'irrelevant', 'zaginiony czech'],
+      ['pl', 'missing both', 'irrelevant', 'missing both'],
+    ];
   }
 
   /**
@@ -210,25 +211,25 @@ class LocaleLookupTest extends UnitTestCase {
    * @covers ::resolveCacheMiss
    */
   public function testResolveCacheMissWithPersist() {
-    $args = array(
+    $args = [
       'language' => 'en',
       'source' => 'test',
       'context' => 'irrelevant',
-    );
+    ];
 
-    $result = (object) array(
+    $result = (object) [
       'translation' => 'test',
-    );
+    ];
 
     $this->storage->expects($this->once())
       ->method('findTranslation')
       ->with($this->equalTo($args))
       ->will($this->returnValue($result));
 
-    $this->configFactory = $this->getConfigFactoryStub(array('locale.settings' => array('cache_strings' => TRUE)));
+    $this->configFactory = $this->getConfigFactoryStub(['locale.settings' => ['cache_strings' => TRUE]]);
     $locale_lookup = $this->getMockBuilder('Drupal\locale\LocaleLookup')
-      ->setConstructorArgs(array('en', 'irrelevant', $this->storage, $this->cache, $this->lock, $this->configFactory, $this->languageManager, $this->requestStack))
-      ->setMethods(array('persist'))
+      ->setConstructorArgs(['en', 'irrelevant', $this->storage, $this->cache, $this->lock, $this->configFactory, $this->languageManager, $this->requestStack])
+      ->setMethods(['persist'])
       ->getMock();
     $locale_lookup->expects($this->once())
       ->method('persist');
@@ -257,13 +258,75 @@ class LocaleLookupTest extends UnitTestCase {
     $this->requestStack->push($request);
 
     $locale_lookup = $this->getMockBuilder('Drupal\locale\LocaleLookup')
-      ->setConstructorArgs(array('en', 'irrelevant', $this->storage, $this->cache, $this->lock, $this->configFactory, $this->languageManager, $this->requestStack))
-      ->setMethods(array('persist'))
+      ->setConstructorArgs(['en', 'irrelevant', $this->storage, $this->cache, $this->lock, $this->configFactory, $this->languageManager, $this->requestStack])
+      ->setMethods(['persist'])
       ->getMock();
     $locale_lookup->expects($this->never())
       ->method('persist');
 
     $this->assertTrue($locale_lookup->get('test'));
+  }
+
+  /**
+   * Tests locale lookups with old plural style of translations.
+   *
+   * @param array $translations
+   *   The source with translations.
+   * @param string $langcode
+   *   The language code of translation string.
+   * @param string $string
+   *   The string for translation.
+   * @param bool $is_fix
+   *   The flag about expected fix translation.
+   *
+   * @covers ::resolveCacheMiss
+   * @dataProvider providerFixOldPluralTranslationProvider
+   */
+  public function testFixOldPluralStyleTranslations($translations, $langcode, $string, $is_fix) {
+    $this->storage->expects($this->any())
+      ->method('findTranslation')
+      ->will($this->returnCallback(function ($argument) use ($translations) {
+        if (isset($translations[$argument['language']][$argument['source']])) {
+          return (object) ['translation' => $translations[$argument['language']][$argument['source']]];
+        }
+        return TRUE;
+      }));
+    $this->languageManager->expects($this->any())
+      ->method('getFallbackCandidates')
+      ->will($this->returnCallback(function (array $context = []) {
+        switch ($context['langcode']) {
+          case 'by':
+            return ['ru'];
+        }
+      }));
+    $this->cache->expects($this->once())
+      ->method('get')
+      ->with('locale:' . $langcode . '::anonymous', FALSE);
+
+    $locale_lookup = new LocaleLookup($langcode, '', $this->storage, $this->cache, $this->lock, $this->configFactory, $this->languageManager, $this->requestStack);
+    $this->assertSame($is_fix, strpos($locale_lookup->get($string), '@count[2]') === FALSE);
+  }
+
+  /**
+   * Provides test data for testResolveCacheMissWithFallback().
+   */
+  public function providerFixOldPluralTranslationProvider() {
+    $translations = [
+      'by' => [
+        'word1' => '@count[2] word-by',
+        'word2' => implode(PluralTranslatableMarkup::DELIMITER, ['word-by', '@count[2] word-by']),
+      ],
+      'ru' => [
+        'word3' => '@count[2] word-ru',
+        'word4' => implode(PluralTranslatableMarkup::DELIMITER, ['word-ru', '@count[2] word-ru']),
+      ],
+    ];
+    return [
+      'no-plural' => [$translations, 'by', 'word1', FALSE],
+      'no-plural from other language' => [$translations, 'by', 'word3', FALSE],
+      'plural' => [$translations, 'by', 'word2', TRUE],
+      'plural from other language' => [$translations, 'by', 'word4', TRUE],
+    ];
   }
 
 }

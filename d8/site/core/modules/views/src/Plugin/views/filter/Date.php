@@ -27,15 +27,15 @@ class Date extends NumericFilter {
    */
   protected function valueForm(&$form, FormStateInterface $form_state) {
     if (!$form_state->get('exposed')) {
-      $form['value']['type'] = array(
+      $form['value']['type'] = [
         '#type' => 'radios',
         '#title' => $this->t('Value type'),
-        '#options' => array(
+        '#options' => [
           'date' => $this->t('A date in any machine readable format. CCYY-MM-DD HH:MM:SS is preferred.'),
-          'offset' => $this->t('An offset from the current time such as "@example1" or "@example2"', array('@example1' => '+1 day', '@example2' => '-2 hours -30 minutes')),
-        ),
+          'offset' => $this->t('An offset from the current time such as "@example1" or "@example2"', ['@example1' => '+1 day', '@example2' => '-2 hours -30 minutes']),
+        ],
         '#default_value' => !empty($this->value['type']) ? $this->value['type'] : 'date',
-      );
+      ];
     }
     parent::valueForm($form, $form_state);
   }
@@ -43,12 +43,12 @@ class Date extends NumericFilter {
   public function validateOptionsForm(&$form, FormStateInterface $form_state) {
     parent::validateOptionsForm($form, $form_state);
 
-    if (!empty($this->options['exposed']) && $form_state->isValueEmpty(array('options', 'expose', 'required'))) {
+    if (!empty($this->options['exposed']) && $form_state->isValueEmpty(['options', 'expose', 'required'])) {
       // Who cares what the value is if it's exposed and non-required.
       return;
     }
 
-    $this->validateValidTime($form['value'], $form_state, $form_state->getValue(array('options', 'operator')), $form_state->getValue(array('options', 'value')));
+    $this->validateValidTime($form['value'], $form_state, $form_state->getValue(['options', 'operator']), $form_state->getValue(['options', 'value']));
   }
 
   public function validateExposed(&$form, FormStateInterface $form_state) {
@@ -122,8 +122,21 @@ class Date extends NumericFilter {
     }
 
     // Store this because it will get overwritten.
-    $type = $this->value['type'];
+    $type = NULL;
+    if ($this->isAGroup()) {
+      if (is_array($this->group_info)) {
+        $type = $this->group_info['type'];
+      }
+    }
+    else {
+      $type = $this->value['type'];
+    }
     $rc = parent::acceptExposedInput($input);
+
+    // Restore what got overwritten by the parent.
+    if (!is_null($type)) {
+      $this->value['type'] = $type;
+    }
 
     // Don't filter if value(s) are empty.
     $operators = $this->operators();
@@ -145,8 +158,6 @@ class Date extends NumericFilter {
       }
     }
 
-    // restore what got overwritten by the parent.
-    $this->value['type'] = $type;
     return $rc;
   }
 
@@ -155,8 +166,10 @@ class Date extends NumericFilter {
     $b = intval(strtotime($this->value['max'], 0));
 
     if ($this->value['type'] == 'offset') {
-      $a = '***CURRENT_TIME***' . sprintf('%+d', $a); // keep sign
-      $b = '***CURRENT_TIME***' . sprintf('%+d', $b); // keep sign
+      // Keep sign.
+      $a = '***CURRENT_TIME***' . sprintf('%+d', $a);
+      // Keep sign.
+      $b = '***CURRENT_TIME***' . sprintf('%+d', $b);
     }
     // This is safe because we are manually scrubbing the values.
     // It is necessary to do it this way because $a and $b are formulas when using an offset.
@@ -167,7 +180,8 @@ class Date extends NumericFilter {
   protected function opSimple($field) {
     $value = intval(strtotime($this->value['value'], 0));
     if (!empty($this->value['type']) && $this->value['type'] == 'offset') {
-      $value = '***CURRENT_TIME***' . sprintf('%+d', $value); // keep sign
+      // Keep sign.
+      $value = '***CURRENT_TIME***' . sprintf('%+d', $value);
     }
     // This is safe because we are manually scrubbing the value.
     // It is necessary to do it this way because $value is a formula when using an offset.

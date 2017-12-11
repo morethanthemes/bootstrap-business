@@ -64,7 +64,7 @@ class CsrfRequestHeaderAccessCheck implements AccessCheckInterface {
         $methods = explode('|', $requirements['_method']);
         // CSRF protection only applies to write operations, so we can filter
         // out any routes that require reading methods only.
-        $write_methods = array_diff($methods, array('GET', 'HEAD', 'OPTIONS', 'TRACE'));
+        $write_methods = array_diff($methods, ['GET', 'HEAD', 'OPTIONS', 'TRACE']);
         if (empty($write_methods)) {
           return FALSE;
         }
@@ -93,16 +93,19 @@ class CsrfRequestHeaderAccessCheck implements AccessCheckInterface {
     // 1. this is a write operation
     // 2. the user was successfully authenticated and
     // 3. the request comes with a session cookie.
-    if (!in_array($method, array('GET', 'HEAD', 'OPTIONS', 'TRACE'))
+    if (!in_array($method, ['GET', 'HEAD', 'OPTIONS', 'TRACE'])
       && $account->isAuthenticated()
       && $this->sessionConfiguration->hasSession($request)
     ) {
+      if (!$request->headers->has('X-CSRF-Token')) {
+        return AccessResult::forbidden()->setReason('X-CSRF-Token request header is missing')->setCacheMaxAge(0);
+      }
       $csrf_token = $request->headers->get('X-CSRF-Token');
       // @todo Remove validate call using 'rest' in 8.3.
       //   Kept here for sessions active during update.
       if (!$this->csrfToken->validate($csrf_token, self::TOKEN_KEY)
         && !$this->csrfToken->validate($csrf_token, 'rest')) {
-        return AccessResult::forbidden()->setReason('X-CSRF-Token request header is missing')->setCacheMaxAge(0);
+        return AccessResult::forbidden()->setReason('X-CSRF-Token request header is invalid')->setCacheMaxAge(0);
       }
     }
     // Let other access checkers decide if the request is legit.

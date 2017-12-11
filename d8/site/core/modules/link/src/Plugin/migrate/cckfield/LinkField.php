@@ -2,6 +2,8 @@
 
 namespace Drupal\link\Plugin\migrate\cckfield;
 
+@trigger_error('LinkField is deprecated in Drupal 8.3.x and will be be removed before Drupal 9.0.x. Use \Drupal\link\Plugin\migrate\field\d6\LinkField instead.', E_USER_DEPRECATED);
+
 use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate_drupal\Plugin\migrate\cckfield\CckFieldPluginBase;
 
@@ -13,6 +15,11 @@ use Drupal\migrate_drupal\Plugin\migrate\cckfield\CckFieldPluginBase;
  *     "link_field" = "link"
  *   }
  * )
+ *
+ * @deprecated in Drupal 8.3.x and will be removed in Drupal 9.0.x. Use
+ * \Drupal\link\Plugin\migrate\field\d6\LinkField instead.
+ *
+ * @see https://www.drupal.org/node/2751897
  */
 class LinkField extends CckFieldPluginBase {
 

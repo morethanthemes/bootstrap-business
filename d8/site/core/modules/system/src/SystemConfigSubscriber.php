@@ -25,7 +25,7 @@ class SystemConfigSubscriber implements EventSubscriberInterface {
   /**
    * Constructs the SystemConfigSubscriber.
    *
-   * @param \Drupal\Core\Routing\RouteBuilderInterface $route_builder
+   * @param \Drupal\Core\Routing\RouteBuilderInterface $router_builder
    *   The router builder service.
    */
   public function __construct(RouteBuilderInterface $router_builder) {
@@ -68,7 +68,7 @@ class SystemConfigSubscriber implements EventSubscriberInterface {
    * This event listener checks that the system.site:uuid's in the source and
    * target match.
    *
-   * @param ConfigImporterEvent $event
+   * @param \Drupal\Core\Config\ConfigImporterEvent $event
    *   The config import event.
    */
   public function onConfigImporterValidateSiteUUID(ConfigImporterEvent $event) {
@@ -81,11 +81,11 @@ class SystemConfigSubscriber implements EventSubscriberInterface {
    * {@inheritdoc}
    */
   public static function getSubscribedEvents() {
-    $events[ConfigEvents::SAVE][] = array('onConfigSave', 0);
+    $events[ConfigEvents::SAVE][] = ['onConfigSave', 0];
     // The empty check has a high priority so that it can stop propagation if
     // there is no configuration to import.
-    $events[ConfigEvents::IMPORT_VALIDATE][] = array('onConfigImporterValidateNotEmpty', 512);
-    $events[ConfigEvents::IMPORT_VALIDATE][] = array('onConfigImporterValidateSiteUUID', 256);
+    $events[ConfigEvents::IMPORT_VALIDATE][] = ['onConfigImporterValidateNotEmpty', 512];
+    $events[ConfigEvents::IMPORT_VALIDATE][] = ['onConfigImporterValidateSiteUUID', 256];
     return $events;
   }
 

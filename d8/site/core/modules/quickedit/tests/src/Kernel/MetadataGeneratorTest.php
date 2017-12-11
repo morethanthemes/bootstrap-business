@@ -5,7 +5,7 @@ namespace Drupal\Tests\quickedit\Kernel;
 use Drupal\entity_test\Entity\EntityTest;
 use Drupal\quickedit\EditorSelector;
 use Drupal\quickedit\MetadataGenerator;
-use Drupal\quickedit_test\MockEditEntityFieldAccessCheck;
+use Drupal\quickedit_test\MockQuickEditEntityFieldAccessCheck;
 use Drupal\filter\Entity\FilterFormat;
 
 /**
@@ -18,7 +18,7 @@ class MetadataGeneratorTest extends QuickEditTestBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = array('quickedit_test');
+  public static $modules = ['quickedit_test'];
 
   /**
    * The manager for editor plugins.
@@ -44,7 +44,7 @@ class MetadataGeneratorTest extends QuickEditTestBase {
   /**
    * The access checker object to be used by the metadata generator object.
    *
-   * @var \Drupal\quickedit\Access\EditEntityFieldAccessCheckInterface
+   * @var \Drupal\quickedit\Access\QuickEditEntityFieldAccessCheckInterface
    */
   protected $accessChecker;
 
@@ -52,7 +52,7 @@ class MetadataGeneratorTest extends QuickEditTestBase {
     parent::setUp();
 
     $this->editorManager = $this->container->get('plugin.manager.quickedit.editor');
-    $this->accessChecker = new MockEditEntityFieldAccessCheck();
+    $this->accessChecker = new MockQuickEditEntityFieldAccessCheck();
     $this->editorSelector = new EditorSelector($this->editorManager, $this->container->get('plugin.manager.field.formatter'));
     $this->metadataGenerator = new MetadataGenerator($this->accessChecker, $this->editorSelector, $this->editorManager);
   }
@@ -66,26 +66,26 @@ class MetadataGeneratorTest extends QuickEditTestBase {
     $this->createFieldWithStorage(
       $field_1_name, 'string', 1, $field_1_label,
       // Instance settings.
-      array(),
+      [],
       // Widget type & settings.
       'string_textfield',
-      array('size' => 42),
+      ['size' => 42],
       // 'default' formatter type & settings.
       'string',
-      array()
+      []
     );
     $field_2_name = 'field_nr';
     $field_2_label = 'Simple number field';
     $this->createFieldWithStorage(
       $field_2_name, 'integer', 1, $field_2_label,
       // Instance settings.
-      array(),
+      [],
       // Widget type & settings.
       'number',
-      array(),
+      [],
       // 'default' formatter type & settings.
       'number_integer',
-      array()
+      []
     );
 
     // Create an entity with values for this text field.
@@ -98,21 +98,21 @@ class MetadataGeneratorTest extends QuickEditTestBase {
     // Verify metadata for field 1.
     $items_1 = $entity->get($field_1_name);
     $metadata_1 = $this->metadataGenerator->generateFieldMetadata($items_1, 'default');
-    $expected_1 = array(
+    $expected_1 = [
       'access' => TRUE,
       'label' => 'Plain text field',
       'editor' => 'plain_text',
-    );
+    ];
     $this->assertEqual($expected_1, $metadata_1, 'The correct metadata is generated for the first field.');
 
     // Verify metadata for field 2.
     $items_2 = $entity->get($field_2_name);
     $metadata_2 = $this->metadataGenerator->generateFieldMetadata($items_2, 'default');
-    $expected_2 = array(
+    $expected_2 = [
       'access' => TRUE,
       'label' => 'Simple number field',
       'editor' => 'form',
-    );
+    ];
     $this->assertEqual($expected_2, $metadata_2, 'The correct metadata is generated for the second field.');
   }
 
@@ -134,24 +134,24 @@ class MetadataGeneratorTest extends QuickEditTestBase {
     $this->createFieldWithStorage(
       $field_name, 'text', 1, $field_label,
       // Instance settings.
-      array(),
+      [],
       // Widget type & settings.
       'text_textfield',
-      array('size' => 42),
+      ['size' => 42],
       // 'default' formatter type & settings.
       'text_default',
-      array()
+      []
     );
 
     // Create a text format.
-    $full_html_format = FilterFormat::create(array(
+    $full_html_format = FilterFormat::create([
       'format' => 'full_html',
       'name' => 'Full HTML',
       'weight' => 1,
-      'filters' => array(
-        'filter_htmlcorrector' => array('status' => 1),
-      ),
-    ));
+      'filters' => [
+        'filter_htmlcorrector' => ['status' => 1],
+      ],
+    ]);
     $full_html_format->save();
 
     // Create an entity with values for this rich text field.
@@ -164,15 +164,15 @@ class MetadataGeneratorTest extends QuickEditTestBase {
     // Verify metadata.
     $items = $entity->get($field_name);
     $metadata = $this->metadataGenerator->generateFieldMetadata($items, 'default');
-    $expected = array(
+    $expected = [
       'access' => TRUE,
       'label' => 'Rich text field',
       'editor' => 'wysiwyg',
-      'custom' => array(
+      'custom' => [
         'format' => 'full_html'
-      ),
-    );
-    $this->assertEqual($expected, $metadata); //, 'The correct metadata (including custom metadata) is generated.');
+      ],
+    ];
+    $this->assertEqual($expected, $metadata, 'The correct metadata (including custom metadata) is generated.');
   }
 
 }

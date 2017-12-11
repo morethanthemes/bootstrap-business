@@ -20,18 +20,18 @@ class AccessRoleTest extends AccessTestBase {
    *
    * @var array
    */
-  public static $testViews = array('test_access_role');
+  public static $testViews = ['test_access_role'];
 
   /**
    * Tests role access plugin.
    */
-  function testAccessRole() {
+  public function testAccessRole() {
     /** @var \Drupal\views\ViewEntityInterface $view */
     $view = \Drupal::entityManager()->getStorage('view')->load('test_access_role');
     $display = &$view->getDisplay('default');
-    $display['display_options']['access']['options']['role'] = array(
+    $display['display_options']['access']['options']['role'] = [
       $this->normalRole => $this->normalRole,
-    );
+    ];
     $view->save();
     $this->container->get('router.builder')->rebuildIfNeeded();
     $expected = [
@@ -63,10 +63,10 @@ class AccessRoleTest extends AccessTestBase {
     // Test allowing multiple roles.
     $view = Views::getView('test_access_role')->storage;
     $display = &$view->getDisplay('default');
-    $display['display_options']['access']['options']['role'] = array(
+    $display['display_options']['access']['options']['role'] = [
       $this->normalRole => $this->normalRole,
       'anonymous' => 'anonymous',
-    );
+    ];
     $view->save();
     $this->container->get('router.builder')->rebuildIfNeeded();
 
@@ -102,9 +102,9 @@ class AccessRoleTest extends AccessTestBase {
     $display['display_options']['cache'] = [
       'type' => 'tag',
     ];
-    $display['display_options']['access']['options']['role'] = array(
+    $display['display_options']['access']['options']['role'] = [
       $this->normalRole => $this->normalRole,
-    );
+    ];
     $view->save();
 
     /** @var \Drupal\Core\Render\RendererInterface $renderer */
@@ -126,10 +126,10 @@ class AccessRoleTest extends AccessTestBase {
     $account_switcher->switchTo($this->webUser);
     $result = $renderer->renderPlain($build);
     // @todo Fix this in https://www.drupal.org/node/2551037,
-    // DisplayPluginBase::applyDisplayCachablityMetadata() is not invoked when
+    // DisplayPluginBase::applyDisplayCacheabilityMetadata() is not invoked when
     // using buildBasicRenderable() and a Views access plugin returns FALSE.
-    //$this->assertTrue(in_array('user.roles', $build['#cache']['contexts']));
-    //$this->assertEqual([], $build['#cache']['tags']);
+    // $this->assertTrue(in_array('user.roles', $build['#cache']['contexts']));
+    // $this->assertEqual([], $build['#cache']['tags']);
     $this->assertEqual(Cache::PERMANENT, $build['#cache']['max-age']);
     $this->assertEqual($result, '');
   }

@@ -91,7 +91,6 @@ use Drupal\Core\Session\AccountInterface;
  *     }
  *   }
  * }
- * ?>
  * @endcode
  *
  * For more information, see
@@ -187,12 +186,12 @@ interface LanguageNegotiatorInterface {
    * @param int[] $enabled_methods
    *   An array of language negotiation method weights keyed by method ID.
    */
-  function saveConfiguration($type, $enabled_methods);
+  public function saveConfiguration($type, $enabled_methods);
 
   /**
    * Resave the configuration to purge missing negotiation methods.
    */
-  function purgeConfiguration();
+  public function purgeConfiguration();
 
   /**
    * Updates the configuration based on the given language types.
@@ -204,6 +203,6 @@ interface LanguageNegotiatorInterface {
    * @param string[] $types
    *   An array of configurable language types.
    */
-  function updateConfiguration(array $types);
+  public function updateConfiguration(array $types);
 
 }

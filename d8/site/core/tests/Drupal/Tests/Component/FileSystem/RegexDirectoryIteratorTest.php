@@ -3,14 +3,14 @@
 namespace Drupal\Tests\Component\FileSystem;
 
 use Drupal\Component\FileSystem\RegexDirectoryIterator;
-use Drupal\Tests\UnitTestCase;
 use org\bovigo\vfs\vfsStream;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @coversDefaultClass \Drupal\Component\FileSystem\RegexDirectoryIterator
  * @group FileSystem
  */
-class RegexDirectoryIteratorTest extends UnitTestCase {
+class RegexDirectoryIteratorTest extends TestCase {
 
   /**
    * @covers ::accept
@@ -21,7 +21,7 @@ class RegexDirectoryIteratorTest extends UnitTestCase {
     $iterator = new RegexDirectoryIterator(vfsStream::url('root'), $regex);
 
     // Create an array of filenames to assert against.
-    $file_list = array_map(function(\SplFileInfo $file) {
+    $file_list = array_map(function (\SplFileInfo $file) {
       return $file->getFilename();
     }, array_values(iterator_to_array($iterator)));
 

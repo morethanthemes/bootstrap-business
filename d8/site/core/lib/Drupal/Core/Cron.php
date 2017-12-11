@@ -13,6 +13,7 @@ use Drupal\Core\Session\AnonymousUserSession;
 use Drupal\Core\Session\AccountSwitcherInterface;
 use Drupal\Core\Queue\SuspendQueueException;
 use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * The Drupal core Cron service.
@@ -80,7 +81,7 @@ class Cron implements CronInterface {
    * @param \Drupal\Core\State\StateInterface $state
    *   The state service.
    * @param \Drupal\Core\Session\AccountSwitcherInterface $account_switcher
-   *    The account switching service.
+   *   The account switching service.
    * @param \Psr\Log\LoggerInterface $logger
    *   A logger instance.
    * @param \Drupal\Core\Queue\QueueWorkerManagerInterface $queue_manager
@@ -196,16 +197,20 @@ class Cron implements CronInterface {
   protected function invokeCronHandlers() {
     $module_previous = '';
 
+    // If detailed logging isn't enabled, don't log individual execution times.
+    $time_logging_enabled = \Drupal::config('system.cron')->get('logging');
+    $logger = $time_logging_enabled ? $this->logger : new NullLogger();
+
     // Iterate through the modules calling their cron handlers (if any):
     foreach ($this->moduleHandler->getImplementations('cron') as $module) {
 
       if (!$module_previous) {
-        $this->logger->notice('Starting execution of @module_cron().', [
+        $logger->notice('Starting execution of @module_cron().', [
           '@module' => $module,
         ]);
       }
       else {
-        $this->logger->notice('Starting execution of @module_cron(), execution of @module_previous_cron() took @time.', [
+        $logger->notice('Starting execution of @module_cron(), execution of @module_previous_cron() took @time.', [
           '@module' => $module,
           '@module_previous' => $module_previous,
           '@time' => Timer::read('cron_' . $module_previous) . 'ms',
@@ -225,7 +230,7 @@ class Cron implements CronInterface {
       $module_previous = $module;
     }
     if ($module_previous) {
-      $this->logger->notice('Execution of @module_previous_cron() took @time.', [
+      $logger->notice('Execution of @module_previous_cron() took @time.', [
         '@module_previous' => $module_previous,
         '@time' => Timer::read('cron_' . $module_previous) . 'ms',
       ]);

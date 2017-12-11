@@ -5,6 +5,7 @@ namespace Drupal\simpletest;
 use Drupal\Component\Utility\Html;
 use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Component\Utility\Variable;
+use Drupal\Core\Config\Development\ConfigSchemaChecker;
 use Drupal\Core\Database\Database;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\DrupalKernel;
@@ -19,21 +20,46 @@ use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * Base class for integration tests.
+ * Base class for functional integration tests.
  *
- * Tests extending this base class can access files and the database, but the
- * entire environment is initially empty. Drupal runs in a minimal mocked
- * environment, comparable to the one in the early installer.
+ * This base class should be useful for testing some types of integrations which
+ * don't require the overhead of a fully-installed Drupal instance, but which
+ * have many dependencies on parts of Drupal which can't or shouldn't be mocked.
  *
- * The module/hook system is functional and operates on a fixed module list.
- * Additional modules needed in a test may be loaded and added to the fixed
- * module list.
+ * This base class partially boots a fixture Drupal. The state of the fixture
+ * Drupal is comparable to the state of a system during the early part of the
+ * installation process.
+ *
+ * Tests extending this base class can access services and the database, but the
+ * system is initially empty. This Drupal runs in a minimal mocked filesystem
+ * which operates within vfsStream.
+ *
+ * Modules specified in the $modules property are added to the service container
+ * for each test. The module/hook system is functional. Additional modules
+ * needed in a test should override $modules. Modules specified in this way will
+ * be added to those specified in superclasses.
+ *
+ * Unlike \Drupal\Tests\BrowserTestBase, the modules are not installed. They are
+ * loaded such that their services and hooks are available, but the install
+ * process has not been performed.
+ *
+ * Other modules can be made available in this way using
+ * KernelTestBase::enableModules().
+ *
+ * Some modules can be brought into a fully-installed state using
+ * KernelTestBase::installConfig(), KernelTestBase::installSchema(), and
+ * KernelTestBase::installEntitySchema(). Alternately, tests which need modules
+ * to be fully installed could inherit from \Drupal\Tests\BrowserTestBase.
+ *
+ * @see \Drupal\Tests\KernelTestBase::$modules
+ * @see \Drupal\Tests\KernelTestBase::enableModules()
+ * @see \Drupal\Tests\KernelTestBase::installConfig()
+ * @see \Drupal\Tests\KernelTestBase::installEntitySchema()
+ * @see \Drupal\Tests\KernelTestBase::installSchema()
+ * @see \Drupal\Tests\BrowserTestBase
  *
  * @deprecated in Drupal 8.0.x, will be removed before Drupal 9.0.0. Use
  *   \Drupal\KernelTests\KernelTestBase instead.
- *
- * @see \Drupal\simpletest\KernelTestBase::$modules
- * @see \Drupal\simpletest\KernelTestBase::enableModules()
  *
  * @ingroup testing
  */
@@ -60,7 +86,7 @@ abstract class KernelTestBase extends TestBase {
    *
    * @var array
    */
-  public static $modules = array();
+  public static $modules = [];
 
   private $moduleFiles;
   private $themeFiles;
@@ -70,7 +96,7 @@ abstract class KernelTestBase extends TestBase {
    *
    * @var array
    */
-  protected $configDirectories = array();
+  protected $configDirectories = [];
 
   /**
    * A KeyValueMemoryFactory instance to use when building the container.
@@ -84,12 +110,12 @@ abstract class KernelTestBase extends TestBase {
    *
    * @var array
    */
-  protected $streamWrappers = array();
+  protected $streamWrappers = [];
 
   /**
    * {@inheritdoc}
    */
-  function __construct($test_id = NULL) {
+  public function __construct($test_id = NULL) {
     parent::__construct($test_id);
     $this->skipClasses[__CLASS__] = TRUE;
   }
@@ -100,8 +126,8 @@ abstract class KernelTestBase extends TestBase {
   protected function beforePrepareEnvironment() {
     // Copy/prime extension file lists once to avoid filesystem scans.
     if (!isset($this->moduleFiles)) {
-      $this->moduleFiles = \Drupal::state()->get('system.module.files') ?: array();
-      $this->themeFiles = \Drupal::state()->get('system.theme.files') ?: array();
+      $this->moduleFiles = \Drupal::state()->get('system.module.files') ?: [];
+      $this->themeFiles = \Drupal::state()->get('system.theme.files') ?: [];
     }
   }
 
@@ -114,13 +140,13 @@ abstract class KernelTestBase extends TestBase {
    *   Thrown when CONFIG_SYNC_DIRECTORY cannot be created or made writable.
    */
   protected function prepareConfigDirectories() {
-    $this->configDirectories = array();
+    $this->configDirectories = [];
     include_once DRUPAL_ROOT . '/core/includes/install.inc';
     // Assign the relative path to the global variable.
     $path = $this->siteDirectory . '/config_' . CONFIG_SYNC_DIRECTORY;
     $GLOBALS['config_directories'][CONFIG_SYNC_DIRECTORY] = $path;
     // Ensure the directory can be created and is writeable.
-    if (!install_ensure_config_directory(CONFIG_SYNC_DIRECTORY)) {
+    if (!file_prepare_directory($path, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS)) {
       throw new \RuntimeException("Failed to create '" . CONFIG_SYNC_DIRECTORY . "' config directory $path");
     }
     // Provide the already resolved path for tests.
@@ -200,7 +226,6 @@ EOD;
     $this->kernel->shutdown();
     $this->kernel->boot();
 
-
     // Save the original site directory path, so that extensions in the
     // site-specific directory can still be discovered in the test site
     // environment.
@@ -231,11 +256,11 @@ EOD;
     // \Drupal\Core\Config\ConfigInstaller::installDefaultConfig() to work.
     // Write directly to active storage to avoid early instantiation of
     // the event dispatcher which can prevent modules from registering events.
-    \Drupal::service('config.storage')->write('core.extension', array('module' => array(), 'theme' => array()));
+    \Drupal::service('config.storage')->write('core.extension', ['module' => [], 'theme' => [], 'profile' => '']);
 
     // Collect and set a fixed module list.
     $class = get_class($this);
-    $modules = array();
+    $modules = [];
     while ($class) {
       if (property_exists($class, 'modules')) {
         // Only add the modules, if the $modules property was not inherited.
@@ -261,7 +286,7 @@ EOD;
     // @see https://www.drupal.org/node/2028109
     file_prepare_directory($this->publicFilesDirectory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
     $this->settingsSet('file_public_path', $this->publicFilesDirectory);
-    $this->streamWrappers = array();
+    $this->streamWrappers = [];
     $this->registerStreamWrapper('public', 'Drupal\Core\StreamWrapper\PublicStream');
     // The temporary stream wrapper is able to operate both with and without
     // configuration.
@@ -321,13 +346,13 @@ EOD;
 
     if ($this->strictConfigSchema) {
       $container
-        ->register('simpletest.config_schema_checker', 'Drupal\Core\Config\Testing\ConfigSchemaChecker')
+        ->register('simpletest.config_schema_checker', ConfigSchemaChecker::class)
         ->addArgument(new Reference('config.typed'))
         ->addArgument($this->getConfigSchemaExclusions())
         ->addTag('event_subscriber');
     }
 
-    $keyvalue_options = $container->getParameter('factory.keyvalue') ?: array();
+    $keyvalue_options = $container->getParameter('factory.keyvalue') ?: [];
     $keyvalue_options['default'] = 'keyvalue.memory';
     $container->setParameter('factory.keyvalue', $keyvalue_options);
     $container->set('keyvalue.memory', $this->keyValueFactory);
@@ -365,14 +390,14 @@ EOD;
     }
 
     if ($container->hasDefinition('password')) {
-      $container->getDefinition('password')->setArguments(array(1));
+      $container->getDefinition('password')->setArguments([1]);
     }
 
     // Register the stream wrapper manager.
     $container
       ->register('stream_wrapper_manager', 'Drupal\Core\StreamWrapper\StreamWrapperManager')
       ->addArgument(new Reference('module_handler'))
-      ->addMethodCall('setContainer', array(new Reference('service_container')));
+      ->addMethodCall('setContainer', [new Reference('service_container')]);
 
     $request = Request::create('/');
     $container->get('request_stack')->push($request);
@@ -404,9 +429,9 @@ EOD;
       }
       \Drupal::service('config.installer')->installDefaultConfig('module', $module);
     }
-    $this->pass(format_string('Installed default config: %modules.', array(
+    $this->pass(format_string('Installed default config: %modules.', [
       '%modules' => implode(', ', $modules),
-    )));
+    ]));
   }
 
   /**
@@ -446,12 +471,11 @@ EOD;
       }
       $this->container->get('database')->schema()->createTable($table, $schema);
     }
-    $this->pass(format_string('Installed %module tables: %tables.', array(
+    $this->pass(format_string('Installed %module tables: %tables.', [
       '%tables' => '{' . implode('}, {', $tables) . '}',
       '%module' => $module,
-    )));
+    ]));
   }
-
 
 
   /**
@@ -475,18 +499,18 @@ EOD;
       $all_tables_exist = TRUE;
       foreach ($tables as $table) {
         if (!$db_schema->tableExists($table)) {
-          $this->fail(SafeMarkup::format('Installed entity type table for the %entity_type entity type: %table', array(
+          $this->fail(SafeMarkup::format('Installed entity type table for the %entity_type entity type: %table', [
             '%entity_type' => $entity_type_id,
             '%table' => $table,
-          )));
+          ]));
           $all_tables_exist = FALSE;
         }
       }
       if ($all_tables_exist) {
-        $this->pass(SafeMarkup::format('Installed entity type tables for the %entity_type entity type: %tables', array(
+        $this->pass(SafeMarkup::format('Installed entity type tables for the %entity_type entity type: %tables', [
           '%entity_type' => $entity_type_id,
           '%tables' => '{' . implode('}, {', $tables) . '}',
-        )));
+        ]));
       }
     }
   }
@@ -538,9 +562,9 @@ EOD;
     // Note that the kernel has rebuilt the container; this $module_handler is
     // no longer the $module_handler instance from above.
     $this->container->get('module_handler')->reload();
-    $this->pass(format_string('Enabled modules: %modules.', array(
+    $this->pass(format_string('Enabled modules: %modules.', [
       '%modules' => implode(', ', $modules),
-    )));
+    ]));
   }
 
   /**
@@ -573,9 +597,9 @@ EOD;
     // no longer the $module_handler instance from above.
     $module_handler = $this->container->get('module_handler');
     $module_handler->reload();
-    $this->pass(format_string('Disabled modules: %modules.', array(
+    $this->pass(format_string('Disabled modules: %modules.', [
       '%modules' => implode(', ', $modules),
-    )));
+    ]));
   }
 
   /**

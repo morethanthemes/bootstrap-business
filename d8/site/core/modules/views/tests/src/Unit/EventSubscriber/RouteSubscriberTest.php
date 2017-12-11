@@ -68,16 +68,16 @@ class RouteSubscriberTest extends UnitTestCase {
 
     $display_1->expects($this->once())
       ->method('collectRoutes')
-      ->will($this->returnValue(array('test_id.page_1' => 'views.test_id.page_1')));
+      ->will($this->returnValue(['test_id.page_1' => 'views.test_id.page_1']));
     $display_2->expects($this->once())
       ->method('collectRoutes')
-      ->will($this->returnValue(array('test_id.page_2' => 'views.test_id.page_2')));
+      ->will($this->returnValue(['test_id.page_2' => 'views.test_id.page_2']));
 
     $this->routeSubscriber->routes();
 
     $this->state->expects($this->once())
       ->method('set')
-      ->with('views.view_route_names', array('test_id.page_1' => 'views.test_id.page_1', 'test_id.page_2' => 'views.test_id.page_2'));
+      ->with('views.view_route_names', ['test_id.page_1' => 'views.test_id.page_1', 'test_id.page_2' => 'views.test_id.page_2']);
     $this->routeSubscriber->routeRebuildFinished();
   }
 
@@ -89,8 +89,8 @@ class RouteSubscriberTest extends UnitTestCase {
   public function testOnAlterRoutes() {
     $collection = new RouteCollection();
     // The first route will be overridden later.
-    $collection->add('test_route', new Route('test_route', array('_controller' => 'Drupal\Tests\Core\Controller\TestController')));
-    $route_2 = new Route('test_route/example', array('_controller' => 'Drupal\Tests\Core\Controller\TestController'));
+    $collection->add('test_route', new Route('test_route', ['_controller' => 'Drupal\Tests\Core\Controller\TestController']));
+    $route_2 = new Route('test_route/example', ['_controller' => 'Drupal\Tests\Core\Controller\TestController']);
     $collection->add('test_route_2', $route_2);
 
     $route_event = new RouteBuildEvent($collection, 'views');
@@ -101,7 +101,7 @@ class RouteSubscriberTest extends UnitTestCase {
     // should only call the second display.
     $display_1->expects($this->once())
       ->method('collectRoutes')
-      ->willReturnCallback(function() use ($collection) {
+      ->willReturnCallback(function () use ($collection) {
         $collection->add('views.test_id.page_1', new Route('test_route', ['_controller' => 'Drupal\views\Routing\ViewPageController']));
         return ['test_id.page_1' => 'views.test_id.page_1'];
       });
@@ -111,7 +111,7 @@ class RouteSubscriberTest extends UnitTestCase {
 
     $display_2->expects($this->once())
       ->method('collectRoutes')
-      ->willReturnCallback(function() use ($collection) {
+      ->willReturnCallback(function () use ($collection) {
         $collection->add('views.test_id.page_2', new Route('test_route', ['_controller' => 'Drupal\views\Routing\ViewPageController']));
         return ['test_id.page_2' => 'views.test_id.page_2'];
       });
@@ -128,7 +128,7 @@ class RouteSubscriberTest extends UnitTestCase {
 
     $this->state->expects($this->once())
       ->method('set')
-      ->with('views.view_route_names', array('test_id.page_1' => 'test_route', 'test_id.page_2' => 'views.test_id.page_2'));
+      ->with('views.view_route_names', ['test_id.page_1' => 'test_route', 'test_id.page_2' => 'views.test_id.page_2']);
 
     $collection = $route_event->getRouteCollection();
     $this->assertEquals(['test_route', 'test_route_2', 'views.test_id.page_2'], array_keys($collection->all()));
@@ -139,8 +139,8 @@ class RouteSubscriberTest extends UnitTestCase {
   /**
    * Sets up mocks of Views objects needed for testing.
    *
-   * @return array \Drupal\views\Plugin\views\display\DisplayRouterInterface[]|\PHPUnit_Framework_MockObject_MockObject[]
-   *   An array of two mocked view displays
+   * @return \Drupal\views\Plugin\views\display\DisplayRouterInterface[]|\PHPUnit_Framework_MockObject_MockObject[]
+   *   An array of two mocked view displays.
    */
   protected function setupMocks() {
     $executable = $this->getMockBuilder('Drupal\views\ViewExecutable')
@@ -163,11 +163,11 @@ class RouteSubscriberTest extends UnitTestCase {
 
     $executable->expects($this->any())
       ->method('setDisplay')
-      ->will($this->returnValueMap(array(
-        array('page_1', TRUE),
-        array('page_2', TRUE),
-        array('page_3', FALSE),
-      )));
+      ->will($this->returnValueMap([
+        ['page_1', TRUE],
+        ['page_2', TRUE],
+        ['page_3', FALSE],
+      ]));
 
     // Ensure that only the first two displays are actually called.
     $display_1 = $this->getMock('Drupal\views\Plugin\views\display\DisplayRouterInterface');
@@ -178,18 +178,18 @@ class RouteSubscriberTest extends UnitTestCase {
       ->getMock();
     $display_collection->expects($this->any())
       ->method('get')
-      ->will($this->returnValueMap(array(
-        array('page_1', $display_1),
-        array('page_2', $display_2),
-      )));
+      ->will($this->returnValueMap([
+        ['page_1', $display_1],
+        ['page_2', $display_2],
+      ]));
     $executable->displayHandlers = $display_collection;
 
-    $this->routeSubscriber->applicableViews = array();
-    $this->routeSubscriber->applicableViews[] = array('test_id', 'page_1');
-    $this->routeSubscriber->applicableViews[] = array('test_id', 'page_2');
-    $this->routeSubscriber->applicableViews[] = array('test_id', 'page_3');
+    $this->routeSubscriber->applicableViews = [];
+    $this->routeSubscriber->applicableViews[] = ['test_id', 'page_1'];
+    $this->routeSubscriber->applicableViews[] = ['test_id', 'page_2'];
+    $this->routeSubscriber->applicableViews[] = ['test_id', 'page_3'];
 
-    return array($display_1, $display_2);
+    return [$display_1, $display_2];
   }
 
 }

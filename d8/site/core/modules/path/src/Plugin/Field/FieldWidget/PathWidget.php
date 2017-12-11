@@ -5,7 +5,6 @@ namespace Drupal\path\Plugin\Field\FieldWidget;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\WidgetBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Language\LanguageInterface;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 
 /**
@@ -26,47 +25,30 @@ class PathWidget extends WidgetBase {
    */
   public function formElement(FieldItemListInterface $items, $delta, array $element, array &$form, FormStateInterface $form_state) {
     $entity = $items->getEntity();
-    $path = array();
-    if (!$entity->isNew()) {
-      $conditions = array('source' => '/' . $entity->urlInfo()->getInternalPath());
-      if ($items->getLangcode() != LanguageInterface::LANGCODE_NOT_SPECIFIED) {
-        $conditions['langcode'] = $items->getLangcode();
-      }
-      $path = \Drupal::service('path.alias_storage')->load($conditions);
-      if ($path === FALSE) {
-        $path = array();
-      }
-    }
-    $path += array(
-      'pid' => NULL,
-      'source' => !$entity->isNew() ? '/' . $entity->urlInfo()->getInternalPath() : NULL,
-      'alias' => '',
-      'langcode' => $items->getLangcode(),
-    );
 
-    $element += array(
-      '#element_validate' => array(array(get_class($this), 'validateFormElement')),
-    );
-    $element['alias'] = array(
+    $element += [
+      '#element_validate' => [[get_class($this), 'validateFormElement']],
+    ];
+    $element['alias'] = [
       '#type' => 'textfield',
       '#title' => $element['#title'],
-      '#default_value' => $path['alias'],
+      '#default_value' => $items[$delta]->alias,
       '#required' => $element['#required'],
       '#maxlength' => 255,
       '#description' => $this->t('Specify an alternative path by which this data can be accessed. For example, type "/about" when writing an about page.'),
-    );
-    $element['pid'] = array(
+    ];
+    $element['pid'] = [
       '#type' => 'value',
-      '#value' => $path['pid'],
-    );
-    $element['source'] = array(
+      '#value' => $items[$delta]->pid,
+    ];
+    $element['source'] = [
       '#type' => 'value',
-      '#value' => $path['source'],
-    );
-    $element['langcode'] = array(
+      '#value' => !$entity->isNew() ? '/' . $entity->toUrl()->getInternalPath() : NULL,
+     ];
+    $element['langcode'] = [
       '#type' => 'value',
-      '#value' => $path['langcode'],
-    );
+      '#value' => $items[$delta]->langcode,
+    ];
     return $element;
   }
 
@@ -87,12 +69,12 @@ class PathWidget extends WidgetBase {
       // Validate that the submitted alias does not exist yet.
       $is_exists = \Drupal::service('path.alias_storage')->aliasExists($alias, $element['langcode']['#value'], $element['source']['#value']);
       if ($is_exists) {
-        $form_state->setError($element, t('The alias is already in use.'));
+        $form_state->setError($element['alias'], t('The alias is already in use.'));
       }
     }
 
     if ($alias && $alias[0] !== '/') {
-      $form_state->setError($element, t('The alias needs to start with a slash.'));
+      $form_state->setError($element['alias'], t('The alias needs to start with a slash.'));
     }
   }
 

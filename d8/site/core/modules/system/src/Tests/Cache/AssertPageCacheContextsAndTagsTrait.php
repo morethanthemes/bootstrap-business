@@ -9,6 +9,12 @@ use Drupal\Core\Url;
  * Provides test assertions for testing page-level cache contexts & tags.
  *
  * Can be used by test classes that extend \Drupal\simpletest\WebTestBase.
+ *
+ * @deprecated Scheduled for removal in Drupal 9.0.0. Use
+ *  \Drupal\Tests\system\Functional\Cache\AssertPageCacheContextsAndTagsTrait
+ *  instead.
+ *
+ * @see https://www.drupal.org/node/2896632
  */
 trait AssertPageCacheContextsAndTagsTrait {
 
@@ -89,9 +95,9 @@ trait AssertPageCacheContextsAndTagsTrait {
     $this->assertCacheContexts($expected_contexts);
 
     // Assert page cache item + expected cache tags.
-    $cid_parts = array($url->setAbsolute()->toString(), 'html');
+    $cid_parts = [$url->setAbsolute()->toString(), 'html'];
     $cid = implode(':', $cid_parts);
-    $cache_entry = \Drupal::cache('render')->get($cid);
+    $cache_entry = \Drupal::cache('page')->get($cid);
     sort($cache_entry->tags);
     $this->assertEqual($cache_entry->tags, $expected_tags);
     $this->debugCacheTags($cache_entry->tags, $expected_tags);
@@ -122,10 +128,14 @@ trait AssertPageCacheContextsAndTagsTrait {
    */
   protected function assertCacheTags(array $expected_tags, $include_default_tags = TRUE) {
     // The anonymous role cache tag is only added if the user is anonymous.
-    if ($include_default_tags && \Drupal::currentUser()->isAnonymous()) {
-      $expected_tags = Cache::mergeTags($expected_tags, ['config:user.role.anonymous']);
+    if ($include_default_tags) {
+      if (\Drupal::currentUser()->isAnonymous()) {
+        $expected_tags = Cache::mergeTags($expected_tags, ['config:user.role.anonymous']);
+      }
+      $expected_tags[] = 'http_response';
     }
     $actual_tags = $this->getCacheHeaderValues('X-Drupal-Cache-Tags');
+    $expected_tags = array_unique($expected_tags);
     sort($expected_tags);
     sort($actual_tags);
     $this->assertIdentical($actual_tags, $expected_tags);

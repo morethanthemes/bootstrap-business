@@ -48,6 +48,8 @@ abstract class Query implements PlaceholderInterface {
 
   /**
    * The placeholder counter.
+   *
+   * @var int
    */
   protected $nextPlaceholder = 0;
 
@@ -56,7 +58,7 @@ abstract class Query implements PlaceholderInterface {
    *
    * @var array
    */
-  protected $comments = array();
+  protected $comments = [];
 
   /**
    * Constructs a Query object.

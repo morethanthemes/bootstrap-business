@@ -7,12 +7,14 @@ namespace Drupal\Core\TypedData;
  */
 class DataDefinition implements DataDefinitionInterface, \ArrayAccess {
 
+  use TypedDataTrait;
+
   /**
    * The array holding values for all definition keys.
    *
    * @var array
    */
-  protected $definition = array();
+  protected $definition = [];
 
   /**
    * Creates a new data definition.
@@ -41,7 +43,7 @@ class DataDefinition implements DataDefinitionInterface, \ArrayAccess {
    * @param array $values
    *   (optional) If given, an array of initial values to set on the definition.
    */
-  public function __construct(array $values = array()) {
+  public function __construct(array $values = []) {
     $this->definition = $values;
   }
 
@@ -213,7 +215,7 @@ class DataDefinition implements DataDefinitionInterface, \ArrayAccess {
    * {@inheritdoc}
    */
   public function getSettings() {
-    return isset($this->definition['settings']) ? $this->definition['settings'] : array();
+    return isset($this->definition['settings']) ? $this->definition['settings'] : [];
   }
 
   /**
@@ -257,8 +259,8 @@ class DataDefinition implements DataDefinitionInterface, \ArrayAccess {
    * {@inheritdoc}
    */
   public function getConstraints() {
-    $constraints = isset($this->definition['constraints']) ? $this->definition['constraints'] : array();
-    $constraints += \Drupal::typedDataManager()->getDefaultConstraints($this);
+    $constraints = isset($this->definition['constraints']) ? $this->definition['constraints'] : [];
+    $constraints += $this->getTypedDataManager()->getDefaultConstraints($this);
     return $constraints;
   }
 
@@ -338,6 +340,16 @@ class DataDefinition implements DataDefinitionInterface, \ArrayAccess {
    */
   public function toArray() {
     return $this->definition;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function __sleep() {
+    // Never serialize the typed data manager.
+    $vars = get_object_vars($this);
+    unset($vars['typedDataManager']);
+    return array_keys($vars);
   }
 
 }

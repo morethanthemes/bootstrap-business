@@ -6,6 +6,8 @@ use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\Schema\ConfigSchemaAlterException;
 use Drupal\Core\Config\Schema\ConfigSchemaDiscovery;
+use Drupal\Core\DependencyInjection\ClassResolverInterface;
+use Drupal\Core\Config\Schema\Undefined;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\TypedData\TypedDataManager;
 
@@ -44,13 +46,18 @@ class TypedConfigManager extends TypedDataManager implements TypedConfigManagerI
    *   The storage object to use for reading schema data
    * @param \Drupal\Core\Cache\CacheBackendInterface $cache
    *   The cache backend to use for caching the definitions.
+   * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
+   *   The module handler.
+   * @param \Drupal\Core\DependencyInjection\ClassResolverInterface $class_resolver
+   *   (optional) The class resolver.
    */
-  public function __construct(StorageInterface $configStorage, StorageInterface $schemaStorage, CacheBackendInterface $cache, ModuleHandlerInterface $module_handler) {
+  public function __construct(StorageInterface $configStorage, StorageInterface $schemaStorage, CacheBackendInterface $cache, ModuleHandlerInterface $module_handler, ClassResolverInterface $class_resolver = NULL) {
     $this->configStorage = $configStorage;
     $this->schemaStorage = $schemaStorage;
     $this->setCacheBackend($cache, 'typed_config_definitions');
     $this->alterInfo('config_schema_info');
     $this->moduleHandler = $module_handler;
+    $this->classResolver = $class_resolver ?: \Drupal::service('class_resolver');
   }
 
   /**
@@ -63,15 +70,12 @@ class TypedConfigManager extends TypedDataManager implements TypedConfigManagerI
     return $this->discovery;
   }
 
-
   /**
    * {@inheritdoc}
    */
   public function get($name) {
     $data = $this->configStorage->read($name);
-    $type_definition = $this->getDefinition($name);
-    $data_definition = $this->buildDataDefinition($type_definition, $data);
-    return $this->create($data_definition, $data);
+    return $this->createFromNameAndData($name, $data);
   }
 
   /**
@@ -79,13 +83,13 @@ class TypedConfigManager extends TypedDataManager implements TypedConfigManagerI
    */
   public function buildDataDefinition(array $definition, $value, $name = NULL, $parent = NULL) {
     // Add default values for data type and replace variables.
-    $definition += array('type' => 'undefined');
+    $definition += ['type' => 'undefined'];
 
     $replace = [];
     $type = $definition['type'];
     if (strpos($type, ']')) {
       // Replace variable names in definition.
-      $replace = is_array($value) ? $value : array();
+      $replace = is_array($value) ? $value : [];
       if (isset($parent)) {
         $replace['%parent'] = $parent;
       }
@@ -161,14 +165,19 @@ class TypedConfigManager extends TypedDataManager implements TypedConfigManagerI
       $merge = $this->getDefinition($definition['type'], $exception_on_invalid);
       // Preserve integer keys on merge, so sequence item types can override
       // parent settings as opposed to adding unused second, third, etc. items.
-      $definition = NestedArray::mergeDeepArray(array($merge, $definition), TRUE);
+      $definition = NestedArray::mergeDeepArray([$merge, $definition], TRUE);
 
       // Replace dynamic portions of the definition type.
       if (!empty($replacements) && strpos($definition['type'], ']')) {
         $sub_type = $this->determineType($this->replaceName($definition['type'], $replacements), $definitions);
+        $sub_definition = $definitions[$sub_type];
+        if (isset($definitions[$sub_type]['type'])) {
+          $sub_merge = $this->getDefinition($definitions[$sub_type]['type'], $exception_on_invalid);
+          $sub_definition = NestedArray::mergeDeepArray([$sub_merge, $definitions[$sub_type]], TRUE);
+        }
         // Merge the newly determined subtype definition with the original
         // definition.
-        $definition = NestedArray::mergeDeepArray([$definitions[$sub_type], $definition], TRUE);
+        $definition = NestedArray::mergeDeepArray([$sub_definition, $definition], TRUE);
         $type = "$type||$sub_type";
       }
       // Unset type so we try the merge only once per type.
@@ -176,10 +185,11 @@ class TypedConfigManager extends TypedDataManager implements TypedConfigManagerI
       $this->definitions[$type] = $definition;
     }
     // Add type and default definition class.
-    $definition += array(
+    $definition += [
       'definition_class' => '\Drupal\Core\TypedData\DataDefinition',
       'type' => $type,
-    );
+      'unwrap_for_canonical_representation' => TRUE,
+    ];
     return $definition;
   }
 
@@ -265,7 +275,7 @@ class TypedConfigManager extends TypedDataManager implements TypedConfigManagerI
   protected function replaceName($name, $data) {
     if (preg_match_all("/\[(.*)\]/U", $name, $matches)) {
       // Build our list of '[value]' => replacement.
-      $replace = array();
+      $replace = [];
       foreach (array_combine($matches[0], $matches[1]) as $key => $value) {
         $replace[$key] = $this->replaceVariable($value, $data);
       }
@@ -349,7 +359,7 @@ class TypedConfigManager extends TypedDataManager implements TypedConfigManagerI
   public function hasConfigSchema($name) {
     // The schema system falls back on the Undefined class for unknown types.
     $definition = $this->getDefinition($name);
-    return is_array($definition) && ($definition['class'] != '\Drupal\Core\Config\Schema\Undefined');
+    return is_array($definition) && ($definition['class'] != Undefined::class);
   }
 
   /**
@@ -373,6 +383,15 @@ class TypedConfigManager extends TypedDataManager implements TypedConfigManagerI
       }
       throw new ConfigSchemaAlterException($message);
     }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function createFromNameAndData($config_name, array $config_data) {
+    $definition = $this->getDefinition($config_name);
+    $data_definition = $this->buildDataDefinition($definition, $config_data);
+    return $this->create($data_definition, $config_data);
   }
 
 }

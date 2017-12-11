@@ -22,6 +22,8 @@ use Drupal\Core\TypedData\ListInterface;
  *
  * When implementing this interface which extends Traversable, make sure to list
  * IteratorAggregate or Iterator before this interface in the implements clause.
+ *
+ * @see \Drupal\Core\Field\FieldItemInterface
  */
 interface FieldItemListInterface extends ListInterface, AccessibleInterface {
 
@@ -179,7 +181,7 @@ interface FieldItemListInterface extends ListInterface, AccessibleInterface {
    * @see \Drupal\Core\Entity\EntityViewBuilderInterface::viewField()
    * @see \Drupal\Core\Field\FieldItemInterface::view()
    */
-  public function view($display_options = array());
+  public function view($display_options = []);
 
   /**
    * Populates a specified number of field items with valid sample data.

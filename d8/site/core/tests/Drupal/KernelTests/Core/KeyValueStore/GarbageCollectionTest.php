@@ -19,13 +19,13 @@ class GarbageCollectionTest extends KernelTestBase {
    *
    * @var array
    */
-  public static $modules = array('system');
+  public static $modules = ['system'];
 
   protected function setUp() {
     parent::setUp();
 
     // These additional tables are necessary due to the call to system_cron().
-    $this->installSchema('system', array('key_value_expire'));
+    $this->installSchema('system', ['key_value_expire']);
   }
 
   /**
@@ -39,21 +39,20 @@ class GarbageCollectionTest extends KernelTestBase {
     for ($i = 0; $i <= 3; $i++) {
       $store->setWithExpire('key_' . $i, $this->randomObject(), rand(500, 100000));
     }
-    $this->assertIdentical(sizeof($store->getAll()), 4, 'Four items were written to the storage.');
+    $this->assertIdentical(count($store->getAll()), 4, 'Four items were written to the storage.');
 
     // Manually expire the data.
     for ($i = 0; $i <= 3; $i++) {
       db_merge('key_value_expire')
-        ->keys(array(
+        ->keys([
             'name' => 'key_' . $i,
             'collection' => $collection,
-          ))
-        ->fields(array(
+          ])
+        ->fields([
             'expire' => REQUEST_TIME - 1,
-          ))
+          ])
         ->execute();
     }
-
 
     // Perform a new set operation and then trigger garbage collection.
     $store->setWithExpire('autumn', 'winter', rand(500, 1000000));
@@ -62,9 +61,9 @@ class GarbageCollectionTest extends KernelTestBase {
     // Query the database and confirm that the stale records were deleted.
     $result = db_query(
       'SELECT name, value FROM {key_value_expire} WHERE collection = :collection',
-      array(
+      [
         ':collection' => $collection,
-      ))->fetchAll();
+      ])->fetchAll();
     $this->assertIdentical(count($result), 1, 'Only one item remains after garbage collection');
 
   }

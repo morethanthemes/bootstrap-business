@@ -9,7 +9,7 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
  *
  * @MigrateSource(
  *   id = "d7_shortcut_set",
- *   source_provider = "shortcut"
+ *   source_module = "shortcut"
  * )
  */
 class ShortcutSet extends DrupalSqlBase {
@@ -25,10 +25,10 @@ class ShortcutSet extends DrupalSqlBase {
    * {@inheritdoc}
    */
   public function fields() {
-    return array(
+    return [
       'set_name' => $this->t("The name under which the set's links are stored."),
       'title' => $this->t("The title of the set."),
-    );
+    ];
   }
 
   /**

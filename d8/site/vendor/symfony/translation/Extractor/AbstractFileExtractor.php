@@ -11,6 +11,8 @@
 
 namespace Symfony\Component\Translation\Extractor;
 
+use Symfony\Component\Translation\Exception\InvalidArgumentException;
+
 /**
  * Base class used by classes that extract translation messages from files.
  *
@@ -54,14 +56,14 @@ abstract class AbstractFileExtractor
     /**
      * @param string $file
      *
-     * @throws \InvalidArgumentException
-     *
      * @return bool
+     *
+     * @throws InvalidArgumentException
      */
     protected function isFile($file)
     {
         if (!is_file($file)) {
-            throw new \InvalidArgumentException(sprintf('The "%s" file does not exist.', $file));
+            throw new InvalidArgumentException(sprintf('The "%s" file does not exist.', $file));
         }
 
         return true;

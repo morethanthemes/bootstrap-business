@@ -1,6 +1,7 @@
 <?php
 
 namespace Drupal\Tests\TestSuites;
+
 use Drupal\simpletest\TestDiscovery;
 
 /**
@@ -23,7 +24,7 @@ abstract class TestSuiteBase extends \PHPUnit_Framework_TestSuite {
     $extension_roots = \drupal_phpunit_contrib_extension_directory_roots($root);
 
     $extension_directories = array_map('drupal_phpunit_find_extension_directories', $extension_roots);
-    return array_reduce($extension_directories, 'array_merge', array());
+    return array_reduce($extension_directories, 'array_merge', []);
   }
 
   /**

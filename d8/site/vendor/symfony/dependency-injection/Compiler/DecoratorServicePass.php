@@ -35,8 +35,7 @@ class DecoratorServicePass implements CompilerPassInterface
             $definitions->insert(array($id, $definition), array($decorated[2], --$order));
         }
 
-        foreach ($definitions as $arr) {
-            list($id, $definition) = $arr;
+        foreach ($definitions as list($id, $definition)) {
             list($inner, $renamedId) = $definition->getDecoratedService();
 
             $definition->setDecoratedService(null);
@@ -52,10 +51,14 @@ class DecoratorServicePass implements CompilerPassInterface
                 $public = $alias->isPublic();
                 $container->setAlias($renamedId, new Alias((string) $alias, false));
             } else {
-                $definition = $container->getDefinition($inner);
-                $public = $definition->isPublic();
-                $definition->setPublic(false);
-                $container->setDefinition($renamedId, $definition);
+                $decoratedDefinition = $container->getDefinition($inner);
+                $definition->setTags(array_merge($decoratedDefinition->getTags(), $definition->getTags()));
+                $definition->setAutowiringTypes(array_merge($decoratedDefinition->getAutowiringTypes(), $definition->getAutowiringTypes()));
+                $public = $decoratedDefinition->isPublic();
+                $decoratedDefinition->setPublic(false);
+                $decoratedDefinition->setTags(array());
+                $decoratedDefinition->setAutowiringTypes(array());
+                $container->setDefinition($renamedId, $decoratedDefinition);
             }
 
             $container->setAlias($inner, new Alias($id, $public));

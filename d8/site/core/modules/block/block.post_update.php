@@ -6,11 +6,6 @@
  */
 
 /**
- * @addtogroup updates-8.0.0-beta
- * @{
- */
-
-/**
  * Disable all blocks with missing context IDs in block_update_8001().
  */
 function block_post_update_disable_blocks_with_missing_contexts() {
@@ -63,10 +58,10 @@ function block_post_update_disable_blocks_with_missing_contexts() {
     $message = t('Encountered an unknown context mapping key coming probably from a contributed or custom module: One or more mappings could not be updated. Please manually review your visibility settings for the following blocks, which are disabled now:');
     $message .= '<ul>';
     foreach ($blocks as $disabled_block_id => $disabled_block) {
-      $message .= '<li>' . t('@label (Visibility: @plugin_ids)', array(
+      $message .= '<li>' . t('@label (Visibility: @plugin_ids)', [
           '@label' => $disabled_block->get('settings')['label'],
           '@plugin_ids' => implode(', ', array_intersect_key($condition_plugin_id_label_map, array_flip(array_keys($block_update_8001[$disabled_block_id]['missing_context_ids']))))
-        )) . '</li>';
+        ]) . '</li>';
     }
     $message .= '</ul>';
 
@@ -75,5 +70,32 @@ function block_post_update_disable_blocks_with_missing_contexts() {
 }
 
 /**
- * @} End of "addtogroup updates-8.0.0-beta".
+ * Disable blocks that are placed into the "disabled" region.
  */
+function block_post_update_disabled_region_update() {
+  // An empty update will flush caches, forcing block_rebuild() to run.
+}
+
+/**
+ * Fix invalid 'negate' values in block visibility conditions.
+ */
+function block_post_update_fix_negate_in_conditions() {
+  $block_storage = \Drupal::entityTypeManager()->getStorage('block');
+  /** @var \Drupal\block\BlockInterface[] $blocks */
+  $blocks = $block_storage->loadMultiple();
+  foreach ($blocks as $block) {
+    $block_needs_saving = FALSE;
+    // Check each visibility condition for an invalid negate value, and fix it.
+    foreach ($block->getVisibilityConditions() as $condition_id => $condition) {
+      $configuration = $condition->getConfiguration();
+      if (array_key_exists('negate', $configuration) && !is_bool($configuration['negate'])) {
+        $configuration['negate'] = (bool) $configuration['negate'];
+        $condition->setConfiguration($configuration);
+        $block_needs_saving = TRUE;
+      }
+    }
+    if ($block_needs_saving) {
+      $block->save();
+    }
+  }
+}

@@ -20,7 +20,7 @@ class IgnoreReplicaSubscriberTest extends KernelTestBase {
   /**
    * Tests \Drupal\Core\EventSubscriber\ReplicaDatabaseIgnoreSubscriber::checkReplicaServer().
    */
-  function testSystemInitIgnoresSecondaries() {
+  public function testSystemInitIgnoresSecondaries() {
     // Clone the master credentials to a replica connection.
     // Note this will result in two independent connection objects that happen
     // to point to the same place.
@@ -37,7 +37,7 @@ class IgnoreReplicaSubscriberTest extends KernelTestBase {
     $db1 = Database::getConnection('default', 'default');
     $db2 = Database::getConnection('replica', 'default');
 
-    $this->assertIdentical($db1, $db2, 'System Init ignores secondaries when requested.');
+    $this->assertSame($db1, $db2, 'System Init ignores secondaries when requested.');
   }
 
 }

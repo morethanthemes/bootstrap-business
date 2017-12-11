@@ -35,19 +35,7 @@ class XmlFileLoader extends FileLoader
     public function loadClassMetadata(ClassMetadata $metadata)
     {
         if (null === $this->classes) {
-            // This method may throw an exception. Do not modify the class'
-            // state before it completes
-            $xml = $this->parseFile($this->file);
-
-            $this->classes = array();
-
-            foreach ($xml->namespace as $namespace) {
-                $this->addNamespaceAlias((string) $namespace['prefix'], trim((string) $namespace));
-            }
-
-            foreach ($xml->class as $class) {
-                $this->classes[(string) $class['name']] = $class;
-            }
+            $this->loadClassesFromXml();
         }
 
         if (isset($this->classes[$metadata->getClassName()])) {
@@ -59,6 +47,20 @@ class XmlFileLoader extends FileLoader
         }
 
         return false;
+    }
+
+    /**
+     * Return the names of the classes mapped in this file.
+     *
+     * @return string[] The classes names
+     */
+    public function getMappedClasses()
+    {
+        if (null === $this->classes) {
+            $this->loadClassesFromXml();
+        }
+
+        return array_keys($this->classes);
     }
 
     /**
@@ -84,7 +86,7 @@ class XmlFileLoader extends FileLoader
                     $options = array();
                 }
             } elseif (strlen((string) $node) > 0) {
-                $options = trim($node);
+                $options = XmlUtils::phpize(trim($node));
             } else {
                 $options = null;
             }
@@ -182,13 +184,24 @@ class XmlFileLoader extends FileLoader
         return simplexml_import_dom($dom);
     }
 
-    /**
-     * Loads the validation metadata from the given XML class description.
-     *
-     * @param ClassMetadata $metadata         The metadata to load
-     * @param array         $classDescription The XML class description
-     */
-    private function loadClassMetadataFromXml(ClassMetadata $metadata, $classDescription)
+    private function loadClassesFromXml()
+    {
+        // This method may throw an exception. Do not modify the class'
+        // state before it completes
+        $xml = $this->parseFile($this->file);
+
+        $this->classes = array();
+
+        foreach ($xml->namespace as $namespace) {
+            $this->addNamespaceAlias((string) $namespace['prefix'], trim((string) $namespace));
+        }
+
+        foreach ($xml->class as $class) {
+            $this->classes[(string) $class['name']] = $class;
+        }
+    }
+
+    private function loadClassMetadataFromXml(ClassMetadata $metadata, \SimpleXMLElement $classDescription)
     {
         if (count($classDescription->{'group-sequence-provider'}) > 0) {
             $metadata->setGroupSequenceProvider(true);

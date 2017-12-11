@@ -47,7 +47,7 @@ class EntityConstraintViolationList extends ConstraintViolationList implements E
    * @param array $violations
    *   The array of violations.
    */
-  public function __construct(FieldableEntityInterface $entity, array $violations = array()) {
+  public function __construct(FieldableEntityInterface $entity, array $violations = []) {
     parent::__construct($violations);
     $this->entity = $entity;
   }
@@ -67,6 +67,11 @@ class EntityConstraintViolationList extends ConstraintViolationList implements E
           list($field_name) = explode('.', $path, 2);
           if ($this->entity->hasField($field_name)) {
             $this->violationOffsetsByField[$field_name][$offset] = $offset;
+          }
+          // If the first part of the violation property path is not a valid
+          // field name, we're dealing with an entity-level validation.
+          else {
+            $this->entityViolationOffsets[$offset] = $offset;
           }
         }
         else {
@@ -156,7 +161,7 @@ class EntityConstraintViolationList extends ConstraintViolationList implements E
    * {@inheritdoc}
    */
   public function filterByFieldAccess(AccountInterface $account = NULL) {
-    $filtered_fields = array();
+    $filtered_fields = [];
     foreach ($this->getFieldNames() as $field_name) {
       if (!$this->entity->get($field_name)->access('edit', $account)) {
         $filtered_fields[] = $field_name;

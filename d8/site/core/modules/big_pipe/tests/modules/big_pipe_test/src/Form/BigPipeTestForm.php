@@ -20,14 +20,14 @@ class BigPipeTestForm extends FormBase {
   public function buildForm(array $form, FormStateInterface $form_state) {
     $form['#token'] = FALSE;
 
-    $form['big_pipe'] = array(
+    $form['big_pipe'] = [
       '#type' => 'checkboxes',
       '#title' => $this->t('BigPipe works…'),
       '#options' => [
         'js' => $this->t('… with JavaScript'),
         'nojs' => $this->t('… without JavaScript'),
       ],
-    );
+    ];
 
     return $form;
   }
@@ -35,6 +35,6 @@ class BigPipeTestForm extends FormBase {
   /**
    * {@inheritdoc}
    */
-  public function submitForm(array &$form, FormStateInterface $form_state) { }
+  public function submitForm(array &$form, FormStateInterface $form_state) {}
 
 }

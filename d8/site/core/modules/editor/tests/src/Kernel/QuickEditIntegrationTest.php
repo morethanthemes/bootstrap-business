@@ -9,7 +9,7 @@ use Drupal\editor\Entity\Editor;
 use Drupal\entity_test\Entity\EntityTest;
 use Drupal\quickedit\MetadataGenerator;
 use Drupal\Tests\quickedit\Kernel\QuickEditTestBase;
-use Drupal\quickedit_test\MockEditEntityFieldAccessCheck;
+use Drupal\quickedit_test\MockQuickEditEntityFieldAccessCheck;
 use Drupal\editor\EditorController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
@@ -26,7 +26,7 @@ class QuickEditIntegrationTest extends QuickEditTestBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = array('editor', 'editor_test');
+  public static $modules = ['editor', 'editor_test'];
 
   /**
    * The manager for editor plug-ins.
@@ -52,7 +52,7 @@ class QuickEditIntegrationTest extends QuickEditTestBase {
   /**
    * The access checker object to be used by the metadata generator object.
    *
-   * @var \Drupal\quickedit\Access\EditEntityFieldAccessCheckInterface
+   * @var \Drupal\quickedit\Access\QuickEditEntityFieldAccessCheckInterface
    */
   protected $accessChecker;
 
@@ -73,22 +73,22 @@ class QuickEditIntegrationTest extends QuickEditTestBase {
     $this->createFieldWithStorage(
       $this->fieldName, 'text', 1, 'Long text field',
       // Instance settings.
-      array(),
+      [],
       // Widget type & settings.
       'text_textarea',
-      array('size' => 42),
+      ['size' => 42],
       // 'default' formatter type & settings.
       'text_default',
-      array()
+      []
     );
 
     // Create text format.
-    $full_html_format = FilterFormat::create(array(
+    $full_html_format = FilterFormat::create([
       'format' => 'full_html',
       'name' => 'Full HTML',
       'weight' => 1,
-      'filters' => array(),
-    ));
+      'filters' => [],
+    ]);
     $full_html_format->save();
 
     // Associate text editor with text format.
@@ -99,12 +99,12 @@ class QuickEditIntegrationTest extends QuickEditTestBase {
     $editor->save();
 
     // Also create a text format without an associated text editor.
-    FilterFormat::create(array(
+    FilterFormat::create([
       'format' => 'no_editor',
       'name' => 'No Text Editor',
       'weight' => 2,
-      'filters' => array(),
-    ))->save();
+      'filters' => [],
+    ])->save();
   }
 
   /**
@@ -165,7 +165,7 @@ class QuickEditIntegrationTest extends QuickEditTestBase {
    */
   public function testMetadata() {
     $this->editorManager = $this->container->get('plugin.manager.quickedit.editor');
-    $this->accessChecker = new MockEditEntityFieldAccessCheck();
+    $this->accessChecker = new MockQuickEditEntityFieldAccessCheck();
     $this->editorSelector = $this->container->get('quickedit.editor.selector');
     $this->metadataGenerator = new MetadataGenerator($this->accessChecker, $this->editorSelector, $this->editorManager);
 
@@ -179,15 +179,15 @@ class QuickEditIntegrationTest extends QuickEditTestBase {
     // Verify metadata.
     $items = $entity->get($this->fieldName);
     $metadata = $this->metadataGenerator->generateFieldMetadata($items, 'default');
-    $expected = array(
+    $expected = [
       'access' => TRUE,
       'label' => 'Long text field',
       'editor' => 'editor',
-      'custom' => array(
+      'custom' => [
         'format' => 'full_html',
         'formatHasTransformations' => FALSE,
-      ),
-    );
+      ],
+    ];
     $this->assertEqual($expected, $metadata, 'The correct metadata (including custom metadata) is generated.');
   }
 
@@ -197,9 +197,9 @@ class QuickEditIntegrationTest extends QuickEditTestBase {
   public function testAttachments() {
     $this->editorSelector = $this->container->get('quickedit.editor.selector');
 
-    $editors = array('editor');
+    $editors = ['editor'];
     $attachments = $this->editorSelector->getEditorAttachments($editors);
-    $this->assertIdentical($attachments, array('library' => array('editor/quickedit.inPlaceEditor.formattedText')), "Expected attachments for Editor module's in-place editor found.");
+    $this->assertIdentical($attachments, ['library' => ['editor/quickedit.inPlaceEditor.formattedText']], "Expected attachments for Editor module's in-place editor found.");
   }
 
   /**
@@ -217,12 +217,12 @@ class QuickEditIntegrationTest extends QuickEditTestBase {
     $controller = new EditorController();
     $request = new Request();
     $response = $controller->getUntransformedText($entity, $this->fieldName, LanguageInterface::LANGCODE_DEFAULT, 'default');
-    $expected = array(
-      array(
+    $expected = [
+      [
         'command' => 'editorGetUntransformedText',
         'data' => 'Test',
-      )
-    );
+      ]
+    ];
 
     $ajax_response_attachments_processor = \Drupal::service('ajax_response.attachments_processor');
     $subscriber = new AjaxResponseSubscriber($ajax_response_attachments_processor);

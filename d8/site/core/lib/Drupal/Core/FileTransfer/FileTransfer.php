@@ -49,7 +49,7 @@ abstract class FileTransfer {
    *   be restricted to. This prevents the FileTransfer classes from being
    *   able to touch other parts of the filesystem.
    */
-  function __construct($jail) {
+  public function __construct($jail) {
     $this->jail = $jail;
   }
 
@@ -73,7 +73,7 @@ abstract class FileTransfer {
    *
    * @throws \Drupal\Core\FileTransfer\FileTransferException
    */
-  static function factory($jail, $settings) {
+  public static function factory($jail, $settings) {
     throw new FileTransferException('FileTransfer::factory() static method not overridden by FileTransfer subclass.');
   }
 
@@ -90,7 +90,7 @@ abstract class FileTransfer {
    * @return string|bool
    *   The variable specified in $name.
    */
-  function __get($name) {
+  public function __get($name) {
     if ($name == 'connection') {
       $this->connect();
       return $this->connection;
@@ -115,7 +115,7 @@ abstract class FileTransfer {
    * @param string $destination
    *   The destination path.
    */
-  public final function copyDirectory($source, $destination) {
+  final public function copyDirectory($source, $destination) {
     $source = $this->sanitizePath($source);
     $destination = $this->fixRemotePath($destination);
     $this->checkPath($destination);
@@ -136,7 +136,7 @@ abstract class FileTransfer {
    *
    * @see http://php.net/chmod
    */
-  public final function chmod($path, $mode, $recursive = FALSE) {
+  final public function chmod($path, $mode, $recursive = FALSE) {
     if (!($this instanceof ChmodInterface)) {
       throw new FileTransferException('Unable to change file permissions');
     }
@@ -152,7 +152,7 @@ abstract class FileTransfer {
    * @param string $directory
    *   The directory to be created.
    */
-  public final function createDirectory($directory) {
+  final public function createDirectory($directory) {
     $directory = $this->fixRemotePath($directory);
     $this->checkPath($directory);
     $this->createDirectoryJailed($directory);
@@ -164,7 +164,7 @@ abstract class FileTransfer {
    * @param string $directory
    *   The directory to be removed.
    */
-  public final function removeDirectory($directory) {
+  final public function removeDirectory($directory) {
     $directory = $this->fixRemotePath($directory);
     $this->checkPath($directory);
     $this->removeDirectoryJailed($directory);
@@ -178,7 +178,7 @@ abstract class FileTransfer {
    * @param string $destination
    *   The destination file.
    */
-  public final function copyFile($source, $destination) {
+  final public function copyFile($source, $destination) {
     $source = $this->sanitizePath($source);
     $destination = $this->fixRemotePath($destination);
     $this->checkPath($destination);
@@ -191,7 +191,7 @@ abstract class FileTransfer {
    * @param string $destination
    *   The destination file to be removed.
    */
-  public final function removeFile($destination) {
+  final public function removeFile($destination) {
     $destination = $this->fixRemotePath($destination);
     $this->checkPath($destination);
     $this->removeFileJailed($destination);
@@ -205,12 +205,12 @@ abstract class FileTransfer {
    *
    * @throws \Drupal\Core\FileTransfer\FileTransferException
    */
-  protected final function checkPath($path) {
+  final protected function checkPath($path) {
     $full_jail = $this->chroot . $this->jail;
     $full_path = drupal_realpath(substr($this->chroot . $path, 0, strlen($full_jail)));
     $full_path = $this->fixRemotePath($full_path, FALSE);
     if ($full_jail !== $full_path) {
-      throw new FileTransferException('@directory is outside of the @jail', NULL, array('@directory' => $path, '@jail' => $this->jail));
+      throw new FileTransferException('@directory is outside of the @jail', NULL, ['@directory' => $path, '@jail' => $this->jail]);
     }
   }
 
@@ -229,9 +229,10 @@ abstract class FileTransfer {
    * @return string
    *   The modified path.
    */
-  protected final function fixRemotePath($path, $strip_chroot = TRUE) {
+  final protected function fixRemotePath($path, $strip_chroot = TRUE) {
     $path = $this->sanitizePath($path);
-    $path = preg_replace('|^([a-z]{1}):|i', '', $path); // Strip out windows driveletter if its there.
+    // Strip out windows driveletter if its there.
+    $path = preg_replace('|^([a-z]{1}):|i', '', $path);
     if ($strip_chroot) {
       if ($this->chroot && strpos($path, $this->chroot) === 0) {
         $path = ($path == $this->chroot) ? '' : substr($path, strlen($this->chroot));
@@ -249,8 +250,9 @@ abstract class FileTransfer {
    * @return string
    *   The modified path.
    */
-  function sanitizePath($path) {
-    $path = str_replace('\\', '/', $path); // Windows path sanitization.
+  public function sanitizePath($path) {
+    // Windows path sanitization.
+    $path = str_replace('\\', '/', $path);
     if (substr($path, -1) == '/') {
       $path = substr($path, 0, -1);
     }
@@ -347,7 +349,7 @@ abstract class FileTransfer {
    * @return string|bool
    *   If successful, the chroot path for this connection, otherwise FALSE.
    */
-  function findChroot() {
+  public function findChroot() {
     // If the file exists as is, there is no chroot.
     $path = __FILE__;
     $path = $this->fixRemotePath($path, FALSE);
@@ -373,7 +375,7 @@ abstract class FileTransfer {
   /**
    * Sets the chroot and changes the jail to match the correct path scheme.
    */
-  function setChroot() {
+  public function setChroot() {
     $this->chroot = $this->findChroot();
     $this->jail = $this->fixRemotePath($this->jail);
   }
@@ -388,30 +390,30 @@ abstract class FileTransfer {
    *   An array that contains a Form API definition.
    */
   public function getSettingsForm() {
-    $form['username'] = array(
+    $form['username'] = [
       '#type' => 'textfield',
       '#title' => t('Username'),
-    );
-    $form['password'] = array(
+    ];
+    $form['password'] = [
       '#type' => 'password',
       '#title' => t('Password'),
       '#description' => t('Your password is not saved in the database and is only used to establish a connection.'),
-    );
-    $form['advanced'] = array(
+    ];
+    $form['advanced'] = [
       '#type' => 'details',
       '#title' => t('Advanced settings'),
-    );
-    $form['advanced']['hostname'] = array(
+    ];
+    $form['advanced']['hostname'] = [
       '#type' => 'textfield',
       '#title' => t('Host'),
       '#default_value' => 'localhost',
       '#description' => t('The connection will be created between your web server and the machine hosting the web server files. In the vast majority of cases, this will be the same machine, and "localhost" is correct.'),
-    );
-    $form['advanced']['port'] = array(
+    ];
+    $form['advanced']['port'] = [
       '#type' => 'textfield',
       '#title' => t('Port'),
       '#default_value' => NULL,
-    );
+    ];
     return $form;
   }
 

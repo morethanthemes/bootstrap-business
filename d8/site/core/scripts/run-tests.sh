@@ -17,6 +17,7 @@ use Drupal\Core\Test\TestRunnerKernel;
 use Drupal\simpletest\Form\SimpletestResultsForm;
 use Drupal\simpletest\TestBase;
 use Drupal\simpletest\TestDiscovery;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 
 $autoloader = require_once __DIR__ . '/../../autoload.php';
@@ -36,7 +37,7 @@ const SIMPLETEST_SCRIPT_EXIT_SUCCESS = 0;
 const SIMPLETEST_SCRIPT_EXIT_FAILURE = 1;
 const SIMPLETEST_SCRIPT_EXIT_EXCEPTION = 2;
 
-if (!class_exists('\PHPUnit_Framework_TestCase')) {
+if (!class_exists(TestCase::class)) {
   echo "\nrun-tests.sh requires the PHPUnit testing framework. Please use 'composer install --dev' to ensure that it is present.\n\n";
   exit(SIMPLETEST_SCRIPT_EXIT_FAILURE);
 }
@@ -89,6 +90,36 @@ if ($args['list']) {
   exit(SIMPLETEST_SCRIPT_EXIT_SUCCESS);
 }
 
+// List-files and list-files-json provide a way for external tools such as the
+// testbot to prioritize running changed tests.
+// @see https://www.drupal.org/node/2569585
+if ($args['list-files'] || $args['list-files-json']) {
+  // List all files which could be run as tests.
+  $test_discovery = NULL;
+  try {
+    $test_discovery = \Drupal::service('test_discovery');
+  } catch (Exception $e) {
+    error_log((string) $e);
+    echo (string)$e;
+    exit(SIMPLETEST_SCRIPT_EXIT_EXCEPTION);
+  }
+  // TestDiscovery::findAllClassFiles() gives us a classmap similar to a
+  // Composer 'classmap' array.
+  $test_classes = $test_discovery->findAllClassFiles();
+  // JSON output is the easiest.
+  if ($args['list-files-json']) {
+    echo json_encode($test_classes);
+    exit(SIMPLETEST_SCRIPT_EXIT_SUCCESS);
+  }
+  // Output the list of files.
+  else {
+    foreach(array_values($test_classes) as $test_class) {
+      echo $test_class . "\n";
+    }
+  }
+  exit(SIMPLETEST_SCRIPT_EXIT_SUCCESS);
+}
+
 simpletest_script_setup_database(TRUE);
 
 if ($args['clean']) {
@@ -128,7 +159,7 @@ $status = simpletest_script_execute_batch($tests_to_run);
 simpletest_script_reporter_timer_stop();
 
 // Ensure all test locks are released once finished. If tests are run with a
-// concurrency of 1 the each test will clean up it's own lock. Test locks are
+// concurrency of 1 the each test will clean up its own lock. Test locks are
 // not released if using a higher concurrency to ensure each test method has
 // unique fixtures.
 TestDatabase::releaseAllTestLocks();
@@ -177,6 +208,14 @@ All arguments are long options.
   --help      Print this page.
 
   --list      Display all available test groups.
+
+  --list-files
+              Display all discoverable test file paths.
+
+  --list-files-json
+              Display all discoverable test files as JSON. The array key will be
+              the test class name, and the value will be the file path of the
+              test.
 
   --clean     Cleans up database tables or directories from previous, failed,
               tests and then exits (no tests are run).
@@ -309,6 +348,8 @@ function simpletest_script_parse_args() {
     'script' => '',
     'help' => FALSE,
     'list' => FALSE,
+    'list-files' => FALSE,
+    'list-files-json' => FALSE,
     'clean' => FALSE,
     'url' => '',
     'sqlite' => NULL,
@@ -743,7 +784,7 @@ function simpletest_script_run_one_test($test_id, $test_class) {
       $methods = array();
     }
     $test = new $class_name($test_id);
-    if (is_subclass_of($test_class, '\PHPUnit_Framework_TestCase')) {
+    if (is_subclass_of($test_class, TestCase::class)) {
       $status = simpletest_script_run_phpunit($test_id, $test_class);
     }
     else {
@@ -825,7 +866,7 @@ function simpletest_script_command($test_id, $test_class) {
  * @see simpletest_script_run_one_test()
  */
 function simpletest_script_cleanup($test_id, $test_class, $exitcode) {
-  if (is_subclass_of($test_class, '\PHPUnit_Framework_TestCase')) {
+  if (is_subclass_of($test_class, TestCase::class)) {
     // PHPUnit test, move on.
     return;
   }
@@ -980,7 +1021,7 @@ function simpletest_script_get_test_list() {
         else {
           foreach ($matches[1] as $class_name) {
             $namespace_class = $namespace . '\\' . $class_name;
-            if (is_subclass_of($namespace_class, '\Drupal\simpletest\TestBase') || is_subclass_of($namespace_class, '\PHPUnit_Framework_TestCase')) {
+            if (is_subclass_of($namespace_class, '\Drupal\simpletest\TestBase') || is_subclass_of($namespace_class, TestCase::class)) {
               $test_list[] = $namespace_class;
             }
           }
@@ -1022,19 +1063,19 @@ function simpletest_script_get_test_list() {
         $content = file_get_contents($file);
         // Extract a potential namespace.
         $namespace = FALSE;
-        if (preg_match('@^namespace ([^ ;]+)@m', $content, $matches)) {
+        if (preg_match('@^\s*namespace ([^ ;]+)@m', $content, $matches)) {
           $namespace = $matches[1];
         }
         // Extract all class names.
         // Abstract classes are excluded on purpose.
-        preg_match_all('@^class ([^ ]+)@m', $content, $matches);
+        preg_match_all('@^\s*class ([^ ]+)@m', $content, $matches);
         if (!$namespace) {
           $test_list = array_merge($test_list, $matches[1]);
         }
         else {
           foreach ($matches[1] as $class_name) {
             $namespace_class = $namespace . '\\' . $class_name;
-            if (is_subclass_of($namespace_class, '\Drupal\simpletest\TestBase') || is_subclass_of($namespace_class, '\PHPUnit_Framework_TestCase')) {
+            if (is_subclass_of($namespace_class, '\Drupal\simpletest\TestBase') || is_subclass_of($namespace_class, TestCase::class)) {
               $test_list[] = $namespace_class;
             }
           }

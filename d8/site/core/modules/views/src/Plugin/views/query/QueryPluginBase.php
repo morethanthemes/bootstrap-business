@@ -54,7 +54,7 @@ abstract class QueryPluginBase extends PluginBase implements CacheableDependency
    * @param $get_count
    *   Provide a countquery if this is true, otherwise provide a normal query.
    */
-  public function query($get_count = FALSE) { }
+  public function query($get_count = FALSE) {}
 
   /**
    * Let modules modify the query just prior to finalizing it.
@@ -62,7 +62,7 @@ abstract class QueryPluginBase extends PluginBase implements CacheableDependency
    * @param view $view
    *   The view which is executed.
    */
-  public function alter(ViewExecutable $view) {  }
+  public function alter(ViewExecutable $view) {}
 
   /**
    * Builds the necessary info to execute the query.
@@ -70,7 +70,7 @@ abstract class QueryPluginBase extends PluginBase implements CacheableDependency
    * @param view $view
    *   The view which is executed.
    */
-  public function build(ViewExecutable $view) { }
+  public function build(ViewExecutable $view) {}
 
   /**
    * Executes the query and fills the associated view object with according
@@ -85,7 +85,7 @@ abstract class QueryPluginBase extends PluginBase implements CacheableDependency
    * @param view $view
    *   The view which is executed.
    */
-  public function execute(ViewExecutable $view) {  }
+  public function execute(ViewExecutable $view) {}
 
   /**
    * Add a signature to the query, if such a thing is feasible.
@@ -96,18 +96,18 @@ abstract class QueryPluginBase extends PluginBase implements CacheableDependency
    * @param view $view
    *   The view which is executed.
    */
-  public function addSignature(ViewExecutable $view) { }
+  public function addSignature(ViewExecutable $view) {}
 
   /**
    * Get aggregation info for group by queries.
    *
    * If NULL, aggregation is not allowed.
    */
-  public function getAggregationInfo() { }
+  public function getAggregationInfo() {}
 
-  public function validateOptionsForm(&$form, FormStateInterface $form_state) { }
+  public function validateOptionsForm(&$form, FormStateInterface $form_state) {}
 
-  public function submitOptionsForm(&$form, FormStateInterface $form_state) { }
+  public function submitOptionsForm(&$form, FormStateInterface $form_state) {}
 
   public function summaryTitle() {
     return $this->t('Settings');
@@ -173,7 +173,7 @@ abstract class QueryPluginBase extends PluginBase implements CacheableDependency
 
     // Create an empty group
     if (empty($groups[$group])) {
-      $groups[$group] = array('conditions' => array(), 'args' => array());
+      $groups[$group] = ['conditions' => [], 'args' => []];
     }
 
     $groups[$group]['type'] = strtoupper($type);
@@ -199,7 +199,7 @@ abstract class QueryPluginBase extends PluginBase implements CacheableDependency
    *
    * Query plugins that don't support entities can leave the method empty.
    */
-  function loadEntities(&$results) {}
+  public function loadEntities(&$results) {}
 
   /**
    * Returns a Unix timestamp to database native timestamp expression.
@@ -261,19 +261,19 @@ abstract class QueryPluginBase extends PluginBase implements CacheableDependency
    */
   public function getEntityTableInfo() {
     // Start with the base table.
-    $entity_tables = array();
+    $entity_tables = [];
     $views_data = Views::viewsData();
     $base_table = $this->view->storage->get('base_table');
     $base_table_data = $views_data->get($base_table);
 
     if (isset($base_table_data['table']['entity type'])) {
-      $entity_tables[$base_table_data['table']['entity type']] = array(
+      $entity_tables[$base_table_data['table']['entity type']] = [
         'base' => $base_table,
         'alias' => $base_table,
         'relationship_id' => 'none',
         'entity_type' => $base_table_data['table']['entity type'],
         'revision' => $base_table_data['table']['entity revision'],
-      );
+      ];
 
       // Include the entity provider.
       if (!empty($base_table_data['table']['provider'])) {
@@ -293,13 +293,13 @@ abstract class QueryPluginBase extends PluginBase implements CacheableDependency
           continue;
         }
 
-        $entity_tables[$relationship_id . '__' . $relationship->tableAlias] = array(
+        $entity_tables[$relationship_id . '__' . $relationship->tableAlias] = [
           'base' => $relationship->definition['base'],
           'relationship_id' => $relationship_id,
           'alias' => $relationship->alias,
           'entity_type' => $table_data['table']['entity type'],
           'revision' => $table_data['table']['entity revision'],
-        );
+        ];
 
         // Include the entity provider.
         if (!empty($table_data['table']['provider'])) {

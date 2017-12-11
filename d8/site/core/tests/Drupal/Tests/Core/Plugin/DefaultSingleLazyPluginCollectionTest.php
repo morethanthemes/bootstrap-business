@@ -27,7 +27,7 @@ class DefaultSingleLazyPluginCollectionTest extends LazyPluginCollectionTestBase
         return $this->pluginInstances[$id];
       });
 
-    $this->defaultPluginCollection = new DefaultSingleLazyPluginCollection($this->pluginManager, 'apple', array('id' => 'apple', 'key' => 'value'));
+    $this->defaultPluginCollection = new DefaultSingleLazyPluginCollection($this->pluginManager, 'apple', ['id' => 'apple', 'key' => 'value']);
   }
 
   /**
@@ -56,6 +56,17 @@ class DefaultSingleLazyPluginCollectionTest extends LazyPluginCollectionTestBase
     $this->assertEquals(['id' => 'apple', 'key' => 'value'], $this->defaultPluginCollection->get('apple')->getConfiguration());
     $this->assertEquals(['id' => 'banana', 'key' => 'other_value'], $this->defaultPluginCollection->getConfiguration());
     $this->assertEquals(['id' => 'banana', 'key' => 'other_value'], $this->defaultPluginCollection->get('banana')->getConfiguration());
+  }
+
+  /**
+   * @covers ::getInstanceIds
+   */
+  public function testGetInstanceIds() {
+    $this->setupPluginCollection($this->any());
+    $this->assertEquals(['apple' => 'apple'], $this->defaultPluginCollection->getInstanceIds());
+
+    $this->defaultPluginCollection->addInstanceId('banana', ['id' => 'banana', 'key' => 'other_value']);
+    $this->assertEquals(['banana' => 'banana'], $this->defaultPluginCollection->getInstanceIds());
   }
 
 }

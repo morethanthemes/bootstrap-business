@@ -2,6 +2,7 @@
 
 namespace Drupal\Core\Plugin\Context;
 
+use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\Core\TypedData\TypedDataTrait;
 
 /**
@@ -9,12 +10,14 @@ use Drupal\Core\TypedData\TypedDataTrait;
  */
 class ContextDefinition implements ContextDefinitionInterface {
 
+  use DependencySerializationTrait;
+
   use TypedDataTrait;
 
   /**
    * The data type of the data.
    *
-   * @return string
+   * @var string
    *   The data type.
    */
   protected $dataType;
@@ -22,7 +25,7 @@ class ContextDefinition implements ContextDefinitionInterface {
   /**
    * The human-readable label.
    *
-   * @return string
+   * @var string
    *   The label.
    */
   protected $label;
@@ -30,7 +33,7 @@ class ContextDefinition implements ContextDefinitionInterface {
   /**
    * The human-readable description.
    *
-   * @return string|null
+   * @var string|null
    *   The description, or NULL if no description is available.
    */
   protected $description;

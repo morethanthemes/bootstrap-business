@@ -56,6 +56,8 @@ class Bundle extends InOperator {
    *   The plugin implementation definition.
    * @param \Drupal\Core\Entity\EntityManagerInterface $entity_manager
    *   The entity manager.
+   * @param \Drupal\Core\Entity\EntityTypeBundleInfoInterface $bundle_info_service
+   *   The bundle info service.
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityManagerInterface $entity_manager, EntityTypeBundleInfoInterface $bundle_info_service) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
@@ -94,9 +96,9 @@ class Bundle extends InOperator {
   public function getValueOptions() {
     if (!isset($this->valueOptions)) {
       $types = $this->bundleInfoService->getBundleInfo($this->entityTypeId);
-      $this->valueTitle = $this->t('@entity types', array('@entity' => $this->entityType->getLabel()));
+      $this->valueTitle = $this->t('@entity types', ['@entity' => $this->entityType->getLabel()]);
 
-      $options = array();
+      $options = [];
       foreach ($types as $type => $info) {
         $options[$type] = $info['label'];
       }

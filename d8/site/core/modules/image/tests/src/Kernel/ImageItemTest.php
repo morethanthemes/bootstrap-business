@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\image\Kernel;
 
+use Drupal\Core\Entity\EntityStorageException;
 use Drupal\Core\Field\FieldItemInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
@@ -23,7 +24,7 @@ class ImageItemTest extends FieldKernelTestBase {
    *
    * @var array
    */
-  public static $modules = array('file', 'image');
+  public static $modules = ['file', 'image'];
 
   /**
    * Created file entity.
@@ -41,14 +42,14 @@ class ImageItemTest extends FieldKernelTestBase {
     parent::setUp();
 
     $this->installEntitySchema('file');
-    $this->installSchema('file', array('file_usage'));
+    $this->installSchema('file', ['file_usage']);
 
-    FieldStorageConfig::create(array(
+    FieldStorageConfig::create([
       'entity_type' => 'entity_test',
       'field_name' => 'image_test',
       'type' => 'image',
       'cardinality' => FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED,
-    ))->save();
+    ])->save();
     FieldConfig::create([
       'entity_type' => 'entity_test',
       'field_name' => 'image_test',
@@ -114,11 +115,11 @@ class ImageItemTest extends FieldKernelTestBase {
 
     // Delete the image and try to save the entity again.
     $this->image->delete();
-    $entity = EntityTest::create(array('mame' => $this->randomMachineName()));
+    $entity = EntityTest::create(['mame' => $this->randomMachineName()]);
     $entity->save();
 
     // Test image item properties.
-    $expected = array('target_id', 'entity', 'alt', 'title', 'width', 'height');
+    $expected = ['target_id', 'entity', 'alt', 'title', 'width', 'height'];
     $properties = $entity->getFieldDefinition('image_test')->getFieldStorageDefinition()->getPropertyDefinitions();
     $this->assertEqual(array_keys($properties), $expected);
 
@@ -127,6 +128,28 @@ class ImageItemTest extends FieldKernelTestBase {
     $entity->image_test->generateSampleItems();
     $this->entityValidateAndSave($entity);
     $this->assertEqual($entity->image_test->entity->get('filemime')->value, 'image/jpeg');
+  }
+
+  /**
+   * Tests a malformed image.
+   */
+  public function testImageItemMalformed() {
+    // Validate entity is an image and don't gather dimensions if it is not.
+    $entity = EntityTest::create();
+    $entity->image_test = NULL;
+    $entity->image_test->target_id = 9999;
+    // PHPUnit re-throws E_USER_WARNING as an exception.
+    try {
+      $entity->save();
+      $this->fail('Exception did not fail');
+    }
+    catch (EntityStorageException $exception) {
+      $this->assertInstanceOf(\PHPUnit_Framework_Error_Warning::class, $exception->getPrevious());
+      $this->assertEquals($exception->getMessage(), 'Missing file with ID 9999.');
+      $this->assertEmpty($entity->image_test->width);
+      $this->assertEmpty($entity->image_test->height);
+    }
+
   }
 
 }

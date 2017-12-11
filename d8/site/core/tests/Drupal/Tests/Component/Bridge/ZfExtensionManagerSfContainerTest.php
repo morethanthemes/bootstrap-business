@@ -3,14 +3,14 @@
 namespace Drupal\Tests\Component\Bridge;
 
 use Drupal\Component\Bridge\ZfExtensionManagerSfContainer;
-use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
  * @coversDefaultClass \Drupal\Component\Bridge\ZfExtensionManagerSfContainer
  * @group Bridge
  */
-class ZfExtensionManagerSfContainerTest extends UnitTestCase {
+class ZfExtensionManagerSfContainerTest extends TestCase {
 
   /**
    * @covers ::setContainer
@@ -80,41 +80,41 @@ class ZfExtensionManagerSfContainerTest extends UnitTestCase {
    *   array('-' => '', '_' => '', ' ' => '', '\\' => '', '/' => '')
    */
   public function canonicalizeNameProvider() {
-    return array(
-      array(
+    return [
+      [
         'foobar',
         'foobar',
-      ),
-      array(
+      ],
+      [
         'foo-bar',
         'foobar',
-      ),
-      array(
+      ],
+      [
         'foo_bar',
         'foobar',
-      ),
-      array(
+      ],
+      [
         'foo bar',
         'foobar',
-      ),
-      array(
+      ],
+      [
         'foo\\bar',
         'foobar',
-      ),
-      array(
+      ],
+      [
         'foo/bar',
         'foobar',
-      ),
+      ],
       // There is also a strtolower in canonicalizeName.
-      array(
+      [
         'Foo/bAr',
         'foobar',
-      ),
-      array(
+      ],
+      [
         'foo/-_\\ bar',
         'foobar',
-      ),
-    );
+      ],
+    ];
   }
 
 }

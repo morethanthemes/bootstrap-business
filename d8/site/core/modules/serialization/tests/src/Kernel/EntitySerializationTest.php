@@ -4,6 +4,7 @@ namespace Drupal\Tests\serialization\Kernel;
 
 use Drupal\Component\Utility\SafeMarkup;
 use Drupal\entity_test\Entity\EntityTestMulRev;
+use Drupal\Tests\rest\Functional\BcTimestampNormalizerUnixTestTrait;
 
 /**
  * Tests that entities can be serialized to supported core formats.
@@ -12,12 +13,14 @@ use Drupal\entity_test\Entity\EntityTestMulRev;
  */
 class EntitySerializationTest extends NormalizerTestBase {
 
+  use BcTimestampNormalizerUnixTestTrait;
+
   /**
    * Modules to install.
    *
    * @var array
    */
-  public static $modules = array('serialization', 'system', 'field', 'entity_test', 'text', 'filter', 'user', 'entity_serialization_test');
+  public static $modules = ['serialization', 'system', 'field', 'entity_test', 'text', 'filter', 'user', 'entity_serialization_test'];
 
   /**
    * The test values.
@@ -29,7 +32,7 @@ class EntitySerializationTest extends NormalizerTestBase {
   /**
    * The test entity.
    *
-   * @var \Drupal\Core\Entity\ContentEntityBase
+   * @var \Drupal\Core\Entity\ContentEntityInterface
    */
   protected $entity;
 
@@ -58,7 +61,7 @@ class EntitySerializationTest extends NormalizerTestBase {
     parent::setUp();
 
     // User create needs sequence table.
-    $this->installSchema('system', array('sequences'));
+    $this->installSchema('system', ['sequences']);
 
     // Create a test user to use as the entity owner.
     $this->user = \Drupal::entityManager()->getStorage('user')->create([
@@ -69,74 +72,78 @@ class EntitySerializationTest extends NormalizerTestBase {
     $this->user->save();
 
     // Create a test entity to serialize.
-    $this->values = array(
+    $this->values = [
       'name' => $this->randomMachineName(),
       'user_id' => $this->user->id(),
-      'field_test_text' => array(
+      'field_test_text' => [
         'value' => $this->randomMachineName(),
         'format' => 'full_html',
-      ),
-    );
+      ],
+    ];
     $this->entity = EntityTestMulRev::create($this->values);
     $this->entity->save();
 
     $this->serializer = $this->container->get('serializer');
 
-    $this->installConfig(array('field'));
+    $this->installConfig(['field']);
   }
 
   /**
    * Test the normalize function.
    */
   public function testNormalize() {
-    $expected = array(
-      'id' => array(
-        array('value' => 1),
-      ),
-      'uuid' => array(
-        array('value' => $this->entity->uuid()),
-      ),
-      'langcode' => array(
-        array('value' => 'en'),
-      ),
-      'name' => array(
-        array('value' => $this->values['name']),
-      ),
-      'type' => array(
-        array('value' => 'entity_test_mulrev'),
-      ),
-      'created' => array(
-        array('value' => $this->entity->created->value),
-      ),
-      'user_id' => array(
-        array(
-          'target_id' => $this->user->id(),
+    $expected = [
+      'id' => [
+        ['value' => 1],
+      ],
+      'uuid' => [
+        ['value' => $this->entity->uuid()],
+      ],
+      'langcode' => [
+        ['value' => 'en'],
+      ],
+      'name' => [
+        ['value' => $this->values['name']],
+      ],
+      'type' => [
+        ['value' => 'entity_test_mulrev'],
+      ],
+      'created' => [
+        $this->formatExpectedTimestampItemValues($this->entity->created->value),
+      ],
+      'user_id' => [
+        [
+          // id() will return the string value as it comes from the database.
+          'target_id' => (int) $this->user->id(),
           'target_type' => $this->user->getEntityTypeId(),
           'target_uuid' => $this->user->uuid(),
           'url' => $this->user->url(),
-        ),
-      ),
-      'revision_id' => array(
-        array('value' => 1),
-      ),
-      'default_langcode' => array(
-        array('value' => TRUE),
-      ),
-      'non_rev_field' => array(),
-      'field_test_text' => array(
-        array(
+        ],
+      ],
+      'revision_id' => [
+        ['value' => 1],
+      ],
+      'default_langcode' => [
+        ['value' => TRUE],
+      ],
+      'revision_translation_affected' => [
+        ['value' => TRUE],
+      ],
+      'non_rev_field' => [],
+      'field_test_text' => [
+        [
           'value' => $this->values['field_test_text']['value'],
           'format' => $this->values['field_test_text']['format'],
-        ),
-      ),
-    );
+        ],
+      ],
+    ];
 
     $normalized = $this->serializer->normalize($this->entity);
 
     foreach (array_keys($expected) as $fieldName) {
-      $this->assertEqual($expected[$fieldName], $normalized[$fieldName], "ComplexDataNormalizer produces expected array for $fieldName.");
+      $this->assertSame($expected[$fieldName], $normalized[$fieldName], "Normalization produces expected array for $fieldName.");
     }
-    $this->assertEqual(array_diff_key($normalized, $expected), array(), 'No unexpected data is added to the normalized array.');
+    $this->assertEqual(array_diff_key($normalized, $expected), [], 'No unexpected data is added to the normalized array.');
   }
 
   /**
@@ -181,19 +188,22 @@ class EntitySerializationTest extends NormalizerTestBase {
 
     // Generate the expected xml in a way that allows changes to entity property
     // order.
-    $expected = array(
+    $expected_created = $this->formatExpectedTimestampItemValues($this->entity->created->value);
+
+    $expected = [
       'id' => '<id><value>' . $this->entity->id() . '</value></id>',
       'uuid' => '<uuid><value>' . $this->entity->uuid() . '</value></uuid>',
       'langcode' => '<langcode><value>en</value></langcode>',
       'name' => '<name><value>' . $this->values['name'] . '</value></name>',
       'type' => '<type><value>entity_test_mulrev</value></type>',
-      'created' => '<created><value>' . $this->entity->created->value . '</value></created>',
+      'created' => '<created><value>' . $expected_created['value'] . '</value><format>' . $expected_created['format'] . '</format></created>',
       'user_id' => '<user_id><target_id>' . $this->user->id() . '</target_id><target_type>' . $this->user->getEntityTypeId() . '</target_type><target_uuid>' . $this->user->uuid() . '</target_uuid><url>' . $this->user->url() . '</url></user_id>',
       'revision_id' => '<revision_id><value>' . $this->entity->getRevisionId() . '</value></revision_id>',
       'default_langcode' => '<default_langcode><value>1</value></default_langcode>',
+      'revision_translation_affected' => '<revision_translation_affected><value>1</value></revision_translation_affected>',
       'non_rev_field' => '<non_rev_field/>',
       'field_test_text' => '<field_test_text><value>' . $this->values['field_test_text']['value'] . '</value><format>' . $this->values['field_test_text']['format'] . '</format></field_test_text>',
-    );
+    ];
     // Sort it in the same order as normalised.
     $expected = array_merge($normalized, $expected);
     // Add header and footer.
@@ -214,9 +224,9 @@ class EntitySerializationTest extends NormalizerTestBase {
   public function testDenormalize() {
     $normalized = $this->serializer->normalize($this->entity);
 
-    foreach (array('json', 'xml') as $type) {
-      $denormalized = $this->serializer->denormalize($normalized, $this->entityClass, $type, array('entity_type' => 'entity_test_mulrev'));
-      $this->assertTrue($denormalized instanceof $this->entityClass, SafeMarkup::format('Denormalized entity is an instance of @class', array('@class' => $this->entityClass)));
+    foreach (['json', 'xml'] as $type) {
+      $denormalized = $this->serializer->denormalize($normalized, $this->entityClass, $type, ['entity_type' => 'entity_test_mulrev']);
+      $this->assertTrue($denormalized instanceof $this->entityClass, SafeMarkup::format('Denormalized entity is an instance of @class', ['@class' => $this->entityClass]));
       $this->assertIdentical($denormalized->getEntityTypeId(), $this->entity->getEntityTypeId(), 'Expected entity type found.');
       $this->assertIdentical($denormalized->bundle(), $this->entity->bundle(), 'Expected entity bundle found.');
       $this->assertIdentical($denormalized->uuid(), $this->entity->uuid(), 'Expected entity UUID found.');

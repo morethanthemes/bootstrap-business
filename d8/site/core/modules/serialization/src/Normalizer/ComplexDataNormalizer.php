@@ -24,10 +24,11 @@ class ComplexDataNormalizer extends NormalizerBase {
   /**
    * {@inheritdoc}
    */
-  public function normalize($object, $format = NULL, array $context = array()) {
-    $attributes = array();
-    foreach ($object as $name => $field) {
-      $attributes[$name] = $this->serializer->normalize($field, $format, $context);
+  public function normalize($object, $format = NULL, array $context = []) {
+    $attributes = [];
+    /** @var \Drupal\Core\TypedData\TypedDataInterface $property */
+    foreach ($object as $name => $property) {
+      $attributes[$name] = $this->serializer->normalize($property, $format, $context);
     }
     return $attributes;
   }

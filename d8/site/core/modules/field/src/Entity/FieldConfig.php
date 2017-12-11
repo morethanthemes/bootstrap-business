@@ -3,6 +3,7 @@
 namespace Drupal\field\Entity;
 
 use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Entity\FieldableEntityStorageInterface;
 use Drupal\Core\Field\FieldConfigBase;
 use Drupal\Core\Field\FieldException;
 use Drupal\field\FieldStorageConfigInterface;
@@ -189,13 +190,19 @@ class FieldConfig extends FieldConfigBase implements FieldConfigInterface {
    */
   public static function preDelete(EntityStorageInterface $storage, array $fields) {
     $state = \Drupal::state();
+    $entity_type_manager = \Drupal::entityTypeManager();
 
     parent::preDelete($storage, $fields);
     // Keep the field definitions in the state storage so we can use them
     // later during field_purge_batch().
-    $deleted_fields = $state->get('field.field.deleted') ?: array();
+    $deleted_fields = $state->get('field.field.deleted') ?: [];
+
+    /** @var \Drupal\field\FieldConfigInterface $field */
     foreach ($fields as $field) {
-      if (!$field->deleted) {
+      // Only mark a field for purging if there is data. Otherwise, just remove
+      // it.
+      $target_entity_storage = $entity_type_manager->getStorage($field->getTargetEntityTypeId());
+      if (!$field->deleted && $target_entity_storage instanceof FieldableEntityStorageInterface && $target_entity_storage->countFieldData($field->getFieldStorageDefinition(), TRUE)) {
         $config = $field->toArray();
         $config['deleted'] = TRUE;
         $config['field_storage_uuid'] = $field->getFieldStorageDefinition()->uuid();
@@ -228,7 +235,7 @@ class FieldConfig extends FieldConfigBase implements FieldConfigInterface {
 
     // Delete the associated field storages if they are not used anymore and are
     // not persistent.
-    $storages_to_delete = array();
+    $storages_to_delete = [];
     foreach ($fields as $field) {
       $storage_definition = $field->getFieldStorageDefinition();
       if (!$field->deleted && !$field->isUninstalling() && $storage_definition->isDeletable()) {
@@ -306,7 +313,7 @@ class FieldConfig extends FieldConfigBase implements FieldConfigInterface {
    */
   public function getDisplayOptions($display_context) {
     // Hide configurable fields by default.
-    return array('type' => 'hidden');
+    return ['region' => 'hidden'];
   }
 
   /**

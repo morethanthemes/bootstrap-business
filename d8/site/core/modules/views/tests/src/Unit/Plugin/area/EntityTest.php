@@ -82,7 +82,7 @@ class EntityTest extends UnitTestCase {
       ->getMock();
     $this->executable->style_plugin = $this->stylePlugin;
 
-    $this->entityHandler = new Entity(array(), 'entity', array('entity_type' => 'entity_test'), $this->entityManager);
+    $this->entityHandler = new Entity([], 'entity', ['entity_type' => 'entity_test'], $this->entityManager);
 
     $this->display->expects($this->any())
       ->method('getPlugin')
@@ -91,7 +91,6 @@ class EntityTest extends UnitTestCase {
     $this->executable->expects($this->any())
       ->method('getStyle')
       ->willReturn($this->stylePlugin);
-
 
     $token = $this->getMockBuilder('Drupal\Core\Utility\Token')
       ->disableOriginalConstructor()

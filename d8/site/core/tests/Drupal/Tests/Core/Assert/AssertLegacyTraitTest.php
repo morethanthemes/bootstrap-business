@@ -14,6 +14,7 @@ use PHPUnit_Framework_ExpectationFailedException;
 /**
  * @coversDefaultClass \Drupal\FunctionalTests\AssertLegacyTrait
  * @group Assert
+ * @group legacy
  */
 class AssertLegacyTraitTest extends UnitTestCase {
 
@@ -151,6 +152,28 @@ class AssertLegacyTraitTest extends UnitTestCase {
 
     $this->setExpectedException(PHPUnit_Framework_ExpectationFailedException::class);
     $this->assertOptionSelected('myselect', 'two');
+  }
+
+  /**
+   * @covers ::assertNoPattern
+   */
+  public function testAssertNoPattern() {
+    $this->webAssert
+      ->responseNotMatches('/.*foo$/')
+      ->shouldBeCalled();
+
+    $this->assertNoPattern('/.*foo$/');
+  }
+
+  /**
+   * @covers ::assertNoCacheTag
+   */
+  public function testAssertNoCacheTag() {
+    $this->webAssert
+      ->responseHeaderNotContains('X-Drupal-Cache-Tags', 'some-cache-tag')
+      ->shouldBeCalled();
+
+    $this->assertNoCacheTag('some-cache-tag');
   }
 
   /**

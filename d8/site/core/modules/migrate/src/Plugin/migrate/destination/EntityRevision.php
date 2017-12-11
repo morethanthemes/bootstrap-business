@@ -63,9 +63,9 @@ class EntityRevision extends EntityContentBase {
   /**
    * {@inheritdoc}
    */
-  protected function save(ContentEntityInterface $entity, array $old_destination_id_values = array()) {
+  protected function save(ContentEntityInterface $entity, array $old_destination_id_values = []) {
     $entity->save();
-    return array($entity->getRevisionId());
+    return [$entity->getRevisionId()];
   }
 
   /**
@@ -73,8 +73,7 @@ class EntityRevision extends EntityContentBase {
    */
   public function getIds() {
     if ($key = $this->getKey('revision')) {
-      $ids[$key]['type'] = 'integer';
-      return $ids;
+      return [$key => $this->getDefinitionFromEntity($key)];
     }
     throw new MigrateException('This entity type does not support revisions.');
   }

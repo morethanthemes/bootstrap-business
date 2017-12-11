@@ -20,7 +20,7 @@ class SystemListingCompatibleTest extends WebTestBase {
    *
    * @var array
    */
-  public static $modules = array('drupal_system_listing_compatible_test');
+  public static $modules = ['drupal_system_listing_compatible_test'];
 
   /**
    * Use the Minimal profile.
@@ -29,13 +29,15 @@ class SystemListingCompatibleTest extends WebTestBase {
    * asserts that this test is found.
    *
    * @see SimpleTestInstallationProfileModuleTestsTestCase
+   *
+   * @var string
    */
   protected $profile = 'minimal';
 
   /**
    * Non-empty test* method required to executed the test case class.
    */
-  function testSystemListing() {
+  public function testSystemListing() {
     $this->pass(__CLASS__ . ' test executed.');
   }
 

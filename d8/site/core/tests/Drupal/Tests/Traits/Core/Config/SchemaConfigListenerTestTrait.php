@@ -2,7 +2,7 @@
 
 namespace Drupal\Tests\Traits\Core\Config;
 
-use \Drupal\Core\Config\Schema\SchemaIncompleteException;
+use Drupal\Core\Config\Schema\SchemaIncompleteException;
 
 /**
  * Adds a test for the configuration schema checker use in tests.
@@ -10,7 +10,7 @@ use \Drupal\Core\Config\Schema\SchemaIncompleteException;
 trait SchemaConfigListenerTestTrait {
 
   /**
-   * Tests \Drupal\Core\Config\Testing\ConfigSchemaChecker.
+   * Tests \Drupal\Core\Config\Development\ConfigSchemaChecker.
    */
   public function testConfigSchemaChecker() {
     // Test a non-existing schema.

@@ -19,8 +19,8 @@ class Condition extends ConditionBase {
    */
   public function compile($configs) {
     $and = strtoupper($this->conjunction) == 'AND';
-    $single_conditions = array();
-    $condition_groups = array();
+    $single_conditions = [];
+    $condition_groups = [];
     foreach ($this->conditions as $condition) {
       if ($condition['field'] instanceof ConditionInterface) {
         $condition_groups[] = $condition;
@@ -41,7 +41,7 @@ class Condition extends ConditionBase {
         $single_conditions[] = $condition;
       }
     }
-    $return = array();
+    $return = [];
     if ($single_conditions) {
       foreach ($configs as $config_name => $config) {
         foreach ($single_conditions as $condition) {
@@ -50,7 +50,7 @@ class Condition extends ConditionBase {
           // matter and this config object does not match.
           // If OR and it is matching, then the rest of conditions do not
           // matter and this config object does match.
-          if ($and != $match ) {
+          if ($and != $match) {
             break;
           }
         }
@@ -110,7 +110,7 @@ class Condition extends ConditionBase {
    * @return bool
    *   TRUE when the condition matched to the data else FALSE.
    */
-  protected function matchArray(array $condition, array $data, array $needs_matching, array $parents = array()) {
+  protected function matchArray(array $condition, array $data, array $needs_matching, array $parents = []) {
     $parent = array_shift($needs_matching);
     if ($parent === '*') {
       $candidates = array_keys($data);
@@ -120,7 +120,7 @@ class Condition extends ConditionBase {
       if (!isset($data[$parent])) {
         $data[$parent] = NULL;
       }
-      $candidates = array($parent);
+      $candidates = [$parent];
     }
     foreach ($candidates as $key) {
       if ($needs_matching) {
@@ -154,6 +154,13 @@ class Condition extends ConditionBase {
    *   TRUE when matches else FALSE.
    */
   protected function match(array $condition, $value) {
+    // "IS NULL" and "IS NOT NULL" conditions can also deal with array values,
+    // so we return early for them to avoid problems.
+    if (in_array($condition['operator'], ['IS NULL', 'IS NOT NULL'], TRUE)) {
+      $should_be_set = $condition['operator'] === 'IS NOT NULL';
+      return $should_be_set === isset($value);
+    }
+
     if (isset($value)) {
       // We always want a case-insensitive match.
       if (!is_bool($value)) {
@@ -183,15 +190,11 @@ class Condition extends ConditionBase {
           return strpos($value, $condition['value']) !== FALSE;
         case 'ENDS_WITH':
           return substr($value, -strlen($condition['value'])) === (string) $condition['value'];
-        case 'IS NOT NULL':
-          return TRUE;
-        case 'IS NULL':
-          return FALSE;
         default:
           throw new QueryException('Invalid condition operator.');
       }
     }
-    return $condition['operator'] === 'IS NULL';
+    return FALSE;
   }
 
 }

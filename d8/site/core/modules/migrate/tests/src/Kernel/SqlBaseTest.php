@@ -7,8 +7,12 @@
 
 namespace Drupal\Tests\migrate\Kernel;
 
-use Drupal\migrate\Plugin\migrate\source\TestSqlBase;
+use Drupal\Core\Database\Query\ConditionInterface;
+use Drupal\Core\Database\Query\SelectInterface;
+use Drupal\migrate\Exception\RequirementsException;
 use Drupal\Core\Database\Database;
+use Drupal\migrate\Plugin\migrate\source\SqlBase;
+use Drupal\migrate\Plugin\MigrationInterface;
 
 /**
  * Tests the functionality of SqlBase.
@@ -18,40 +22,70 @@ use Drupal\Core\Database\Database;
 class SqlBaseTest extends MigrateTestBase {
 
   /**
+   * The (probably mocked) migration under test.
+   *
+   * @var \Drupal\migrate\Plugin\MigrationInterface
+   */
+  protected $migration;
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function setUp() {
+    parent::setUp();
+
+    $this->migration = $this->getMock(MigrationInterface::class);
+    $this->migration->method('id')->willReturn('fubar');
+  }
+
+  /**
    * Tests different connection types.
    */
   public function testConnectionTypes() {
-    $sql_base = new TestSqlBase();
+    $sql_base = new TestSqlBase([], $this->migration);
 
-    // Check the default values.
-    $sql_base->setConfiguration([]);
-    $this->assertIdentical($sql_base->getDatabase()->getTarget(), 'default');
-    $this->assertIdentical($sql_base->getDatabase()->getKey(), 'migrate');
+    // Verify that falling back to the default 'migrate' connection (defined in
+    // the base class) works.
+    $this->assertSame($sql_base->getDatabase()->getTarget(), 'default');
+    $this->assertSame($sql_base->getDatabase()->getKey(), 'migrate');
 
+    // Verify the fallback state key overrides the 'migrate' connection.
+    $target = 'test_fallback_target';
+    $key = 'test_fallback_key';
+    $config = ['target' => $target, 'key' => $key];
+    $database_state_key = 'test_fallback_state';
+    \Drupal::state()->set($database_state_key, $config);
+    \Drupal::state()->set('migrate.fallback_state_key', $database_state_key);
+    // Create a test connection using the default database configuration.
+    Database::addConnectionInfo($key, $target, Database::getConnectionInfo('default')['default']);
+    $this->assertSame($sql_base->getDatabase()->getTarget(), $target);
+    $this->assertSame($sql_base->getDatabase()->getKey(), $key);
+
+    // Verify that setting explicit connection information overrides fallbacks.
     $target = 'test_db_target';
     $key = 'test_migrate_connection';
-    $config = array('target' => $target, 'key' => $key);
+    $config = ['target' => $target, 'key' => $key];
     $sql_base->setConfiguration($config);
     Database::addConnectionInfo($key, $target, Database::getConnectionInfo('default')['default']);
 
     // Validate we have injected our custom key and target.
-    $this->assertIdentical($sql_base->getDatabase()->getTarget(), $target);
-    $this->assertIdentical($sql_base->getDatabase()->getKey(), $key);
+    $this->assertSame($sql_base->getDatabase()->getTarget(), $target);
+    $this->assertSame($sql_base->getDatabase()->getKey(), $key);
 
     // Now test we can have SqlBase create the connection from an info array.
-    $sql_base = new TestSqlBase();
+    $sql_base = new TestSqlBase([], $this->migration);
 
     $target = 'test_db_target2';
     $key = 'test_migrate_connection2';
     $database = Database::getConnectionInfo('default')['default'];
-    $config = array('target' => $target, 'key' => $key, 'database' => $database);
+    $config = ['target' => $target, 'key' => $key, 'database' => $database];
     $sql_base->setConfiguration($config);
 
     // Call getDatabase() to get the connection defined.
     $sql_base->getDatabase();
 
     // Validate the connection has been created with the right values.
-    $this->assertIdentical(Database::getConnectionInfo($key)[$target], $database);
+    $this->assertSame(Database::getConnectionInfo($key)[$target], $database);
 
     // Now, test this all works when using state to store db info.
     $target = 'test_state_db_target';
@@ -63,11 +97,11 @@ class SqlBaseTest extends MigrateTestBase {
     Database::addConnectionInfo($key, $target, Database::getConnectionInfo('default')['default']);
 
     // Validate we have injected our custom key and target.
-    $this->assertIdentical($sql_base->getDatabase()->getTarget(), $target);
-    $this->assertIdentical($sql_base->getDatabase()->getKey(), $key);
+    $this->assertSame($sql_base->getDatabase()->getTarget(), $target);
+    $this->assertSame($sql_base->getDatabase()->getKey(), $key);
 
     // Now test we can have SqlBase create the connection from an info array.
-    $sql_base = new TestSqlBase();
+    $sql_base = new TestSqlBase([], $this->migration);
 
     $target = 'test_state_db_target2';
     $key = 'test_state_migrate_connection2';
@@ -81,12 +115,67 @@ class SqlBaseTest extends MigrateTestBase {
     $sql_base->getDatabase();
 
     // Validate the connection has been created with the right values.
-    $this->assertIdentical(Database::getConnectionInfo($key)[$target], $database);
+    $this->assertSame(Database::getConnectionInfo($key)[$target], $database);
+
+    // Verify that falling back to 'migrate' when the connection is not defined
+    // throws a RequirementsException.
+    \Drupal::state()->delete('migrate.fallback_state_key');
+    $sql_base->setConfiguration([]);
+    Database::renameConnection('migrate', 'fallback_connection');
+    $this->setExpectedException(RequirementsException::class,
+      'No database connection configured for source plugin');
+    $sql_base->getDatabase();
+  }
+
+  /**
+   * Tests that SqlBase respects high-water values.
+   *
+   * @param mixed $high_water
+   *   (optional) The high-water value to set.
+   * @param array $query_result
+   *   (optional) The expected query results.
+   *
+   * @dataProvider highWaterDataProvider
+   */
+  public function testHighWater($high_water = NULL, array $query_result = []) {
+    $configuration = [
+      'high_water_property' => [
+        'name' => 'order',
+      ],
+    ];
+    $source = new TestSqlBase($configuration, $this->migration);
+
+    if ($high_water) {
+      $source->getHighWaterStorage()->set($this->migration->id(), $high_water);
+    }
+
+    $query_result = new \ArrayIterator($query_result);
+
+    $query = $this->getMock(SelectInterface::class);
+    $query->method('execute')->willReturn($query_result);
+    $query->expects($this->atLeastOnce())->method('orderBy')->with('order', 'ASC');
+
+    $condition_group = $this->getMock(ConditionInterface::class);
+    $query->method('orConditionGroup')->willReturn($condition_group);
+
+    $source->setQuery($query);
+    $source->rewind();
+  }
+
+  /**
+   * Data provider for ::testHighWater().
+   *
+   * @return array
+   *   The scenarios to test.
+   */
+  public function highWaterDataProvider() {
+    return [
+      'no high-water value set' => [],
+      'high-water value set' => [33],
+    ];
   }
 
 }
-
-namespace Drupal\migrate\Plugin\migrate\source;
 
 /**
  * A dummy source to help with testing SqlBase.
@@ -96,10 +185,22 @@ namespace Drupal\migrate\Plugin\migrate\source;
 class TestSqlBase extends SqlBase {
 
   /**
-   * Overrides the constructor so we can create one easily.
+   * The query to execute.
+   *
+   * @var \Drupal\Core\Database\Query\SelectInterface
    */
-  public function __construct() {
-    $this->state = \Drupal::state();
+  protected $query;
+
+  /**
+   * Overrides the constructor so we can create one easily.
+   *
+   * @param array $configuration
+   *   The plugin instance configuration.
+   * @param \Drupal\migrate\Plugin\MigrationInterface $migration
+   *   (optional) The migration being run.
+   */
+  public function __construct(array $configuration = [], MigrationInterface $migration = NULL) {
+    parent::__construct($configuration, 'sql_base', [], $migration, \Drupal::state());
   }
 
   /**
@@ -133,6 +234,25 @@ class TestSqlBase extends SqlBase {
   /**
    * {@inheritdoc}
    */
-  public function query() {}
+  public function query() {
+    return $this->query;
+  }
+
+  /**
+   * Sets the query to execute.
+   *
+   * @param \Drupal\Core\Database\Query\SelectInterface $query
+   *   The query to execute.
+   */
+  public function setQuery(SelectInterface $query) {
+    $this->query = $query;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getHighWaterStorage() {
+    return parent::getHighWaterStorage();
+  }
 
 }

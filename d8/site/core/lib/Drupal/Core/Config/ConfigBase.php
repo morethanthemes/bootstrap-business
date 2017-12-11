@@ -7,7 +7,7 @@ use Drupal\Component\Render\MarkupInterface;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\RefinableCacheableDependencyInterface;
 use Drupal\Core\Cache\RefinableCacheableDependencyTrait;
-use \Drupal\Core\DependencyInjection\DependencySerializationTrait;
+use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 
 /**
  * Provides a base class for configuration objects with get/set support.
@@ -40,7 +40,7 @@ abstract class ConfigBase implements RefinableCacheableDependencyInterface {
    *
    * @var array
    */
-  protected $data = array();
+  protected $data = [];
 
   /**
    * The maximum length of a configuration object name.
@@ -247,7 +247,7 @@ abstract class ConfigBase implements RefinableCacheableDependencyInterface {
    */
   public function merge(array $data_to_merge) {
     // Preserve integer keys so that configuration keys are not changed.
-    $this->setData(NestedArray::mergeDeepArray(array($this->data, $data_to_merge), TRUE));
+    $this->setData(NestedArray::mergeDeepArray([$this->data, $data_to_merge], TRUE));
     return $this;
   }
 

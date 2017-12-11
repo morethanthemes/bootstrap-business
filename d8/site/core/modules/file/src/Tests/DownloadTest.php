@@ -17,7 +17,7 @@ class DownloadTest extends FileManagedTestBase {
   /**
    * Test the public file transfer system.
    */
-  function testPublicFileTransfer() {
+  public function testPublicFileTransfer() {
     // Test generating a URL to a created file.
     $file = $this->createFile();
     $url = file_create_url($file->getFileUri());
@@ -63,7 +63,7 @@ class DownloadTest extends FileManagedTestBase {
     $url  = file_create_url($file->getFileUri());
 
     // Set file_test access header to allow the download.
-    file_test_set_return('download', array('x-foo' => 'Bar'));
+    file_test_set_return('download', ['x-foo' => 'Bar']);
     $this->drupalGet($url);
     $this->assertEqual($this->drupalGetHeader('x-foo'), 'Bar', 'Found header set by file_test module on private download.');
     $this->assertFalse($this->drupalGetHeader('x-drupal-cache'), 'Page cache is disabled on private file download.');
@@ -86,14 +86,17 @@ class DownloadTest extends FileManagedTestBase {
   /**
    * Test file_create_url().
    */
-  function testFileCreateUrl() {
+  public function testFileCreateUrl() {
 
     // Tilde (~) is excluded from this test because it is encoded by
     // rawurlencode() in PHP 5.2 but not in PHP 5.3, as per RFC 3986.
     // @see http://php.net/manual/function.rawurlencode.php#86506
-    $basename = " -._!$'\"()*@[]?&+%#,;=:\n\x00" . // "Special" ASCII characters.
-      "%23%25%26%2B%2F%3F" . // Characters that look like a percent-escaped string.
-      "éøïвβ中國書۞"; // Characters from various non-ASCII alphabets.
+    // "Special" ASCII characters.
+    $basename = " -._!$'\"()*@[]?&+%#,;=:\n\x00" .
+      // Characters that look like a percent-escaped string.
+      "%23%25%26%2B%2F%3F" .
+      // Characters from various non-ASCII alphabets.
+      "éøïвβ中國書۞";
     $basename_encoded = '%20-._%21%24%27%22%28%29%2A%40%5B%5D%3F%26%2B%25%23%2C%3B%3D%3A__' .
       '%2523%2525%2526%252B%252F%253F' .
       '%C3%A9%C3%B8%C3%AF%D0%B2%CE%B2%E4%B8%AD%E5%9C%8B%E6%9B%B8%DB%9E';
@@ -102,10 +105,10 @@ class DownloadTest extends FileManagedTestBase {
     // routed through Drupal, whereas private files should be served by Drupal,
     // so they need to be. The difference is most apparent when $script_path
     // is not empty (i.e., when not using clean URLs).
-    $clean_url_settings = array(
+    $clean_url_settings = [
       'clean' => '',
       'unclean' => 'index.php/',
-    );
+    ];
     $public_directory_path = \Drupal::service('stream_wrapper_manager')->getViaScheme('public')->getDirectoryPath();
     foreach ($clean_url_settings as $clean_url_setting => $script_path) {
       $clean_urls = $clean_url_setting == 'clean';
@@ -115,16 +118,6 @@ class DownloadTest extends FileManagedTestBase {
       $this->checkUrl('private', '', $basename, $base_path . '/' . $script_path . 'system/files/' . $basename_encoded);
     }
     $this->assertEqual(file_create_url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=='), 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==', t('Generated URL matches expected URL.'));
-    // Test public files with a different host name from settings.
-    $test_base_url = 'http://www.example.com/cdn';
-    $this->settingsSet('file_public_base_url', $test_base_url);
-    $filepath = file_create_filename('test.txt', '');
-    $directory_uri = 'public://' . dirname($filepath);
-    file_prepare_directory($directory_uri, FILE_CREATE_DIRECTORY);
-    $file = $this->createFile($filepath, NULL, 'public');
-    $url = file_create_url($file->getFileUri());
-    $expected_url = $test_base_url . '/' . basename($filepath);
-    $this->assertEqual($url, $expected_url);
   }
 
   /**
@@ -158,7 +151,7 @@ class DownloadTest extends FileManagedTestBase {
     if ($scheme == 'private') {
       // Tell the implementation of hook_file_download() in file_test.module
       // that this file may be downloaded.
-      file_test_set_return('download', array('x-foo' => 'Bar'));
+      file_test_set_return('download', ['x-foo' => 'Bar']);
     }
 
     $this->drupalGet($url);

@@ -3,6 +3,7 @@
 namespace Drupal\system\Tests\Installer;
 
 use Drupal\Core\Serialization\Yaml;
+use Drupal\Core\Site\Settings;
 use Drupal\simpletest\InstallerTestBase;
 
 /**
@@ -20,17 +21,17 @@ class DistributionProfileTest extends InstallerTestBase {
   protected $info;
 
   protected function setUp() {
-    $this->info = array(
+    $this->info = [
       'type' => 'profile',
       'core' => \Drupal::CORE_COMPATIBILITY,
       'name' => 'Distribution profile',
-      'distribution' => array(
+      'distribution' => [
         'name' => 'My Distribution',
-        'install' => array(
+        'install' => [
           'theme' => 'bartik',
-        ),
-      ),
-    );
+        ],
+      ],
+    ];
     // File API functions are not available yet.
     $path = $this->siteDirectory . '/profiles/mydistro';
     mkdir($path, 0777, TRUE);
@@ -45,6 +46,8 @@ class DistributionProfileTest extends InstallerTestBase {
   protected function setUpLanguage() {
     // Verify that the distribution name appears.
     $this->assertRaw($this->info['distribution']['name']);
+    // Verify that the distribution name is used in the site title.
+    $this->assertTitle('Choose language | ' . $this->info['distribution']['name']);
     // Verify that the requested theme is used.
     $this->assertRaw($this->info['distribution']['install']['theme']);
     // Verify that the "Choose profile" step does not appear.
@@ -68,6 +71,11 @@ class DistributionProfileTest extends InstallerTestBase {
     $this->assertResponse(200);
     // Confirm that we are logged-in after installation.
     $this->assertText($this->rootUser->getUsername());
+
+    // Confirm that Drupal recognizes this distribution as the current profile.
+    $this->assertEqual(\Drupal::installProfile(), 'mydistro');
+    $this->assertEqual(Settings::get('install_profile'), 'mydistro', 'The install profile has been written to settings.php.');
+    $this->assertEqual($this->config('core.extension')->get('profile'), 'mydistro', 'The install profile has been written to core.extension configuration.');
   }
 
 }

@@ -92,6 +92,11 @@ class AnnotationFileLoader extends FileLoader
         $class = false;
         $namespace = false;
         $tokens = token_get_all(file_get_contents($file));
+
+        if (1 === count($tokens) && T_INLINE_HTML === $tokens[0][0]) {
+            throw new \InvalidArgumentException(sprintf('The file "%s" does not contain PHP code. Did you forgot to add the "<?php" start tag at the beginning of the file?', $file));
+        }
+
         for ($i = 0; isset($tokens[$i]); ++$i) {
             $token = $tokens[$i];
 
@@ -112,7 +117,24 @@ class AnnotationFileLoader extends FileLoader
             }
 
             if (T_CLASS === $token[0]) {
-                $class = true;
+                // Skip usage of ::class constant
+                $isClassConstant = false;
+                for ($j = $i - 1; $j > 0; --$j) {
+                    if (!isset($tokens[$j][1])) {
+                        break;
+                    }
+
+                    if (T_DOUBLE_COLON === $tokens[$j][0]) {
+                        $isClassConstant = true;
+                        break;
+                    } elseif (!in_array($tokens[$j][0], array(T_WHITESPACE, T_DOC_COMMENT, T_COMMENT))) {
+                        break;
+                    }
+                }
+
+                if (!$isClassConstant) {
+                    $class = true;
+                }
             }
 
             if (T_NAMESPACE === $token[0]) {

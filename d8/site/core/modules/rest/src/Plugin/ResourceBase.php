@@ -31,7 +31,7 @@ abstract class ResourceBase extends PluginBase implements ContainerFactoryPlugin
    *
    * @var array
    */
-  protected $serializerFormats = array();
+  protected $serializerFormats = [];
 
   /**
    * A logger instance.
@@ -81,13 +81,13 @@ abstract class ResourceBase extends PluginBase implements ContainerFactoryPlugin
    * resource".
    */
   public function permissions() {
-    $permissions = array();
+    $permissions = [];
     $definition = $this->getPluginDefinition();
     foreach ($this->availableMethods() as $method) {
       $lowered_method = strtolower($method);
-      $permissions["restful $lowered_method $this->pluginId"] = array(
-        'title' => $this->t('Access @method on %label resource', array('@method' => $method, '%label' => $definition['label'])),
-      );
+      $permissions["restful $lowered_method $this->pluginId"] = [
+        'title' => $this->t('Access @method on %label resource', ['@method' => $method, '%label' => $definition['label']]),
+      ];
     }
     return $permissions;
   }
@@ -100,7 +100,15 @@ abstract class ResourceBase extends PluginBase implements ContainerFactoryPlugin
 
     $definition = $this->getPluginDefinition();
     $canonical_path = isset($definition['uri_paths']['canonical']) ? $definition['uri_paths']['canonical'] : '/' . strtr($this->pluginId, ':', '/') . '/{id}';
-    $create_path = isset($definition['uri_paths']['https://www.drupal.org/link-relations/create']) ? $definition['uri_paths']['https://www.drupal.org/link-relations/create'] : '/' . strtr($this->pluginId, ':', '/');
+    $create_path = isset($definition['uri_paths']['create']) ? $definition['uri_paths']['create'] : '/' . strtr($this->pluginId, ':', '/');
+    // BC: the REST module originally created the POST URL for a resource by
+    // reading the 'https://www.drupal.org/link-relations/create' URI path from
+    // the plugin annotation. For consistency with entity type definitions, that
+    // then changed to reading the 'create' URI path. For any REST Resource
+    // plugins that were using the old mechanism, we continue to support that.
+    if (!isset($definition['uri_paths']['create']) && isset($definition['uri_paths']['https://www.drupal.org/link-relations/create'])) {
+      $create_path = $definition['uri_paths']['https://www.drupal.org/link-relations/create'];
+    }
 
     $route_name = strtr($this->pluginId, ':', '.');
 
@@ -111,16 +119,6 @@ abstract class ResourceBase extends PluginBase implements ContainerFactoryPlugin
       switch ($method) {
         case 'POST':
           $route->setPath($create_path);
-          // Restrict the incoming HTTP Content-type header to the known
-          // serialization formats.
-          $route->addRequirements(array('_content_type_format' => implode('|', $this->serializerFormats)));
-          $collection->add("$route_name.$method", $route);
-          break;
-
-        case 'PATCH':
-          // Restrict the incoming HTTP Content-type header to the known
-          // serialization formats.
-          $route->addRequirements(array('_content_type_format' => implode('|', $this->serializerFormats)));
           $collection->add("$route_name.$method", $route);
           break;
 
@@ -131,7 +129,7 @@ abstract class ResourceBase extends PluginBase implements ContainerFactoryPlugin
           foreach ($this->serializerFormats as $format_name) {
             // Expose one route per available format.
             $format_route = clone $route;
-            $format_route->addRequirements(array('_format' => $format_name));
+            $format_route->addRequirements(['_format' => $format_name]);
             $collection->add("$route_name.$method.$format_name", $format_route);
           }
           break;
@@ -155,7 +153,7 @@ abstract class ResourceBase extends PluginBase implements ContainerFactoryPlugin
    *   The list of allowed HTTP request method strings.
    */
   protected function requestMethods() {
-    return array(
+    return [
       'HEAD',
       'GET',
       'POST',
@@ -165,7 +163,7 @@ abstract class ResourceBase extends PluginBase implements ContainerFactoryPlugin
       'OPTIONS',
       'CONNECT',
       'PATCH',
-    );
+    ];
   }
 
   /**
@@ -173,7 +171,7 @@ abstract class ResourceBase extends PluginBase implements ContainerFactoryPlugin
    */
   public function availableMethods() {
     $methods = $this->requestMethods();
-    $available = array();
+    $available = [];
     foreach ($methods as $method) {
       // Only expose methods where the HTTP request method exists on the plugin.
       if (method_exists($this, strtolower($method))) {
@@ -195,15 +193,15 @@ abstract class ResourceBase extends PluginBase implements ContainerFactoryPlugin
    *   The created base route.
    */
   protected function getBaseRoute($canonical_path, $method) {
-    return new Route($canonical_path, array(
+    return new Route($canonical_path, [
       '_controller' => 'Drupal\rest\RequestHandler::handle',
-    ),
+    ],
       $this->getBaseRouteRequirements($method),
-      array(),
+      [],
       '',
-      array(),
+      [],
       // The HTTP method is a requirement for this route.
-      array($method)
+      [$method]
     );
   }
 

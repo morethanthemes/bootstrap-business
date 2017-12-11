@@ -98,6 +98,12 @@ libraries-override:
     css:
       theme:
         css/image.admin.css: css/image/image.admin.css
+  image/quickedit.inPlaceEditor.image:
+    css:
+      component:
+        css/editors/image.css: css/image/editors/image.css
+      theme:
+        css/editors/image.theme.css: css/image/editors/image.theme.css
 
   language/drupal.language.admin:
     css:
@@ -169,6 +175,9 @@ libraries-override:
         css/components/reset-appearance.module.css: css/system/components/reset-appearance.module.css
         css/components/resize.module.css: css/system/components/resize.module.css
         css/components/sticky-header.module.css: css/system/components/sticky-header.module.css
+        css/components/system-status-counter.css: css/system/components/system-status-counter.css
+        css/components/system-status-report-counters.css: css/system/components/system-status-report-counters.css
+        css/components/system-status-report-general-info.css: css/system/components/system-status-report-general-info.css
         css/components/tabledrag.module.css: css/system/components/tabledrag.module.css
         css/components/tablesort.module.css: css/system/components/tablesort.module.css
         css/components/tree-child.module.css: css/system/components/tree-child.module.css
@@ -238,8 +247,8 @@ libraries-override:
         css/views_ui.admin.theme.css: css/views_ui/views_ui.admin.theme.css
         css/views_ui.contextual.css: css/views_ui/views_ui.contextual.css
 
-# Information added by Drupal.org packaging script on 2016-10-05
-version: '8.2.0'
+# Information added by Drupal.org packaging script on 2017-12-06
+version: '8.4.3'
 core: '8.x'
 project: 'drupal'
-datestamp: 1475661293
+datestamp: 1512600826

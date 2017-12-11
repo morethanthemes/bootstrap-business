@@ -38,7 +38,7 @@ interface ConstraintViolationInterface
     /**
      * Returns the violation message.
      *
-     * @return string The violation message.
+     * @return string The violation message
      */
     public function getMessage();
 
@@ -46,10 +46,10 @@ interface ConstraintViolationInterface
      * Returns the raw violation message.
      *
      * The raw violation message contains placeholders for the parameters
-     * returned by {@link getMessageParameters}. Typically you'll pass the
+     * returned by {@link getParameters}. Typically you'll pass the
      * message template and parameters to a translation engine.
      *
-     * @return string The raw violation message.
+     * @return string The raw violation message
      */
     public function getMessageTemplate();
 
@@ -60,9 +60,8 @@ interface ConstraintViolationInterface
      *               that appear in the message template.
      *
      * @see getMessageTemplate()
-     * @deprecated since version 2.7, to be replaced by getParameters() in 3.0.
      */
-    public function getMessageParameters();
+    public function getParameters();
 
     /**
      * Returns a number for pluralizing the violation message.
@@ -78,11 +77,9 @@ interface ConstraintViolationInterface
      * This method returns the value of the parameter for choosing the right
      * pluralization form (in this case "choices").
      *
-     * @return int|null The number to use to pluralize of the message.
-     *
-     * @deprecated since version 2.7, to be replaced by getPlural() in 3.0.
+     * @return int|null The number to use to pluralize of the message
      */
-    public function getMessagePluralization();
+    public function getPlural();
 
     /**
      * Returns the root element of the validation.
@@ -119,7 +116,7 @@ interface ConstraintViolationInterface
     /**
      * Returns a machine-digestible error code for the violation.
      *
-     * @return string|null The error code.
+     * @return string|null The error code
      */
     public function getCode();
 }

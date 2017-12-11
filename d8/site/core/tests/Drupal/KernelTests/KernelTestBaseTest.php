@@ -9,7 +9,10 @@ use org\bovigo\vfs\visitor\vfsStreamStructureVisitor;
 
 /**
  * @coversDefaultClass \Drupal\KernelTests\KernelTestBase
+ *
  * @group PHPUnit
+ * @group Test
+ * @group KernelTests
  */
 class KernelTestBaseTest extends KernelTestBase {
 
@@ -27,21 +30,21 @@ class KernelTestBaseTest extends KernelTestBase {
   public function testBootEnvironment() {
     $this->assertRegExp('/^test\d{8}$/', $this->databasePrefix);
     $this->assertStringStartsWith('vfs://root/sites/simpletest/', $this->siteDirectory);
-    $this->assertEquals(array(
-      'root' => array(
-        'sites' => array(
-          'simpletest' => array(
-            substr($this->databasePrefix, 4) => array(
-              'files' => array(
-                'config' => array(
-                  'sync' => array(),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    ), vfsStream::inspect(new vfsStreamStructureVisitor())->getStructure());
+    $this->assertEquals([
+      'root' => [
+        'sites' => [
+          'simpletest' => [
+            substr($this->databasePrefix, 4) => [
+              'files' => [
+                'config' => [
+                  'sync' => [],
+                ],
+              ],
+            ],
+          ],
+        ],
+      ],
+    ], vfsStream::inspect(new vfsStreamStructureVisitor())->getStructure());
   }
 
   /**
@@ -70,15 +73,15 @@ class KernelTestBaseTest extends KernelTestBase {
     $this->assertArrayHasKey('destroy-me', $GLOBALS);
 
     $database = $this->container->get('database');
-    $database->schema()->createTable('foo', array(
-      'fields' => array(
-        'number' => array(
+    $database->schema()->createTable('foo', [
+      'fields' => [
+        'number' => [
           'type' => 'int',
           'unsigned' => TRUE,
           'not null' => TRUE,
-        ),
-      ),
-    ));
+        ],
+      ],
+    ]);
     $this->assertTrue($database->schema()->tableExists('foo'));
 
     // Ensure that the database tasks have been run during set up. Neither MySQL
@@ -120,7 +123,7 @@ class KernelTestBaseTest extends KernelTestBase {
     $this->assertSame($request, \Drupal::request());
 
     // Trigger a container rebuild.
-    $this->enableModules(array('system'));
+    $this->enableModules(['system']);
 
     // Verify that this container is identical to the actual container.
     $this->assertInstanceOf('Symfony\Component\DependencyInjection\ContainerInterface', $this->container);
@@ -137,22 +140,21 @@ class KernelTestBaseTest extends KernelTestBase {
   }
 
   /**
-   * @covers ::getCompiledContainerBuilder
+   * Tests whether the fixture allows us to install modules and configuration.
    *
-   * The point of this test is to have integration level testing.
+   * @see ::testSubsequentContainerIsolation()
    */
-  public function testCompiledContainer() {
+  public function testContainerIsolation() {
     $this->enableModules(['system', 'user']);
     $this->assertNull($this->installConfig('user'));
   }
 
   /**
-   * @covers ::getCompiledContainerBuilder
-   * @depends testCompiledContainer
+   * Tests whether the fixture can re-install modules and configuration.
    *
-   * The point of this test is to have integration level testing.
+   * @depends testContainerIsolation
    */
-  public function testCompiledContainerIsDestructed() {
+  public function testSubsequentContainerIsolation() {
     $this->enableModules(['system', 'user']);
     $this->assertNull($this->installConfig('user'));
   }
@@ -165,23 +167,23 @@ class KernelTestBaseTest extends KernelTestBase {
     $element_info = $this->container->get('element_info');
     $this->assertSame(['#defaults_loaded' => TRUE], $element_info->getInfo($type));
 
-    $this->enableModules(array('filter'));
+    $this->enableModules(['filter']);
 
     $this->assertNotSame($element_info, $this->container->get('element_info'));
     $this->assertNotEmpty($this->container->get('element_info')->getInfo($type));
 
-    $build = array(
+    $build = [
       '#type' => 'html_tag',
       '#tag' => 'h3',
       '#value' => 'Inner',
-    );
+    ];
     $expected = "<h3>Inner</h3>\n";
 
     $this->assertEquals('core', \Drupal::theme()->getActiveTheme()->getName());
     $output = \Drupal::service('renderer')->renderRoot($build);
     $this->assertEquals('core', \Drupal::theme()->getActiveTheme()->getName());
 
-    $this->assertEquals($expected, $build['#children']);
+    $this->assertEquals($expected, $build['#markup']);
     $this->assertEquals($expected, $output);
   }
 
@@ -189,12 +191,12 @@ class KernelTestBaseTest extends KernelTestBase {
    * @covers ::render
    */
   public function testRenderWithTheme() {
-    $this->enableModules(array('system'));
+    $this->enableModules(['system']);
 
-    $build = array(
+    $build = [
       '#type' => 'textfield',
       '#name' => 'test',
-    );
+    ];
     $expected = '/' . preg_quote('<input type="text" name="test"', '/') . '/';
 
     $this->assertArrayNotHasKey('theme', $GLOBALS);
@@ -203,6 +205,76 @@ class KernelTestBaseTest extends KernelTestBase {
 
     $this->assertRegExp($expected, (string) $build['#children']);
     $this->assertRegExp($expected, (string) $output);
+  }
+
+  /**
+   * @covers ::bootKernel
+   */
+  public function testFileDefaultScheme() {
+    $this->assertEquals('public', file_default_scheme());
+    $this->assertEquals('public', \Drupal::config('system.file')->get('default_scheme'));
+  }
+
+  /**
+   * Tests the assumption that local time is in 'Australia/Sydney'.
+   */
+  public function testLocalTimeZone() {
+    // The 'Australia/Sydney' time zone is set in core/tests/bootstrap.php
+    $this->assertEquals('Australia/Sydney', date_default_timezone_get());
+  }
+
+  /**
+   * Tests that a test method is skipped when it requires a module not present.
+   *
+   * In order to catch checkRequirements() regressions, we have to make a new
+   * test object and run checkRequirements() here.
+   *
+   * @covers ::checkRequirements
+   * @covers ::checkModuleRequirements
+   */
+  public function testMethodRequiresModule() {
+    require __DIR__ . '/../../fixtures/KernelMissingDependentModuleMethodTest.php';
+
+    $stub_test = new KernelMissingDependentModuleMethodTest();
+    // We have to setName() to the method name we're concerned with.
+    $stub_test->setName('testRequiresModule');
+
+    // We cannot use $this->setExpectedException() because PHPUnit would skip
+    // the test before comparing the exception type.
+    try {
+      $stub_test->publicCheckRequirements();
+      $this->fail('Missing required module throws skipped test exception.');
+    }
+    catch (\PHPUnit_Framework_SkippedTestError $e) {
+      $this->assertEqual('Required modules: module_does_not_exist', $e->getMessage());
+    }
+  }
+
+  /**
+   * Tests that a test case is skipped when it requires a module not present.
+   *
+   * In order to catch checkRequirements() regressions, we have to make a new
+   * test object and run checkRequirements() here.
+   *
+   * @covers ::checkRequirements
+   * @covers ::checkModuleRequirements
+   */
+  public function testRequiresModule() {
+    require __DIR__ . '/../../fixtures/KernelMissingDependentModuleTest.php';
+
+    $stub_test = new KernelMissingDependentModuleTest();
+    // We have to setName() to the method name we're concerned with.
+    $stub_test->setName('testRequiresModule');
+
+    // We cannot use $this->setExpectedException() because PHPUnit would skip
+    // the test before comparing the exception type.
+    try {
+      $stub_test->publicCheckRequirements();
+      $this->fail('Missing required module throws skipped test exception.');
+    }
+    catch (\PHPUnit_Framework_SkippedTestError $e) {
+      $this->assertEqual('Required modules: module_does_not_exist', $e->getMessage());
+    }
   }
 
   /**
@@ -220,11 +292,11 @@ class KernelTestBaseTest extends KernelTestBase {
       $this->assertTrue(empty($tables), 'All test tables have been removed.');
     }
     else {
-      $result = $connection->query("SELECT name FROM " . $this->databasePrefix . ".sqlite_master WHERE type = :type AND name LIKE :table_name AND name NOT LIKE :pattern", array(
+      $result = $connection->query("SELECT name FROM " . $this->databasePrefix . ".sqlite_master WHERE type = :type AND name LIKE :table_name AND name NOT LIKE :pattern", [
         ':type' => 'table',
         ':table_name' => '%',
         ':pattern' => 'sqlite_%',
-      ))->fetchAllKeyed(0, 0);
+      ])->fetchAllKeyed(0, 0);
 
       $this->assertTrue(empty($result), 'All test tables have been removed.');
     }

@@ -10,13 +10,13 @@
 namespace Drupal\Tests\Component\Plugin\Factory;
 
 use Drupal\Component\Plugin\Factory\ReflectionFactory;
-use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group Plugin
  * @coversDefaultClass \Drupal\Component\Plugin\Factory\ReflectionFactory
  */
-class ReflectionFactoryTest extends UnitTestCase {
+class ReflectionFactoryTest extends TestCase {
 
   /**
    * Data provider for testGetInstanceArguments.
@@ -88,7 +88,7 @@ class ReflectionFactoryTest extends UnitTestCase {
   public function testCreateInstance($expected, $reflector_name, $plugin_id, $plugin_definition, $configuration) {
     // Create a mock DiscoveryInterface which can return our plugin definition.
     $mock_discovery = $this->getMockBuilder('Drupal\Component\Plugin\Discovery\DiscoveryInterface')
-      ->setMethods(array('getDefinition', 'getDefinitions', 'hasDefinition'))
+      ->setMethods(['getDefinition', 'getDefinitions', 'hasDefinition'])
       ->getMock();
     $mock_discovery->expects($this->never())->method('getDefinitions');
     $mock_discovery->expects($this->never())->method('hasDefinition');
@@ -172,9 +172,7 @@ class ArgumentsPluginId {
  */
 class ArgumentsMany {
 
-  public function __construct(
-  $configuration, $plugin_definition, $plugin_id, $foo = 'default_value', $what_am_i_doing_here = 'what_default'
-  ) {
+  public function __construct($configuration, $plugin_definition, $plugin_id, $foo = 'default_value', $what_am_i_doing_here = 'what_default') {
     // No-op.
   }
 

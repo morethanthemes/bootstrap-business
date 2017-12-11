@@ -40,7 +40,7 @@ class PhpTransliterationTest extends UnitTestCase {
     $module_handler = $this->getMock('Drupal\Core\Extension\ModuleHandlerInterface');
     $module_handler->expects($this->any())
       ->method('alter')
-      ->will($this->returnCallback(function($hook, &$overrides, $langcode) {
+      ->will($this->returnCallback(function ($hook, &$overrides, $langcode) {
         if ($langcode == 'zz') {
           // The default transliteration of Ä is A, but change it to Z for testing.
           $overrides[0xC4] = 'Z';
@@ -74,13 +74,13 @@ class PhpTransliterationTest extends UnitTestCase {
     // Five-byte characters do not work in MySQL, so make a printable version.
     $five_byte_printable = '&#x10330;&#x10338;';
 
-    $cases = array(
+    $cases = [
       // Test the language override hook in the test module, which changes
       // the transliteration of Ä to Z and provides for the 5-byte characters.
-      array('zz', $two_byte, 'Z O U A O aouaohello'),
-      array('zz', $random, $random),
-      array('zz', $five_byte, 'ATh', $five_byte_printable),
-    );
+      ['zz', $two_byte, 'Z O U A O aouaohello'],
+      ['zz', $random, $random],
+      ['zz', $five_byte, 'ATh', $five_byte_printable],
+    ];
 
     return $cases;
   }

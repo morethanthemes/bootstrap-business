@@ -15,7 +15,7 @@ class Callbacks {
   /**
    * Ajax callback triggered by select.
    */
-  function selectCallback($form, FormStateInterface $form_state) {
+  public function selectCallback($form, FormStateInterface $form_state) {
     $response = new AjaxResponse();
     $response->addCommand(new HtmlCommand('#ajax_selected_color', $form_state->getValue('select')));
     $response->addCommand(new DataCommand('#ajax_selected_color', 'form_state_value_select', $form_state->getValue('select')));
@@ -23,9 +23,31 @@ class Callbacks {
   }
 
   /**
+   * Ajax callback triggered by date.
+   */
+  public function dateCallback($form, FormStateInterface $form_state) {
+    $response = new AjaxResponse();
+    $response->addCommand(new HtmlCommand('#ajax_date_value', $form_state->getValue('date')));
+    $response->addCommand(new DataCommand('#ajax_date_value', 'form_state_value_date', $form_state->getValue('date')));
+    return $response;
+  }
+
+  /**
+   * Ajax callback triggered by datetime.
+   */
+  public function datetimeCallback($form, FormStateInterface $form_state) {
+    $datetime = $form_state->getValue('datetime')['date'] . ' ' . $form_state->getValue('datetime')['time'];
+
+    $response = new AjaxResponse();
+    $response->addCommand(new HtmlCommand('#ajax_datetime_value', $datetime));
+    $response->addCommand(new DataCommand('#ajax_datetime_value', 'form_state_value_datetime', $datetime));
+    return $response;
+  }
+
+  /**
    * Ajax callback triggered by checkbox.
    */
-  function checkboxCallback($form, FormStateInterface $form_state) {
+  public function checkboxCallback($form, FormStateInterface $form_state) {
     $response = new AjaxResponse();
     $response->addCommand(new HtmlCommand('#ajax_checkbox_value', (int) $form_state->getValue('checkbox')));
     $response->addCommand(new DataCommand('#ajax_checkbox_value', 'form_state_value_select', (int) $form_state->getValue('checkbox')));
@@ -33,9 +55,18 @@ class Callbacks {
   }
 
   /**
+   * Ajax callback to confirm image button was submitted.
+   */
+  public function imageButtonCallback($form, FormStateInterface $form_state) {
+    $response = new AjaxResponse();
+    $response->addCommand(new HtmlCommand('#ajax_image_button_result', "<div id='ajax-1-more-div'>Something witty!</div>"));
+    return $response;
+  }
+
+  /**
    * Ajax callback triggered by the checkbox in a #group.
    */
-  function checkboxGroupCallback($form, FormStateInterface $form_state) {
+  public function checkboxGroupCallback($form, FormStateInterface $form_state) {
     return $form['checkbox_in_group_wrapper'];
   }
 

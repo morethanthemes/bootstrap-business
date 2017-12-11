@@ -10,7 +10,7 @@ use Drupal\migrate_drupal\Plugin\migrate\source\d7\FieldableEntity;
  *
  * @MigrateSource(
  *   id = "d7_comment",
- *   source_provider = "comment"
+ *   source_module = "comment"
  * )
  */
 class Comment extends FieldableEntity {
@@ -47,7 +47,7 @@ class Comment extends FieldableEntity {
    * {@inheritdoc}
    */
   public function fields() {
-    return array(
+    return [
       'cid' => $this->t('Comment ID.'),
       'pid' => $this->t('Parent comment ID. If set to 0, this comment is not a reply to an existing comment.'),
       'nid' => $this->t('The {node}.nid to which this comment is a reply.'),
@@ -64,7 +64,7 @@ class Comment extends FieldableEntity {
       'mail' => $this->t("The comment author's email address from the comment form, if user is anonymous, and the 'Anonymous users may/must leave their contact information' setting is turned on."),
       'homepage' => $this->t("The comment author's home page address from the comment form, if user is anonymous, and the 'Anonymous users may/must leave their contact information' setting is turned on."),
       'type' => $this->t("The {node}.type to which this comment is a reply."),
-    );
+    ];
   }
 
   /**

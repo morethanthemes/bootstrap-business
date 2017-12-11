@@ -52,7 +52,7 @@ interface TermStorageInterface extends ContentEntityStorageInterface {
    * Finds all children of a term ID.
    *
    * @param int $tid
-   *   Term ID to retrieve parents for.
+   *   Term ID to retrieve children for.
    * @param string $vid
    *   An optional vocabulary ID to restrict the child search.
    *
@@ -116,6 +116,6 @@ interface TermStorageInterface extends ContentEntityStorageInterface {
    * @return array
    *   An array of nids and the term entities they were tagged with.
    */
-  public function getNodeTerms(array $nids, array $vocabs = array(), $langcode = NULL);
+  public function getNodeTerms(array $nids, array $vocabs = [], $langcode = NULL);
 
 }

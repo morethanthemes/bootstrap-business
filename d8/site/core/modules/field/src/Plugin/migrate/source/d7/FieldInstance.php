@@ -8,9 +8,14 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
 /**
  * Drupal 7 field instances source from database.
  *
+ * @internal
+ *
+ * This class is marked as internal and should not be extended. Use
+ * Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase instead.
+ *
  * @MigrateSource(
  *   id = "d7_field_instance",
- *   source_provider = "field"
+ *   source_module = "field"
  * )
  */
 class FieldInstance extends DrupalSqlBase {
@@ -21,13 +26,12 @@ class FieldInstance extends DrupalSqlBase {
   public function query() {
     $query = $this->select('field_config_instance', 'fci')
       ->fields('fci')
-      ->condition('fci.deleted', 0)
+      ->fields('fc', ['type'])
       ->condition('fc.active', 1)
-      ->condition('fc.deleted', 0)
       ->condition('fc.storage_active', 1)
-      ->fields('fc', array('type'));
-
-    $query->innerJoin('field_config', 'fc', 'fci.field_id = fc.id');
+      ->condition('fc.deleted', 0)
+      ->condition('fci.deleted', 0);
+    $query->join('field_config', 'fc', 'fci.field_id = fc.id');
 
     // Optionally filter by entity type and bundle.
     if (isset($this->configuration['entity_type'])) {
@@ -44,42 +48,76 @@ class FieldInstance extends DrupalSqlBase {
   /**
    * {@inheritdoc}
    */
+  protected function initializeIterator() {
+    $results = $this->prepareQuery()->execute()->fetchAll();
+
+    // Group all instances by their base field.
+    $instances = [];
+    foreach ($results as $result) {
+      $instances[$result['field_id']][] = $result;
+    }
+
+    // Add the array of all instances using the same base field to each row.
+    $rows = [];
+    foreach ($results as $result) {
+      $result['instances'] = $instances[$result['field_id']];
+      $rows[] = $result;
+    }
+
+    return new \ArrayIterator($rows);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function fields() {
-    return array(
-      'field_name' => $this->t('The machine name of field.'),
+    return [
+      'id' => $this->t('The field instance ID.'),
+      'field_id' => $this->t('The field ID.'),
+      'field_name' => $this->t('The field name.'),
       'entity_type' => $this->t('The entity type.'),
       'bundle' => $this->t('The entity bundle.'),
-      'default_value' => $this->t('Default value'),
-      'instance_settings' => $this->t('Field instance settings.'),
-      'widget_settings' => $this->t('Widget settings.'),
-      'display_settings' => $this->t('Display settings.'),
-    );
+      'data' => $this->t('The field instance data.'),
+      'deleted' => $this->t('Deleted'),
+      'type' => $this->t('The field type'),
+      'instances' => $this->t('The field instances.'),
+      'field_definition' => $this->t('The field definition.'),
+    ];
   }
 
   /**
    * {@inheritdoc}
    */
   public function prepareRow(Row $row) {
-    $data = unserialize($row->getSourceProperty('data'));
-
-    $row->setSourceProperty('label', $data['label']);
-    $row->setSourceProperty('description', $data['description']);
-    $row->setSourceProperty('required', $data['required']);
-
-    $default_value = !empty($data['default_value']) ? $data['default_value'] : array();
-    if ($data['widget']['type'] == 'email_textfield' && $default_value) {
-      $default_value[0]['value'] = $default_value[0]['email'];
-      unset($default_value[0]['email']);
+    foreach (unserialize($row->getSourceProperty('data')) as $key => $value) {
+      $row->setSourceProperty($key, $value);
     }
-    $row->setSourceProperty('default_value', $default_value);
 
-    // Settings.
-    $row->setSourceProperty('instance_settings', $data['settings']);
-    $row->setSourceProperty('widget_settings', $data['widget']);
-    $row->setSourceProperty('display_settings', $data['display']);
+    $field_definition = $this->select('field_config', 'fc')
+      ->fields('fc')
+      ->condition('id', $row->getSourceProperty('field_id'))
+      ->execute()
+      ->fetch();
+    $row->setSourceProperty('field_definition', $field_definition);
 
-    // This is for parity with the d6_field_instance plugin.
-    $row->setSourceProperty('widget_type', $data['widget']['type']);
+    $translatable = FALSE;
+    if ($row->getSourceProperty('entity_type') == 'node') {
+      // language_content_type_[bundle] may be
+      //   - 0: no language support
+      //   - 1: language assignment support
+      //   - 2: node translation support
+      //   - 4: entity translation support
+      if ($this->variableGet('language_content_type_' . $row->getSourceProperty('bundle'), 0) == 2) {
+        $translatable = TRUE;
+      }
+    }
+    else {
+      // This is not a node entity. Get the translatable value from the source
+      // field_config table.
+      $field_data = unserialize($field_definition['data']);
+      $translatable = $field_data['translatable'];
+    }
+    $row->setSourceProperty('translatable', $translatable);
 
     return parent::prepareRow($row);
   }
@@ -88,20 +126,27 @@ class FieldInstance extends DrupalSqlBase {
    * {@inheritdoc}
    */
   public function getIds() {
-    return array(
-      'entity_type' => array(
+    return [
+      'entity_type' => [
         'type' => 'string',
         'alias' => 'fci',
-      ),
-      'bundle' => array(
+      ],
+      'bundle' => [
         'type' => 'string',
         'alias' => 'fci',
-      ),
-      'field_name' => array(
+      ],
+      'field_name' => [
         'type' => 'string',
         'alias' => 'fci',
-      ),
-    );
+      ],
+    ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function count($refresh = FALSE) {
+    return $this->initializeIterator()->count();
   }
 
 }

@@ -10,7 +10,7 @@ use Drupal\migrate\Row;
  *
  * @MigrateSource(
  *   id = "d6_imagecache_presets",
- *   source_provider = "imagecache"
+ *   source_module = "imagecache"
  * )
  */
 class ImageCachePreset extends DrupalSqlBase {
@@ -47,7 +47,7 @@ class ImageCachePreset extends DrupalSqlBase {
    * {@inheritdoc}
    */
   public function prepareRow(Row $row) {
-    $actions = array();
+    $actions = [];
 
     $results = $this->select('imagecache_action', 'ica')
       ->fields('ica')

@@ -23,14 +23,14 @@ abstract class ConfigurableSearchPluginBase extends SearchPluginBase implements 
   public function __construct(array $configuration, $plugin_id, $plugin_definition) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
-    $this->configuration = NestedArray::mergeDeep($this->defaultConfiguration(), $this->configuration);
+    $this->setConfiguration($configuration);
   }
 
   /**
    * {@inheritdoc}
    */
   public function defaultConfiguration() {
-    return array();
+    return [];
   }
 
   /**
@@ -44,7 +44,7 @@ abstract class ConfigurableSearchPluginBase extends SearchPluginBase implements 
    * {@inheritdoc}
    */
   public function setConfiguration(array $configuration) {
-    $this->configuration = $configuration;
+    $this->configuration = NestedArray::mergeDeep($this->defaultConfiguration(), $configuration);
   }
 
   /**
@@ -57,7 +57,7 @@ abstract class ConfigurableSearchPluginBase extends SearchPluginBase implements 
    * {@inheritdoc}
    */
   public function calculateDependencies() {
-    return array();
+    return [];
   }
 
   /**

@@ -17,7 +17,7 @@ class TestServiceProvider implements ServiceProviderInterface, ServiceModifierIn
   /**
    * {@inheritdoc}
    */
-  function register(ContainerBuilder $container) {
+  public function register(ContainerBuilder $container) {
     if (static::$currentTest && method_exists(static::$currentTest, 'containerBuild')) {
       static::$currentTest->containerBuild($container);
     }
@@ -41,7 +41,10 @@ class TestServiceProvider implements ServiceProviderInterface, ServiceModifierIn
     foreach (['router.route_provider' => 'RouteProvider'] as $original_id => $class) {
       // While $container->get() does a recursive resolve, getDefinition() does
       // not, so do it ourselves.
-      for ($id = $original_id; $container->hasAlias($id); $id = (string) $container->getAlias($id));
+      // @todo Make the code more readable in
+      //   https://www.drupal.org/node/2911498.
+      for ($id = $original_id; $container->hasAlias($id); $id = (string) $container->getAlias($id)) {
+      }
       $definition = $container->getDefinition($id);
       $definition->clearTag('needs_destruction');
       $container->setDefinition("simpletest.$original_id", $definition);

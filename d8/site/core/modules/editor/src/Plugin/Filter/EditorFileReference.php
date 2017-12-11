@@ -50,7 +50,7 @@ class EditorFileReference extends FilterBase implements ContainerFactoryPluginIn
   /**
    * {@inheritdoc}
    */
-  static public function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     return new static(
       $configuration,
       $plugin_id,
@@ -68,7 +68,7 @@ class EditorFileReference extends FilterBase implements ContainerFactoryPluginIn
     if (stristr($text, 'data-entity-type="file"') !== FALSE) {
       $dom = Html::load($text);
       $xpath = new \DOMXPath($dom);
-      $processed_uuids = array();
+      $processed_uuids = [];
       foreach ($xpath->query('//*[@data-entity-type="file" and @data-entity-uuid]') as $node) {
         $uuid = $node->getAttribute('data-entity-uuid');
 

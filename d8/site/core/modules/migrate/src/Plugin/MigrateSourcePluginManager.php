@@ -12,20 +12,13 @@ use Drupal\migrate\Plugin\Discovery\ProviderFilterDecorator;
  * Plugin manager for migrate source plugins.
  *
  * @see \Drupal\migrate\Plugin\MigrateSourceInterface
- * @see \Drupal\migrate\Plugin\source\SourcePluginBase
+ * @see \Drupal\migrate\Plugin\migrate\source\SourcePluginBase
  * @see \Drupal\migrate\Annotation\MigrateSource
  * @see plugin_api
  *
  * @ingroup migration
  */
 class MigrateSourcePluginManager extends MigratePluginManager {
-
-  /**
-   * The class loader.
-   *
-   * @var object
-   */
-  protected $classLoader;
 
   /**
    * MigrateSourcePluginManager constructor.

@@ -19,7 +19,7 @@ class KeyValueContentEntityStorageTest extends KernelTestBase {
    *
    * @var array
    */
-  public static $modules = array('user', 'entity_test', 'keyvalue_test');
+  public static $modules = ['user', 'entity_test', 'keyvalue_test'];
 
   /**
    * {@inheritdoc}
@@ -31,9 +31,15 @@ class KeyValueContentEntityStorageTest extends KernelTestBase {
 
   /**
    * Tests CRUD operations.
+   *
+   * @covers \Drupal\Core\Entity\KeyValueStore\KeyValueEntityStorage::hasData
    */
-  function testCRUD() {
+  public function testCRUD() {
     $default_langcode = \Drupal::languageManager()->getDefaultLanguage()->getId();
+
+    $storage = \Drupal::entityTypeManager()->getStorage('entity_test_label');
+    $this->assertFalse($storage->hasData());
+
     // Verify default properties on a newly created empty entity.
     $empty = EntityTestLabel::create();
     $this->assertIdentical($empty->id->value, NULL);
@@ -69,9 +75,9 @@ class KeyValueContentEntityStorageTest extends KernelTestBase {
     }
 
     // Verify that an entity with an empty ID string is considered empty, too.
-    $empty_id = EntityTestLabel::create(array(
+    $empty_id = EntityTestLabel::create([
       'id' => '',
-    ));
+    ]);
     $this->assertIdentical($empty_id->isNew(), TRUE);
     try {
       $empty_id->save();
@@ -82,10 +88,10 @@ class KeyValueContentEntityStorageTest extends KernelTestBase {
     }
 
     // Verify properties on a newly created entity.
-    $entity_test = EntityTestLabel::create($expected = array(
+    $entity_test = EntityTestLabel::create($expected = [
       'id' => $this->randomMachineName(),
       'name' => $this->randomString(),
-    ));
+    ]);
     $this->assertIdentical($entity_test->id->value, $expected['id']);
     $this->assertTrue($entity_test->uuid->value);
     $this->assertNotEqual($entity_test->uuid->value, $empty->uuid->value);
@@ -108,6 +114,9 @@ class KeyValueContentEntityStorageTest extends KernelTestBase {
       $this->fail('EntityMalformedException was not thrown.');
     }
 
+    // Verify that hasData() returns the expected result.
+    $this->assertTrue($storage->hasData());
+
     // Verify that the correct status is returned and properties did not change.
     $this->assertIdentical($status, SAVED_NEW);
     $this->assertIdentical($entity_test->id(), $expected['id']);
@@ -125,9 +134,9 @@ class KeyValueContentEntityStorageTest extends KernelTestBase {
 
     // Ensure that creating an entity with the same id as an existing one is not
     // possible.
-    $same_id = EntityTestLabel::create(array(
+    $same_id = EntityTestLabel::create([
       'id' => $entity_test->id(),
-    ));
+    ]);
     $this->assertIdentical($same_id->isNew(), TRUE);
     try {
       $same_id->save();
@@ -138,7 +147,7 @@ class KeyValueContentEntityStorageTest extends KernelTestBase {
     }
 
     // Verify that renaming the ID returns correct status and properties.
-    $ids = array($expected['id'], 'second_' . $this->randomMachineName(4), 'third_' . $this->randomMachineName(4));
+    $ids = [$expected['id'], 'second_' . $this->randomMachineName(4), 'third_' . $this->randomMachineName(4)];
     for ($i = 1; $i < 3; $i++) {
       $old_id = $ids[$i - 1];
       $new_id = $ids[$i];
@@ -155,6 +164,14 @@ class KeyValueContentEntityStorageTest extends KernelTestBase {
       // Verify that originalID points to new ID directly after renaming.
       $this->assertIdentical($entity_test->id(), $new_id);
     }
+  }
+
+  /**
+   * Tests uninstallation of a module that does not use the SQL entity storage.
+   */
+  public function testUninstall() {
+    $uninstall_validator_reasons = \Drupal::service('content_uninstall_validator')->validate('keyvalue_test');
+    $this->assertEmpty($uninstall_validator_reasons);
   }
 
 }

@@ -3,7 +3,6 @@
 namespace Drupal\big_pipe_test;
 
 use Drupal\big_pipe\Render\BigPipeMarkup;
-use Drupal\big_pipe\Tests\BigPipePlaceholderTestCases;
 use Drupal\big_pipe_test\EventSubscriber\BigPipeTestSubscriber;
 
 class BigPipeTestController {
@@ -14,13 +13,19 @@ class BigPipeTestController {
    * @return array
    */
   public function test() {
+    $has_session = \Drupal::service('session_configuration')->hasSession(\Drupal::requestStack()->getMasterRequest());
+
     $build = [];
 
     $cases = BigPipePlaceholderTestCases::cases(\Drupal::getContainer());
 
     // 1. HTML placeholder: status messages. Drupal renders those automatically,
     // so all that we need to do in this controller is set a message.
-    drupal_set_message('Hello from BigPipe!');
+    if ($has_session) {
+      // Only set a message if a session already exists, otherwise we always
+      // trigger a session, which means we can't test no-session requests.
+      drupal_set_message('Hello from BigPipe!');
+    }
     $build['html'] = $cases['html']->renderArray;
 
     // 2. HTML attribute value placeholder: form action.
@@ -55,7 +60,7 @@ class BigPipeTestController {
   /**
    * A page with multiple occurrences of the same placeholder.
    *
-   * @see \Drupal\big_pipe\Tests\BigPipeTest::testBigPipeMultipleOccurrencePlaceholders()
+   * @see \Drupal\Tests\big_pipe\Functional\BigPipeTest::testBigPipeMultiOccurrencePlaceholders()
    *
    * @return array
    */
@@ -98,7 +103,10 @@ class BigPipeTestController {
   public static function helloOrYarhar() {
     return [
       '#markup' => BigPipeMarkup::create('<marquee>Yarhar llamas forever!</marquee>'),
-      '#cache' => ['max-age' => 0],
+      '#cache' => [
+        'max-age' => 0,
+        'tags' => ['cache_tag_set_in_lazy_builder'],
+      ],
     ];
   }
 
@@ -125,7 +133,7 @@ class BigPipeTestController {
   /**
    * #lazy_builder callback; returns the current count.
    *
-   * @see \Drupal\big_pipe\Tests\BigPipeTest::testBigPipeMultipleOccurrencePlaceholders()
+   * @see \Drupal\Tests\big_pipe\Functional\BigPipeTest::testBigPipeMultiOccurrencePlaceholders()
    *
    * @return array
    *   The render array.

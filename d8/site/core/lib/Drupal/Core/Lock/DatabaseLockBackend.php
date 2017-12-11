@@ -2,6 +2,7 @@
 
 namespace Drupal\Core\Lock;
 
+use Drupal\Component\Utility\Crypt;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Database\IntegrityConstraintViolationException;
 use Drupal\Core\Database\SchemaObjectExistsException;
@@ -34,7 +35,7 @@ class DatabaseLockBackend extends LockBackendAbstract {
   public function __construct(Connection $database) {
     // __destruct() is causing problems with garbage collections, register a
     // shutdown function instead.
-    drupal_register_shutdown_function(array($this, 'releaseAll'));
+    drupal_register_shutdown_function([$this, 'releaseAll']);
     $this->database = $database;
   }
 
@@ -42,13 +43,15 @@ class DatabaseLockBackend extends LockBackendAbstract {
    * {@inheritdoc}
    */
   public function acquire($name, $timeout = 30.0) {
+    $name = $this->normalizeName($name);
+
     // Insure that the timeout is at least 1 ms.
     $timeout = max($timeout, 0.001);
     $expire = microtime(TRUE) + $timeout;
     if (isset($this->locks[$name])) {
       // Try to extend the expiration of a lock we already acquired.
       $success = (bool) $this->database->update('semaphore')
-        ->fields(array('expire' => $expire))
+        ->fields(['expire' => $expire])
         ->condition('name', $name)
         ->condition('value', $this->getLockId())
         ->execute();
@@ -66,11 +69,11 @@ class DatabaseLockBackend extends LockBackendAbstract {
       do {
         try {
           $this->database->insert('semaphore')
-            ->fields(array(
+            ->fields([
               'name' => $name,
               'value' => $this->getLockId(),
               'expire' => $expire,
-            ))
+            ])
             ->execute();
           // We track all acquired locks in the global variable.
           $this->locks[$name] = TRUE;
@@ -106,8 +109,10 @@ class DatabaseLockBackend extends LockBackendAbstract {
    * {@inheritdoc}
    */
   public function lockMayBeAvailable($name) {
+    $name = $this->normalizeName($name);
+
     try {
-      $lock = $this->database->query('SELECT expire, value FROM {semaphore} WHERE name = :name', array(':name' => $name))->fetchAssoc();
+      $lock = $this->database->query('SELECT expire, value FROM {semaphore} WHERE name = :name', [':name' => $name])->fetchAssoc();
     }
     catch (\Exception $e) {
       $this->catchException($e);
@@ -136,6 +141,8 @@ class DatabaseLockBackend extends LockBackendAbstract {
    * {@inheritdoc}
    */
   public function release($name) {
+    $name = $this->normalizeName($name);
+
     unset($this->locks[$name]);
     try {
       $this->database->delete('semaphore')
@@ -154,7 +161,7 @@ class DatabaseLockBackend extends LockBackendAbstract {
   public function releaseAll($lock_id = NULL) {
     // Only attempt to release locks if any were acquired.
     if (!empty($this->locks)) {
-      $this->locks = array();
+      $this->locks = [];
       if (empty($lock_id)) {
         $lock_id = $this->getLockId();
       }
@@ -204,7 +211,36 @@ class DatabaseLockBackend extends LockBackendAbstract {
   }
 
   /**
+   * Normalizes a lock name in order to comply with database limitations.
+   *
+   * @param string $name
+   *   The passed in lock name.
+   *
+   * @return string
+   *   An ASCII-encoded lock name that is at most 255 characters long.
+   */
+  protected function normalizeName($name) {
+    // Nothing to do if the name is a US ASCII string of 255 characters or less.
+    $name_is_ascii = mb_check_encoding($name, 'ASCII');
+
+    if (strlen($name) <= 255 && $name_is_ascii) {
+      return $name;
+    }
+    // Return a string that uses as much as possible of the original name with
+    // the hash appended.
+    $hash = Crypt::hashBase64($name);
+
+    if (!$name_is_ascii) {
+      return $hash;
+    }
+
+    return substr($name, 0, 255 - strlen($hash)) . $hash;
+  }
+
+  /**
    * Defines the schema for the semaphore table.
+   *
+   * @internal
    */
   public function schemaDefinition() {
     return [

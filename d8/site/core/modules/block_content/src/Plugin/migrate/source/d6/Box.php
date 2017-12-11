@@ -8,7 +8,8 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
  * Drupal 6 block source from database.
  *
  * @MigrateSource(
- *   id = "d6_box"
+ *   id = "d6_box",
+ *   source_module = "block"
  * )
  */
 class Box extends DrupalSqlBase {
@@ -18,7 +19,7 @@ class Box extends DrupalSqlBase {
    */
   public function query() {
     $query = $this->select('boxes', 'b')
-      ->fields('b', array('bid', 'body', 'info', 'format'));
+      ->fields('b', ['bid', 'body', 'info', 'format']);
     $query->orderBy('b.bid');
 
     return $query;
@@ -28,12 +29,12 @@ class Box extends DrupalSqlBase {
    * {@inheritdoc}
    */
   public function fields() {
-    return array(
+    return [
       'bid' => $this->t('The numeric identifier of the block/box'),
       'body' => $this->t('The block/box content'),
       'info' => $this->t('Admin title of the block/box.'),
       'format' => $this->t('Input format of the custom block/box content.'),
-    );
+    ];
   }
 
   /**

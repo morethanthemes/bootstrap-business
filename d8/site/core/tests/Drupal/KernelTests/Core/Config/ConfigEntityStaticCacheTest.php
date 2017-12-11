@@ -17,7 +17,7 @@ class ConfigEntityStaticCacheTest extends KernelTestBase {
    *
    * @var array
    */
-  public static $modules = array('config_test', 'config_entity_static_cache_test');
+  public static $modules = ['config_test', 'config_entity_static_cache_test'];
 
   /**
    * The type ID of the entity under test.
@@ -42,7 +42,7 @@ class ConfigEntityStaticCacheTest extends KernelTestBase {
     $this->entityId = 'test_1';
     $this->container->get('entity_type.manager')
       ->getStorage($this->entityTypeId)
-      ->create(array('id' => $this->entityId, 'label' => 'Original label'))
+      ->create(['id' => $this->entityId, 'label' => 'Original label'])
       ->save();
   }
 
@@ -57,7 +57,7 @@ class ConfigEntityStaticCacheTest extends KernelTestBase {
     // config_entity_static_cache_test_config_test_load() sets _loadStamp to a
     // random string. If they match, it means $entity_2 was retrieved from the
     // static cache rather than going through a separate load sequence.
-    $this->assertIdentical($entity_1->_loadStamp, $entity_2->_loadStamp);
+    $this->assertSame($entity_1->_loadStamp, $entity_2->_loadStamp);
   }
 
   /**

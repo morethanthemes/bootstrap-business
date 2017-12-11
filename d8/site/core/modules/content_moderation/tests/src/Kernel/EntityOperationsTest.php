@@ -2,11 +2,10 @@
 
 namespace Drupal\Tests\content_moderation\Kernel;
 
-
 use Drupal\KernelTests\KernelTestBase;
-use Drupal\content_moderation\Entity\ModerationState;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
+use Drupal\workflows\Entity\Workflow;
 
 /**
  * @coversDefaultClass \Drupal\content_moderation\EntityOperations
@@ -23,6 +22,7 @@ class EntityOperationsTest extends KernelTestBase {
     'node',
     'user',
     'system',
+    'workflows',
   ];
 
   /**
@@ -47,27 +47,29 @@ class EntityOperationsTest extends KernelTestBase {
       'type' => 'page',
       'label' => 'Page',
     ]);
-    $node_type->setThirdPartySetting('content_moderation', 'enabled', TRUE);
     $node_type->save();
+    $workflow = Workflow::load('editorial');
+    $workflow->getTypePlugin()->addEntityTypeAndBundle('node', 'page');
+    $workflow->save();
   }
 
   /**
-   * Verifies that the process of saving forward-revisions works as expected.
+   * Verifies that the process of saving pending revisions works as expected.
    */
-  public function testForwardRevisions() {
+  public function testPendingRevisions() {
     // Create a new node in draft.
     $page = Node::create([
       'type' => 'page',
       'title' => 'A',
     ]);
-    $page->moderation_state->target_id = 'draft';
+    $page->moderation_state->value = 'draft';
     $page->save();
 
     $id = $page->id();
 
-    // Verify the entity saved correctly, and that the presence of forward
+    // Verify the entity saved correctly, and that the presence of pending
     // revisions doesn't affect the default node load.
-    /** @var Node $page */
+    /** @var \Drupal\node\Entity\Node $page */
     $page = Node::load($id);
     $this->assertEquals('A', $page->getTitle());
     $this->assertTrue($page->isDefaultRevision());
@@ -75,7 +77,7 @@ class EntityOperationsTest extends KernelTestBase {
 
     // Moderate the entity to published.
     $page->setTitle('B');
-    $page->moderation_state->target_id = 'published';
+    $page->moderation_state->value = 'published';
     $page->save();
 
     // Verify the entity is now published and public.
@@ -84,16 +86,16 @@ class EntityOperationsTest extends KernelTestBase {
     $this->assertTrue($page->isDefaultRevision());
     $this->assertTrue($page->isPublished());
 
-    // Make a new forward-revision in Draft.
+    // Make a new pending revision in Draft.
     $page->setTitle('C');
-    $page->moderation_state->target_id = 'draft';
+    $page->moderation_state->value = 'draft';
     $page->save();
 
     // Verify normal loads return the still-default previous version.
     $page = Node::load($id);
     $this->assertEquals('B', $page->getTitle());
 
-    // Verify we can load the forward revision, even if the mechanism is kind
+    // Verify we can load the pending revision, even if the mechanism is kind
     // of gross. Note: revisionIds() is only available on NodeStorageInterface,
     // so this won't work for non-nodes. We'd need to use entity queries. This
     // is a core bug that should get fixed.
@@ -105,7 +107,7 @@ class EntityOperationsTest extends KernelTestBase {
     $this->assertEquals('C', $page->getTitle());
 
     $page->setTitle('D');
-    $page->moderation_state->target_id = 'published';
+    $page->moderation_state->value = 'published';
     $page->save();
 
     // Verify normal loads return the still-default previous version.
@@ -116,7 +118,7 @@ class EntityOperationsTest extends KernelTestBase {
 
     // Now check that we can immediately add a new published revision over it.
     $page->setTitle('E');
-    $page->moderation_state->target_id = 'published';
+    $page->moderation_state->value = 'published';
     $page->save();
 
     $page = Node::load($id);
@@ -134,13 +136,13 @@ class EntityOperationsTest extends KernelTestBase {
       'type' => 'page',
       'title' => 'A',
     ]);
-    $page->moderation_state->target_id = 'published';
+    $page->moderation_state->value = 'published';
     $page->save();
 
     $id = $page->id();
 
     // Verify the entity saved correctly.
-    /** @var Node $page */
+    /** @var \Drupal\node\Entity\Node $page */
     $page = Node::load($id);
     $this->assertEquals('A', $page->getTitle());
     $this->assertTrue($page->isDefaultRevision());
@@ -151,29 +153,12 @@ class EntityOperationsTest extends KernelTestBase {
    * Verifies that an unpublished state may be made the default revision.
    */
   public function testArchive() {
-    $published_id = $this->randomMachineName();
-    $published_state = ModerationState::create([
-      'id' => $published_id,
-      'label' => $this->randomString(),
-      'published' => TRUE,
-      'default_revision' => TRUE,
-    ]);
-    $published_state->save();
-
-    $archived_id = $this->randomMachineName();
-    $archived_state = ModerationState::create([
-      'id' => $archived_id,
-      'label' => $this->randomString(),
-      'published' => FALSE,
-      'default_revision' => TRUE,
-    ]);
-    $archived_state->save();
-
     $page = Node::create([
       'type' => 'page',
       'title' => $this->randomString(),
     ]);
-    $page->moderation_state->target_id = $published_id;
+
+    $page->moderation_state->value = 'published';
     $page->save();
 
     $id = $page->id();
@@ -184,7 +169,7 @@ class EntityOperationsTest extends KernelTestBase {
 
     // When the page is moderated to the archived state, then the latest
     // revision should be the default revision, and it should be unpublished.
-    $page->moderation_state->target_id = $archived_id;
+    $page->moderation_state->value = 'archived';
     $page->save();
     $new_revision_id = $page->getRevisionId();
 

@@ -10,7 +10,7 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
  *
  * @MigrateSource(
  *   id = "block",
- *   source_provider = "block"
+ *   source_module = "block"
  * )
  */
 class Block extends DrupalSqlBase {
@@ -81,10 +81,10 @@ class Block extends DrupalSqlBase {
    * {@inheritdoc}
    */
   public function fields() {
-    return array(
+    return [
       'bid' => $this->t('The block numeric identifier.'),
       'module' => $this->t('The module providing the block.'),
-      'delta' => $this->t('The block\'s delta.'),
+      'delta' => $this->t("The block's delta."),
       'theme' => $this->t('Which theme the block is placed in.'),
       'status' => $this->t('Whether or not the block is enabled.'),
       'weight' => $this->t('Weight of the block for ordering within regions.'),
@@ -93,7 +93,7 @@ class Block extends DrupalSqlBase {
       'pages' => $this->t('Pages list.'),
       'title' => $this->t('Block title.'),
       'cache' => $this->t('Cache rule.'),
-    );
+    ];
   }
 
   /**
@@ -117,7 +117,7 @@ class Block extends DrupalSqlBase {
     $delta = $row->getSourceProperty('delta');
 
     $query = $this->select($this->blockRoleTable, 'br')
-      ->fields('br', array('rid'))
+      ->fields('br', ['rid'])
       ->condition('module', $module)
       ->condition('delta', $delta);
     $query->join($this->userRoleTable, 'ur', 'br.rid = ur.rid');
@@ -125,7 +125,7 @@ class Block extends DrupalSqlBase {
       ->fetchCol();
     $row->setSourceProperty('roles', $roles);
 
-    $settings = array();
+    $settings = [];
     switch ($module) {
       case 'aggregator':
         list($type, $id) = explode('-', $delta);
@@ -152,7 +152,7 @@ class Block extends DrupalSqlBase {
         $settings['forum']['block_num'] = $this->variableGet('forum_block_num_' . $delta, 5);
         break;
       case 'statistics':
-        foreach (array('statistics_block_top_day_num', 'statistics_block_top_all_num', 'statistics_block_top_last_num') as $name) {
+        foreach (['statistics_block_top_day_num', 'statistics_block_top_all_num', 'statistics_block_top_last_num'] as $name) {
           $settings['statistics'][$name] = $this->variableGet($name, 0);
         }
         break;

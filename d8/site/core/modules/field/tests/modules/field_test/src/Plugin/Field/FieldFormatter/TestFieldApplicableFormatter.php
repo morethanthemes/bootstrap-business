@@ -1,10 +1,10 @@
 <?php
 
 namespace Drupal\field_test\Plugin\Field\FieldFormatter;
+
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\FormatterBase;
-
 
 /**
  * Plugin implementation of the 'field_test_applicable' formatter.
@@ -34,7 +34,7 @@ class TestFieldApplicableFormatter extends FormatterBase {
    * {@inheritdoc}
    */
   public function viewElements(FieldItemListInterface $items, $langcode) {
-    return array('#markup' => 'Nothing to see here');
+    return ['#markup' => 'Nothing to see here'];
   }
 
 }

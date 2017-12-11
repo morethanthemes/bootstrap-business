@@ -15,7 +15,7 @@ class MigrateMenuLinkTest extends MigrateDrupal6TestBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = array('menu_ui', 'menu_link_content');
+  public static $modules = ['menu_ui', 'menu_link_content'];
 
   /**
    * {@inheritdoc}
@@ -23,7 +23,7 @@ class MigrateMenuLinkTest extends MigrateDrupal6TestBase {
   protected function setUp() {
     parent::setUp();
     $this->installEntitySchema('menu_link_content');
-    $this->executeMigrations(['menu', 'menu_links']);
+    $this->executeMigrations(['d6_menu', 'd6_menu_links']);
   }
 
   /**

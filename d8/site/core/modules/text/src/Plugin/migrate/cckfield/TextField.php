@@ -2,6 +2,8 @@
 
 namespace Drupal\text\Plugin\migrate\cckfield;
 
+@trigger_error('TextField is deprecated in Drupal 8.3.x and will be removed before Drupal 9.0.x. Use \Drupal\text\Plugin\migrate\field\d6\TextField or \Drupal\text\Plugin\migrate\field\d7\TextField instead.', E_USER_DEPRECATED);
+
 use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate\Row;
 use Drupal\migrate_drupal\Plugin\migrate\cckfield\CckFieldPluginBase;
@@ -16,6 +18,12 @@ use Drupal\migrate_drupal\Plugin\migrate\cckfield\CckFieldPluginBase;
  *   },
  *   core = {6,7}
  * )
+ *
+ * @deprecated in Drupal 8.3.x, to be removed before Drupal 9.0.x. Use
+ * \Drupal\text\Plugin\migrate\field\d6\TextField or
+ * \Drupal\text\Plugin\migrate\field\d7\TextField instead.
+ *
+ * @see https://www.drupal.org/node/2751897
  */
 class TextField extends CckFieldPluginBase {
 
@@ -43,7 +51,9 @@ class TextField extends CckFieldPluginBase {
    * {@inheritdoc}
    */
   public function processCckFieldValues(MigrationInterface $migration, $field_name, $field_info) {
-    if ($field_info['widget_type'] == 'optionwidgets_onoff') {
+    $widget_type = isset($field_info['widget_type']) ? $field_info['widget_type'] : $field_info['widget']['type'];
+
+    if ($widget_type == 'optionwidgets_onoff') {
       $process = [
         'value' => [
           'plugin' => 'static_map',
@@ -87,11 +97,11 @@ class TextField extends CckFieldPluginBase {
       ];
     }
 
-    $process = array(
+    $process = [
       'plugin' => 'iterator',
       'source' => $field_name,
       'process' => $process,
-    );
+    ];
     $migration->setProcessOfProperty($field_name, $process);
   }
 
@@ -100,27 +110,29 @@ class TextField extends CckFieldPluginBase {
    */
   public function getFieldType(Row $row) {
     $widget_type = $row->getSourceProperty('widget_type');
+    $settings = $row->getSourceProperty('global_settings');
 
     if ($widget_type == 'text_textfield') {
-      $settings = $row->getSourceProperty('global_settings');
       $field_type = $settings['text_processing'] ? 'text' : 'string';
       if (empty($settings['max_length']) || $settings['max_length'] > 255) {
         $field_type .= '_long';
       }
       return $field_type;
     }
-    else {
-      switch ($widget_type) {
-        case 'optionwidgets_buttons':
-        case 'optionwidgets_select':
-          return 'list_string';
-        case 'optionwidgets_onoff':
-          return 'boolean';
-        case 'text_textarea':
-          return 'text_long';
-        default:
-          return parent::getFieldType($row);
-      }
+
+    if ($widget_type == 'text_textarea') {
+      $field_type = $settings['text_processing'] ? 'text_long' : 'string_long';
+      return $field_type;
+    }
+
+    switch ($widget_type) {
+      case 'optionwidgets_buttons':
+      case 'optionwidgets_select':
+        return 'list_string';
+      case 'optionwidgets_onoff':
+        return 'boolean';
+      default:
+        return parent::getFieldType($row);
     }
   }
 

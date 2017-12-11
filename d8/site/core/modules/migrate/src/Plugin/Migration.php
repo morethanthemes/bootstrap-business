@@ -312,6 +312,8 @@ class Migration extends PluginBase implements MigrationInterface, RequirementsIn
    *
    * @deprecated in Drupal 8.1.x, will be removed before Drupal 9.0.x. Use
    *   more specific getters instead.
+   *
+   * @see https://www.drupal.org/node/2873795
    */
   public function get($property) {
     return isset($this->$property) ? $this->$property : NULL;
@@ -346,9 +348,9 @@ class Migration extends PluginBase implements MigrationInterface, RequirementsIn
     }
     $index = serialize($process);
     if (!isset($this->processPlugins[$index])) {
-      $this->processPlugins[$index] = array();
+      $this->processPlugins[$index] = [];
       foreach ($this->getProcessNormalized($process) as $property => $configurations) {
-        $this->processPlugins[$index][$property] = array();
+        $this->processPlugins[$index][$property] = [];
         foreach ($configurations as $configuration) {
           if (isset($configuration['source'])) {
             $this->processPlugins[$index][$property][] = $this->processPluginManager->createInstance('get', $configuration, $this);
@@ -376,16 +378,16 @@ class Migration extends PluginBase implements MigrationInterface, RequirementsIn
    *   The normalized process configuration.
    */
   protected function getProcessNormalized(array $process) {
-    $normalized_configurations = array();
+    $normalized_configurations = [];
     foreach ($process as $destination => $configuration) {
       if (is_string($configuration)) {
-        $configuration = array(
+        $configuration = [
           'plugin' => 'get',
           'source' => $configuration,
-        );
+        ];
       }
       if (isset($configuration['plugin'])) {
-        $configuration = array($configuration);
+        $configuration = [$configuration];
       }
       $normalized_configurations[$destination] = $configuration;
     }
@@ -570,7 +572,7 @@ class Migration extends PluginBase implements MigrationInterface, RequirementsIn
    */
   public function mergeProcessOfProperty($property, array $process_of_property) {
     // If we already have a process value then merge the incoming process array
-    //otherwise simply set it.
+    // otherwise simply set it.
     $current_process = $this->getProcess();
     if (isset($current_process[$property])) {
       $this->process = NestedArray::mergeDeepArray([$current_process, $this->getProcessNormalized([$property => $process_of_property])], TRUE);

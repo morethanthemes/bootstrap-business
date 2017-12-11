@@ -15,7 +15,7 @@ class ConnectionTest extends DatabaseTestBase {
   /**
    * Tests that connections return appropriate connection objects.
    */
-  function testConnectionRouting() {
+  public function testConnectionRouting() {
     // Clone the primary credentials to a replica connection.
     // Note this will result in two independent connection objects that happen
     // to point to the same place.
@@ -32,24 +32,24 @@ class ConnectionTest extends DatabaseTestBase {
     // Try to open those targets another time, that should return the same objects.
     $db1b = Database::getConnection('default', 'default');
     $db2b = Database::getConnection('replica', 'default');
-    $this->assertIdentical($db1, $db1b, 'A second call to getConnection() returns the same object.');
-    $this->assertIdentical($db2, $db2b, 'A second call to getConnection() returns the same object.');
+    $this->assertSame($db1, $db1b, 'A second call to getConnection() returns the same object.');
+    $this->assertSame($db2, $db2b, 'A second call to getConnection() returns the same object.');
 
     // Try to open an unknown target.
     $unknown_target = $this->randomMachineName();
     $db3 = Database::getConnection($unknown_target, 'default');
     $this->assertNotNull($db3, 'Opening an unknown target returns a real connection object.');
-    $this->assertIdentical($db1, $db3, 'An unknown target opens the default connection.');
+    $this->assertSame($db1, $db3, 'An unknown target opens the default connection.');
 
     // Try to open that unknown target another time, that should return the same object.
     $db3b = Database::getConnection($unknown_target, 'default');
-    $this->assertIdentical($db3, $db3b, 'A second call to getConnection() returns the same object.');
+    $this->assertSame($db3, $db3b, 'A second call to getConnection() returns the same object.');
   }
 
   /**
    * Tests that connections return appropriate connection objects.
    */
-  function testConnectionRoutingOverride() {
+  public function testConnectionRoutingOverride() {
     // Clone the primary credentials to a replica connection.
     // Note this will result in two independent connection objects that happen
     // to point to the same place.
@@ -61,13 +61,13 @@ class ConnectionTest extends DatabaseTestBase {
     $db1 = Database::getConnection('default', 'default');
     $db2 = Database::getConnection('replica', 'default');
 
-    $this->assertIdentical($db1, $db2, 'Both targets refer to the same connection.');
+    $this->assertSame($db1, $db2, 'Both targets refer to the same connection.');
   }
 
   /**
    * Tests the closing of a database connection.
    */
-  function testConnectionClosing() {
+  public function testConnectionClosing() {
     // Open the default target so we have an object to compare.
     $db1 = Database::getConnection('default', 'default');
 
@@ -82,7 +82,7 @@ class ConnectionTest extends DatabaseTestBase {
   /**
    * Tests the connection options of the active database.
    */
-  function testConnectionOptions() {
+  public function testConnectionOptions() {
     $connection_info = Database::getConnectionInfo('default');
 
     // Be sure we're connected to the default database.
@@ -131,7 +131,7 @@ class ConnectionTest extends DatabaseTestBase {
     try {
       $db->query('SELECT * FROM {test}; SELECT * FROM {test_people}',
         [],
-        [ 'allow_delimiter_in_query' => TRUE ]
+        ['allow_delimiter_in_query' => TRUE]
       );
       $this->fail('No PDO exception thrown for multiple statements.');
     }
@@ -168,9 +168,9 @@ class ConnectionTest extends DatabaseTestBase {
     $stmt->execute();
     foreach ($stmt->fetchAllAssoc('word') as $word => $row) {
       $expected = '"' . $word . '"';
-      $this->assertIdentical($db->escapeTable($word), $expected, format_string('The reserved word %word was correctly escaped when used as a table name.', array('%word' => $word)));
-      $this->assertIdentical($db->escapeField($word), $expected, format_string('The reserved word %word was correctly escaped when used as a column name.', array('%word' => $word)));
-      $this->assertIdentical($db->escapeAlias($word), $expected, format_string('The reserved word %word was correctly escaped when used as an alias.', array('%word' => $word)));
+      $this->assertIdentical($db->escapeTable($word), $expected, format_string('The reserved word %word was correctly escaped when used as a table name.', ['%word' => $word]));
+      $this->assertIdentical($db->escapeField($word), $expected, format_string('The reserved word %word was correctly escaped when used as a column name.', ['%word' => $word]));
+      $this->assertIdentical($db->escapeAlias($word), $expected, format_string('The reserved word %word was correctly escaped when used as an alias.', ['%word' => $word]));
     }
   }
 

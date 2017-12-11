@@ -6,7 +6,6 @@ use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Routing\RedirectDestinationTrait;
 use Drupal\Core\Routing\RouteMatchInterface;
-use Drupal\Core\Routing\UrlGeneratorTrait;
 use Drupal\Core\Url;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Block\BlockBase;
@@ -23,7 +22,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class UserLoginBlock extends BlockBase implements ContainerFactoryPluginInterface {
 
-  use UrlGeneratorTrait;
   use RedirectDestinationTrait;
 
   /**
@@ -72,7 +70,7 @@ class UserLoginBlock extends BlockBase implements ContainerFactoryPluginInterfac
    */
   protected function blockAccess(AccountInterface $account) {
     $route_name = $this->routeMatch->getRouteName();
-    if ($account->isAnonymous() && !in_array($route_name, array('user.login', 'user.logout'))) {
+    if ($account->isAnonymous() && !in_array($route_name, ['user.login', 'user.logout'])) {
       return AccessResult::allowed()
         ->addCacheContexts(['route.name', 'user.roles:anonymous']);
     }
@@ -94,30 +92,71 @@ class UserLoginBlock extends BlockBase implements ContainerFactoryPluginInterfac
     unset($form['pass']['#attributes']['aria-describedby']);
     $form['name']['#size'] = 15;
     $form['pass']['#size'] = 15;
-    $form['#action'] = $this->url('<current>', [], ['query' => $this->getDestinationArray(), 'external' => FALSE]);
+
+    // Instead of setting an actual action URL, we set the placeholder, which
+    // will be replaced at the very last moment. This ensures forms with
+    // dynamically generated action URLs don't have poor cacheability.
+    // Use the proper API to generate the placeholder, when we have one. See
+    // https://www.drupal.org/node/2562341. The placholder uses a fixed string
+    // that is
+    // Crypt::hashBase64('\Drupal\user\Plugin\Block\UserLoginBlock::build');
+    // This is based on the implementation in
+    // \Drupal\Core\Form\FormBuilder::prepareForm(), but the user login block
+    // requires different behavior for the destination query argument.
+    $placeholder = 'form_action_p_4r8ITd22yaUvXM6SzwrSe9rnQWe48hz9k1Sxto3pBvE';
+
+    $form['#attached']['placeholders'][$placeholder] = [
+      '#lazy_builder' => ['\Drupal\user\Plugin\Block\UserLoginBlock::renderPlaceholderFormAction', []],
+    ];
+    $form['#action'] = $placeholder;
+
     // Build action links.
-    $items = array();
+    $items = [];
     if (\Drupal::config('user.settings')->get('register') != USER_REGISTER_ADMINISTRATORS_ONLY) {
-      $items['create_account'] = \Drupal::l($this->t('Create new account'), new Url('user.register', array(), array(
-        'attributes' => array(
-          'title' => $this->t('Create a new user account.'),
-          'class' => array('create-account-link'),
-        ),
-      )));
+      $items['create_account'] = [
+        '#type' => 'link',
+        '#title' => $this->t('Create new account'),
+        '#url' => Url::fromRoute('user.register', [], [
+          'attributes' => [
+            'title' => $this->t('Create a new user account.'),
+            'class' => ['create-account-link'],
+          ],
+        ]),
+      ];
     }
-    $items['request_password'] = \Drupal::l($this->t('Reset your password'), new Url('user.pass', array(), array(
-      'attributes' => array(
-        'title' => $this->t('Send password reset instructions via email.'),
-        'class' => array('request-password-link'),
-      ),
-    )));
-    return array(
+    $items['request_password'] = [
+      '#type' => 'link',
+      '#title' => $this->t('Reset your password'),
+      '#url' => Url::fromRoute('user.pass', [], [
+        'attributes' => [
+          'title' => $this->t('Send password reset instructions via email.'),
+          'class' => ['request-password-link'],
+        ],
+      ]),
+    ];
+    return [
       'user_login_form' => $form,
-      'user_links' => array(
+      'user_links' => [
         '#theme' => 'item_list',
         '#items' => $items,
-      ),
-    );
+      ],
+    ];
+  }
+
+  /**
+   * #lazy_builder callback; renders a form action URL including destination.
+   *
+   * @return array
+   *   A renderable array representing the form action.
+   *
+   * @see \Drupal\Core\Form\FormBuilder::renderPlaceholderFormAction()
+   */
+  public static function renderPlaceholderFormAction() {
+    return [
+      '#type' => 'markup',
+      '#markup' => Url::fromRoute('<current>', [], ['query' => \Drupal::destination()->getAsArray(), 'external' => FALSE])->toString(),
+      '#cache' => ['contexts' => ['url.path', 'url.query_args']],
+    ];
   }
 
 }

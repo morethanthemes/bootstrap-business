@@ -138,12 +138,12 @@ abstract class HandlerBase extends PluginBase implements ViewsHandlerInterface {
   protected function defineOptions() {
     $options = parent::defineOptions();
 
-    $options['id'] = array('default' => '');
-    $options['table'] = array('default' => '');
-    $options['field'] = array('default' => '');
-    $options['relationship'] = array('default' => 'none');
-    $options['group_type'] = array('default' => 'group');
-    $options['admin_label'] = array('default' => '');
+    $options['id'] = ['default' => ''];
+    $options['table'] = ['default' => ''];
+    $options['field'] = ['default' => ''];
+    $options['relationship'] = ['default' => 'none'];
+    $options['group_type'] = ['default' => 'group'];
+    $options['admin_label'] = ['default' => ''];
 
     return $options;
   }
@@ -156,7 +156,7 @@ abstract class HandlerBase extends PluginBase implements ViewsHandlerInterface {
       return $this->options['admin_label'];
     }
     $title = ($short && isset($this->definition['title short'])) ? $this->definition['title short'] : $this->definition['title'];
-    return $this->t('@group: @title', array('@group' => $this->definition['group'], '@title' => $title));
+    return $this->t('@group: @title', ['@group' => $this->definition['group'], '@title' => $title]);
   }
 
   /**
@@ -214,16 +214,16 @@ abstract class HandlerBase extends PluginBase implements ViewsHandlerInterface {
    * Transform a string by a certain method.
    *
    * @param $string
-   *    The input you want to transform.
+   *   The input you want to transform.
    * @param $option
-   *    How do you want to transform it, possible values:
-   *      - upper: Uppercase the string.
-   *      - lower: lowercase the string.
-   *      - ucfirst: Make the first char uppercase.
-   *      - ucwords: Make each word in the string uppercase.
+   *   How do you want to transform it, possible values:
+   *   - upper: Uppercase the string.
+   *   - lower: lowercase the string.
+   *   - ucfirst: Make the first char uppercase.
+   *   - ucwords: Make each word in the string uppercase.
    *
    * @return string
-   *    The transformed string.
+   *   The transformed string.
    */
   protected function caseTransform($string, $option) {
     switch ($option) {
@@ -248,36 +248,36 @@ abstract class HandlerBase extends PluginBase implements ViewsHandlerInterface {
     // be moved into one because of the $form_state->getValues() hierarchy. Those
     // elements can add a #fieldset => 'fieldset_name' property, and they'll
     // be moved to their fieldset during pre_render.
-    $form['#pre_render'][] = array(get_class($this), 'preRenderAddFieldsetMarkup');
+    $form['#pre_render'][] = [get_class($this), 'preRenderAddFieldsetMarkup'];
 
     parent::buildOptionsForm($form, $form_state);
 
-    $form['fieldsets'] = array(
+    $form['fieldsets'] = [
       '#type' => 'value',
-      '#value' => array('more', 'admin_label'),
-    );
+      '#value' => ['more', 'admin_label'],
+    ];
 
-    $form['admin_label'] = array(
+    $form['admin_label'] = [
       '#type' => 'details',
       '#title' => $this->t('Administrative title'),
       '#weight' => 150,
-    );
-    $form['admin_label']['admin_label'] = array(
+    ];
+    $form['admin_label']['admin_label'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Administrative title'),
       '#description' => $this->t('This title will be displayed on the views edit page instead of the default one. This might be useful if you have the same item twice.'),
       '#default_value' => $this->options['admin_label'],
-      '#parents' => array('options', 'admin_label'),
-    );
+      '#parents' => ['options', 'admin_label'],
+    ];
 
     // This form is long and messy enough that the "Administrative title" option
     // belongs in "Administrative title" fieldset at the bottom of the form.
-    $form['more'] = array(
+    $form['more'] = [
       '#type' => 'details',
       '#title' => $this->t('More'),
       '#weight' => 200,
       '#optional' => TRUE,
-    );
+    ];
 
     // Allow to alter the default values brought into the form.
     // @todo Do we really want to keep this hook.
@@ -329,13 +329,13 @@ abstract class HandlerBase extends PluginBase implements ViewsHandlerInterface {
       $group_types[$id] = $aggregate['title'];
     }
 
-    $form['group_type'] = array(
+    $form['group_type'] = [
       '#type' => 'select',
       '#title' => $this->t('Aggregation type'),
       '#default_value' => $this->options['group_type'],
       '#description' => $this->t('Select the aggregation function to use on this field.'),
       '#options' => $group_types,
-    );
+    ];
   }
 
   /**
@@ -350,80 +350,84 @@ abstract class HandlerBase extends PluginBase implements ViewsHandlerInterface {
    * If a handler has 'extra options' it will get a little settings widget and
    * another form called extra_options.
    */
-  public function hasExtraOptions() { return FALSE; }
+  public function hasExtraOptions() {
+    return FALSE;
+  }
 
   /**
    * Provide defaults for the handler.
    */
-  public function defineExtraOptions(&$option) { }
+  public function defineExtraOptions(&$option) {}
 
   /**
    * Provide a form for setting options.
    */
-  public function buildExtraOptionsForm(&$form, FormStateInterface $form_state) { }
+  public function buildExtraOptionsForm(&$form, FormStateInterface $form_state) {}
 
   /**
    * Validate the options form.
    */
-  public function validateExtraOptionsForm($form, FormStateInterface $form_state) { }
+  public function validateExtraOptionsForm($form, FormStateInterface $form_state) {}
 
   /**
    * Perform any necessary changes to the form values prior to storage.
    * There is no need for this function to actually store the data.
    */
-  public function submitExtraOptionsForm($form, FormStateInterface $form_state) { }
+  public function submitExtraOptionsForm($form, FormStateInterface $form_state) {}
 
   /**
    * Determine if a handler can be exposed.
    */
-  public function canExpose() { return FALSE; }
+  public function canExpose() {
+    return FALSE;
+  }
 
   /**
    * Set new exposed option defaults when exposed setting is flipped
    * on.
    */
-  public function defaultExposeOptions() { }
+  public function defaultExposeOptions() {}
 
   /**
    * Get information about the exposed form for the form renderer.
    */
-  public function exposedInfo() { }
+  public function exposedInfo() {}
 
   /**
    * Render our chunk of the exposed handler form when selecting
    */
-  public function buildExposedForm(&$form, FormStateInterface $form_state) { }
+  public function buildExposedForm(&$form, FormStateInterface $form_state) {}
 
   /**
    * Validate the exposed handler form
    */
-  public function validateExposed(&$form, FormStateInterface $form_state) { }
+  public function validateExposed(&$form, FormStateInterface $form_state) {}
 
   /**
    * Submit the exposed handler form
    */
-  public function submitExposed(&$form, FormStateInterface $form_state) { }
+  public function submitExposed(&$form, FormStateInterface $form_state) {}
 
   /**
    * Form for exposed handler options.
    */
-  public function buildExposeForm(&$form, FormStateInterface $form_state) { }
+  public function buildExposeForm(&$form, FormStateInterface $form_state) {}
 
   /**
    * Validate the options form.
    */
-  public function validateExposeForm($form, FormStateInterface $form_state) { }
+  public function validateExposeForm($form, FormStateInterface $form_state) {}
 
   /**
    * Perform any necessary changes to the form exposes prior to storage.
    * There is no need for this function to actually store the data.
    */
-  public function submitExposeForm($form, FormStateInterface $form_state) { }
+  public function submitExposeForm($form, FormStateInterface $form_state) {}
 
   /**
    * Shortcut to display the expose/hide button.
    */
-  public function showExposeButton(&$form, FormStateInterface $form_state) { }
+  public function showExposeButton(&$form, FormStateInterface $form_state) {}
 
   /**
    * Shortcut to display the exposed options form.
@@ -454,7 +458,7 @@ abstract class HandlerBase extends PluginBase implements ViewsHandlerInterface {
   public function access(AccountInterface $account) {
     if (isset($this->definition['access callback']) && function_exists($this->definition['access callback'])) {
       if (isset($this->definition['access arguments']) && is_array($this->definition['access arguments'])) {
-        return call_user_func_array($this->definition['access callback'], array($account) + $this->definition['access arguments']);
+        return call_user_func_array($this->definition['access callback'], [$account] + $this->definition['access arguments']);
       }
       return $this->definition['access callback']($account);
     }
@@ -477,7 +481,7 @@ abstract class HandlerBase extends PluginBase implements ViewsHandlerInterface {
   /**
    * {@inheritdoc}
    */
-  public function postExecute(&$values) { }
+  public function postExecute(&$values) {}
 
   /**
    * Provides a unique placeholders for handlers.
@@ -531,13 +535,13 @@ abstract class HandlerBase extends PluginBase implements ViewsHandlerInterface {
   /**
    * {@inheritdoc}
    */
-  public function adminSummary() { }
+  public function adminSummary() {}
 
   /**
    * Determine if this item is 'exposed', meaning it provides form elements
    * to let users modify the view.
    *
-   * @return TRUE/FALSE
+   * @return bool
    */
   public function isExposed() {
     return !empty($this->options['exposed']);
@@ -546,24 +550,32 @@ abstract class HandlerBase extends PluginBase implements ViewsHandlerInterface {
   /**
    * Returns TRUE if the exposed filter works like a grouped filter.
    */
-  public function isAGroup() { return FALSE; }
+  public function isAGroup() {
+    return FALSE;
+  }
 
   /**
    * Define if the exposed input has to be submitted multiple times.
    * This is TRUE when exposed filters grouped are using checkboxes as
    * widgets.
    */
-  public function multipleExposedInput() { return FALSE; }
+  public function multipleExposedInput() {
+    return FALSE;
+  }
 
   /**
    * Take input from exposed handlers and assign to this handler, if necessary.
    */
-  public function acceptExposedInput($input) { return TRUE; }
+  public function acceptExposedInput($input) {
+    return TRUE;
+  }
 
   /**
    * If set to remember exposed input in the session, store it there.
    */
-  public function storeExposedInput($input, $status) { return TRUE; }
+  public function storeExposedInput($input, $status) {
+    return TRUE;
+  }
 
   /**
    * {@inheritdoc}
@@ -587,7 +599,9 @@ abstract class HandlerBase extends PluginBase implements ViewsHandlerInterface {
   /**
    * {@inheritdoc}
    */
-  public function validate() { return array(); }
+  public function validate() {
+    return [];
+  }
 
   /**
    * {@inheritdoc}
@@ -703,7 +717,7 @@ abstract class HandlerBase extends PluginBase implements ViewsHandlerInterface {
    */
   public static function breakString($str, $force_int = FALSE) {
     $operator = NULL;
-    $value = array();
+    $value = [];
 
     // Determine if the string has 'or' operators (plus signs) or 'and'
     // operators (commas) and split the string accordingly.
@@ -726,7 +740,7 @@ abstract class HandlerBase extends PluginBase implements ViewsHandlerInterface {
       $value = array_map('intval', $value);
     }
 
-    return (object) array('value' => $value, 'operator' => $operator);
+    return (object) ['value' => $value, 'operator' => $operator];
   }
 
   /**

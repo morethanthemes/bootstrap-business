@@ -16,6 +16,7 @@ use Drupal\Tests\UnitTestCase;
  * Tests the twig sandbox policy.
  *
  * @group Template
+ * @group legacy
  *
  * @coversDefaultClass \Drupal\Core\Template\TwigSandboxPolicy
  */
@@ -45,10 +46,10 @@ class TwigSandboxTest extends UnitTestCase {
    * Tests that dangerous methods cannot be called in entity objects.
    *
    * @dataProvider getTwigEntityDangerousMethods
-   * @expectedException \Twig_Sandbox_SecurityError
    */
   public function testEntityDangerousMethods($template) {
     $entity = $this->getMock('Drupal\Core\Entity\EntityInterface');
+    $this->setExpectedException(\Twig_Sandbox_SecurityError::class);
     $this->twig->render($template, ['entity' => $entity]);
   }
 
@@ -84,14 +85,14 @@ class TwigSandboxTest extends UnitTestCase {
       ->with('test')
       ->willReturn(TRUE);
     $result = $this->twig->render('{{ entity.hasLinkTemplate("test") }}', ['entity' => $entity]);
-    $this->assertTrue((bool)$result, 'Sandbox policy allows has* functions to be called.');
+    $this->assertTrue((bool) $result, 'Sandbox policy allows has* functions to be called.');
 
     $entity = $this->getMock('Drupal\Core\Entity\EntityInterface');
     $entity->expects($this->atLeastOnce())
       ->method('isNew')
       ->willReturn(TRUE);
     $result = $this->twig->render('{{ entity.isNew }}', ['entity' => $entity]);
-    $this->assertTrue((bool)$result, 'Sandbox policy allows is* functions to be called.');
+    $this->assertTrue((bool) $result, 'Sandbox policy allows is* functions to be called.');
 
     $entity = $this->getMock('Drupal\Core\Entity\EntityInterface');
     $entity->expects($this->atLeastOnce())

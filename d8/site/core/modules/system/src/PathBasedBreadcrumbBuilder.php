@@ -11,6 +11,7 @@ use Drupal\Core\Controller\TitleResolverInterface;
 use Drupal\Core\Link;
 use Drupal\Core\ParamConverter\ParamNotConvertedException;
 use Drupal\Core\Path\CurrentPathStack;
+use Drupal\Core\Path\PathMatcherInterface;
 use Drupal\Core\PathProcessor\InboundPathProcessorInterface;
 use Drupal\Core\Routing\RequestContext;
 use Drupal\Core\Routing\RouteMatch;
@@ -52,7 +53,7 @@ class PathBasedBreadcrumbBuilder implements BreadcrumbBuilderInterface {
   protected $router;
 
   /**
-   * The dynamic router service.
+   * The inbound path processor.
    *
    * @var \Drupal\Core\PathProcessor\InboundPathProcessorInterface
    */
@@ -80,6 +81,20 @@ class PathBasedBreadcrumbBuilder implements BreadcrumbBuilderInterface {
   protected $currentUser;
 
   /**
+   * The current path service.
+   *
+   * @var \Drupal\Core\Path\CurrentPathStack
+   */
+  protected $currentPath;
+
+  /**
+   * The patch matcher service.
+   *
+   * @var \Drupal\Core\Path\PathMatcherInterface
+   */
+  protected $pathMatcher;
+
+  /**
    * Constructs the PathBasedBreadcrumbBuilder.
    *
    * @param \Drupal\Core\Routing\RequestContext $context
@@ -98,8 +113,10 @@ class PathBasedBreadcrumbBuilder implements BreadcrumbBuilderInterface {
    *   The current user object.
    * @param \Drupal\Core\Path\CurrentPathStack $current_path
    *   The current path.
+   * @param \Drupal\Core\Path\PathMatcherInterface $path_matcher
+   *   The path matcher service.
    */
-  public function __construct(RequestContext $context, AccessManagerInterface $access_manager, RequestMatcherInterface $router, InboundPathProcessorInterface $path_processor, ConfigFactoryInterface $config_factory, TitleResolverInterface $title_resolver, AccountInterface $current_user, CurrentPathStack $current_path) {
+  public function __construct(RequestContext $context, AccessManagerInterface $access_manager, RequestMatcherInterface $router, InboundPathProcessorInterface $path_processor, ConfigFactoryInterface $config_factory, TitleResolverInterface $title_resolver, AccountInterface $current_user, CurrentPathStack $current_path, PathMatcherInterface $path_matcher = NULL) {
     $this->context = $context;
     $this->accessManager = $access_manager;
     $this->router = $router;
@@ -108,6 +125,7 @@ class PathBasedBreadcrumbBuilder implements BreadcrumbBuilderInterface {
     $this->titleResolver = $title_resolver;
     $this->currentUser = $current_user;
     $this->currentPath = $current_path;
+    $this->pathMatcher = $path_matcher ?: \Drupal::service('path.matcher');
   }
 
   /**
@@ -122,23 +140,29 @@ class PathBasedBreadcrumbBuilder implements BreadcrumbBuilderInterface {
    */
   public function build(RouteMatchInterface $route_match) {
     $breadcrumb = new Breadcrumb();
-    $links = array();
+    $links = [];
+
+    // Add the url.path.parent cache context. This code ignores the last path
+    // part so the result only depends on the path parents.
+    $breadcrumb->addCacheContexts(['url.path.parent']);
+
+    // Do not display a breadcrumb on the frontpage.
+    if ($this->pathMatcher->isFrontPage()) {
+      return $breadcrumb;
+    }
 
     // General path-based breadcrumbs. Use the actual request path, prior to
     // resolving path aliases, so the breadcrumb can be defined by simply
     // creating a hierarchy of path aliases.
     $path = trim($this->context->getPathInfo(), '/');
     $path_elements = explode('/', $path);
-    $exclude = array();
+    $exclude = [];
     // Don't show a link to the front-page path.
     $front = $this->config->get('page.front');
     $exclude[$front] = TRUE;
     // /user is just a redirect, so skip it.
     // @todo Find a better way to deal with /user.
     $exclude['/user'] = TRUE;
-    // Add the url.path.parent cache context. This code ignores the last path
-    // part so the result only depends on the path parents.
-    $breadcrumb->addCacheContexts(['url.path.parent']);
     while (count($path_elements) > 1) {
       array_pop($path_elements);
       // Copy the path elements for up-casting.
@@ -154,18 +178,16 @@ class PathBasedBreadcrumbBuilder implements BreadcrumbBuilderInterface {
           if (!isset($title)) {
             // Fallback to using the raw path component as the title if the
             // route is missing a _title or _title_callback attribute.
-            $title = str_replace(array('-', '_'), ' ', Unicode::ucfirst(end($path_elements)));
+            $title = str_replace(['-', '_'], ' ', Unicode::ucfirst(end($path_elements)));
           }
           $url = Url::fromRouteMatch($route_match);
           $links[] = new Link($title, $url);
         }
       }
+    }
 
-    }
-    if ($path && '/' . $path != $front) {
-      // Add the Home link, except for the front page.
-      $links[] = Link::createFromRoute($this->t('Home'), '<front>');
-    }
+    // Add the Home link.
+    $links[] = Link::createFromRoute($this->t('Home'), '<front>');
 
     return $breadcrumb->setLinks(array_reverse($links));
   }

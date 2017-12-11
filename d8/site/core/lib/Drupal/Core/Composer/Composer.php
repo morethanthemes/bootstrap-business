@@ -18,6 +18,7 @@ class Composer {
     'behat/mink' => ['tests', 'driver-testsuite'],
     'behat/mink-browserkit-driver' => ['tests'],
     'behat/mink-goutte-driver' => ['tests'],
+    'drupal/coder' => ['coder_sniffer/Drupal/Test', 'coder_sniffer/DrupalPractice/Test'],
     'doctrine/cache' => ['tests'],
     'doctrine/collections' => ['tests'],
     'doctrine/common' => ['tests'],
@@ -71,35 +72,42 @@ class Composer {
    * Add vendor classes to Composer's static classmap.
    */
   public static function preAutoloadDump(Event $event) {
+    // Get the configured vendor directory.
+    $vendor_dir = $event->getComposer()->getConfig()->get('vendor-dir');
+
     // We need the root package so we can add our classmaps to its loader.
     $package = $event->getComposer()->getPackage();
     // We need the local repository so that we can query and see if it's likely
     // that our files are present there.
     $repository = $event->getComposer()->getRepositoryManager()->getLocalRepository();
     // This is, essentially, a null constraint. We only care whether the package
-    // is present in vendor/ yet, but findPackage() requires it.
+    // is present in the vendor directory yet, but findPackage() requires it.
     $constraint = new Constraint('>', '');
+    // It's possible that there is no classmap specified in a custom project
+    // composer.json file. We need one so we can optimize lookup for some of our
+    // dependencies.
+    $autoload = $package->getAutoload();
+    if (!isset($autoload['classmap'])) {
+      $autoload['classmap'] = [];
+    }
     // Check for our packages, and then optimize them if they're present.
     if ($repository->findPackage('symfony/http-foundation', $constraint)) {
-      $autoload = $package->getAutoload();
-      $autoload['classmap'] = array_merge($autoload['classmap'], array(
-        'vendor/symfony/http-foundation/Request.php',
-        'vendor/symfony/http-foundation/ParameterBag.php',
-        'vendor/symfony/http-foundation/FileBag.php',
-        'vendor/symfony/http-foundation/ServerBag.php',
-        'vendor/symfony/http-foundation/HeaderBag.php',
-      ));
-      $package->setAutoload($autoload);
+      $autoload['classmap'] = array_merge($autoload['classmap'], [
+        $vendor_dir . '/symfony/http-foundation/Request.php',
+        $vendor_dir . '/symfony/http-foundation/ParameterBag.php',
+        $vendor_dir . '/symfony/http-foundation/FileBag.php',
+        $vendor_dir . '/symfony/http-foundation/ServerBag.php',
+        $vendor_dir . '/symfony/http-foundation/HeaderBag.php',
+      ]);
     }
     if ($repository->findPackage('symfony/http-kernel', $constraint)) {
-      $autoload = $package->getAutoload();
-      $autoload['classmap'] = array_merge($autoload['classmap'], array(
-        'vendor/symfony/http-kernel/HttpKernel.php',
-        'vendor/symfony/http-kernel/HttpKernelInterface.php',
-        'vendor/symfony/http-kernel/TerminableInterface.php',
-      ));
-      $package->setAutoload($autoload);
+      $autoload['classmap'] = array_merge($autoload['classmap'], [
+        $vendor_dir . '/symfony/http-kernel/HttpKernel.php',
+        $vendor_dir . '/symfony/http-kernel/HttpKernelInterface.php',
+        $vendor_dir . '/symfony/http-kernel/TerminableInterface.php',
+      ]);
     }
+    $package->setAutoload($autoload);
   }
 
   /**

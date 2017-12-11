@@ -14,9 +14,9 @@ class DrupalSqlBaseTest extends MigrateTestCase {
   /**
    * Define bare minimum migration configuration.
    */
-  protected $migrationConfiguration = array(
+  protected $migrationConfiguration = [
     'id' => 'DrupalSqlBase',
-  );
+  ];
 
   /**
    * @var \Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase
@@ -26,24 +26,24 @@ class DrupalSqlBaseTest extends MigrateTestCase {
   /**
    * Minimum database contents needed to test DrupalSqlBase.
    */
-  protected $databaseContents = array(
-    'system' => array(
-      array(
+  protected $databaseContents = [
+    'system' => [
+      [
         'filename' => 'sites/all/modules/module1',
         'name' => 'module1',
         'type' => 'module',
         'status' => 0,
         'schema_version' => -1,
-      ),
-    ),
-  );
+      ],
+    ],
+  ];
 
   /**
    * @covers ::checkRequirements
    */
   public function testSourceProviderNotActive() {
     $plugin_definition['requirements_met'] = TRUE;
-    $plugin_definition['source_provider'] = 'module1';
+    $plugin_definition['source_module'] = 'module1';
     /** @var \Drupal\Core\State\StateInterface $state */
     $state = $this->getMock('Drupal\Core\State\StateInterface');
     /** @var \Drupal\Core\Entity\EntityManagerInterface $entity_manager */
@@ -57,7 +57,7 @@ class DrupalSqlBaseTest extends MigrateTestCase {
     }
     catch (RequirementsException $e) {
       // Ensure requirements are set on the exception.
-      $this->assertEquals(['source_provider' => 'module1'], $e->getRequirements());
+      $this->assertEquals(['source_module' => 'module1'], $e->getRequirements());
       // Re-throw so PHPUnit can assert the exception.
       throw $e;
     }

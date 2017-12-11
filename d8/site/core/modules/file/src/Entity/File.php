@@ -70,7 +70,7 @@ class File extends ContentEntityBase implements FileInterface {
    *
    * @see file_url_transform_relative()
    */
-  public function url($rel = 'canonical', $options = array()) {
+  public function url($rel = 'canonical', $options = []) {
     return file_create_url($this->getFileUri());
   }
 
@@ -190,7 +190,10 @@ class File extends ContentEntityBase implements FileInterface {
 
     // The file itself might not exist or be available right now.
     $uri = $this->getFileUri();
-    if ($size = @filesize($uri)) {
+    $size = @filesize($uri);
+
+    // Set size unless there was an error.
+    if ($size !== FALSE) {
       $this->setSize($size);
     }
   }

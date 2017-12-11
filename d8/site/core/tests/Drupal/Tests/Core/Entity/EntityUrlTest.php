@@ -362,7 +362,9 @@ class EntityUrlTest extends UnitTestCase {
   public function providerTestToUrlUriCallback() {
     $test_cases = [];
 
-    $uri_callback = function () { return Url::fromRoute('<none>'); };
+    $uri_callback = function () {
+      return Url::fromRoute('<none>');
+    };
     $test_cases['uri_callback'] = [[], $uri_callback];
     $test_cases['bundle_uri_callback'] = [['uri_callback' => $uri_callback], NULL];
 
@@ -581,8 +583,7 @@ class EntityUrlTest extends UnitTestCase {
   protected function registerBundleInfo($bundle_info) {
     $this->entityManager
       ->getBundleInfo($this->entityTypeId)
-      ->willReturn([$this->entityTypeId => $bundle_info])
-    ;
+      ->willReturn([$this->entityTypeId => $bundle_info]);
   }
 
 }

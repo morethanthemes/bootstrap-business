@@ -60,7 +60,7 @@ abstract class FormatterBase extends PluginSettingsBase implements FormatterInte
    *   Any third party settings.
    */
   public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, $label, $view_mode, array $third_party_settings) {
-    parent::__construct(array(), $plugin_id, $plugin_definition);
+    parent::__construct([], $plugin_id, $plugin_definition);
 
     $this->fieldDefinition = $field_definition;
     $this->settings = $settings;
@@ -85,7 +85,7 @@ abstract class FormatterBase extends PluginSettingsBase implements FormatterInte
       $entity = $items->getEntity();
       $entity_type = $entity->getEntityTypeId();
       $field_name = $this->fieldDefinition->getName();
-      $info = array(
+      $info = [
         '#theme' => 'field',
         '#title' => $this->fieldDefinition->getLabel(),
         '#label_display' => $this->label,
@@ -100,7 +100,7 @@ abstract class FormatterBase extends PluginSettingsBase implements FormatterInte
         '#items' => $items,
         '#formatter' => $this->getPluginId(),
         '#is_multiple' => $this->fieldDefinition->getFieldStorageDefinition()->isMultiple(),
-      );
+      ];
 
       $elements = array_merge($info, $elements);
     }
@@ -112,20 +112,20 @@ abstract class FormatterBase extends PluginSettingsBase implements FormatterInte
    * {@inheritdoc}
    */
   public function settingsForm(array $form, FormStateInterface $form_state) {
-    return array();
+    return [];
   }
 
   /**
    * {@inheritdoc}
    */
   public function settingsSummary() {
-    return array();
+    return [];
   }
 
   /**
    * {@inheritdoc}
    */
-  public function prepareView(array $entities_items) { }
+  public function prepareView(array $entities_items) {}
 
   /**
    * Returns the array of field settings.

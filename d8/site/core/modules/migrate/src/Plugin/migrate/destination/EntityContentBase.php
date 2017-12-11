@@ -80,7 +80,7 @@ class EntityContentBase extends Entity {
   /**
    * {@inheritdoc}
    */
-  public function import(Row $row, array $old_destination_id_values = array()) {
+  public function import(Row $row, array $old_destination_id_values = []) {
     $this->rollbackAction = MigrateIdMapInterface::ROLLBACK_DELETE;
     $entity = $this->getEntity($row, $old_destination_id_values);
     if (!$entity) {
@@ -105,9 +105,9 @@ class EntityContentBase extends Entity {
    * @return array
    *   An array containing the entity ID.
    */
-  protected function save(ContentEntityInterface $entity, array $old_destination_id_values = array()) {
+  protected function save(ContentEntityInterface $entity, array $old_destination_id_values = []) {
     $entity->save();
-    return array($entity->id());
+    return [$entity->id()];
   }
 
   /**
@@ -125,15 +125,13 @@ class EntityContentBase extends Entity {
    */
   public function getIds() {
     $id_key = $this->getKey('id');
-    $ids[$id_key]['type'] = 'integer';
+    $ids[$id_key] = $this->getDefinitionFromEntity($id_key);
 
     if ($this->isTranslationDestination()) {
-      if ($key = $this->getKey('langcode')) {
-        $ids[$key]['type'] = 'string';
-      }
-      else {
+      if (!$langcode_key = $this->getKey('langcode')) {
         throw new MigrateException('This entity type does not support translation.');
       }
+      $ids[$langcode_key] = $this->getDefinitionFromEntity($langcode_key);
     }
 
     return $ids;
@@ -151,6 +149,7 @@ class EntityContentBase extends Entity {
    *   An updated entity, or NULL if it's the same as the one passed in.
    */
   protected function updateEntity(EntityInterface $entity, Row $row) {
+    $empty_destinations = $row->getEmptyDestinationProperties();
     // By default, an update will be preserved.
     $rollback_action = MigrateIdMapInterface::ROLLBACK_PRESERVE;
 
@@ -173,6 +172,7 @@ class EntityContentBase extends Entity {
     // clone the row with an empty set of destination values, and re-add only
     // the specified properties.
     if (isset($this->configuration['overwrite_properties'])) {
+      $empty_destinations = array_intersect($empty_destinations, $this->configuration['overwrite_properties']);
       $clone = $row->cloneWithoutDestination();
       foreach ($this->configuration['overwrite_properties'] as $property) {
         $clone->setDestinationProperty($property, $row->getDestinationProperty($property));
@@ -185,6 +185,9 @@ class EntityContentBase extends Entity {
       if ($field instanceof TypedDataInterface) {
         $field->setValue($values);
       }
+    }
+    foreach ($empty_destinations as $field_name) {
+      $entity->$field_name = NULL;
     }
 
     $this->setRollbackAction($row->getIdMap(), $rollback_action);
@@ -261,6 +264,34 @@ class EntityContentBase extends Entity {
     else {
       parent::rollback($destination_identifier);
     }
+  }
+
+  /**
+   * Gets the field definition from a specific entity base field.
+   *
+   * The method takes the field ID as an argument and returns the field storage
+   * definition to be used in getIds() by querying the destination entity base
+   * field definition.
+   *
+   * @param string $key
+   *   The field ID key.
+   *
+   * @return array
+   *   An associative array with a structure that contains the field type, keyed
+   *   as 'type', together with field storage settings as they are returned by
+   *   FieldStorageDefinitionInterface::getSettings().
+   *
+   * @see \Drupal\Core\Field\FieldStorageDefinitionInterface::getSettings()
+   */
+  protected function getDefinitionFromEntity($key) {
+    $entity_type_id = static::getEntityTypeId($this->getPluginId());
+    /** @var \Drupal\Core\Field\FieldStorageDefinitionInterface[] $definitions */
+    $definitions = $this->entityManager->getBaseFieldDefinitions($entity_type_id);
+    $field_definition = $definitions[$key];
+
+    return [
+      'type' => $field_definition->getType(),
+    ] + $field_definition->getSettings();
   }
 
 }

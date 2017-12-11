@@ -7,14 +7,14 @@
 
 namespace Drupal\Tests\Component\Assertion;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use Drupal\Component\Assertion\Inspector;
 
 /**
  * @coversDefaultClass \Drupal\Component\Assertion\Inspector
  * @group Assertion
  */
-class InspectorTest extends PHPUnit_Framework_TestCase {
+class InspectorTest extends TestCase {
 
   /**
    * Tests asserting argument is an array or traversable object.
@@ -157,7 +157,7 @@ class InspectorTest extends PHPUnit_Framework_TestCase {
       'strchr',
       [$this, 'callMe'],
       [__CLASS__, 'callMeStatic'],
-      function() {
+      function () {
         return TRUE;
       }
     ]));
@@ -166,7 +166,7 @@ class InspectorTest extends PHPUnit_Framework_TestCase {
       'strchr',
       [$this, 'callMe'],
       [__CLASS__, 'callMeStatic'],
-      function() {
+      function () {
         return TRUE;
       },
       "I'm not callable"

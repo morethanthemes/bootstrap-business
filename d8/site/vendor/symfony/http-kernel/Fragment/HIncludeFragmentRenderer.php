@@ -107,11 +107,7 @@ class HIncludeFragmentRenderer extends RoutableFragmentRenderer
         }
         $renderedAttributes = '';
         if (count($attributes) > 0) {
-            if (PHP_VERSION_ID >= 50400) {
-                $flags = ENT_QUOTES | ENT_SUBSTITUTE;
-            } else {
-                $flags = ENT_QUOTES;
-            }
+            $flags = ENT_QUOTES | ENT_SUBSTITUTE;
             foreach ($attributes as $attribute => $value) {
                 $renderedAttributes .= sprintf(
                     ' %s="%s"',
@@ -140,12 +136,16 @@ class HIncludeFragmentRenderer extends RoutableFragmentRenderer
         }
 
         $loader = $this->templating->getLoader();
-        if ($loader instanceof \Twig_ExistsLoaderInterface) {
+        if ($loader instanceof \Twig_ExistsLoaderInterface || method_exists($loader, 'exists')) {
             return $loader->exists($template);
         }
 
         try {
-            $loader->getSource($template);
+            if (method_exists($loader, 'getSourceContext')) {
+                $loader->getSourceContext($template);
+            } else {
+                $loader->getSource($template);
+            }
 
             return true;
         } catch (\Twig_Error_Loader $e) {

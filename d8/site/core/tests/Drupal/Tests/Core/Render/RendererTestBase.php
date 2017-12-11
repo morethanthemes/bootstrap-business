@@ -147,7 +147,7 @@ abstract class RendererTestBase extends UnitTestCase {
     $current_user_role = &$this->currentUserRole;
     $this->cacheContextsManager->expects($this->any())
       ->method('convertTokensToKeys')
-      ->willReturnCallback(function($context_tokens) use (&$current_user_role) {
+      ->willReturnCallback(function ($context_tokens) use (&$current_user_role) {
         $keys = [];
         foreach ($context_tokens as $context_id) {
           switch ($context_id) {
@@ -208,7 +208,7 @@ abstract class RendererTestBase extends UnitTestCase {
    * Sets up a memory-based render cache back-end.
    */
   protected function setupMemoryCache() {
-    $this->memoryCache = $this->memoryCache ?: new MemoryBackend('render');
+    $this->memoryCache = $this->memoryCache ?: new MemoryBackend();
 
     $this->cacheFactory->expects($this->atLeastOnce())
       ->method('get')

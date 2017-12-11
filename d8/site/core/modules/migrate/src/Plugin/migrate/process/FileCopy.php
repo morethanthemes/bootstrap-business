@@ -8,12 +8,41 @@ use Drupal\Core\StreamWrapper\LocalStream;
 use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 use Drupal\migrate\MigrateException;
 use Drupal\migrate\MigrateExecutableInterface;
+use Drupal\migrate\Plugin\MigrateProcessInterface;
 use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\Row;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Copy a file from one place into another.
+ * Copies or moves a local file from one place into another.
+ *
+ * The file can be moved, reused, or set to be automatically renamed if a
+ * duplicate exists.
+ *
+ * The source value is an indexed array of two values:
+ * - The source path or URI, e.g. '/path/to/foo.txt' or 'public://bar.txt'.
+ * - The destination URI, e.g. 'public://foo.txt'.
+ *
+ * Available configuration keys:
+ * - move: (optional) Boolean, if TRUE, move the file, otherwise copy the file.
+ *   Defaults to FALSE.
+ * - rename: (optional) Boolean, if TRUE, rename the file by appending a number
+ *   until the name is unique. Defaults to FALSE.
+ * - reuse: (optional) Boolean, if TRUE, reuse the current file in its existing
+ *   location rather than move/copy/rename the file. Defaults to FALSE.
+ *
+ * Examples:
+ *
+ * @code
+ * process:
+ *   path_to_file:
+ *     plugin: file_copy
+ *     source:
+ *       - /path/to/file.png
+ *       - public://new/path/to/file.png
+ * @endcode
+ *
+ * @see \Drupal\migrate\Plugin\MigrateProcessInterface
  *
  * @MigrateProcessPlugin(
  *   id = "file_copy"
@@ -36,6 +65,13 @@ class FileCopy extends ProcessPluginBase implements ContainerFactoryPluginInterf
   protected $fileSystem;
 
   /**
+   * An instance of the download process plugin.
+   *
+   * @var \Drupal\migrate\Plugin\MigrateProcessInterface
+   */
+  protected $downloadPlugin;
+
+  /**
    * Constructs a file_copy process plugin.
    *
    * @param array $configuration
@@ -48,16 +84,19 @@ class FileCopy extends ProcessPluginBase implements ContainerFactoryPluginInterf
    *   The stream wrapper manager service.
    * @param \Drupal\Core\File\FileSystemInterface $file_system
    *   The file system service.
+   * @param \Drupal\migrate\Plugin\MigrateProcessInterface $download_plugin
+   *   An instance of the download plugin for handling remote URIs.
    */
-  public function __construct(array $configuration, $plugin_id, array $plugin_definition, StreamWrapperManagerInterface $stream_wrappers, FileSystemInterface $file_system) {
-    $configuration += array(
+  public function __construct(array $configuration, $plugin_id, array $plugin_definition, StreamWrapperManagerInterface $stream_wrappers, FileSystemInterface $file_system, MigrateProcessInterface $download_plugin) {
+    $configuration += [
       'move' => FALSE,
       'rename' => FALSE,
       'reuse' => FALSE,
-    );
+    ];
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->streamWrapperManager = $stream_wrappers;
     $this->fileSystem = $file_system;
+    $this->downloadPlugin = $download_plugin;
   }
 
   /**
@@ -69,7 +108,8 @@ class FileCopy extends ProcessPluginBase implements ContainerFactoryPluginInterf
       $plugin_id,
       $plugin_definition,
       $container->get('stream_wrapper_manager'),
-      $container->get('file_system')
+      $container->get('file_system'),
+      $container->get('plugin.manager.migrate.process')->createInstance('download')
     );
   }
 
@@ -84,8 +124,14 @@ class FileCopy extends ProcessPluginBase implements ContainerFactoryPluginInterf
     }
     list($source, $destination) = $value;
 
+    // If the source path or URI represents a remote resource, delegate to the
+    // download plugin.
+    if (!$this->isLocalUri($source)) {
+      return $this->downloadPlugin->transform($value, $migrate_executable, $row, $destination_property);
+    }
+
     // Ensure the source file exists, if it's a local URI or path.
-    if ($this->isLocalUri($source) && !file_exists($source)) {
+    if (!file_exists($source)) {
       throw new MigrateException("File '$source' does not exist");
     }
 
@@ -94,20 +140,17 @@ class FileCopy extends ProcessPluginBase implements ContainerFactoryPluginInterf
       return $destination;
     }
 
-    $replace = $this->getOverwriteMode();
-    // We attempt the copy/move first to avoid calling file_prepare_directory()
-    // any more than absolutely necessary.
-    $final_destination = $this->writeFile($source, $destination, $replace);
-    if ($final_destination) {
-      return $final_destination;
-    }
-    // If writeFile didn't work, make sure there's a writable directory in
-    // place.
+    // Check if a writable directory exists, and if not try to create it.
     $dir = $this->getDirectory($destination);
-    if (!file_prepare_directory($dir, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS)) {
-      throw new MigrateException("Could not create or write to directory '$dir'");
+    // If the directory exists and is writable, avoid file_prepare_directory()
+    // call and write the file to destination.
+    if (!is_dir($dir) || !is_writable($dir)) {
+      if (!file_prepare_directory($dir, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS)) {
+        throw new MigrateException("Could not create or write to directory '$dir'");
+      }
     }
-    $final_destination = $this->writeFile($source, $destination, $replace);
+
+    $final_destination = $this->writeFile($source, $destination, $this->getOverwriteMode());
     if ($final_destination) {
       return $final_destination;
     }
@@ -128,20 +171,14 @@ class FileCopy extends ProcessPluginBase implements ContainerFactoryPluginInterf
    *   File destination on success, FALSE on failure.
    */
   protected function writeFile($source, $destination, $replace = FILE_EXISTS_REPLACE) {
-    if ($this->configuration['move']) {
-      return file_unmanaged_move($source, $destination, $replace);
-    }
     // Check if there is a destination available for copying. If there isn't,
     // it already exists at the destination and the replace flag tells us to not
     // replace it. In that case, return the original destination.
     if (!($final_destination = file_destination($destination, $replace))) {
       return $destination;
     }
-    // We can't use file_unmanaged_copy because it will break with remote Urls.
-    if (@copy($source, $final_destination)) {
-      return $final_destination;
-    }
-    return FALSE;
+    $function = 'file_unmanaged_' . ($this->configuration['move'] ? 'move' : 'copy');
+    return $function($source, $destination, $replace);
   }
 
   /**
@@ -187,8 +224,6 @@ class FileCopy extends ProcessPluginBase implements ContainerFactoryPluginInterf
   /**
    * Determines if the source and destination URIs represent identical paths.
    *
-   * If either URI is a remote stream, will return FALSE.
-   *
    * @param string $source
    *   The source URI.
    * @param string $destination
@@ -199,10 +234,7 @@ class FileCopy extends ProcessPluginBase implements ContainerFactoryPluginInterf
    *   otherwise FALSE.
    */
   protected function isLocationUnchanged($source, $destination) {
-    if ($this->isLocalUri($source) && $this->isLocalUri($destination)) {
-      return $this->fileSystem->realpath($source) === $this->fileSystem->realpath($destination);
-    }
-    return FALSE;
+    return $this->fileSystem->realpath($source) === $this->fileSystem->realpath($destination);
   }
 
   /**
@@ -219,6 +251,13 @@ class FileCopy extends ProcessPluginBase implements ContainerFactoryPluginInterf
    */
   protected function isLocalUri($uri) {
     $scheme = $this->fileSystem->uriScheme($uri);
+
+    // The vfs scheme is vfsStream, which is used in testing. vfsStream is a
+    // simulated file system that exists only in memory, but should be treated
+    // as a local resource.
+    if ($scheme == 'vfs') {
+      $scheme = FALSE;
+    }
     return $scheme === FALSE || $this->streamWrapperManager->getViaScheme($scheme) instanceof LocalStream;
   }
 

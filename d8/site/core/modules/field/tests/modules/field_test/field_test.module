@@ -66,7 +66,7 @@ function field_test_memorize($key = NULL, $value = NULL) {
 
   if (!isset($key)) {
     $return = $memorize;
-    $memorize = array();
+    $memorize = [];
     return $return;
   }
   if (is_array($memorize)) {
@@ -88,11 +88,11 @@ function field_test_field_storage_config_create(FieldStorageConfigInterface $fie
 function field_test_entity_display_build_alter(&$output, $context) {
   $display_options = $context['display']->getComponent('test_field');
   if (isset($display_options['settings']['alter'])) {
-    $output['test_field'][] = array('#markup' => 'field_test_entity_display_build_alter');
+    $output['test_field'][] = ['#markup' => 'field_test_entity_display_build_alter'];
   }
 
   if (isset($output['test_field'])) {
-    $output['test_field'][] = array('#markup' => 'entity language is ' . $context['entity']->language()->getId());
+    $output['test_field'][] = ['#markup' => 'entity language is ' . $context['entity']->language()->getId()];
   }
 }
 
@@ -151,15 +151,18 @@ function field_test_entity_extra_field_info_alter(&$info) {
  * Implements hook_entity_bundle_field_info_alter().
  */
 function field_test_entity_bundle_field_info_alter(&$fields, EntityTypeInterface $entity_type, $bundle) {
-  if (($field_name = \Drupal::state()->get('field_test_set_constraint', FALSE)) && $entity_type->id() == 'entity_test' && $bundle == 'entity_test' && !empty($fields[$field_name])) {
+  if (($field_name = \Drupal::state()->get('field_test_constraint', FALSE)) && $entity_type->id() == 'entity_test' && $bundle == 'entity_test' && !empty($fields[$field_name])) {
+    // Set a property constraint using
+    // \Drupal\Core\Field\FieldConfigInterface::setPropertyConstraints().
     $fields[$field_name]->setPropertyConstraints('value', [
-      'Range' => [
-        'min' => 0,
-        'max' => 32,
+      'TestField' => [
+        'value' => -2,
+        'message' => t('%name does not accept the value @value.', ['%name' => $field_name, '@value' => -2]),
       ],
     ]);
-  }
-  if (($field_name = \Drupal::state()->get('field_test_add_constraint', FALSE)) && $entity_type->id() == 'entity_test' && $bundle == 'entity_test' && !empty($fields[$field_name])) {
+
+    // Add a property constraint using
+    // \Drupal\Core\Field\FieldConfigInterface::addPropertyConstraints().
     $fields[$field_name]->addPropertyConstraints('value', [
       'Range' => [
         'min' => 0,

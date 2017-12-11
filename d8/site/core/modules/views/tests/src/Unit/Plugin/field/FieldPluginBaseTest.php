@@ -227,11 +227,17 @@ class FieldPluginBaseTest extends UnitTestCase {
   }
 
   /**
-   * Test rendering as a link without a path.
+   * Test rendering with a more link.
    *
+   * @param string $path
+   *   An internal or external path.
+   * @param string $url
+   *   The final url used by the more link.
+   *
+   * @dataProvider providerTestRenderTrimmedWithMoreLinkAndPath
    * @covers ::renderText
    */
-  public function testRenderTrimmedWithMoreLink() {
+  public function testRenderTrimmedWithMoreLinkAndPath($path, $url) {
     $alter = [
       'trim' => TRUE,
       'max_length' => 7,
@@ -239,6 +245,7 @@ class FieldPluginBaseTest extends UnitTestCase {
       // Don't invoke translation.
       'ellipsis' => FALSE,
       'more_link_text' => 'more link',
+      'more_link_path' => $path,
     ];
 
     $this->display->expects($this->any())
@@ -253,9 +260,36 @@ class FieldPluginBaseTest extends UnitTestCase {
     $field->field_alias = 'key';
     $row = new ResultRow(['key' => 'a long value']);
 
-    $expected_result = 'a long <a href="/%3Cfront%3E" class="views-more-link">more link</a>';
+    $expected_result = 'a long <a href="' . $url . '" class="views-more-link">more link</a>';
     $result = $field->advancedRender($row);
     $this->assertEquals($expected_result, $result);
+  }
+
+  /**
+   * Data provider for ::testRenderTrimmedWithMoreLinkAndPath().
+   *
+   * @return array
+   *   Test data.
+   */
+  public function providerTestRenderTrimmedWithMoreLinkAndPath() {
+    $data = [];
+    // Simple path with default options.
+    $data[] = ['test-path', '/test-path'];
+    // Add a fragment.
+    $data[] = ['test-path#test', '/test-path#test'];
+    // Query specified as part of the path.
+    $data[] = ['test-path?foo=bar', '/test-path?foo=bar'];
+    // Empty path.
+    $data[] = ['', '/%3Cfront%3E'];
+    // Front page path.
+    $data[] = ['<front>', '/%3Cfront%3E'];
+
+    // External URL.
+    $data[] = ['https://www.drupal.org', 'https://www.drupal.org'];
+    $data[] = ['http://www.drupal.org', 'http://www.drupal.org'];
+    $data[] = ['www.drupal.org', '/www.drupal.org'];
+
+    return $data;
   }
 
   /**
@@ -514,7 +548,7 @@ class FieldPluginBaseTest extends UnitTestCase {
       '#type' => 'inline_template',
       '#template' => 'test-path/' . explode('/', $path)[1],
       '#context' => ['foo' => 123],
-      '#post_render' => [function() {}],
+      '#post_render' => [function () {}],
     ];
 
     $this->renderer->expects($this->once())
@@ -578,7 +612,7 @@ class FieldPluginBaseTest extends UnitTestCase {
       '#type' => 'inline_template',
       '#template' => $path,
       '#context' => ['foo' => $context['context_path']],
-      '#post_render' => [function() {}],
+      '#post_render' => [function () {}],
     ];
 
     $this->renderer->expects($this->once())
@@ -681,6 +715,50 @@ class FieldPluginBaseTest extends UnitTestCase {
       '{{ raw_arguments.name }}' => 'argument value',
     ];
     $this->assertEquals($expected, $field->getRenderTokens([]));
+  }
+
+  /**
+   * Ensures proper token replacement when generating CSS classes.
+   *
+   * @covers ::elementClasses
+   * @covers ::elementLabelClasses
+   * @covers ::elementWrapperClasses
+   */
+  public function testElementClassesWithTokens() {
+    $functions = [
+      'elementClasses' => 'element_class',
+      'elementLabelClasses' => 'element_label_class',
+      'elementWrapperClasses' => 'element_wrapper_class',
+    ];
+
+    $tokens = ['test_token' => 'foo'];
+    $test_class = 'test-class-without-token test-class-with-{{ test_token }}-token';
+    $expected_result = 'test-class-without-token test-class-with-foo-token';
+
+    // Inline template to render the tokens.
+    $build = [
+      '#type' => 'inline_template',
+      '#template' => $test_class,
+      '#context' => $tokens,
+      '#post_render' => [function () {}],
+    ];
+
+    // We're not testing the token rendering itself, just that the function
+    // being tested correctly handles tokens when generating the element's class
+    // attribute.
+    $this->renderer->expects($this->any())
+      ->method('renderPlain')
+      ->with($build)
+      ->willReturn($expected_result);
+
+    foreach ($functions as $callable => $option_name) {
+      $field = $this->setupTestField([$option_name => $test_class]);
+      $field->view->style_plugin = new \stdClass();
+      $field->view->style_plugin->render_tokens[] = $tokens;
+
+      $result = $field->{$callable}(0);
+      $this->assertEquals($expected_result, $result);
+    }
   }
 
 }

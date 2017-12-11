@@ -29,7 +29,7 @@ class Nid extends NumericArgument {
    *   The plugin_id for the plugin instance.
    * @param mixed $plugin_definition
    *   The plugin implementation definition.
-   * @param NodeStorageInterface $node_storage
+   * @param \Drupal\node\NodeStorageInterface $node_storage
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition, NodeStorageInterface $node_storage) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
@@ -52,7 +52,7 @@ class Nid extends NumericArgument {
    * Override the behavior of title(). Get the title of the node.
    */
   public function titleQuery() {
-    $titles = array();
+    $titles = [];
 
     $nodes = $this->nodeStorage->loadMultiple($this->value);
     foreach ($nodes as $node) {

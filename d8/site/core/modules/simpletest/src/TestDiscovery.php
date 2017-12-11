@@ -81,7 +81,7 @@ class TestDiscovery {
   }
 
   /**
-   * Registers test namespaces of all available extensions.
+   * Registers test namespaces of all extensions and core test classes.
    *
    * @return array
    *   An associative array whose keys are PSR-4 namespace prefixes and whose
@@ -91,7 +91,7 @@ class TestDiscovery {
     if (isset($this->testNamespaces)) {
       return $this->testNamespaces;
     }
-    $this->testNamespaces = array();
+    $this->testNamespaces = [];
 
     $existing = $this->classLoader->getPrefixesPsr4();
 
@@ -101,7 +101,7 @@ class TestDiscovery {
     $this->testNamespaces['Drupal\\FunctionalTests\\'] = [$this->root . '/core/tests/Drupal/FunctionalTests'];
     $this->testNamespaces['Drupal\\FunctionalJavascriptTests\\'] = [$this->root . '/core/tests/Drupal/FunctionalJavascriptTests'];
 
-    $this->availableExtensions = array();
+    $this->availableExtensions = [];
     foreach ($this->getExtensions() as $name => $extension) {
       $this->availableExtensions[$extension->getType()][$name] = $name;
 
@@ -119,6 +119,10 @@ class TestDiscovery {
       $this->testNamespaces["Drupal\\Tests\\$name\\Kernel\\"][] = "$base_path/tests/src/Kernel";
       $this->testNamespaces["Drupal\\Tests\\$name\\Functional\\"][] = "$base_path/tests/src/Functional";
       $this->testNamespaces["Drupal\\Tests\\$name\\FunctionalJavascript\\"][] = "$base_path/tests/src/FunctionalJavascript";
+
+      // Add discovery for traits which are shared between different test
+      // suites.
+      $this->testNamespaces["Drupal\\Tests\\$name\\Traits\\"][] = "$base_path/tests/src/Traits";
     }
 
     foreach ($this->testNamespaces as $prefix => $paths) {
@@ -140,8 +144,8 @@ class TestDiscovery {
    *   An array of tests keyed by the the group name.
    * @code
    *     $groups['block'] => array(
-   *       'Drupal\block\Tests\BlockTest' => array(
-   *         'name' => 'Drupal\block\Tests\BlockTest',
+   *       'Drupal\Tests\block\Functional\BlockTest' => array(
+   *         'name' => 'Drupal\Tests\block\Functional\BlockTest',
    *         'description' => 'Tests block UI CRUD functionality.',
    *         'group' => 'block',
    *       ),
@@ -160,7 +164,7 @@ class TestDiscovery {
         return $cache->data;
       }
     }
-    $list = array();
+    $list = [];
 
     $classmap = $this->findAllClassFiles($extension);
 
@@ -185,14 +189,17 @@ class TestDiscovery {
         // abstract class, trait or test fixture.
         continue;
       }
-      // Skip this test class if it requires unavailable modules.
-      // @todo PHPUnit skips tests with unmet requirements when executing a test
-      //   (instead of excluding them upfront). Refactor test runner to follow
-      //   that approach.
+      // Skip this test class if it is a Simpletest-based test and requires
+      // unavailable modules. TestDiscovery should not filter out module
+      // requirements for PHPUnit-based test classes.
+      // @todo Move this behavior to \Drupal\simpletest\TestBase so tests can be
+      //       marked as skipped, instead.
       // @see https://www.drupal.org/node/1273478
-      if (!empty($info['requires']['module'])) {
-        if (array_diff($info['requires']['module'], $this->availableExtensions['module'])) {
-          continue;
+      if ($info['type'] == 'Simpletest') {
+        if (!empty($info['requires']['module'])) {
+          if (array_diff($info['requires']['module'], $this->availableExtensions['module'])) {
+            continue;
+          }
         }
       }
 
@@ -234,7 +241,7 @@ class TestDiscovery {
    *   fully-qualified classnames to pathnames.
    */
   public function findAllClassFiles($extension = NULL) {
-    $classmap = array();
+    $classmap = [];
     $namespaces = $this->registerTestNamespaces();
     if (isset($extension)) {
       // Include tests in the \Drupal\Tests\{$extension} namespace.
@@ -290,7 +297,7 @@ class TestDiscovery {
       return $current->isFile() && $current->getExtension() === 'php';
     });
     $files = new \RecursiveIteratorIterator($filter);
-    $classes = array();
+    $classes = [];
     foreach ($files as $fileinfo) {
       $class = $namespace_prefix;
       if ('' !== $subpath = $fileinfo->getSubPath()) {
@@ -305,7 +312,7 @@ class TestDiscovery {
   /**
    * Retrieves information about a test class for UI purposes.
    *
-   * @param string $class
+   * @param string $classname
    *   The test classname.
    * @param string $doc_comment
    *   (optional) The class PHPDoc comment. If not passed in reflection will be
@@ -328,10 +335,10 @@ class TestDiscovery {
       $reflection = new \ReflectionClass($classname);
       $doc_comment = $reflection->getDocComment();
     }
-    $info = array(
+    $info = [
       'name' => $classname,
-    );
-    $annotations = array();
+    ];
+    $annotations = [];
     // Look for annotations, allow an arbitrary amount of spaces before the
     // * but nothing else.
     preg_match_all('/^[ ]*\* \@([^\s]*) (.*$)/m', $doc_comment, $matches);
@@ -375,7 +382,7 @@ class TestDiscovery {
   /**
    * Parses the phpDoc summary line of a test class.
    *
-   * @param string $doc_comment.
+   * @param string $doc_comment
    *
    * @return string
    *   The parsed phpDoc summary line. An empty string is returned if no summary
@@ -475,7 +482,7 @@ class TestDiscovery {
   protected function getExtensions() {
     $listing = new ExtensionDiscovery($this->root);
     // Ensure that tests in all profiles are discovered.
-    $listing->setProfileDirectories(array());
+    $listing->setProfileDirectories([]);
     $extensions = $listing->scan('module', TRUE);
     $extensions += $listing->scan('profile', TRUE);
     $extensions += $listing->scan('theme', TRUE);

@@ -24,7 +24,7 @@ class FilterIdTest extends KernelTestBase {
   /**
    * The mocked MigrateExecutable.
    *
-   * @var MigrateExecutableInterface|\PHPUnit_Framework_MockObject_MockObject
+   * @var \Drupal\migrate\MigrateExecutableInterface|\PHPUnit_Framework_MockObject_MockObject
    */
   protected $executable;
 
@@ -71,7 +71,7 @@ class FilterIdTest extends KernelTestBase {
         );
     }
 
-    $row = new Row([], []);
+    $row = new Row();
     $output_value = $plugin->transform($value, $this->executable, $row, 'foo');
 
     $this->assertSame($expected_value, $output_value);

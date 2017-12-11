@@ -11,6 +11,7 @@ use Drupal\Core\Render\Element;
  * Properties:
  * - #default_value: An array with the keys: 'year', 'month', and 'day'.
  *   Defaults to the current date if no value is supplied.
+ * - #size: The size of the input element in characters.
  *
  * @code
  * $form['expiration'] = array(
@@ -32,7 +33,10 @@ class Date extends FormElement {
     return [
       '#input' => TRUE,
       '#theme' => 'input__date',
-      '#process' => [[$class, 'processDate']],
+      '#process' => [
+        [$class, 'processAjaxForm'],
+        [$class, 'processDate'],
+      ],
       '#pre_render' => [[$class, 'preRenderDate']],
       '#theme_wrappers' => ['form_element'],
       '#attributes' => ['type' => 'date'],
@@ -87,8 +91,8 @@ class Date extends FormElement {
     if (empty($element['#attributes']['type'])) {
       $element['#attributes']['type'] = 'date';
     }
-    Element::setAttributes($element, array('id', 'name', 'type', 'min', 'max', 'step', 'value', 'size'));
-    static::setAttributes($element, array('form-' . $element['#attributes']['type']));
+    Element::setAttributes($element, ['id', 'name', 'type', 'min', 'max', 'step', 'value', 'size']);
+    static::setAttributes($element, ['form-' . $element['#attributes']['type']]);
 
     return $element;
   }

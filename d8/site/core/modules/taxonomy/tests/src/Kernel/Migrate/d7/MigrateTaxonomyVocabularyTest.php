@@ -16,7 +16,7 @@ class MigrateTaxonomyVocabularyTest extends MigrateDrupal7TestBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = array('taxonomy');
+  public static $modules = ['taxonomy'];
 
   /**
    * {@inheritdoc}
@@ -54,9 +54,10 @@ class MigrateTaxonomyVocabularyTest extends MigrateDrupal7TestBase {
    * Tests the Drupal 7 taxonomy vocabularies to Drupal 8 migration.
    */
   public function testTaxonomyVocabulary() {
-    $this->assertEntity('tags', 'Tags', 'Use tags to group articles on similar topics into categories.', TAXONOMY_HIERARCHY_DISABLED, 0);
-    $this->assertEntity('forums', 'Forums', 'Forum navigation vocabulary', TAXONOMY_HIERARCHY_SINGLE, -10);
-    $this->assertEntity('test_vocabulary', 'Test Vocabulary', 'This is the vocabulary description', TAXONOMY_HIERARCHY_SINGLE, 0);
+    $this->assertEntity('tags', 'Tags', 'Use tags to group articles on similar topics into categories.', VocabularyInterface::HIERARCHY_DISABLED, 0);
+    $this->assertEntity('forums', 'Sujet de discussion', 'Forum navigation vocabulary', VocabularyInterface::HIERARCHY_SINGLE, -10);
+    $this->assertEntity('test_vocabulary', 'Test Vocabulary', 'This is the vocabulary description', VocabularyInterface::HIERARCHY_SINGLE, 0);
+    $this->assertEntity('vocabulary_name_much_longer_than', 'vocabulary name clearly different than machine name and much longer than thirty two characters', 'description of vocabulary name much longer than thirty two characters', VocabularyInterface::HIERARCHY_SINGLE, 0);
   }
 
 }

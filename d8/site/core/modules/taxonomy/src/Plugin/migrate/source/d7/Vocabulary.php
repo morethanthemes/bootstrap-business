@@ -2,6 +2,7 @@
 
 namespace Drupal\taxonomy\Plugin\migrate\source\d7;
 
+use Drupal\migrate\Row;
 use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
 
 /**
@@ -9,7 +10,7 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
  *
  * @MigrateSource(
  *   id = "d7_taxonomy_vocabulary",
- *   source_provider = "taxonomy"
+ *   source_module = "taxonomy"
  * )
  */
 class Vocabulary extends DrupalSqlBase {
@@ -19,7 +20,7 @@ class Vocabulary extends DrupalSqlBase {
    */
   public function query() {
     $query = $this->select('taxonomy_vocabulary', 'v')
-      ->fields('v', array(
+      ->fields('v', [
         'vid',
         'name',
         'description',
@@ -27,7 +28,7 @@ class Vocabulary extends DrupalSqlBase {
         'module',
         'weight',
         'machine_name',
-      ));
+      ]);
     return $query;
   }
 
@@ -35,7 +36,7 @@ class Vocabulary extends DrupalSqlBase {
    * {@inheritdoc}
    */
   public function fields() {
-    return array(
+    return [
       'vid' => $this->t('The vocabulary ID.'),
       'name' => $this->t('The name of the vocabulary.'),
       'description' => $this->t('The description of the vocabulary.'),
@@ -43,7 +44,21 @@ class Vocabulary extends DrupalSqlBase {
       'module' => $this->t('Module responsible for the vocabulary.'),
       'weight' => $this->t('The weight of the vocabulary in relation to other vocabularies.'),
       'machine_name' => $this->t('Unique machine name of the vocabulary.')
-    );
+    ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function prepareRow(Row $row) {
+    // If the vocabulary being migrated is the one defined in the
+    // 'forum_nav_vocabulary' variable, set the 'forum_vocabulary' source
+    // property to true so we know this is the vocabulary used by Forum.
+    if ($this->variableGet('forum_nav_vocabulary', 0) == $row->getSourceProperty('vid')) {
+      $row->setSourceProperty('forum_vocabulary', TRUE);
+    }
+
+    return parent::prepareRow($row);
   }
 
   /**

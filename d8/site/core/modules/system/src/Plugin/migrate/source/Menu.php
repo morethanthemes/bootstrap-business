@@ -9,7 +9,7 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
  *
  * @MigrateSource(
  *   id = "menu",
- *   source_provider = "menu"
+ *   source_module = "menu"
  * )
  */
 class Menu extends DrupalSqlBase {
@@ -25,11 +25,11 @@ class Menu extends DrupalSqlBase {
    * {@inheritdoc}
    */
   public function fields() {
-    return array(
+    return [
       'menu_name' => $this->t('The menu name. Primary key.'),
       'title' => $this->t('The human-readable name of the menu.'),
       'description' => $this->t('A description of the menu'),
-    );
+    ];
   }
 
   /**

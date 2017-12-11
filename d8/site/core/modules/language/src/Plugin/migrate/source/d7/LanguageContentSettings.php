@@ -10,6 +10,7 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
  *
  * @MigrateSource(
  *   id = "d7_language_content_settings",
+ *   source_module = "locale"
  * )
  */
 class LanguageContentSettings extends DrupalSqlBase {
@@ -19,20 +20,20 @@ class LanguageContentSettings extends DrupalSqlBase {
    */
   public function query() {
     return $this->select('node_type', 't')
-      ->fields('t', array(
+      ->fields('t', [
         'type',
-      ));
+      ]);
   }
 
   /**
    * {@inheritdoc}
    */
   public function fields() {
-    $fields = array(
+    $fields = [
       'type' => $this->t('Type'),
       'language_content_type' => $this->t('Multilingual support.'),
       'i18n_lock_node' => $this->t('Lock language.'),
-    );
+    ];
     return $fields;
   }
 

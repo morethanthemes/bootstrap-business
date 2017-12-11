@@ -61,7 +61,7 @@ class PhpMail implements MailInterface {
         unset($message['headers']['Return-Path']);
       }
     }
-    $mimeheaders = array();
+    $mimeheaders = [];
     foreach ($message['headers'] as $name => $value) {
       $mimeheaders[] = $name . ': ' . Unicode::mimeHeaderEncode($value);
     }
@@ -75,7 +75,7 @@ class PhpMail implements MailInterface {
     $mail_body = preg_replace('@\r?\n@', $line_endings, $message['body']);
     // For headers, PHP's API suggests that we use CRLF normally,
     // but some MTAs incorrectly replace LF with CRLF. See #234403.
-    $mail_headers = join("\n", $mimeheaders);
+    $mail_headers = implode("\n", $mimeheaders);
 
     $request = \Drupal::request();
 

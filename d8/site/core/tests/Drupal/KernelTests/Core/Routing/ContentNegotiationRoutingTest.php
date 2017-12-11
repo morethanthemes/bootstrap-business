@@ -36,7 +36,7 @@ class ContentNegotiationRoutingTest extends KernelTestBase {
   /**
    * Tests the content negotiation aspect of routing.
    */
-  function testContentRouting() {
+  public function testContentRouting() {
     /** @var \Drupal\Core\Path\AliasStorageInterface $path_alias_storage */
     $path_alias_storage = $this->container->get('path.alias_storage');
     // Alias with extension pointing to no extension/constant content-type.
@@ -111,8 +111,10 @@ class ContentNegotiationRoutingTest extends KernelTestBase {
     $tests = [
       // ['path', 'accept', 'content-type'],
 
-      ['conneg/negotiate', '', 'text/html'], // 406?
-      ['conneg/negotiate', '', 'text/html'], // 406?
+      // 406?
+      ['conneg/negotiate', '', 'text/html'],
+      // 406?
+      ['conneg/negotiate', '', 'text/html'],
       // ['conneg/negotiate', '*/*', '??'],
       ['conneg/negotiate', 'application/json', 'application/json'],
       ['conneg/negotiate', 'application/xml', 'application/xml'],

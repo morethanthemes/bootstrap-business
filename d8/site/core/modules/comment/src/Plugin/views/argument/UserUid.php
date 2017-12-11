@@ -3,6 +3,7 @@
 namespace Drupal\comment\Plugin\views\argument;
 
 use Drupal\Core\Database\Connection;
+use Drupal\Core\Database\Query\Condition;
 use Drupal\views\Plugin\views\argument\ArgumentPluginBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -48,12 +49,12 @@ class UserUid extends ArgumentPluginBase {
     return new static($configuration, $plugin_id, $plugin_definition, $container->get('database'));
   }
 
-  function title() {
+  public function title() {
     if (!$this->argument) {
       $title = \Drupal::config('user.settings')->get('anonymous');
     }
     else {
-      $title = $this->database->query('SELECT name FROM {users_field_data} WHERE uid = :uid AND default_langcode = 1', array(':uid' => $this->argument))->fetchField();
+      $title = $this->database->query('SELECT name FROM {users_field_data} WHERE uid = :uid AND default_langcode = 1', [':uid' => $this->argument])->fetchField();
     }
     if (empty($title)) {
       return $this->t('No user');
@@ -90,7 +91,7 @@ class UserUid extends ArgumentPluginBase {
       $subselect->where("c.entity_id = $this->tableAlias.$entity_id");
       $subselect->condition('c.entity_type', $entity_type);
 
-      $condition = db_or()
+      $condition = (new Condition('OR'))
         ->condition("$this->tableAlias.uid", $this->argument, '=')
         ->exists($subselect);
 
@@ -102,7 +103,7 @@ class UserUid extends ArgumentPluginBase {
    * {@inheritdoc}
    */
   public function getSortName() {
-    return $this->t('Numerical', array(), array('context' => 'Sort order'));
+    return $this->t('Numerical', [], ['context' => 'Sort order']);
   }
 
 }

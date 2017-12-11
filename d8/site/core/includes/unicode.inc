@@ -10,25 +10,34 @@ use Drupal\Component\Utility\Unicode;
 /**
  * Returns Unicode library status and errors.
  */
+/**
+ * Moves unicode_requirements() logic to system_requirements().
+ *
+ * @deprecated in Drupal 8.4.0 and will be removed before Drupal 9.0.0.
+ *
+ * @see https://www.drupal.org/node/2884698
+ */
 function unicode_requirements() {
-  $libraries = array(
+  @trigger_error('unicode_requirements() is deprecated in Drupal 8.4.0 and will be removed before Drupal 9.0.0. There is no replacement; system_requirements() now includes the logic instead. See https://www.drupal.org/node/2884698', E_USER_DEPRECATED);
+
+  $libraries = [
     Unicode::STATUS_SINGLEBYTE => t('Standard PHP'),
     Unicode::STATUS_MULTIBYTE => t('PHP Mbstring Extension'),
     Unicode::STATUS_ERROR => t('Error'),
-  );
-  $severities = array(
+  ];
+  $severities = [
     Unicode::STATUS_SINGLEBYTE => REQUIREMENT_WARNING,
     Unicode::STATUS_MULTIBYTE => NULL,
     Unicode::STATUS_ERROR => REQUIREMENT_ERROR,
-  );
+  ];
   $failed_check = Unicode::check();
   $library = Unicode::getStatus();
 
-  $requirements['unicode'] = array(
+  $requirements['unicode'] = [
     'title' => t('Unicode library'),
     'value' => $libraries[$library],
     'severity' => $severities[$library],
-  );
+  ];
   switch ($failed_check) {
     case 'mb_strlen':
       $requirements['unicode']['description'] = t('Operations on Unicode strings are emulated on a best-effort basis. Install the <a href="http://php.net/mbstring">PHP mbstring extension</a> for improved Unicode support.');
@@ -74,6 +83,11 @@ function unicode_requirements() {
  *   An XML parser object or FALSE on error.
  *
  * @ingroup php_wrappers
+ *
+ * @deprecated in Drupal 8.3.0 and will bre removed in Drupal 9.0.0. Use
+ *   xml_parser_create() and
+ *   xml_parser_set_option($xml_parser, XML_OPTION_TARGET_ENCODING, 'utf-8')
+ *   instead.
  */
 function drupal_xml_parser_create(&$data) {
   // Default XML encoding is UTF-8
@@ -92,7 +106,7 @@ function drupal_xml_parser_create(&$data) {
   }
 
   // Unsupported encodings are converted here into UTF-8.
-  $php_supported = array('utf-8', 'iso-8859-1', 'us-ascii');
+  $php_supported = ['utf-8', 'iso-8859-1', 'us-ascii'];
   if (!in_array(strtolower($encoding), $php_supported)) {
     $out = Unicode::convertToUtf8($data, $encoding);
     if ($out !== FALSE) {
@@ -100,7 +114,7 @@ function drupal_xml_parser_create(&$data) {
       $data = preg_replace('/^(<\?xml[^>]+encoding)="(.+?)"/', '\\1="utf-8"', $out);
     }
     else {
-      \Drupal::logger('php')->warning('Could not convert XML encoding %s to UTF-8.', array('%s' => $encoding));
+      \Drupal::logger('php')->warning('Could not convert XML encoding %s to UTF-8.', ['%s' => $encoding]);
       return FALSE;
     }
   }

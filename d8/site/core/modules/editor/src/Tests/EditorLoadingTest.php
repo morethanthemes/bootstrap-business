@@ -20,7 +20,7 @@ class EditorLoadingTest extends WebTestBase {
    *
    * @var array
    */
-  public static $modules = array('filter', 'editor', 'editor_test', 'node');
+  public static $modules = ['filter', 'editor', 'editor_test', 'node'];
 
   /**
    * An untrusted user, with access to the 'plain_text' format.
@@ -51,57 +51,57 @@ class EditorLoadingTest extends WebTestBase {
     \Drupal::service('plugin.manager.editor')->clearCachedDefinitions();
 
     // Add text formats.
-    $filtered_html_format = FilterFormat::create(array(
+    $filtered_html_format = FilterFormat::create([
       'format' => 'filtered_html',
       'name' => 'Filtered HTML',
       'weight' => 0,
-      'filters' => array(),
-    ));
+      'filters' => [],
+    ]);
     $filtered_html_format->save();
-    $full_html_format = FilterFormat::create(array(
+    $full_html_format = FilterFormat::create([
       'format' => 'full_html',
       'name' => 'Full HTML',
       'weight' => 1,
-      'filters' => array(),
-    ));
+      'filters' => [],
+    ]);
     $full_html_format->save();
 
     // Create article node type.
-    $this->drupalCreateContentType(array(
+    $this->drupalCreateContentType([
       'type' => 'article',
       'name' => 'Article',
-    ));
+    ]);
 
     // Create page node type, but remove the body.
-    $this->drupalCreateContentType(array(
+    $this->drupalCreateContentType([
       'type' => 'page',
       'name' => 'Page',
-    ));
+    ]);
     $body = FieldConfig::loadByName('node', 'page', 'body');
     $body->delete();
 
     // Create a formatted text field, which uses an <input type="text">.
-    FieldStorageConfig::create(array(
+    FieldStorageConfig::create([
       'field_name' => 'field_text',
       'entity_type' => 'node',
       'type' => 'text',
-    ))->save();
+    ])->save();
 
-    FieldConfig::create(array(
+    FieldConfig::create([
       'field_name' => 'field_text',
       'entity_type' => 'node',
       'label' => 'Textfield',
       'bundle' => 'page',
-    ))->save();
+    ])->save();
 
     entity_get_form_display('node', 'page', 'default')
       ->setComponent('field_text')
       ->save();
 
     // Create 3 users, each with access to different text formats.
-    $this->untrustedUser = $this->drupalCreateUser(array('create article content', 'edit any article content'));
-    $this->normalUser = $this->drupalCreateUser(array('create article content', 'edit any article content', 'use text format filtered_html'));
-    $this->privilegedUser = $this->drupalCreateUser(array('create article content', 'edit any article content', 'create page content', 'edit any page content', 'use text format filtered_html', 'use text format full_html'));
+    $this->untrustedUser = $this->drupalCreateUser(['create article content', 'edit any article content']);
+    $this->normalUser = $this->drupalCreateUser(['create article content', 'edit any article content', 'use text format filtered_html']);
+    $this->privilegedUser = $this->drupalCreateUser(['create article content', 'edit any article content', 'create page content', 'edit any page content', 'use text format filtered_html', 'use text format full_html']);
   }
 
   /**
@@ -112,13 +112,13 @@ class EditorLoadingTest extends WebTestBase {
     $editor = Editor::create([
       'format' => 'full_html',
       'editor' => 'unicorn',
-      'image_upload' => array(
+      'image_upload' => [
         'status' => FALSE,
         'scheme' => file_default_scheme(),
         'directory' => 'inline-images',
         'max_size' => '',
-        'max_dimensions' => array('width' => '', 'height' => ''),
-      )
+        'max_dimensions' => ['width' => '', 'height' => ''],
+      ]
     ]);
     $editor->save();
 
@@ -127,7 +127,7 @@ class EditorLoadingTest extends WebTestBase {
     // - doesn't have access to the full_html text format, so: no text editor.
     $this->drupalLogin($this->normalUser);
     $this->drupalGet('node/add/article');
-    list( , $editor_settings_present, $editor_js_present, $body, $format_selector) = $this->getThingsToCheck('body');
+    list(, $editor_settings_present, $editor_js_present, $body, $format_selector) = $this->getThingsToCheck('body');
     $this->assertFalse($editor_settings_present, 'No Text Editor module settings.');
     $this->assertFalse($editor_js_present, 'No Text Editor JavaScript.');
     $this->assertTrue(count($body) === 1, 'A body field exists.');
@@ -140,13 +140,17 @@ class EditorLoadingTest extends WebTestBase {
     $this->drupalLogin($this->privilegedUser);
     $this->drupalGet('node/add/article');
     list($settings, $editor_settings_present, $editor_js_present, $body, $format_selector) = $this->getThingsToCheck('body');
-    $expected = array('formats' => array('full_html' => array(
-      'format' => 'full_html',
-      'editor' => 'unicorn',
-      'editorSettings' => array('ponyModeEnabled' => TRUE),
-      'editorSupportsContentFiltering' => TRUE,
-      'isXssSafe' => FALSE,
-    )));
+    $expected = [
+      'formats' => [
+        'full_html' => [
+          'format' => 'full_html',
+          'editor' => 'unicorn',
+          'editorSettings' => ['ponyModeEnabled' => TRUE],
+          'editorSupportsContentFiltering' => TRUE,
+          'isXssSafe' => FALSE,
+        ],
+      ],
+    ];
     $this->assertTrue($editor_settings_present, "Text Editor module's JavaScript settings are on the page.");
     $this->assertIdentical($expected, $settings['editor'], "Text Editor module's JavaScript settings on the page are correct.");
     $this->assertTrue($editor_js_present, 'Text Editor JavaScript is present.');
@@ -174,13 +178,17 @@ class EditorLoadingTest extends WebTestBase {
     $this->drupalLogin($this->untrustedUser);
     $this->drupalGet('node/add/article');
     list($settings, $editor_settings_present, $editor_js_present, $body, $format_selector) = $this->getThingsToCheck('body');
-    $expected = array('formats' => array('plain_text' => array(
-      'format' => 'plain_text',
-      'editor' => 'unicorn',
-      'editorSettings' => array('ponyModeEnabled' => TRUE),
-      'editorSupportsContentFiltering' => TRUE,
-      'isXssSafe' => FALSE,
-    )));
+    $expected = [
+      'formats' => [
+        'plain_text' => [
+          'format' => 'plain_text',
+          'editor' => 'unicorn',
+          'editorSettings' => ['ponyModeEnabled' => TRUE],
+          'editorSupportsContentFiltering' => TRUE,
+          'isXssSafe' => FALSE,
+        ],
+      ],
+    ];
     $this->assertTrue($editor_settings_present, "Text Editor module's JavaScript settings are on the page.");
     $this->assertIdentical($expected, $settings['editor'], "Text Editor module's JavaScript settings on the page are correct.");
     $this->assertTrue($editor_js_present, 'Text Editor JavaScript is present.');
@@ -191,18 +199,18 @@ class EditorLoadingTest extends WebTestBase {
 
     // Create an "article" node that uses the full_html text format, then try
     // to let the untrusted user edit it.
-    $this->drupalCreateNode(array(
+    $this->drupalCreateNode([
       'type' => 'article',
-      'body' => array(
-        array('value' => $this->randomMachineName(32), 'format' => 'full_html')
-      ),
-    ));
+      'body' => [
+        ['value' => $this->randomMachineName(32), 'format' => 'full_html']
+      ],
+    ]);
 
     // The untrusted user tries to edit content that is written in a text format
     // that (s)he is not allowed to use. The editor is still loaded. CKEditor,
     // for example, supports being loaded in a disabled state.
     $this->drupalGet('node/1/edit');
-    list( , $editor_settings_present, $editor_js_present, $body, $format_selector) = $this->getThingsToCheck('body');
+    list(, $editor_settings_present, $editor_js_present, $body, $format_selector) = $this->getThingsToCheck('body');
     $this->assertTrue($editor_settings_present, 'Text Editor module settings.');
     $this->assertTrue($editor_js_present, 'Text Editor JavaScript.');
     $this->assertTrue(count($body) === 1, 'A body field exists.');
@@ -220,28 +228,28 @@ class EditorLoadingTest extends WebTestBase {
     $editor = Editor::create([
       'format' => 'full_html',
       'editor' => 'unicorn',
-      'image_upload' => array(
+      'image_upload' => [
         'status' => FALSE,
         'scheme' => file_default_scheme(),
         'directory' => 'inline-images',
         'max_size' => '',
-        'max_dimensions' => array('width' => '', 'height' => ''),
-      )
+        'max_dimensions' => ['width' => '', 'height' => ''],
+      ]
     ]);
     $editor->save();
 
     // Create an "page" node that uses the full_html text format.
-    $this->drupalCreateNode(array(
+    $this->drupalCreateNode([
       'type' => 'page',
-      'field_text' => array(
-        array('value' => $this->randomMachineName(32), 'format' => 'full_html')
-      ),
-    ));
+      'field_text' => [
+        ['value' => $this->randomMachineName(32), 'format' => 'full_html']
+      ],
+    ]);
 
     // Assert the unicorn editor works with textfields.
     $this->drupalLogin($this->privilegedUser);
     $this->drupalGet('node/1/edit');
-    list( , $editor_settings_present, $editor_js_present, $field, $format_selector) = $this->getThingsToCheck('field-text', 'input');
+    list(, $editor_settings_present, $editor_js_present, $field, $format_selector) = $this->getThingsToCheck('field-text', 'input');
     $this->assertTrue($editor_settings_present, "Text Editor module's JavaScript settings are on the page.");
     $this->assertTrue($editor_js_present, 'Text Editor JavaScript is present.');
     $this->assertTrue(count($field) === 1, 'A text field exists.');
@@ -257,7 +265,7 @@ class EditorLoadingTest extends WebTestBase {
     ])->save();
 
     $this->drupalGet('node/1/edit');
-    list( , $editor_settings_present, $editor_js_present, $field, $format_selector) = $this->getThingsToCheck('field-text', 'input');
+    list(, $editor_settings_present, $editor_js_present, $field, $format_selector) = $this->getThingsToCheck('field-text', 'input');
     $this->assertFalse($editor_settings_present, "Text Editor module's JavaScript settings are not on the page.");
     $this->assertFalse($editor_js_present, 'Text Editor JavaScript is not present.');
     $this->assertTrue(count($field) === 1, 'A text field exists.');
@@ -268,7 +276,7 @@ class EditorLoadingTest extends WebTestBase {
 
   protected function getThingsToCheck($field_name, $type = 'textarea') {
     $settings = $this->getDrupalSettings();
-    return array(
+    return [
       // JavaScript settings.
       $settings,
       // Editor.module's JS settings present.
@@ -279,7 +287,7 @@ class EditorLoadingTest extends WebTestBase {
       $this->xpath('//' . $type . '[@id="edit-' . $field_name . '-0-value"]'),
       // Format selector.
       $this->xpath('//select[contains(@class, "filter-list")]'),
-    );
+    ];
   }
 
 }

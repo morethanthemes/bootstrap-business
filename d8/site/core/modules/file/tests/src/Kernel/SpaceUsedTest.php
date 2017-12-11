@@ -1,6 +1,7 @@
 <?php
 
 namespace Drupal\Tests\file\Kernel;
+
 use Drupal\file\Entity\File;
 
 /**
@@ -52,7 +53,7 @@ class SpaceUsedTest extends FileManagedUnitTestBase {
   /**
    * Test different users with the default status.
    */
-  function testFileSpaceUsed() {
+  public function testFileSpaceUsed() {
     $file = $this->container->get('entity.manager')->getStorage('file');
     // Test different users with default status.
     $this->assertEqual($file->spaceUsed(2), 70);

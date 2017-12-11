@@ -11,7 +11,6 @@
 
 namespace Symfony\Component\Validator\Constraints;
 
-use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
@@ -57,17 +56,10 @@ class LuhnValidator extends ConstraintValidator
         $value = (string) $value;
 
         if (!ctype_digit($value)) {
-            if ($this->context instanceof ExecutionContextInterface) {
-                $this->context->buildViolation($constraint->message)
-                    ->setParameter('{{ value }}', $this->formatValue($value))
-                    ->setCode(Luhn::INVALID_CHARACTERS_ERROR)
-                    ->addViolation();
-            } else {
-                $this->buildViolation($constraint->message)
-                    ->setParameter('{{ value }}', $this->formatValue($value))
-                    ->setCode(Luhn::INVALID_CHARACTERS_ERROR)
-                    ->addViolation();
-            }
+            $this->context->buildViolation($constraint->message)
+                ->setParameter('{{ value }}', $this->formatValue($value))
+                ->setCode(Luhn::INVALID_CHARACTERS_ERROR)
+                ->addViolation();
 
             return;
         }
@@ -81,7 +73,7 @@ class LuhnValidator extends ConstraintValidator
         //      ^     ^     ^     ^     ^     ^
         //    = 7  +  9  +  7  +  9  +  7  +  3
         for ($i = $length - 1; $i >= 0; $i -= 2) {
-            $checkSum += $value{$i};
+            $checkSum += $value[$i];
         }
 
         // Starting with the second last digit and walking left, double every
@@ -91,21 +83,14 @@ class LuhnValidator extends ConstraintValidator
         //         ^     ^     ^     ^     ^
         //    =    1+8 + 4  +  6  +  1+6 + 2
         for ($i = $length - 2; $i >= 0; $i -= 2) {
-            $checkSum += array_sum(str_split($value{$i} * 2));
+            $checkSum += array_sum(str_split($value[$i] * 2));
         }
 
         if (0 === $checkSum || 0 !== $checkSum % 10) {
-            if ($this->context instanceof ExecutionContextInterface) {
-                $this->context->buildViolation($constraint->message)
-                    ->setParameter('{{ value }}', $this->formatValue($value))
-                    ->setCode(Luhn::CHECKSUM_FAILED_ERROR)
-                    ->addViolation();
-            } else {
-                $this->buildViolation($constraint->message)
-                    ->setParameter('{{ value }}', $this->formatValue($value))
-                    ->setCode(Luhn::CHECKSUM_FAILED_ERROR)
-                    ->addViolation();
-            }
+            $this->context->buildViolation($constraint->message)
+                ->setParameter('{{ value }}', $this->formatValue($value))
+                ->setCode(Luhn::CHECKSUM_FAILED_ERROR)
+                ->addViolation();
         }
     }
 }

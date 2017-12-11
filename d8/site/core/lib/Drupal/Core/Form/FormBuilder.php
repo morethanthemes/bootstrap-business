@@ -316,7 +316,7 @@ class FormBuilder implements FormBuilderInterface, FormValidatorInterface, FormS
     // In case the post request exceeds the configured allowed size
     // (post_max_size), the post request is potentially broken. Add some
     // protection against that and at the same time have a nice error message.
-    if ($ajax_form_request && !isset($form_state->getUserInput()['form_id'])) {
+    if ($ajax_form_request && !$request->request->has('form_id')) {
       throw new BrokenPostRequestException($this->getFileUploadMaxSize());
     }
 
@@ -327,7 +327,9 @@ class FormBuilder implements FormBuilderInterface, FormValidatorInterface, FormS
     // then passed through
     // \Drupal\Core\Form\FormAjaxResponseBuilderInterface::buildResponse() to
     // build a proper AJAX response.
-    if ($ajax_form_request && $form_state->isProcessingInput()) {
+    // Only do this when the form ID matches, since there is no guarantee from
+    // $ajax_form_request that it's an AJAX request for this particular form.
+    if ($ajax_form_request && $form_state->isProcessingInput() && $request->request->get('form_id') == $form_id) {
       throw new FormAjaxException($form, $form_state);
     }
 
@@ -494,7 +496,7 @@ class FormBuilder implements FormBuilderInterface, FormValidatorInterface, FormS
 
     $callback = [$form_state->getFormObject(), 'buildForm'];
 
-    $form = array();
+    $form = [];
     // Assign a default CSS class name based on $form_id.
     // This happens here and not in self::prepareForm() in order to allow the
     // form constructor function to override or remove the default class.
@@ -507,7 +509,7 @@ class FormBuilder implements FormBuilderInterface, FormValidatorInterface, FormS
     // We need to pass $form_state by reference in order for forms to modify it,
     // since call_user_func_array() requires that referenced variables are
     // passed explicitly.
-    $args = array_merge(array($form, &$form_state), $args);
+    $args = array_merge([$form, &$form_state], $args);
 
     $form = call_user_func_array($callback, $args);
     // If the form returns a response, skip subsequent page construction by
@@ -681,8 +683,9 @@ class FormBuilder implements FormBuilderInterface, FormValidatorInterface, FormS
       // will be replaced at the very last moment. This ensures forms with
       // dynamically generated action URLs don't have poor cacheability.
       // Use the proper API to generate the placeholder, when we have one. See
-      // https://www.drupal.org/node/2562341.
-      $placeholder = 'form_action_' . hash('crc32b', __METHOD__);
+      // https://www.drupal.org/node/2562341. The placholder uses a fixed string
+      // that is Crypt::hashBase64('Drupal\Core\Form\FormBuilder::prepareForm');
+      $placeholder = 'form_action_p_pvdeGsVG5zNF_XLGPTvYSKCf43t8qZYSwcfZl2uzM';
 
       $form['#attached']['placeholders'][$placeholder] = [
         '#lazy_builder' => ['form_builder:renderPlaceholderFormAction', []],
@@ -713,7 +716,7 @@ class FormBuilder implements FormBuilderInterface, FormValidatorInterface, FormS
     if (!isset($form['#build_id'])) {
       $form['#build_id'] = 'form-' . Crypt::randomBytesBase64();
     }
-    $form['form_build_id'] = array(
+    $form['form_build_id'] = [
       '#type' => 'hidden',
       '#value' => $form['#build_id'],
       '#id' => $form['#build_id'],
@@ -721,8 +724,19 @@ class FormBuilder implements FormBuilderInterface, FormValidatorInterface, FormS
       // Form processing and validation requires this value, so ensure the
       // submitted form value appears literally, regardless of custom #tree
       // and #parents being set elsewhere.
-      '#parents' => array('form_build_id'),
-    );
+      '#parents' => ['form_build_id'],
+      // Prevent user agents from prefilling the build id with earlier values.
+      // When the ajax command "update_build_id" is executed, the user agent
+      // will assume that a user interaction changed the field. Upon a soft
+      // reload of the page, the previous build id will be restored in the
+      // input, causing subsequent ajax callbacks to access the wrong cached
+      // form build. Setting the autocomplete attribute to "off" will tell the
+      // user agent to never reuse the value.
+      // @see https://www.w3.org/TR/2011/WD-html5-20110525/common-input-element-attributes.html#the-autocomplete-attribute
+      '#attributes' => [
+        'autocomplete' => 'off',
+      ],
+    ];
 
     // Add a token, based on either #token or form_id, to any form displayed to
     // authenticated users. This ensures that any submitted form was actually
@@ -742,17 +756,17 @@ class FormBuilder implements FormBuilderInterface, FormValidatorInterface, FormS
       if ($user && $user->isAuthenticated()) {
         // Generate a public token based on the form id.
         // Generates a placeholder based on the form ID.
-        $placeholder = 'form_token_placeholder_' . hash('crc32b', $form_id);
+        $placeholder = 'form_token_placeholder_' . Crypt::hashBase64($form_id);
         $form['#token'] = $placeholder;
 
-        $form['form_token'] = array(
+        $form['form_token'] = [
           '#id' => Html::getUniqueId('edit-' . $form_id . '-form-token'),
           '#type' => 'token',
           '#default_value' => $placeholder,
           // Form processing and validation requires this value, so ensure the
           // submitted form value appears literally, regardless of custom #tree
           // and #parents being set elsewhere.
-          '#parents' => array('form_token'),
+          '#parents' => ['form_token'],
           // Instead of setting an actual CSRF token, we've set the placeholder
           // in form_token's #default_value and #placeholder. These will be
           // replaced at the very last moment. This ensures forms with a CSRF
@@ -767,20 +781,20 @@ class FormBuilder implements FormBuilderInterface, FormValidatorInterface, FormS
           '#cache' => [
             'max-age' => 0,
           ],
-        );
+        ];
       }
     }
 
     if (isset($form_id)) {
-      $form['form_id'] = array(
+      $form['form_id'] = [
         '#type' => 'hidden',
         '#value' => $form_id,
         '#id' => Html::getUniqueId("edit-$form_id"),
         // Form processing and validation requires this value, so ensure the
         // submitted form value appears literally, regardless of custom #tree
         // and #parents being set elsewhere.
-        '#parents' => array('form_id'),
-      );
+        '#parents' => ['form_id'],
+      ];
     }
     if (!isset($form['#id'])) {
       $form['#id'] = Html::getUniqueId($form_id);
@@ -790,7 +804,7 @@ class FormBuilder implements FormBuilderInterface, FormValidatorInterface, FormS
     }
 
     $form += $this->elementInfo->getInfo('form');
-    $form += array('#tree' => FALSE, '#parents' => array());
+    $form += ['#tree' => FALSE, '#parents' => []];
     $form['#validate'][] = '::validateForm';
     $form['#submit'][] = '::submitForm';
 
@@ -800,7 +814,7 @@ class FormBuilder implements FormBuilderInterface, FormValidatorInterface, FormS
     // is in #theme_wrappers. Therefore, the #theme function only has to care
     // for rendering the inner form elements, not the form itself.
     if (!isset($form['#theme'])) {
-      $form['#theme'] = array($form_id);
+      $form['#theme'] = [$form_id];
       if (isset($build_info['base_form_id'])) {
         $form['#theme'][] = $build_info['base_form_id'];
       }
@@ -808,7 +822,7 @@ class FormBuilder implements FormBuilderInterface, FormValidatorInterface, FormS
 
     // Invoke hook_form_alter(), hook_form_BASE_FORM_ID_alter(), and
     // hook_form_FORM_ID_alter() implementations.
-    $hooks = array('form');
+    $hooks = ['form'];
     if (isset($build_info['base_form_id'])) {
       $hooks[] = 'form_' . $build_info['base_form_id'];
     }
@@ -898,13 +912,13 @@ class FormBuilder implements FormBuilderInterface, FormValidatorInterface, FormS
       $element['#defaults_loaded'] = TRUE;
     }
     // Assign basic defaults common for all form elements.
-    $element += array(
+    $element += [
       '#required' => FALSE,
-      '#attributes' => array(),
+      '#attributes' => [],
       '#title_display' => 'before',
       '#description_display' => 'after',
       '#errors' => NULL,
-    );
+    ];
 
     // Special handling if we're on the top level form element.
     if (isset($element['#type']) && $element['#type'] == 'form') {
@@ -946,7 +960,7 @@ class FormBuilder implements FormBuilderInterface, FormValidatorInterface, FormS
       }
 
       // All form elements should have an #array_parents property.
-      $element['#array_parents'] = array();
+      $element['#array_parents'] = [];
     }
 
     if (!isset($element['#id'])) {
@@ -976,7 +990,7 @@ class FormBuilder implements FormBuilderInterface, FormValidatorInterface, FormS
     if (isset($element['#process']) && !$element['#processed']) {
       foreach ($element['#process'] as $callback) {
         $complete_form = &$form_state->getCompleteForm();
-        $element = call_user_func_array($form_state->prepareCallback($callback), array(&$element, &$form_state, &$complete_form));
+        $element = call_user_func_array($form_state->prepareCallback($callback), [&$element, &$form_state, &$complete_form]);
       }
       $element['#processed'] = TRUE;
     }
@@ -1013,7 +1027,7 @@ class FormBuilder implements FormBuilderInterface, FormValidatorInterface, FormS
 
       // Make child elements inherit their parent's #disabled and #allow_focus
       // values unless they specify their own.
-      foreach (array('#disabled', '#allow_focus') as $property) {
+      foreach (['#disabled', '#allow_focus'] as $property) {
         if (isset($element[$property]) && !isset($element[$key][$property])) {
           $element[$key][$property] = $element[$property];
         }
@@ -1023,7 +1037,7 @@ class FormBuilder implements FormBuilderInterface, FormValidatorInterface, FormS
       if (!isset($element[$key]['#parents'])) {
         // Check to see if a tree of child elements is present. If so,
         // continue down the tree if required.
-        $element[$key]['#parents'] = $element[$key]['#tree'] && $element['#tree'] ? array_merge($element['#parents'], array($key)) : array($key);
+        $element[$key]['#parents'] = $element[$key]['#tree'] && $element['#tree'] ? array_merge($element['#parents'], [$key]) : [$key];
       }
       // Ensure #array_parents follows the actual form structure.
       $array_parents = $element['#array_parents'];
@@ -1047,7 +1061,7 @@ class FormBuilder implements FormBuilderInterface, FormValidatorInterface, FormS
     // after normal input parsing has been completed.
     if (isset($element['#after_build']) && !isset($element['#after_build_done'])) {
       foreach ($element['#after_build'] as $callback) {
-        $element = call_user_func_array($form_state->prepareCallback($callback), array($element, &$form_state));
+        $element = call_user_func_array($form_state->prepareCallback($callback), [$element, &$form_state]);
       }
       $element['#after_build_done'] = TRUE;
     }
@@ -1233,7 +1247,7 @@ class FormBuilder implements FormBuilderInterface, FormValidatorInterface, FormS
           // Skip all value callbacks except safe ones like text if the CSRF
           // token was invalid.
           if (!$form_state->hasInvalidToken() || $this->valueCallableIsSafe($value_callable)) {
-            $element['#value'] = call_user_func_array($value_callable, array(&$element, $input, &$form_state));
+            $element['#value'] = call_user_func_array($value_callable, [&$element, $input, &$form_state]);
           }
           else {
             $input = NULL;
@@ -1252,7 +1266,7 @@ class FormBuilder implements FormBuilderInterface, FormValidatorInterface, FormS
       if (!isset($element['#value'])) {
         // Call #type_value without a second argument to request default_value
         // handling.
-        $element['#value'] = call_user_func_array($value_callable, array(&$element, FALSE, &$form_state));
+        $element['#value'] = call_user_func_array($value_callable, [&$element, FALSE, &$form_state]);
 
         // Final catch. If we haven't set a value yet, use the explicit default
         // value. Avoid image buttons (which come with garbage value), so we

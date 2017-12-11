@@ -67,7 +67,7 @@ class EntityRevisionTest extends UnitTestCase {
     $this->storage->loadRevision(12)
       ->shouldBeCalled()
       ->willReturn($entity->reveal());
-    $row = new Row([], []);
+    $row = new Row();
     $this->assertEquals($entity->reveal(), $destination->getEntity($row, [12, 13]));
   }
 
@@ -212,7 +212,7 @@ class EntityRevision extends RealEntityRevision {
   /**
    * Allow public access for testing.
    */
-  public function save(ContentEntityInterface $entity, array $old_destination_id_values = array()) {
+  public function save(ContentEntityInterface $entity, array $old_destination_id_values = []) {
     return parent::save($entity, $old_destination_id_values);
   }
 

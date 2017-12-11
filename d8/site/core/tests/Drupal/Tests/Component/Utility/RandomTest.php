@@ -3,7 +3,7 @@
 namespace Drupal\Tests\Component\Utility;
 
 use Drupal\Component\Utility\Random;
-use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Tests random data generation.
@@ -12,7 +12,7 @@ use Drupal\Tests\UnitTestCase;
  *
  * @coversDefaultClass \Drupal\Component\Utility\Random
  */
-class RandomTest extends UnitTestCase {
+class RandomTest extends TestCase {
 
   /**
    * The first random string passed to the test callback.
@@ -29,7 +29,7 @@ class RandomTest extends UnitTestCase {
    * @covers ::string
    */
   public function testRandomStringUniqueness() {
-    $strings = array();
+    $strings = [];
     $random = new Random();
     for ($i = 0; $i <= 50; $i++) {
       $str = $random->string(1, TRUE);
@@ -44,7 +44,7 @@ class RandomTest extends UnitTestCase {
    * @covers ::name
    */
   public function testRandomNamesUniqueness() {
-    $names = array();
+    $names = [];
     $random = new Random();
     for ($i = 0; $i <= 10; $i++) {
       $str = $random->name(1, TRUE);
@@ -57,12 +57,12 @@ class RandomTest extends UnitTestCase {
    * Tests infinite loop prevention whilst generating random names.
    *
    * @covers ::name
-   * @expectedException \RuntimeException
    */
   public function testRandomNameException() {
     // There are fewer than 100 possibilities so an exception should occur to
     // prevent infinite loops.
     $random = new Random();
+    $this->setExpectedException(\RuntimeException::class);
     for ($i = 0; $i <= 100; $i++) {
       $str = $random->name(1, TRUE);
       $names[$str] = TRUE;
@@ -73,12 +73,12 @@ class RandomTest extends UnitTestCase {
    * Tests infinite loop prevention whilst generating random strings.
    *
    * @covers ::string
-   * @expectedException \RuntimeException
    */
   public function testRandomStringException() {
     // There are fewer than 100 possibilities so an exception should occur to
     // prevent infinite loops.
     $random = new Random();
+    $this->setExpectedException(\RuntimeException::class);
     for ($i = 0; $i <= 100; $i++) {
       $str = $random->string(1, TRUE);
       $names[$str] = TRUE;
@@ -138,7 +138,7 @@ class RandomTest extends UnitTestCase {
   public function testRandomStringValidator() {
     $random = new Random();
     $this->firstStringGenerated = '';
-    $str = $random->string(1, TRUE, array($this, '_RandomStringValidate'));
+    $str = $random->string(1, TRUE, [$this, '_RandomStringValidate']);
     $this->assertNotEquals($this->firstStringGenerated, $str);
   }
 

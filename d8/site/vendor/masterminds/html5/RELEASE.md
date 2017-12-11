@@ -1,14 +1,27 @@
 # Release Notes
 
-2.2.1 (2015-05-10)
+2.3.0 (2017-09-04)
 
-- #109: Fixed issue where address tag could be written without closing tag
+- #129: image within inline svg breaks system (fixed by #133) 
+- #131: &sup2; does not work (fixed by #132)
+- #134: Improve tokenizer performance by 20% (alternative version of #130 thanks to @MichaelHeerklotz)
+- #135: Raw & in attributes
 
-2.2.0 (2015-04-11)
+2.2.2 (2016-09-22)
+
+- #116: In XML mode, tags are case sensitive
+- #115: Fix PHP Notice in OutputRules
+- #112: fix parsing of options of an optgroup
+- #111: Adding test for the address tag
+
+2.2.1 (2016-05-10)
+
+- #109: Fixed issue where address tag could be written without closing tag (thanks sylus)
+
+2.2.0 (2016-04-11)
 
 - #105: Enable composer cache (for CI/CD)
-- #100: Use mb_substitute_character inset of ini_set for environments where
-  ini_set is disable (e.g., shared hosting)
+- #100: Use mb_substitute_character inset of ini_set for environments where ini_set is disable (e.g., shared hosting)
 - #98: Allow link, meta, style tags in noscript tags
 - #96: Fixed xml:href on svgs that use the "use" breaking
 - #94: Counting UTF8 characters performance improvement

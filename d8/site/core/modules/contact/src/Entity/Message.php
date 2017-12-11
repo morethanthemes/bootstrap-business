@@ -13,6 +13,7 @@ use Drupal\Core\Field\BaseFieldDefinition;
  * @ContentEntityType(
  *   id = "contact_message",
  *   label = @Translation("Contact message"),
+ *   bundle_label = @Translation("Contact form"),
  *   handlers = {
  *     "access" = "Drupal\contact\ContactMessageAccessControlHandler",
  *     "storage" = "Drupal\Core\Entity\ContentEntityNullStorage",
@@ -107,7 +108,7 @@ class Message extends ContentEntityBase implements MessageInterface {
    * {@inheritdoc}
    */
   public function copySender() {
-    return (bool)$this->get('copy')->value;
+    return (bool) $this->get('copy')->value;
   }
 
   /**
@@ -153,29 +154,29 @@ class Message extends ContentEntityBase implements MessageInterface {
       ->setLabel(t('Subject'))
       ->setRequired(TRUE)
       ->setSetting('max_length', 100)
-      ->setDisplayOptions('form', array(
+      ->setDisplayOptions('form', [
         'type' => 'string_textfield',
         'weight' => -10,
-      ))
+      ])
       ->setDisplayConfigurable('form', TRUE);
 
     // The text of the contact message.
     $fields['message'] = BaseFieldDefinition::create('string_long')
       ->setLabel(t('Message'))
       ->setRequired(TRUE)
-      ->setDisplayOptions('form', array(
+      ->setDisplayOptions('form', [
         'type' => 'string_textarea',
         'weight' => 0,
-        'settings' => array(
+        'settings' => [
           'rows' => 12,
-        ),
-      ))
+        ],
+      ])
       ->setDisplayConfigurable('form', TRUE)
-      ->setDisplayOptions('view', array(
+      ->setDisplayOptions('view', [
         'type' => 'string',
         'weight' => 0,
         'label' => 'above',
-      ))
+      ])
       ->setDisplayConfigurable('view', TRUE);
 
     $fields['copy'] = BaseFieldDefinition::create('boolean')

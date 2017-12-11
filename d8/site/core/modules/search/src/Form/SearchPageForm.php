@@ -2,9 +2,10 @@
 
 namespace Drupal\search\Form;
 
-use Drupal\Core\Entity\EntityForm;
+use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
+use Drupal\search\SearchPageInterface;
 
 /**
  * Provides a search form for site wide search.
@@ -15,10 +16,10 @@ use Drupal\Core\Url;
  * trigger the search being processed by the controller, and adding in any
  * additional query parameters they need to execute search.
  */
-class SearchPageForm extends EntityForm {
+class SearchPageForm extends FormBase {
 
   /**
-   * {@inheritdoc}
+   * The search page entity.
    *
    * @var \Drupal\search\SearchPageInterface
    */
@@ -34,54 +35,47 @@ class SearchPageForm extends EntityForm {
   /**
    * {@inheritdoc}
    */
-  public function form(array $form, FormStateInterface $form_state) {
+  public function buildForm(array $form, FormStateInterface $form_state, SearchPageInterface $search_page = NULL) {
+    $this->entity = $search_page;
+
     $plugin = $this->entity->getPlugin();
     $form_state->set('search_page_id', $this->entity->id());
 
-    $form['basic'] = array(
+    $form['basic'] = [
       '#type' => 'container',
-      '#attributes' => array(
-        'class' => array('container-inline'),
-      ),
-    );
-    $form['basic']['keys'] = array(
+      '#attributes' => [
+        'class' => ['container-inline'],
+      ],
+    ];
+    $form['basic']['keys'] = [
       '#type' => 'search',
       '#title' => $this->t('Enter your keywords'),
       '#default_value' => $plugin->getKeywords(),
       '#size' => 30,
       '#maxlength' => 255,
-    );
+    ];
 
     // processed_keys is used to coordinate keyword passing between other forms
     // that hook into the basic search form.
-    $form['basic']['processed_keys'] = array(
+    $form['basic']['processed_keys'] = [
       '#type' => 'value',
       '#value' => '',
-    );
-    $form['basic']['submit'] = array(
+    ];
+    $form['basic']['submit'] = [
       '#type' => 'submit',
       '#value' => $this->t('Search'),
-    );
+    ];
 
-    $form['help_link'] = array(
+    $form['help_link'] = [
       '#type' => 'link',
       '#url' => new Url('search.help_' . $this->entity->id()),
       '#title' => $this->t('Search help'),
-      '#options' => array('attributes' => array('class' => 'search-help-link')),
-    );
+      '#options' => ['attributes' => ['class' => 'search-help-link']],
+    ];
 
     // Allow the plugin to add to or alter the search form.
     $plugin->searchFormAlter($form, $form_state);
-
-    return parent::form($form, $form_state);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  protected function actions(array $form, FormStateInterface $form_state) {
-    // The submit button is added in the form directly.
-    return array();
+    return $form;
   }
 
   /**
@@ -97,8 +91,8 @@ class SearchPageForm extends EntityForm {
     $route = 'search.view_' . $form_state->get('search_page_id');
     $form_state->setRedirect(
       $route,
-      array(),
-      array('query' => $query)
+      [],
+      ['query' => $query]
     );
   }
 

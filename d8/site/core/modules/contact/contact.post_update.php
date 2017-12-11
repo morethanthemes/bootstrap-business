@@ -8,11 +8,6 @@
 use Drupal\contact\Entity\ContactForm;
 
 /**
- * @addtogroup updates-8.1.x-to-8.2.x
- * @{
- */
-
-/**
  * Initialize 'message' and 'redirect' field values to 'contact_form' entities.
  */
 function contact_post_update_add_message_redirect_field_to_contact_form() {
@@ -24,7 +19,3 @@ function contact_post_update_add_message_redirect_field_to_contact_form() {
       ->save();
   }
 }
-
-/**
- * @} End of "addtogroup updates-8.1.x-to-8.2.x".
- */

@@ -22,9 +22,13 @@ class InstallerTest extends InstallerTestBase {
 
     // Verify that the confirmation message appears.
     require_once \Drupal::root() . '/core/includes/install.inc';
-    $this->assertRaw(t('Congratulations, you installed @drupal!', array(
+    $this->assertRaw(t('Congratulations, you installed @drupal!', [
       '@drupal' => drupal_install_profile_distribution_name(),
-    )));
+    ]));
+
+    // Ensure that the timezone is correct for sites under test after installing
+    // interactively.
+    $this->assertEqual($this->config('system.date')->get('timezone.default'), 'Australia/Sydney');
   }
 
   /**
@@ -48,7 +52,7 @@ class InstallerTest extends InstallerTestBase {
   protected function setUpProfile() {
     // Assert that the expected title is present.
     $this->assertEqual('Select an installation profile', $this->cssSelect('main h2')[0]);
-    $result = $this->xpath('//span[contains(@class, :class) and contains(text(), :text)]', array(':class' => 'visually-hidden', ':text' => 'Select an installation profile'));
+    $result = $this->xpath('//span[contains(@class, :class) and contains(text(), :text)]', [':class' => 'visually-hidden', ':text' => 'Select an installation profile']);
     $this->assertEqual(count($result), 1, "Title/Label not displayed when '#title_display' => 'invisible' attribute is set");
 
     parent::setUpProfile();

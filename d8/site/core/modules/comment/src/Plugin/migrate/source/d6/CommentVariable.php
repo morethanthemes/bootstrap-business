@@ -2,13 +2,19 @@
 
 namespace Drupal\comment\Plugin\migrate\source\d6;
 
+@trigger_error('CommentVariable is deprecated in Drupal 8.4.x and will be removed before Drupal 9.0.x. Use \Drupal\node\Plugin\migrate\source\d6\NodeType instead.', E_USER_DEPRECATED);
+
 use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
 use Drupal\migrate\Plugin\migrate\source\DummyQueryTrait;
 
 /**
  * @MigrateSource(
- *   id = "d6_comment_variable"
+ *   id = "d6_comment_variable",
+ *   source_module = "comment"
  * )
+ *
+ * @deprecated in Drupal 8.4.x, to be removed before Drupal 9.0.x. Use
+ * \Drupal\node\Plugin\migrate\source\d6\NodeType instead.
  */
 class CommentVariable extends DrupalSqlBase {
 
@@ -24,7 +30,7 @@ class CommentVariable extends DrupalSqlBase {
   /**
    * {@inheritdoc}
    */
-  public function count() {
+  public function count($refresh = FALSE) {
     return count($this->getCommentVariables());
   }
 
@@ -35,7 +41,7 @@ class CommentVariable extends DrupalSqlBase {
    */
   protected function getCommentVariables() {
     $comment_prefixes = array_keys($this->commentPrefixes());
-    $variables = array();
+    $variables = [];
     $node_types = $this->select('node_type', 'nt')
       ->fields('nt', ['type'])
       ->execute()
@@ -45,7 +51,7 @@ class CommentVariable extends DrupalSqlBase {
         $variables[] = $prefix . '_' . $node_type;
       }
     }
-    $return = array();
+    $return = [];
     $values = $this->select('variable', 'v')
       ->fields('v', ['name', 'value'])
       ->condition('name', $variables, 'IN')
@@ -74,17 +80,17 @@ class CommentVariable extends DrupalSqlBase {
    * {@inheritdoc}
    */
   public function fields() {
-    return $this->commentPrefixes() + array(
+    return $this->commentPrefixes() + [
       'node_type' => $this->t('The node type'),
       'comment_type' => $this->t('The comment type'),
-    );
+    ];
   }
 
   /**
    * Comment related data for fields.
    */
   protected function commentPrefixes() {
-    return array(
+    return [
       'comment' => $this->t('Default comment setting'),
       'comment_default_mode' => $this->t('Default display mode'),
       'comment_default_order' => $this->t('Default display order'),
@@ -94,7 +100,7 @@ class CommentVariable extends DrupalSqlBase {
       'comment_subject_field' => $this->t('Comment subject field'),
       'comment_preview' => $this->t('Preview comment'),
       'comment_form_location' => $this->t('Location of comment submission form'),
-    );
+    ];
   }
 
   /**

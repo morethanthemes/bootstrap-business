@@ -13,7 +13,7 @@ class LanguagesCacheContext implements CalculatedCacheContextInterface {
   /**
    * The language manager.
    *
-   * @param \Drupal\Core\Language\LanguageManagerInterface $language_manager
+   * @var \Drupal\Core\Language\LanguageManagerInterface
    */
   protected $languageManager;
 
@@ -50,7 +50,7 @@ class LanguagesCacheContext implements CalculatedCacheContextInterface {
    */
   public function getContext($type = NULL) {
     if ($type === NULL) {
-      $context_parts = array();
+      $context_parts = [];
       if ($this->languageManager->isMultilingual()) {
         foreach ($this->languageManager->getLanguageTypes() as $type) {
           $context_parts[] = $this->languageManager->getCurrentLanguage($type)->getId();

@@ -46,7 +46,7 @@ class YamlDumper extends Dumper
             $this->dumper = new YmlDumper();
         }
 
-        return $this->addParameters()."\n".$this->addServices();
+        return $this->container->resolveEnvPlaceholders($this->addParameters()."\n".$this->addServices());
     }
 
     /**
@@ -93,11 +93,7 @@ class YamlDumper extends Dumper
         }
 
         if ($definition->isSynthetic()) {
-            $code .= sprintf("        synthetic: true\n");
-        }
-
-        if ($definition->isSynchronized(false)) {
-            $code .= sprintf("        synchronized: true\n");
+            $code .= "        synthetic: true\n";
         }
 
         if ($definition->isDeprecated()) {
@@ -116,20 +112,8 @@ class YamlDumper extends Dumper
             $code .= sprintf("        autowiring_types:\n%s", $autowiringTypesCode);
         }
 
-        if ($definition->getFactoryClass(false)) {
-            $code .= sprintf("        factory_class: %s\n", $this->dumper->dump($definition->getFactoryClass(false)));
-        }
-
         if ($definition->isLazy()) {
-            $code .= sprintf("        lazy: true\n");
-        }
-
-        if ($definition->getFactoryMethod(false)) {
-            $code .= sprintf("        factory_method: %s\n", $this->dumper->dump($definition->getFactoryMethod(false)));
-        }
-
-        if ($definition->getFactoryService(false)) {
-            $code .= sprintf("        factory_service: %s\n", $this->dumper->dump($definition->getFactoryService(false)));
+            $code .= "        lazy: true\n";
         }
 
         if ($definition->getArguments()) {
@@ -146,10 +130,6 @@ class YamlDumper extends Dumper
 
         if (!$definition->isShared()) {
             $code .= "        shared: false\n";
-        }
-
-        if (ContainerInterface::SCOPE_CONTAINER !== $scope = $definition->getScope(false)) {
-            $code .= sprintf("        scope: %s\n", $this->dumper->dump($scope));
         }
 
         if (null !== $decorated = $definition->getDecoratedService()) {
@@ -188,7 +168,7 @@ class YamlDumper extends Dumper
             return sprintf("    %s: '@%s'\n", $alias, $id);
         }
 
-        return sprintf("    %s:\n        alias: %s\n        public: false", $alias, $id);
+        return sprintf("    %s:\n        alias: %s\n        public: false\n", $alias, $id);
     }
 
     /**
@@ -327,7 +307,7 @@ class YamlDumper extends Dumper
      *
      * @return array
      */
-    private function prepareParameters($parameters, $escape = true)
+    private function prepareParameters(array $parameters, $escape = true)
     {
         $filtered = array();
         foreach ($parameters as $key => $value) {
@@ -350,7 +330,7 @@ class YamlDumper extends Dumper
      *
      * @return array
      */
-    private function escape($arguments)
+    private function escape(array $arguments)
     {
         $args = array();
         foreach ($arguments as $k => $v) {

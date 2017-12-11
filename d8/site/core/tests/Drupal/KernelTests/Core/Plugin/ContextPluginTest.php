@@ -17,12 +17,12 @@ use Drupal\user\Entity\User;
  */
 class ContextPluginTest extends KernelTestBase {
 
-  public static $modules = array('system', 'user', 'node', 'field', 'filter', 'text');
+  public static $modules = ['system', 'user', 'node', 'field', 'filter', 'text'];
 
   /**
    * Tests basic context definition and value getters and setters.
    */
-  function testContext() {
+  public function testContext() {
     $this->installEntitySchema('user');
     $this->installEntitySchema('node');
     $this->installEntitySchema('node_type');
@@ -59,7 +59,7 @@ class ContextPluginTest extends KernelTestBase {
       $plugin->getContextValue('user');
     }
     catch (ContextException $e) {
-      $this->assertIdentical("The 'entity:user' context is required and not present.", $e->getMessage(), 'Requesting a non-set value of a required context should throw a context exception.');
+      $this->assertSame("The 'entity:user' context is required and not present.", $e->getMessage(), 'Requesting a non-set value of a required context should throw a context exception.');
     }
 
     // Try to pass the wrong class type as a context value.

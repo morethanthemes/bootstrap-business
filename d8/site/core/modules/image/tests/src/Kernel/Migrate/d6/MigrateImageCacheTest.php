@@ -28,9 +28,9 @@ class MigrateImageCacheTest extends MigrateDrupal6TestBase {
    */
   public function testMissingTable() {
     $this->sourceDatabase->update('system')
-      ->fields(array(
+      ->fields([
         'status' => 0,
-      ))
+      ])
       ->condition('name', 'imagecache')
       ->condition('type', 'module')
       ->execute();
@@ -88,14 +88,14 @@ class MigrateImageCacheTest extends MigrateDrupal6TestBase {
    */
   public function testMissingEffectPlugin() {
     Database::getConnection('default', 'migrate')->insert("imagecache_action")
-       ->fields([
+      ->fields([
        'presetid',
        'weight',
        'module',
        'action',
        'data',
      ])
-       ->values([
+      ->values([
        'presetid' => '1',
        'weight' => '0',
        'module' => 'imagecache',
@@ -121,14 +121,14 @@ class MigrateImageCacheTest extends MigrateDrupal6TestBase {
    */
   public function testInvalidCropValues() {
     Database::getConnection('default', 'migrate')->insert("imagecache_action")
-       ->fields([
+      ->fields([
        'presetid',
        'weight',
        'module',
        'action',
        'data',
      ])
-       ->values([
+      ->values([
        'presetid' => '1',
        'weight' => '0',
        'module' => 'imagecache',
@@ -141,9 +141,11 @@ class MigrateImageCacheTest extends MigrateDrupal6TestBase {
 
     $this->startCollectingMessages();
     $this->executeMigration('d6_imagecache_presets');
-    $this->assertEqual(['error' => [
-     'The Drupal 8 image crop effect does not support numeric values for x and y offsets. Use keywords to set crop effect offsets instead.'
-    ]], $this->migrateMessages);
+    $this->assertEqual([
+      'error' => [
+        'The Drupal 8 image crop effect does not support numeric values for x and y offsets. Use keywords to set crop effect offsets instead.',
+      ],
+    ], $this->migrateMessages);
   }
 
   /**

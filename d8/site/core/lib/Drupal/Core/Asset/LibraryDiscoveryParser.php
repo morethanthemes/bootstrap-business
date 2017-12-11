@@ -69,7 +69,7 @@ class LibraryDiscoveryParser {
    *   Thrown when a js file defines a positive weight.
    */
   public function buildByExtension($extension) {
-    $libraries = array();
+    $libraries = [];
 
     if ($extension === 'core') {
       $path = 'core';
@@ -92,7 +92,7 @@ class LibraryDiscoveryParser {
       if (!isset($library['js']) && !isset($library['css']) && !isset($library['drupalSettings'])) {
         throw new IncompleteLibraryDefinitionException(sprintf("Incomplete library definition for definition '%s' in extension '%s'", $id, $extension));
       }
-      $library += array('dependencies' => array(), 'js' => array(), 'css' => array());
+      $library += ['dependencies' => [], 'js' => [], 'css' => []];
 
       if (isset($library['header']) && !is_bool($library['header'])) {
         throw new \LogicException(sprintf("The 'header' key in the library definition '%s' in extension '%s' is invalid: it must be a boolean.", $id, $extension));
@@ -116,26 +116,30 @@ class LibraryDiscoveryParser {
 
       // Assign Drupal's license to libraries that don't have license info.
       if (!isset($library['license'])) {
-        $library['license'] = array(
+        $library['license'] = [
           'name' => 'GNU-GPL-2.0-or-later',
           'url' => 'https://www.drupal.org/licensing/faq',
           'gpl-compatible' => TRUE,
-        );
+        ];
       }
 
-      foreach (array('js', 'css') as $type) {
+      foreach (['js', 'css'] as $type) {
         // Prepare (flatten) the SMACSS-categorized definitions.
         // @todo After Asset(ic) changes, retain the definitions as-is and
         //   properly resolve dependencies for all (css) libraries per category,
         //   and only once prior to rendering out an HTML page.
         if ($type == 'css' && !empty($library[$type])) {
+          assert('\Drupal\Core\Asset\LibraryDiscoveryParser::validateCssLibrary($library[$type]) < 2', 'CSS files should be specified as key/value pairs, where the values are configuration options. See https://www.drupal.org/node/2274843.');
+          assert('\Drupal\Core\Asset\LibraryDiscoveryParser::validateCssLibrary($library[$type]) === 0', 'CSS must be nested under a category. See https://www.drupal.org/node/2274843.');
           foreach ($library[$type] as $category => $files) {
+            $category_weight = 'CSS_' . strtoupper($category);
+            assert('defined($category_weight)', 'Invalid CSS category: ' . $category . '. See https://www.drupal.org/node/2274843.');
             foreach ($files as $source => $options) {
               if (!isset($options['weight'])) {
                 $options['weight'] = 0;
               }
               // Apply the corresponding weight defined by CSS_* constants.
-              $options['weight'] += constant('CSS_' . strtoupper($category));
+              $options['weight'] += constant($category_weight);
               $library[$type][$source] = $options;
             }
             unset($library[$type][$category]);
@@ -145,7 +149,7 @@ class LibraryDiscoveryParser {
           unset($library[$type][$source]);
           // Allow to omit the options hashmap in YAML declarations.
           if (!is_array($options)) {
-            $options = array();
+            $options = [];
           }
           if ($type == 'js' && isset($options['weight']) && $options['weight'] > 0) {
             throw new \UnexpectedValueException("The $extension/$id library defines a positive weight for '$source'. Only negative weights are allowed (but should be avoided). Instead of a positive weight, specify accurate dependencies for this library.");
@@ -458,6 +462,36 @@ class LibraryDiscoveryParser {
       return '/' . $theme_path . '/' . $overriding_asset;
     }
     return $overriding_asset;
+  }
+
+  /**
+   * Validates CSS library structure.
+   *
+   * @param array $library
+   *   The library definition array.
+   *
+   * @return int
+   *   Returns based on validity:
+   *     - 0 if the library definition is valid
+   *     - 1 if the library definition has improper nesting
+   *     - 2 if the library definition specifies files as an array
+   */
+  public static function validateCssLibrary($library) {
+    $categories = [];
+    // Verify options first and return early if invalid.
+    foreach ($library as $category => $files) {
+      if (!is_array($files)) {
+        return 2;
+      }
+      $categories[] = $category;
+      foreach ($files as $source => $options) {
+        if (!is_array($options)) {
+          return 1;
+        }
+      }
+    }
+
+    return 0;
   }
 
 }

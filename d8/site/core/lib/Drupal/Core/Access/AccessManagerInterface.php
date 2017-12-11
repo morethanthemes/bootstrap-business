@@ -33,12 +33,12 @@ interface AccessManagerInterface {
    *   returned, i.e. TRUE means access is explicitly allowed, FALSE means
    *   access is either explicitly forbidden or "no opinion".
    */
-  public function checkNamedRoute($route_name, array $parameters = array(), AccountInterface $account = NULL, $return_as_object = FALSE);
+  public function checkNamedRoute($route_name, array $parameters = [], AccountInterface $account = NULL, $return_as_object = FALSE);
 
   /**
    * Execute access checks against the incoming request.
    *
-   * @param Request $request
+   * @param \Symfony\Component\HttpFoundation\Request $request
    *   The incoming request.
    * @param \Drupal\Core\Session\AccountInterface $account
    *   (optional) Run access checks for this account. Defaults to the current

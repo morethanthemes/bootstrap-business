@@ -24,7 +24,7 @@ abstract class ExecutablePluginBase extends ContextAwarePluginBase implements Ex
     if (!empty($definition['configuration'])) {
       return $definition['configuration'];
     }
-    return array();
+    return [];
   }
 
   /**
@@ -60,8 +60,8 @@ abstract class ExecutablePluginBase extends ContextAwarePluginBase implements Ex
   /**
    * Sets the value of a particular configuration option.
    *
-   * @param string $name
-   *   The name of the configuration option to set.
+   * @param string $key
+   *   The key of the configuration option to set.
    * @param mixed $value
    *   The value to set.
    *
@@ -69,7 +69,7 @@ abstract class ExecutablePluginBase extends ContextAwarePluginBase implements Ex
    *   https://www.drupal.org/node/1764380.
    * @todo This does not set a value in \Drupal::config(), so the name is confusing.
    *
-   * @return \Drupal\Core\Executable\ExecutablePluginBase.
+   * @return \Drupal\Core\Executable\ExecutablePluginBase
    *   The executable object for chaining.
    */
   public function setConfig($key, $value) {

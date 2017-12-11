@@ -11,7 +11,7 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
  *
  * @MigrateSource(
  *   id = "d6_taxonomy_vocabulary",
- *   source_provider = "taxonomy"
+ *   source_module = "taxonomy"
  * )
  */
 class Vocabulary extends DrupalSqlBase {
@@ -21,7 +21,7 @@ class Vocabulary extends DrupalSqlBase {
    */
   public function query() {
     $query = $this->select('vocabulary', 'v')
-      ->fields('v', array(
+      ->fields('v', [
         'vid',
         'name',
         'description',
@@ -33,7 +33,7 @@ class Vocabulary extends DrupalSqlBase {
         'tags',
         'module',
         'weight',
-      ));
+      ]);
     return $query;
   }
 
@@ -41,7 +41,7 @@ class Vocabulary extends DrupalSqlBase {
    * {@inheritdoc}
    */
   public function fields() {
-    return array(
+    return [
       'vid' => $this->t('The vocabulary ID.'),
       'name' => $this->t('The name of the vocabulary.'),
       'description' => $this->t('The description of the vocabulary.'),
@@ -54,7 +54,7 @@ class Vocabulary extends DrupalSqlBase {
       'weight' => $this->t('The weight of the vocabulary in relation to other vocabularies.'),
       'parents' => $this->t("The Drupal term IDs of the term's parents."),
       'node_types' => $this->t('The names of the node types the vocabulary may be used with.'),
-    );
+    ];
   }
 
   /**
@@ -63,12 +63,20 @@ class Vocabulary extends DrupalSqlBase {
   public function prepareRow(Row $row) {
     // Find node types for this row.
     $node_types = $this->select('vocabulary_node_types', 'nt')
-      ->fields('nt', array('type', 'vid'))
+      ->fields('nt', ['type', 'vid'])
       ->condition('vid', $row->getSourceProperty('vid'))
       ->execute()
       ->fetchCol();
     $row->setSourceProperty('node_types', $node_types);
     $row->setSourceProperty('cardinality', ($row->getSourceProperty('tags') == 1 || $row->getSourceProperty('multiple') == 1) ? FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED : 1);
+
+    // If the vocabulary being migrated is the one defined in the
+    // 'forum_nav_vocabulary' variable, set the 'forum_vocabulary' source
+    // property to true so we know this is the vocabulary used by Forum.
+    if ($this->variableGet('forum_nav_vocabulary', 0) == $row->getSourceProperty('vid')) {
+      $row->setSourceProperty('forum_vocabulary', TRUE);
+    }
+
     return parent::prepareRow($row);
   }
 

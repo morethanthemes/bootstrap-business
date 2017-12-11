@@ -3,13 +3,13 @@
 namespace Drupal\comment\Form;
 
 use Drupal\comment\CommentInterface;
-use Drupal\comment\CommentStorageInterface;
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Datetime\DateFormatterInterface;
-use Drupal\Core\Entity\EntityManagerInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\user\PrivateTempStoreFactory;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -18,11 +18,11 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class CommentAdminOverview extends FormBase {
 
   /**
-   * The entity storage.
+   * The entity type manager.
    *
-   * @var \Drupal\Core\Entity\EntityManagerInterface
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
-  protected $entityManager;
+  protected $entityTypeManager;
 
   /**
    * The comment storage.
@@ -46,22 +46,30 @@ class CommentAdminOverview extends FormBase {
   protected $moduleHandler;
 
   /**
+   * The tempstore factory.
+   *
+   * @var \Drupal\user\PrivateTempStoreFactory
+   */
+  protected $tempStoreFactory;
+
+  /**
    * Creates a CommentAdminOverview form.
    *
-   * @param \Drupal\Core\Entity\EntityManagerInterface $entity_manager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity manager service.
-   * @param \Drupal\comment\CommentStorageInterface $comment_storage
-   *   The comment storage.
    * @param \Drupal\Core\Datetime\DateFormatterInterface $date_formatter
    *   The date formatter service.
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
    *   The module handler.
+   * @param \Drupal\user\PrivateTempStoreFactory $temp_store_factory
+   *   The tempstore factory.
    */
-  public function __construct(EntityManagerInterface $entity_manager, CommentStorageInterface $comment_storage, DateFormatterInterface $date_formatter, ModuleHandlerInterface $module_handler) {
-    $this->entityManager = $entity_manager;
-    $this->commentStorage = $comment_storage;
+  public function __construct(EntityTypeManagerInterface $entity_type_manager, DateFormatterInterface $date_formatter, ModuleHandlerInterface $module_handler, PrivateTempStoreFactory $temp_store_factory) {
+    $this->entityTypeManager = $entity_type_manager;
+    $this->commentStorage = $entity_type_manager->getStorage('comment');
     $this->dateFormatter = $date_formatter;
     $this->moduleHandler = $module_handler;
+    $this->tempStoreFactory = $temp_store_factory;
   }
 
   /**
@@ -69,10 +77,10 @@ class CommentAdminOverview extends FormBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('entity.manager'),
-      $container->get('entity.manager')->getStorage('comment'),
+      $container->get('entity_type.manager'),
       $container->get('date.formatter'),
-      $container->get('module_handler')
+      $container->get('module_handler'),
+      $container->get('user.private_tempstore')
     );
   }
 
@@ -99,12 +107,12 @@ class CommentAdminOverview extends FormBase {
   public function buildForm(array $form, FormStateInterface $form_state, $type = 'new') {
 
     // Build an 'Update options' form.
-    $form['options'] = array(
+    $form['options'] = [
       '#type' => 'details',
       '#title' => $this->t('Update options'),
       '#open' => TRUE,
-      '#attributes' => array('class' => array('container-inline')),
-    );
+      '#attributes' => ['class' => ['container-inline']],
+    ];
 
     if ($type == 'approval') {
       $options['publish'] = $this->t('Publish the selected comments');
@@ -114,42 +122,42 @@ class CommentAdminOverview extends FormBase {
     }
     $options['delete'] = $this->t('Delete the selected comments');
 
-    $form['options']['operation'] = array(
+    $form['options']['operation'] = [
       '#type' => 'select',
       '#title' => $this->t('Action'),
       '#title_display' => 'invisible',
       '#options' => $options,
       '#default_value' => 'publish',
-    );
-    $form['options']['submit'] = array(
+    ];
+    $form['options']['submit'] = [
       '#type' => 'submit',
       '#value' => $this->t('Update'),
-    );
+    ];
 
     // Load the comments that need to be displayed.
     $status = ($type == 'approval') ? CommentInterface::NOT_PUBLISHED : CommentInterface::PUBLISHED;
-    $header = array(
-      'subject' => array(
+    $header = [
+      'subject' => [
         'data' => $this->t('Subject'),
         'specifier' => 'subject',
-      ),
-      'author' => array(
+      ],
+      'author' => [
         'data' => $this->t('Author'),
         'specifier' => 'name',
-        'class' => array(RESPONSIVE_PRIORITY_MEDIUM),
-      ),
-      'posted_in' => array(
+        'class' => [RESPONSIVE_PRIORITY_MEDIUM],
+      ],
+      'posted_in' => [
         'data' => $this->t('Posted in'),
-        'class' => array(RESPONSIVE_PRIORITY_LOW),
-      ),
-      'changed' => array(
+        'class' => [RESPONSIVE_PRIORITY_LOW],
+      ],
+      'changed' => [
         'data' => $this->t('Updated'),
         'specifier' => 'changed',
         'sort' => 'desc',
-        'class' => array(RESPONSIVE_PRIORITY_LOW),
-      ),
+        'class' => [RESPONSIVE_PRIORITY_LOW],
+      ],
       'operations' => $this->t('Operations'),
-    );
+    ];
     $cids = $this->commentStorage->getQuery()
       ->condition('status', $status)
       ->tableSort($header)
@@ -160,18 +168,20 @@ class CommentAdminOverview extends FormBase {
     $comments = $this->commentStorage->loadMultiple($cids);
 
     // Build a table listing the appropriate comments.
-    $options = array();
+    $options = [];
     $destination = $this->getDestinationArray();
 
-    $commented_entity_ids = array();
-    $commented_entities = array();
+    $commented_entity_ids = [];
+    $commented_entities = [];
 
     foreach ($comments as $comment) {
       $commented_entity_ids[$comment->getCommentedEntityTypeId()][] = $comment->getCommentedEntityId();
     }
 
     foreach ($commented_entity_ids as $entity_type => $ids) {
-      $commented_entities[$entity_type] = $this->entityManager->getStorage($entity_type)->loadMultiple($ids);
+      $commented_entities[$entity_type] = $this->entityTypeManager
+        ->getStorage($entity_type)
+        ->loadMultiple($ids);
     }
 
     foreach ($comments as $comment) {
@@ -179,61 +189,61 @@ class CommentAdminOverview extends FormBase {
       $commented_entity = $commented_entities[$comment->getCommentedEntityTypeId()][$comment->getCommentedEntityId()];
       $comment_permalink = $comment->permalink();
       if ($comment->hasField('comment_body') && ($body = $comment->get('comment_body')->value)) {
-        $attributes = $comment_permalink->getOption('attributes') ?: array();
-        $attributes += array('title' => Unicode::truncate($body, 128));
+        $attributes = $comment_permalink->getOption('attributes') ?: [];
+        $attributes += ['title' => Unicode::truncate($body, 128)];
         $comment_permalink->setOption('attributes', $attributes);
       }
-      $options[$comment->id()] = array(
-        'title' => array('data' => array('#title' => $comment->getSubject() ?: $comment->id())),
-        'subject' => array(
-          'data' => array(
+      $options[$comment->id()] = [
+        'title' => ['data' => ['#title' => $comment->getSubject() ?: $comment->id()]],
+        'subject' => [
+          'data' => [
             '#type' => 'link',
             '#title' => $comment->getSubject(),
             '#url' => $comment_permalink,
-          ),
-        ),
-        'author' => array(
-          'data' => array(
+          ],
+        ],
+        'author' => [
+          'data' => [
             '#theme' => 'username',
             '#account' => $comment->getOwner(),
-          ),
-        ),
-        'posted_in' => array(
-          'data' => array(
+          ],
+        ],
+        'posted_in' => [
+          'data' => [
             '#type' => 'link',
             '#title' => $commented_entity->label(),
             '#access' => $commented_entity->access('view'),
             '#url' => $commented_entity->urlInfo(),
-          ),
-        ),
+          ],
+        ],
         'changed' => $this->dateFormatter->format($comment->getChangedTimeAcrossTranslations(), 'short'),
-      );
+      ];
       $comment_uri_options = $comment->urlInfo()->getOptions() + ['query' => $destination];
-      $links = array();
-      $links['edit'] = array(
+      $links = [];
+      $links['edit'] = [
         'title' => $this->t('Edit'),
         'url' => $comment->urlInfo('edit-form', $comment_uri_options),
-      );
-      if ($this->moduleHandler->moduleExists('content_translation') && $this->moduleHandler->invoke('content_translation', 'translate_access', array($comment))->isAllowed()) {
-        $links['translate'] = array(
+      ];
+      if ($this->moduleHandler->moduleExists('content_translation') && $this->moduleHandler->invoke('content_translation', 'translate_access', [$comment])->isAllowed()) {
+        $links['translate'] = [
           'title' => $this->t('Translate'),
           'url' => $comment->urlInfo('drupal:content-translation-overview', $comment_uri_options),
-        );
+        ];
       }
-      $options[$comment->id()]['operations']['data'] = array(
+      $options[$comment->id()]['operations']['data'] = [
         '#type' => 'operations',
         '#links' => $links,
-      );
+      ];
     }
 
-    $form['comments'] = array(
+    $form['comments'] = [
       '#type' => 'tableselect',
       '#header' => $header,
       '#options' => $options,
       '#empty' => $this->t('No comments available.'),
-    );
+    ];
 
-    $form['pager'] = array('#type' => 'pager');
+    $form['pager'] = ['#type' => 'pager'];
 
     return $form;
   }
@@ -242,7 +252,7 @@ class CommentAdminOverview extends FormBase {
    * {@inheritdoc}
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
-    $form_state->setValue('comments', array_diff($form_state->getValue('comments'), array(0)));
+    $form_state->setValue('comments', array_diff($form_state->getValue('comments'), [0]));
     // We can't execute any 'Update options' if no comments were selected.
     if (count($form_state->getValue('comments')) == 0) {
       $form_state->setErrorByName('', $this->t('Select one or more comments to perform the update on.'));
@@ -255,23 +265,33 @@ class CommentAdminOverview extends FormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $operation = $form_state->getValue('operation');
     $cids = $form_state->getValue('comments');
-
-    foreach ($cids as $cid) {
-      // Delete operation handled in \Drupal\comment\Form\ConfirmDeleteMultiple
-      // see \Drupal\comment\Controller\AdminController::adminPage().
-      if ($operation == 'unpublish') {
-        $comment = $this->commentStorage->load($cid);
-        $comment->setPublished(FALSE);
+    /** @var \Drupal\comment\CommentInterface[] $comments */
+    $comments = $this->commentStorage->loadMultiple($cids);
+    if ($operation != 'delete') {
+      foreach ($comments as $comment) {
+        if ($operation == 'unpublish') {
+          $comment->setUnpublished();
+        }
+        elseif ($operation == 'publish') {
+          $comment->setPublished();
+        }
         $comment->save();
       }
-      elseif ($operation == 'publish') {
-        $comment = $this->commentStorage->load($cid);
-        $comment->setPublished(TRUE);
-        $comment->save();
-      }
+      drupal_set_message($this->t('The update has been performed.'));
+      $form_state->setRedirect('comment.admin');
     }
-    drupal_set_message($this->t('The update has been performed.'));
-    $form_state->setRedirect('comment.admin');
+    else {
+      $info = [];
+      /** @var \Drupal\comment\CommentInterface $comment */
+      foreach ($comments as $comment) {
+        $langcode = $comment->language()->getId();
+        $info[$comment->id()][$langcode] = $langcode;
+      }
+      $this->tempStoreFactory
+        ->get('comment_multiple_delete_confirm')
+        ->set($this->currentUser()->id(), $info);
+      $form_state->setRedirect('comment.multiple_delete_confirm');
+    }
   }
 
 }

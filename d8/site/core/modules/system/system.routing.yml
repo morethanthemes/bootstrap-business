@@ -22,6 +22,14 @@ system.404:
   requirements:
     _access: 'TRUE'
 
+system.4xx:
+  path: '/system/4xx'
+  defaults:
+    _controller: '\Drupal\system\Controller\Http4xxController:on4xx'
+    _title: 'Client error'
+  requirements:
+    _access: 'TRUE'
+
 system.admin:
   path: '/admin'
   defaults:
@@ -460,8 +468,6 @@ system.batch_page.html:
     _format: 'html'
   options:
     _admin_route: TRUE
-    # @todo Remove the '_no_big_pipe' route option when https://www.drupal.org/node/2589967 lands.
-    _no_big_pipe: TRUE
 
 system.batch_page.json:
   path: '/batch'

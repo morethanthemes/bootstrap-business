@@ -5,7 +5,7 @@ namespace Drupal\quickedit;
 use Drupal\Component\Plugin\PluginManagerInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Field\FieldItemListInterface;
-use Drupal\quickedit\Access\EditEntityFieldAccessCheckInterface;
+use Drupal\quickedit\Access\QuickEditEntityFieldAccessCheckInterface;
 use Drupal\Core\Entity\Entity\EntityViewDisplay;
 
 /**
@@ -16,7 +16,7 @@ class MetadataGenerator implements MetadataGeneratorInterface {
   /**
    * An object that checks if a user has access to edit a given entity field.
    *
-   * @var \Drupal\quickedit\Access\EditEntityFieldAccessCheckInterface
+   * @var \Drupal\quickedit\Access\QuickEditEntityFieldAccessCheckInterface
    */
   protected $accessChecker;
 
@@ -37,14 +37,14 @@ class MetadataGenerator implements MetadataGeneratorInterface {
   /**
    * Constructs a new MetadataGenerator.
    *
-   * @param \Drupal\quickedit\Access\EditEntityFieldAccessCheckInterface $access_checker
+   * @param \Drupal\quickedit\Access\QuickEditEntityFieldAccessCheckInterface $access_checker
    *   An object that checks if a user has access to edit a given field.
    * @param \Drupal\quickedit\EditorSelectorInterface $editor_selector
    *   An object that determines which editor to attach to a given field.
    * @param \Drupal\Component\Plugin\PluginManagerInterface $editor_manager
    *   The manager for editor plugins.
    */
-  public function __construct(EditEntityFieldAccessCheckInterface $access_checker, EditorSelectorInterface $editor_selector, PluginManagerInterface $editor_manager) {
+  public function __construct(QuickEditEntityFieldAccessCheckInterface $access_checker, EditorSelectorInterface $editor_selector, PluginManagerInterface $editor_manager) {
     $this->accessChecker = $access_checker;
     $this->editorSelector = $editor_selector;
     $this->editorManager = $editor_manager;
@@ -54,9 +54,9 @@ class MetadataGenerator implements MetadataGeneratorInterface {
    * {@inheritdoc}
    */
   public function generateEntityMetadata(EntityInterface $entity) {
-    return array(
+    return [
       'label' => $entity->label(),
-    );
+    ];
   }
 
   /**
@@ -69,24 +69,24 @@ class MetadataGenerator implements MetadataGeneratorInterface {
     // Early-return if user does not have access.
     $access = $this->accessChecker->accessEditEntityField($entity, $field_name);
     if (!$access) {
-      return array('access' => FALSE);
+      return ['access' => FALSE];
     }
 
     // Early-return if no editor is available.
     $formatter_id = EntityViewDisplay::collectRenderDisplay($entity, $view_mode)->getRenderer($field_name)->getPluginId();
     $editor_id = $this->editorSelector->getEditor($formatter_id, $items);
     if (!isset($editor_id)) {
-      return array('access' => FALSE);
+      return ['access' => FALSE];
     }
 
     // Gather metadata, allow the editor to add additional metadata of its own.
     $label = $items->getFieldDefinition()->getLabel();
     $editor = $this->editorManager->createInstance($editor_id);
-    $metadata = array(
+    $metadata = [
       'label' => $label,
       'access' => TRUE,
       'editor' => $editor_id,
-    );
+    ];
     $custom_metadata = $editor->getMetadata($items);
     if (count($custom_metadata)) {
       $metadata['custom'] = $custom_metadata;

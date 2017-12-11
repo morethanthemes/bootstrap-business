@@ -52,7 +52,7 @@ class EntityFormTest extends UnitTestCase {
   public function testFormId($expected, $definition) {
     $this->entityType->set('entity_keys', ['bundle' => $definition['bundle']]);
 
-    $entity = $this->getMockForAbstractClass('Drupal\Core\Entity\Entity', array(array(), $definition['entity_type']), '', TRUE, TRUE, TRUE, array('getEntityType', 'bundle'));
+    $entity = $this->getMockForAbstractClass('Drupal\Core\Entity\Entity', [[], $definition['entity_type']], '', TRUE, TRUE, TRUE, ['getEntityType', 'bundle']);
 
     $entity->expects($this->any())
       ->method('getEntityType')
@@ -71,33 +71,38 @@ class EntityFormTest extends UnitTestCase {
    * Provides test data for testFormId().
    */
   public function providerTestFormIds() {
-    return array(
-      array('node_article_form', array(
-        'entity_type' => 'node',
-        'bundle' => 'article',
-        'operation' => 'default',
-      )),
-      array('node_article_delete_form', array(
-        'entity_type' => 'node',
-        'bundle' => 'article',
-        'operation' => 'delete',
-      )),
-      array('user_user_form', array(
-        'entity_type' => 'user',
-        'bundle' => 'user',
-        'operation' => 'default',
-      )),
-      array('user_form', array(
-        'entity_type' => 'user',
-        'bundle' => '',
-        'operation' => 'default',
-      )),
-      array('user_delete_form', array(
-        'entity_type' => 'user',
-        'bundle' => '',
-        'operation' => 'delete',
-      )),
-    );
+    return [
+      ['node_article_form', [
+          'entity_type' => 'node',
+          'bundle' => 'article',
+          'operation' => 'default',
+        ],
+      ],
+      ['node_article_delete_form', [
+          'entity_type' => 'node',
+          'bundle' => 'article',
+          'operation' => 'delete',
+        ],
+      ],
+      ['user_user_form', [
+          'entity_type' => 'user',
+          'bundle' => 'user',
+          'operation' => 'default',
+        ],
+      ],
+      ['user_form', [
+          'entity_type' => 'user',
+          'bundle' => '',
+          'operation' => 'default',
+        ],
+      ],
+      ['user_delete_form', [
+          'entity_type' => 'user',
+          'bundle' => '',
+          'operation' => 'delete',
+        ],
+      ],
+    ];
   }
 
   /**

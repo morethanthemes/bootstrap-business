@@ -39,14 +39,14 @@ abstract class ReadOnlyStream implements StreamWrapperInterface {
   /**
    * {@inheritdoc}
    */
-  function setUri($uri) {
+  public function setUri($uri) {
     $this->uri = $uri;
   }
 
   /**
    * {@inheritdoc}
    */
-  function getUri() {
+  public function getUri() {
     return $this->uri;
   }
 
@@ -71,7 +71,7 @@ abstract class ReadOnlyStream implements StreamWrapperInterface {
    * @see http://php.net/manual/streamwrapper.stream-open.php
    */
   public function stream_open($uri, $mode, $options, &$opened_path) {
-    if (!in_array($mode, array('r', 'rb', 'rt'))) {
+    if (!in_array($mode, ['r', 'rb', 'rt'])) {
       if ($options & STREAM_REPORT_ERRORS) {
         trigger_error('stream_open() write modes not supported for read-only stream wrappers', E_USER_WARNING);
       }
@@ -111,11 +111,11 @@ abstract class ReadOnlyStream implements StreamWrapperInterface {
    * @see http://php.net/manual/streamwrapper.stream-lock.php
    */
   public function stream_lock($operation) {
-    if (in_array($operation, array(LOCK_EX, LOCK_EX | LOCK_NB))) {
+    if (in_array($operation, [LOCK_EX, LOCK_EX | LOCK_NB])) {
       trigger_error('stream_lock() exclusive lock operations not supported for read-only stream wrappers', E_USER_WARNING);
       return FALSE;
     }
-    if (in_array($operation, array(LOCK_SH, LOCK_UN, LOCK_SH | LOCK_NB))) {
+    if (in_array($operation, [LOCK_SH, LOCK_UN, LOCK_SH | LOCK_NB])) {
       return flock($this->handle, $operation);
     }
 
@@ -199,7 +199,7 @@ abstract class ReadOnlyStream implements StreamWrapperInterface {
    *
    * This file will not be renamed as this is a read-only stream wrapper.
    *
-   * @param string $from_uri,
+   * @param string $from_uri
    *   The uri to the file to rename.
    * @param string $to_uri
    *   The new uri for file.

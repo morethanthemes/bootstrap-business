@@ -92,7 +92,7 @@ class GotoAction extends ConfigurableActionBase implements ContainerFactoryPlugi
       $url = $this->unroutedUrlAssembler->assemble($uri, $options);
     }
     $response = new RedirectResponse($url);
-    $listener = function($event) use ($response) {
+    $listener = function ($event) use ($response) {
       $event->setResponse($response);
     };
     // Add the listener to the event dispatcher.
@@ -103,22 +103,22 @@ class GotoAction extends ConfigurableActionBase implements ContainerFactoryPlugi
    * {@inheritdoc}
    */
   public function defaultConfiguration() {
-    return array(
+    return [
       'url' => '',
-    );
+    ];
   }
 
   /**
    * {@inheritdoc}
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
-    $form['url'] = array(
+    $form['url'] = [
       '#type' => 'textfield',
       '#title' => t('URL'),
-      '#description' => t('The URL to which the user should be redirected. This can be an internal URL like /node/1234 or an external URL like @url.', array('@url' => 'http://example.com')),
+      '#description' => t('The URL to which the user should be redirected. This can be an internal URL like /node/1234 or an external URL like @url.', ['@url' => 'http://example.com']),
       '#default_value' => $this->configuration['url'],
       '#required' => TRUE,
-    );
+    ];
     return $form;
   }
 

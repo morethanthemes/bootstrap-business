@@ -89,7 +89,7 @@ class ContextTest extends UnitTestCase {
   public function testSetContextValueTypedData() {
 
     $this->contextDefinition = $this->getMockBuilder('Drupal\Core\Plugin\Context\ContextDefinitionInterface')
-      ->setMethods(array('getDefaultValue', 'getDataDefinition'))
+      ->setMethods(['getDefaultValue', 'getDataDefinition'])
       ->getMockForAbstractClass();
 
     $typed_data = $this->getMock('Drupal\Core\TypedData\TypedDataInterface');
@@ -144,7 +144,7 @@ class ContextTest extends UnitTestCase {
     $mock_data_definition = $this->getMock('Drupal\Core\TypedData\DataDefinitionInterface');
 
     $this->contextDefinition = $this->getMockBuilder('Drupal\Core\Plugin\Context\ContextDefinitionInterface')
-      ->setMethods(array('getDefaultValue', 'getDataDefinition'))
+      ->setMethods(['getDefaultValue', 'getDataDefinition'])
       ->getMockForAbstractClass();
 
     $this->contextDefinition->expects($this->once())
@@ -168,4 +168,4 @@ class ContextTest extends UnitTestCase {
 /**
  * Test interface used for mocking.
  */
-interface TypedDataCacheableDependencyInterface extends CacheableDependencyInterface, TypedDataInterface { }
+interface TypedDataCacheableDependencyInterface extends CacheableDependencyInterface, TypedDataInterface {}

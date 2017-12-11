@@ -133,23 +133,6 @@ class PageCache implements HttpKernelInterface {
       $response->setPrivate();
     }
 
-    // Negotiate whether to use compression.
-    if (extension_loaded('zlib') && $response->headers->get('Content-Encoding') === 'gzip') {
-      if (strpos($request->headers->get('Accept-Encoding'), 'gzip') !== FALSE) {
-        // The response content is already gzip'ed, so make sure
-        // zlib.output_compression does not compress it once more.
-        ini_set('zlib.output_compression', '0');
-      }
-      else {
-        // The client does not support compression. Decompress the content and
-        // remove the Content-Encoding header.
-        $content = $response->getContent();
-        $content = gzinflate(substr(substr($content, 10), 0, -8));
-        $response->setContent($content);
-        $response->headers->remove('Content-Encoding');
-      }
-    }
-
     // Perform HTTP revalidation.
     // @todo Use Response::isNotModified() as
     //   per https://www.drupal.org/node/2259489.
@@ -160,15 +143,17 @@ class PageCache implements HttpKernelInterface {
       $if_none_match = $request->server->has('HTTP_IF_NONE_MATCH') ? stripslashes($request->server->get('HTTP_IF_NONE_MATCH')) : FALSE;
 
       if ($if_modified_since && $if_none_match
-        && $if_none_match == $response->getEtag() // etag must match
-        && $if_modified_since == $last_modified->getTimestamp()) {  // if-modified-since must match
+        // etag must match.
+        && $if_none_match == $response->getEtag()
+        // if-modified-since must match.
+        && $if_modified_since == $last_modified->getTimestamp()) {
         $response->setStatusCode(304);
         $response->setContent(NULL);
 
         // In the case of a 304 response, certain headers must be sent, and the
         // remaining may not (see RFC 2616, section 10.3.5).
         foreach (array_keys($response->headers->all()) as $name) {
-          if (!in_array($name, array('content-location', 'expires', 'cache-control', 'vary'))) {
+          if (!in_array($name, ['content-location', 'expires', 'cache-control', 'vary'])) {
             $response->headers->remove($name);
           }
         }
@@ -180,14 +165,6 @@ class PageCache implements HttpKernelInterface {
 
   /**
    * Fetches a response from the backend and stores it in the cache.
-   *
-   * If page_compression is enabled, a gzipped version of the page is stored in
-   * the cache to avoid compressing the output on each request. The cache entry
-   * is unzipped in the relatively rare event that the page is requested by a
-   * client without gzip support.
-   *
-   * Page compression requires the PHP zlib extension
-   * (http://php.net/manual/ref.zlib.php).
    *
    * @see drupal_page_header()
    *
@@ -206,6 +183,26 @@ class PageCache implements HttpKernelInterface {
     /** @var \Symfony\Component\HttpFoundation\Response $response */
     $response = $this->httpKernel->handle($request, $type, $catch);
 
+    // Only set the 'X-Drupal-Cache' header if caching is allowed for this
+    // response.
+    if ($this->storeResponse($request, $response)) {
+      $response->headers->set('X-Drupal-Cache', 'MISS');
+    }
+
+    return $response;
+  }
+
+  /**
+   * Stores a response in the page cache.
+   *
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   A request object.
+   * @param \Symfony\Component\HttpFoundation\Response $response
+   *   A response object that should be stored in the page cache.
+   *
+   * @returns bool
+   */
+  protected function storeResponse(Request $request, Response $response) {
     // Drupal's primary cache invalidation architecture is cache tags: any
     // response that varies by a configuration value or data in a content
     // entity should have cache tags, to allow for instant cache invalidation
@@ -228,7 +225,7 @@ class PageCache implements HttpKernelInterface {
     //   so by replacing/extending this middleware service or adding another
     //   one.
     if (!$response instanceof CacheableResponseInterface) {
-      return $response;
+      return FALSE;
     }
 
     // Currently it is not possible to cache binary file or streamed responses:
@@ -236,12 +233,12 @@ class PageCache implements HttpKernelInterface {
     // Therefore exclude them, even for subclasses that implement
     // CacheableResponseInterface.
     if ($response instanceof BinaryFileResponse || $response instanceof StreamedResponse) {
-      return $response;
+      return FALSE;
     }
 
     // Allow policy rules to further restrict which responses to cache.
     if ($this->responsePolicy->check($response, $request) === ResponsePolicyInterface::DENY) {
-      return $response;
+      return FALSE;
     }
 
     $request_time = $request->server->get('REQUEST_TIME');
@@ -263,9 +260,14 @@ class PageCache implements HttpKernelInterface {
         $expire = $request_time + $cache_ttl_4xx;
       }
     }
-    else {
-      $date = $response->getExpires()->getTimestamp();
+    // The getExpires method could return NULL if Expires header is not set, so
+    // the returned value needs to be checked before calling getTimestamp.
+    elseif ($expires = $response->getExpires()) {
+      $date = $expires->getTimestamp();
       $expire = ($date > $request_time) ? $date : Cache::PERMANENT;
+    }
+    else {
+      $expire = Cache::PERMANENT;
     }
 
     if ($expire === Cache::PERMANENT || $expire > $request_time) {
@@ -273,10 +275,7 @@ class PageCache implements HttpKernelInterface {
       $this->set($request, $response, $expire, $tags);
     }
 
-    // Mark response as a cache miss.
-    $response->headers->set('X-Drupal-Cache', 'MISS');
-
-    return $response;
+    return TRUE;
   }
 
   /**
@@ -340,10 +339,10 @@ class PageCache implements HttpKernelInterface {
    *   The cache ID for this request.
    */
   protected function getCacheId(Request $request) {
-    $cid_parts = array(
-      $request->getUri(),
+    $cid_parts = [
+      $request->getSchemeAndHttpHost() . $request->getRequestUri(),
       $request->getRequestFormat(),
-    );
+    ];
     return implode(':', $cid_parts);
   }
 

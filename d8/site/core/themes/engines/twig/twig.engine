@@ -13,7 +13,7 @@ use Drupal\Core\Extension\Extension;
  * Implements hook_theme().
  */
 function twig_theme($existing, $type, $theme, $path) {
-  $templates = drupal_find_theme_functions($existing, array($theme));
+  $templates = drupal_find_theme_functions($existing, [$theme]);
   $templates += drupal_find_theme_templates($existing, '.html.twig', $path);
   return $templates;
 }
@@ -128,7 +128,7 @@ function twig_render_template($template_file, array $variables) {
  *
  * @param array|object $element
  *   The parent renderable array to exclude the child items.
- * @param string[] $args, ...
+ * @param string[] ...
  *   The string keys of $element to prevent printing.
  *
  * @return array

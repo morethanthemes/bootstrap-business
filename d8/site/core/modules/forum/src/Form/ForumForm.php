@@ -29,9 +29,8 @@ class ForumForm extends TermForm {
    * {@inheritdoc}
    */
   public function form(array $form, FormStateInterface $form_state) {
-    $taxonomy_term = $this->entity;
     // Build the bulk of the form from the parent taxonomy term form.
-    $form = parent::form($form, $form_state, $taxonomy_term);
+    $form = parent::form($form, $form_state);
 
     // Set the title and description of the name field.
     $form['name']['#title'] = $this->t('Forum name');
@@ -48,9 +47,9 @@ class ForumForm extends TermForm {
 
     // Our parent field is different to the taxonomy term.
     $form['parent']['#tree'] = TRUE;
-    $form['parent'][0] = $this->forumParentSelect($taxonomy_term->id(), $this->t('Parent'));
+    $form['parent'][0] = $this->forumParentSelect($this->entity->id(), $this->t('Parent'));
 
-    $form['#theme_wrappers'] = array('form__forum');
+    $form['#theme_wrappers'] = ['form__forum'];
     $this->forumFormType = $this->t('forum');
     return $form;
   }
@@ -62,7 +61,7 @@ class ForumForm extends TermForm {
     $term = parent::buildEntity($form, $form_state);
 
     // Assign parents from forum parent select field.
-    $term->parent = array($form_state->getValue(array('parent', 0)));
+    $term->parent = [$form_state->getValue(['parent', 0])];
 
     return $term;
   }
@@ -81,14 +80,14 @@ class ForumForm extends TermForm {
     $view_link = $term->link($term->getName());
     switch ($status) {
       case SAVED_NEW:
-        drupal_set_message($this->t('Created new @type %term.', array('%term' => $view_link, '@type' => $this->forumFormType)));
-        $this->logger('forum')->notice('Created new @type %term.', array('%term' => $term->getName(), '@type' => $this->forumFormType, 'link' => $link));
+        drupal_set_message($this->t('Created new @type %term.', ['%term' => $view_link, '@type' => $this->forumFormType]));
+        $this->logger('forum')->notice('Created new @type %term.', ['%term' => $term->getName(), '@type' => $this->forumFormType, 'link' => $link]);
         $form_state->setValue('tid', $term->id());
         break;
 
       case SAVED_UPDATED:
-        drupal_set_message($this->t('The @type %term has been updated.', array('%term' => $term->getName(), '@type' => $this->forumFormType)));
-        $this->logger('forum')->notice('Updated @type %term.', array('%term' => $term->getName(), '@type' => $this->forumFormType, 'link' => $link));
+        drupal_set_message($this->t('The @type %term has been updated.', ['%term' => $term->getName(), '@type' => $this->forumFormType]));
+        $this->logger('forum')->notice('Updated @type %term.', ['%term' => $term->getName(), '@type' => $this->forumFormType, 'link' => $link]);
         break;
     }
 
@@ -155,14 +154,14 @@ class ForumForm extends TermForm {
 
     $description = $this->t('Forums may be placed at the top (root) level, or inside another container or forum.');
 
-    return array(
+    return [
       '#type' => 'select',
       '#title' => $title,
       '#default_value' => $parent,
       '#options' => $options,
       '#description' => $description,
       '#required' => TRUE,
-    );
+    ];
   }
 
 }

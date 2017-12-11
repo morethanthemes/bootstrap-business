@@ -88,10 +88,10 @@ class ConfigTest extends ConfigEntityBase implements ConfigTestInterface {
   public function postSave(EntityStorageInterface $storage, $update = TRUE) {
     // Used to test secondary writes during config sync.
     if ($this->id() == 'primary') {
-      $secondary = $storage->create(array(
+      $secondary = $storage->create([
         'id' => 'secondary',
         'label' => 'Secondary Default',
-      ));
+      ]);
       $secondary->save();
     }
     if ($this->id() == 'deleter') {
@@ -117,16 +117,19 @@ class ConfigTest extends ConfigEntityBase implements ConfigTestInterface {
    * {@inheritdoc}
    */
   public function onDependencyRemoval(array $dependencies) {
-    // Record which entities have this method called on.
+    // Record which entities have this method called on and what dependencies
+    // are passed.
     $called = \Drupal::state()->get('config_test.on_dependency_removal_called', []);
-    $called[] = $this->id();
+    $called[$this->id()] = $dependencies;
+    $called[$this->id()]['config'] = array_keys($called[$this->id()]['config']);
+    $called[$this->id()]['content'] = array_keys($called[$this->id()]['content']);
     \Drupal::state()->set('config_test.on_dependency_removal_called', $called);
 
     $changed = parent::onDependencyRemoval($dependencies);
     if (!isset($this->dependencies['enforced']['config'])) {
       return $changed;
     }
-    $fix_deps = \Drupal::state()->get('config_test.fix_dependencies', array());
+    $fix_deps = \Drupal::state()->get('config_test.fix_dependencies', []);
     foreach ($dependencies['config'] as $entity) {
       if (in_array($entity->getConfigDependencyName(), $fix_deps)) {
         $key = array_search($entity->getConfigDependencyName(), $this->dependencies['enforced']['config']);
@@ -135,6 +138,10 @@ class ConfigTest extends ConfigEntityBase implements ConfigTestInterface {
           unset($this->dependencies['enforced']['config'][$key]);
         }
       }
+    }
+    // If any of the dependencies removed still exists, return FALSE.
+    if (array_intersect_key(array_flip($this->dependencies['enforced']['config']), $dependencies['config'])) {
+      return FALSE;
     }
     return $changed;
   }

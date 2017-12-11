@@ -11,6 +11,7 @@ use Drupal\migrate\Row;
  *
  * @MigrateSource(
  *   id = "menu_link",
+ *   source_module = "menu"
  * )
  */
 class MenuLink extends DrupalSqlBase {
@@ -39,7 +40,7 @@ class MenuLink extends DrupalSqlBase {
    * {@inheritdoc}
    */
   public function fields() {
-    return array(
+    return [
       'menu_name' => t("The menu name. All links with the same menu name (such as 'navigation') are part of the same menu."),
       'mlid' => t('The menu link ID (mlid) is the integer primary key.'),
       'plid' => t('The parent link ID (plid) is the mlid of the link above in the hierarchy, or zero if the link is at the top level in its menu.'),
@@ -65,7 +66,7 @@ class MenuLink extends DrupalSqlBase {
       'p8' => t('The eighth mlid in the materialized path. See p1.'),
       'p9' => t('The ninth mlid in the materialized path. See p1.'),
       'updated' => t('Flag that indicates that this link was generated during the update from Drupal 5.'),
-    );
+    ];
   }
 
   /**

@@ -7,6 +7,8 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\EntityTypeRepository;
+use Drupal\Core\Entity\Exception\AmbiguousEntityClassException;
+use Drupal\Core\Entity\Exception\NoCorrespondingEntityClassException;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
 
@@ -71,7 +73,9 @@ class EntityTypeRepositoryTest extends UnitTestCase {
         elseif (!$exception_on_invalid) {
           return NULL;
         }
-        else throw new PluginNotFoundException($entity_type_id);
+        else {
+          throw new PluginNotFoundException($entity_type_id);
+        }
       });
     $this->entityTypeManager->getDefinitions()->willReturn($definitions);
   }
@@ -130,9 +134,6 @@ class EntityTypeRepositoryTest extends UnitTestCase {
 
   /**
    * @covers ::getEntityTypeFromClass
-   *
-   * @expectedException \Drupal\Core\Entity\Exception\NoCorrespondingEntityClassException
-   * @expectedExceptionMessage The \Drupal\pear\Entity\Pear class does not correspond to an entity type.
    */
   public function testGetEntityTypeFromClassNoMatch() {
     $apple = $this->prophesize(EntityTypeInterface::class);
@@ -146,14 +147,12 @@ class EntityTypeRepositoryTest extends UnitTestCase {
     $apple->getOriginalClass()->willReturn('\Drupal\apple\Entity\Apple');
     $banana->getOriginalClass()->willReturn('\Drupal\banana\Entity\Banana');
 
+    $this->setExpectedException(NoCorrespondingEntityClassException::class, 'The \Drupal\pear\Entity\Pear class does not correspond to an entity type.');
     $this->entityTypeRepository->getEntityTypeFromClass('\Drupal\pear\Entity\Pear');
   }
 
   /**
    * @covers ::getEntityTypeFromClass
-   *
-   * @expectedException \Drupal\Core\Entity\Exception\AmbiguousEntityClassException
-   * @expectedExceptionMessage Multiple entity types found for \Drupal\apple\Entity\Apple.
    */
   public function testGetEntityTypeFromClassAmbiguous() {
     $boskoop = $this->prophesize(EntityTypeInterface::class);
@@ -169,6 +168,7 @@ class EntityTypeRepositoryTest extends UnitTestCase {
       'gala' => $gala,
     ]);
 
+    $this->setExpectedException(AmbiguousEntityClassException::class, 'Multiple entity types found for \Drupal\apple\Entity\Apple.');
     $this->entityTypeRepository->getEntityTypeFromClass('\Drupal\apple\Entity\Apple');
   }
 
