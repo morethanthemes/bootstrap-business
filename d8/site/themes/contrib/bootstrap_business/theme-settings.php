@@ -70,7 +70,7 @@ function bootstrap_business_form_system_theme_settings_alter(&$form, &$form_stat
    '#markup' =>
    '<div class="theme-settings-title">'.t("Check Our Premium themes").'</div>
    <div class="theme-settings-image-wrapper">
-   <a href="http://morethanthemes.com//drupal-themes?utm_source=bootstrap-business-demo&utm_medium=theme-settings&utm_campaign=free-themes" target="_blank">
+   <a href="http://morethanthemes.com/drupal-themes?utm_source=bootstrap-business-demo&utm_medium=theme-settings&utm_campaign=free-themes" target="_blank">
    <img src="' . base_path() . drupal_get_path('theme', 'bootstrap_business') . '/images/premium.jpg" />
    </a></div> ',
   );
