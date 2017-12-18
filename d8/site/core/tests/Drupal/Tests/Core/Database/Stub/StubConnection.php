@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Database\Stub\StubConnection.
- */
-
 namespace Drupal\Tests\Core\Database\Stub;
 
 use Drupal\Core\Database\Connection;
@@ -28,14 +23,14 @@ class StubConnection extends Connection {
   /**
    * {@inheritdoc}
    */
-  public function queryRange($query, $from, $count, array $args = array(), array $options = array()) {
+  public function queryRange($query, $from, $count, array $args = [], array $options = []) {
     return new StatementEmpty();
   }
 
   /**
    * {@inheritdoc}
    */
-  public function queryTemporary($query, array $args = array(), array $options = array()) {
+  public function queryTemporary($query, array $args = [], array $options = []) {
     return '';
   }
 

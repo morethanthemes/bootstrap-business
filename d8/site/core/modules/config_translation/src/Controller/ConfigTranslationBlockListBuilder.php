@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\config_translation\Controller\ConfigTranslationBlockListBuilder.
- */
-
 namespace Drupal\config_translation\Controller;
 
 use Drupal\Core\Entity\EntityInterface;
@@ -23,7 +18,7 @@ class ConfigTranslationBlockListBuilder extends ConfigTranslationEntityListBuild
    *
    * @var array
    */
-  protected $themes = array();
+  protected $themes = [];
 
   /**
    * {@inheritdoc}
@@ -63,20 +58,20 @@ class ConfigTranslationBlockListBuilder extends ConfigTranslationEntityListBuild
     $theme = $entity->getTheme();
     $plugin_definition = $entity->getPlugin()->getPluginDefinition();
 
-    $row['label'] = array(
+    $row['label'] = [
       'data' => $entity->label(),
       'class' => 'table-filter-text-source',
-    );
+    ];
 
-    $row['theme'] = array(
+    $row['theme'] = [
       'data' => $this->themes[$theme]->info['name'],
       'class' => 'table-filter-text-source',
-    );
+    ];
 
-    $row['category'] = array(
+    $row['category'] = [
       'data' => $plugin_definition['category'],
       'class' => 'table-filter-text-source',
-    );
+    ];
 
     $row['operations']['data'] = $this->buildOperations($entity);
 
@@ -98,7 +93,7 @@ class ConfigTranslationBlockListBuilder extends ConfigTranslationEntityListBuild
    * {@inheritdoc}
    */
   public function sortRows($a, $b) {
-    return $this->sortRowsMultiple($a, $b, array('theme', 'category', 'label'));
+    return $this->sortRowsMultiple($a, $b, ['theme', 'category', 'label']);
   }
 
 }

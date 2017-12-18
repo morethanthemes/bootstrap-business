@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\config_translation\Controller\ConfigTranslationMapperList.
- */
-
 namespace Drupal\config_translation\Controller;
 
 use Drupal\config_translation\ConfigMapperInterface;
@@ -51,13 +46,13 @@ class ConfigTranslationMapperList extends ControllerBase {
    *   Renderable array with config translation mappers.
    */
   public function render() {
-    $build = array(
+    $build = [
       '#type' => 'table',
       '#header' => $this->buildHeader(),
-      '#rows' => array(),
-    );
+      '#rows' => [],
+    ];
 
-    $mappers = array();
+    $mappers = [];
 
     foreach ($this->mappers as $mapper) {
       if ($row = $this->buildRow($mapper)) {
@@ -125,10 +120,10 @@ class ConfigTranslationMapperList extends ControllerBase {
     // Retrieve and sort operations.
     $operations = $mapper->getOperations();
     uasort($operations, 'Drupal\Component\Utility\SortArray::sortByWeightElement');
-    $build = array(
+    $build = [
       '#type' => 'operations',
       '#links' => $operations,
-    );
+    ];
     return $build;
   }
 

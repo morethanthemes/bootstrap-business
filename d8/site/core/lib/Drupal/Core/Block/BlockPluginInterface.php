@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Block\BlockPluginInterface.
- */
-
 namespace Drupal\Core\Block;
 
 use Drupal\Component\Plugin\DerivativeInspectionInterface;
@@ -26,6 +21,11 @@ use Drupal\Core\Session\AccountInterface;
  * @ingroup block_api
  */
 interface BlockPluginInterface extends ConfigurablePluginInterface, PluginFormInterface, PluginInspectionInterface, CacheableDependencyInterface, DerivativeInspectionInterface {
+
+  /**
+   * Indicates the block label (title) should be displayed to end users.
+   */
+  const BLOCK_LABEL_VISIBLE = 'visible';
 
   /**
    * Returns the user-facing block label.
@@ -102,7 +102,7 @@ interface BlockPluginInterface extends ConfigurablePluginInterface, PluginFormIn
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The current state of the form.
    *
-   * @return array $form
+   * @return array
    *   The renderable form array representing the entire configuration form.
    */
   public function blockForm($form, FormStateInterface $form_state);

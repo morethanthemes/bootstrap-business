@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\error_service_test\ErrorServiceTestServiceProvider.
- */
-
 namespace Drupal\error_service_test;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;
@@ -25,4 +20,5 @@ class ErrorServiceTestServiceProvider implements ServiceModifierInterface {
   public function alter(ContainerBuilder $container) {
     static::$containerBuilder = $container;
   }
+
 }

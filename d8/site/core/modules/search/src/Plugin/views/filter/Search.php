@@ -1,12 +1,8 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\search\Plugin\views\filter\Search.
- */
-
 namespace Drupal\search\Plugin\views\filter;
 
+use Drupal\Core\Database\Query\Condition;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\views\Plugin\views\filter\FilterPluginBase;
 use Drupal\views\Plugin\views\display\DisplayPluginBase;
@@ -38,6 +34,8 @@ class Search extends FilterPluginBase {
 
   /**
    * TRUE if the search query has been parsed.
+   *
+   * @var bool
    */
   protected $parsed = FALSE;
 
@@ -72,28 +70,28 @@ class Search extends FilterPluginBase {
    * {@inheritdoc}
    */
   protected function operatorForm(&$form, FormStateInterface $form_state) {
-    $form['operator'] = array(
+    $form['operator'] = [
       '#type' => 'radios',
       '#title' => $this->t('On empty input'),
       '#default_value' => $this->operator,
-      '#options' => array(
+      '#options' => [
         'optional' => $this->t('Show All'),
         'required' => $this->t('Show None'),
-      ),
-    );
+      ],
+    ];
   }
 
   /**
    * {@inheritdoc}
    */
   protected function valueForm(&$form, FormStateInterface $form_state) {
-    $form['value'] = array(
+    $form['value'] = [
       '#type' => 'textfield',
       '#size' => 15,
       '#default_value' => $this->value,
-      '#attributes' => array('title' => $this->t('Search keywords')),
+      '#attributes' => ['title' => $this->t('Search keywords')],
       '#title' => !$form_state->get('exposed') ? $this->t('Keywords') : '',
-    );
+    ];
   }
 
   /**
@@ -122,7 +120,7 @@ class Search extends FilterPluginBase {
   protected function queryParseSearchExpression($input) {
     if (!isset($this->searchQuery)) {
       $this->parsed = TRUE;
-      $this->searchQuery = db_select('search_index', 'i', array('target' => 'replica'))->extend('Drupal\search\ViewsSearchQuery');
+      $this->searchQuery = db_select('search_index', 'i', ['target' => 'replica'])->extend('Drupal\search\ViewsSearchQuery');
       $this->searchQuery->searchExpression($input, $this->searchType);
       $this->searchQuery->publicParseSearchExpression();
     }
@@ -155,28 +153,28 @@ class Search extends FilterPluginBase {
     else {
       $search_index = $this->ensureMyTable();
 
-      $search_condition = db_and();
+      $search_condition = new Condition('AND');
 
       // Create a new join to relate the 'search_total' table to our current
       // 'search_index' table.
-      $definition = array(
+      $definition = [
         'table' => 'search_total',
         'field' => 'word',
         'left_table' => $search_index,
         'left_field' => 'word',
-      );
+      ];
       $join = Views::pluginManager('join')->createInstance('standard', $definition);
       $search_total = $this->query->addRelationship('search_total', $join, $search_index);
 
       // Add the search score field to the query.
-      $this->search_score = $this->query->addField('', "$search_index.score * $search_total.count", 'score', array('function' => 'sum'));
+      $this->search_score = $this->query->addField('', "$search_index.score * $search_total.count", 'score', ['function' => 'sum']);
 
       // Add the conditions set up by the search query to the views query.
       $search_condition->condition("$search_index.type", $this->searchType);
       $search_dataset = $this->query->addTable('node_search_dataset');
       $conditions = $this->searchQuery->conditions();
       $condition_conditions =& $conditions->conditions();
-      foreach ($condition_conditions  as $key => &$condition) {
+      foreach ($condition_conditions as $key => &$condition) {
         // Make sure we just look at real conditions.
         if (is_numeric($key)) {
           // Replace the conditions with the table alias of views.
@@ -189,7 +187,7 @@ class Search extends FilterPluginBase {
       // Add the keyword conditions, as is done in
       // SearchQuery::prepareAndNormalize(), but simplified because we are
       // only concerned with relevance ranking so we do not need to normalize.
-      $or = db_or();
+      $or = new Condition('OR');
       foreach ($words as $word) {
         $or->condition("$search_index.word", $word);
       }
@@ -201,7 +199,7 @@ class Search extends FilterPluginBase {
       $this->query->addGroupBy("$search_index.sid");
       $matches = $this->searchQuery->matches();
       $placeholder = $this->placeholder();
-      $this->query->addHavingExpression($this->options['group'], "COUNT(*) >= $placeholder", array($placeholder => $matches));
+      $this->query->addHavingExpression($this->options['group'], "COUNT(*) >= $placeholder", [$placeholder => $matches]);
     }
     // Set to NULL to prevent PDO exception when views object is cached.
     $this->searchQuery = NULL;

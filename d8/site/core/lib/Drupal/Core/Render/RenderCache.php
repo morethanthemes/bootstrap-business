@@ -1,13 +1,7 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\RenderCache.
- */
-
 namespace Drupal\Core\Render;
 
-use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Cache\Context\CacheContextsManager;
@@ -67,9 +61,9 @@ class RenderCache implements RenderCacheInterface {
   public function get(array $elements) {
     // Form submissions rely on the form being built during the POST request,
     // and render caching of forms prevents this from happening.
-    // @todo remove the isMethodSafe() check when
+    // @todo remove the isMethodCacheable() check when
     //       https://www.drupal.org/node/2367555 lands.
-    if (!$this->requestStack->getCurrentRequest()->isMethodSafe() || !$cid = $this->createCacheID($elements)) {
+    if (!$this->requestStack->getCurrentRequest()->isMethodCacheable() || !$cid = $this->createCacheID($elements)) {
       return FALSE;
     }
     $bin = isset($elements['#cache']['bin']) ? $elements['#cache']['bin'] : 'render';
@@ -94,9 +88,9 @@ class RenderCache implements RenderCacheInterface {
   public function set(array &$elements, array $pre_bubbling_elements) {
     // Form submissions rely on the form being built during the POST request,
     // and render caching of forms prevents this from happening.
-    // @todo remove the isMethodSafe() check when
+    // @todo remove the isMethodCacheable() check when
     //       https://www.drupal.org/node/2367555 lands.
-    if (!$this->requestStack->getCurrentRequest()->isMethodSafe() || !$cid = $this->createCacheID($elements)) {
+    if (!$this->requestStack->getCurrentRequest()->isMethodCacheable() || !$cid = $this->createCacheID($elements)) {
       return FALSE;
     }
 
@@ -341,12 +335,6 @@ class RenderCache implements RenderCacheInterface {
     // the cache entry size.
     if (!empty($elements['#cache_properties']) && is_array($elements['#cache_properties'])) {
       $data['#cache_properties'] = $elements['#cache_properties'];
-      // Ensure that any safe strings are a Markup object.
-      foreach (Element::properties(array_flip($elements['#cache_properties'])) as $cache_property) {
-        if (isset($elements[$cache_property]) && is_scalar($elements[$cache_property]) && SafeMarkup::isSafe($elements[$cache_property])) {
-          $elements[$cache_property] = Markup::create($elements[$cache_property]);
-        }
-      }
 
       // Extract all the cacheable items from the element using cache
       // properties.

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Enables modules and site configuration for a standard site installation.
@@ -13,8 +14,6 @@ use Drupal\Core\Form\FormStateInterface;
  * Allows the profile to alter the site configuration form.
  */
 function standard_form_install_configure_form_alter(&$form, FormStateInterface $form_state) {
-  // Add a placeholder as example that one can choose an arbitrary site name.
-  $form['site_information']['site_name']['#attributes']['placeholder'] = t('My site');
   $form['#submit'][] = 'standard_form_install_configure_submit';
 }
 

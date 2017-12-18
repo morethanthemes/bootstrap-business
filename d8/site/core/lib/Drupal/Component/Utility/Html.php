@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\Utility\Html.
- */
-
 namespace Drupal\Component\Utility;
 
 /**
@@ -19,7 +14,7 @@ class Html {
    *
    * @var array
    */
-  protected static $classes = array();
+  protected static $classes = [];
 
   /**
    * An array of the initial IDs used in one request.
@@ -42,18 +37,39 @@ class Html {
   protected static $isAjax = FALSE;
 
   /**
+   * All attributes that may contain URIs.
+   *
+   * - The attributes 'code' and 'codebase' are omitted, because they only exist
+   *   for the <applet> tag. The time of Java applets has passed.
+   * - The attribute 'icon' is omitted, because no browser implements the
+   *   <command> tag anymore.
+   *  See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/command.
+   * - The 'manifest' attribute is omitted because it only exists for the <html>
+   *   tag. That tag only makes sense in a HTML-served-as-HTML context, in which
+   *   case relative URLs are guaranteed to work.
+   *
+   * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes
+   * @see https://stackoverflow.com/questions/2725156/complete-list-of-html-tag-attributes-which-have-a-url-value
+   *
+   * @var string[]
+   */
+  protected static $uriAttributes = ['href', 'poster', 'src', 'cite', 'data', 'action', 'formaction', 'srcset', 'about'];
+
+  /**
    * Prepares a string for use as a valid class name.
    *
    * Do not pass one string containing multiple classes as they will be
    * incorrectly concatenated with dashes, i.e. "one two" will become "one-two".
    *
-   * @param string $class
-   *   The class name to clean.
+   * @param mixed $class
+   *   The class name to clean. It can be a string or anything that can be cast
+   *   to string.
    *
    * @return string
    *   The cleaned class name.
    */
   public static function getClass($class) {
+    $class = (string) $class;
     if (!isset(static::$classes[$class])) {
       static::$classes[$class] = static::cleanCssIdentifier(Unicode::strtolower($class));
     }
@@ -75,13 +91,13 @@ class Html {
    * @return string
    *   The cleaned identifier.
    */
-  public static function cleanCssIdentifier($identifier, array $filter = array(
+  public static function cleanCssIdentifier($identifier, array $filter = [
     ' ' => '-',
     '_' => '-',
     '/' => '-',
     '[' => '-',
     ']' => '',
-  )) {
+  ]) {
     // We could also use strtr() here but its much slower than str_replace(). In
     // order to keep '__' to stay '__' we first replace it with a different
     // placeholder after checking that it is not defined as a filter.
@@ -106,10 +122,10 @@ class Html {
     // We strip out any character not in the above list.
     $identifier = preg_replace('/[^\x{002D}\x{0030}-\x{0039}\x{0041}-\x{005A}\x{005F}\x{0061}-\x{007A}\x{00A1}-\x{FFFF}]/u', '', $identifier);
     // Identifiers cannot start with a digit, two hyphens, or a hyphen followed by a digit.
-    $identifier = preg_replace(array(
+    $identifier = preg_replace([
       '/^[0-9]/',
       '/^(-[0-9])|^(--)/'
-    ), array('_', '__'), $identifier);
+    ], ['_', '__'], $identifier);
     return $identifier;
   }
 
@@ -162,7 +178,7 @@ class Html {
     // @todo Remove all that code once we switch over to random IDs only,
     // see https://www.drupal.org/node/1090592.
     if (!isset(static::$seenIdsInit)) {
-      static::$seenIdsInit = array();
+      static::$seenIdsInit = [];
     }
     if (!isset(static::$seenIds)) {
       static::$seenIds = static::$seenIdsInit;
@@ -265,7 +281,7 @@ EOD;
     // PHP's \DOMDocument serialization adds extra whitespace when the markup
     // of the wrapping document contains newlines, so ensure we remove all
     // newlines before injecting the actual HTML body to be processed.
-    $document = strtr($document, array("\n" => '', '!html' => $html));
+    $document = strtr($document, ["\n" => '', '!html' => $html]);
 
     $dom = new \DOMDocument();
     // Ignore warnings during HTML soup loading.
@@ -334,7 +350,7 @@ EOD;
         // Prevent invalid cdata escaping as this would throw a DOM error.
         // This is the same behavior as found in libxml2.
         // Related W3C standard: http://www.w3.org/TR/REC-xml/#dt-cdsection
-        // Fix explanation: http://en.wikipedia.org/wiki/CDATA#Nesting
+        // Fix explanation: http://wikipedia.org/wiki/CDATA#Nesting
         $data = str_replace(']]>', ']]]]><![CDATA[>', $child_node->data);
 
         $fragment = $node->ownerDocument->createDocumentFragment();
@@ -405,6 +421,63 @@ EOD;
    */
   public static function escape($text) {
     return htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+  }
+
+  /**
+   * Converts all root-relative URLs to absolute URLs.
+   *
+   * Does not change any existing protocol-relative or absolute URLs. Does not
+   * change other relative URLs because they would result in different absolute
+   * URLs depending on the current path. For example: when the same content
+   * containing such a relative URL (for example 'image.png'), is served from
+   * its canonical URL (for example 'http://example.com/some-article') or from
+   * a listing or feed (for example 'http://example.com/all-articles') their
+   * "current path" differs, resulting in different absolute URLs:
+   * 'http://example.com/some-article/image.png' versus
+   * 'http://example.com/all-articles/image.png'. Only one can be correct.
+   * Therefore relative URLs that are not root-relative cannot be safely
+   * transformed and should generally be avoided.
+   *
+   * Necessary for HTML that is served outside of a website, for example, RSS
+   * and e-mail.
+   *
+   * @param string $html
+   *   The partial (X)HTML snippet to load. Invalid markup will be corrected on
+   *   import.
+   * @param string $scheme_and_host
+   *   The root URL, which has a URI scheme, host and optional port.
+   *
+   * @return string
+   *   The updated (X)HTML snippet.
+   */
+  public static function transformRootRelativeUrlsToAbsolute($html, $scheme_and_host) {
+    assert('empty(array_diff(array_keys(parse_url($scheme_and_host)), ["scheme", "host", "port"]))', '$scheme_and_host contains scheme, host and port at most.');
+    assert('isset(parse_url($scheme_and_host)["scheme"])', '$scheme_and_host is absolute and hence has a scheme.');
+    assert('isset(parse_url($scheme_and_host)["host"])', '$base_url is absolute and hence has a host.');
+
+    $html_dom = Html::load($html);
+    $xpath = new \DOMXpath($html_dom);
+
+    // Update all root-relative URLs to absolute URLs in the given HTML.
+    foreach (static::$uriAttributes as $attr) {
+      foreach ($xpath->query("//*[starts-with(@$attr, '/') and not(starts-with(@$attr, '//'))]") as $node) {
+        $node->setAttribute($attr, $scheme_and_host . $node->getAttribute($attr));
+      }
+      foreach ($xpath->query("//*[@srcset]") as $node) {
+        // @see https://html.spec.whatwg.org/multipage/embedded-content.html#attr-img-srcset
+        // @see https://html.spec.whatwg.org/multipage/embedded-content.html#image-candidate-string
+        $image_candidate_strings = explode(',', $node->getAttribute('srcset'));
+        $image_candidate_strings = array_map('trim', $image_candidate_strings);
+        for ($i = 0; $i < count($image_candidate_strings); $i++) {
+          $image_candidate_string = $image_candidate_strings[$i];
+          if ($image_candidate_string[0] === '/' && $image_candidate_string[1] !== '/') {
+            $image_candidate_strings[$i] = $scheme_and_host . $image_candidate_string;
+          }
+        }
+        $node->setAttribute('srcset', implode(', ', $image_candidate_strings));
+      }
+    }
+    return Html::serialize($html_dom);
   }
 
 }

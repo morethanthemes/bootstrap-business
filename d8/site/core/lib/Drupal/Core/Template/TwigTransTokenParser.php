@@ -1,13 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Template\TwigTransTokenParser.
- *
- * @see http://twig.sensiolabs.org/doc/extensions/i18n.html
- * @see https://github.com/fabpot/Twig-extensions
- */
-
 namespace Drupal\Core\Template;
 
 /**
@@ -18,6 +10,8 @@ namespace Drupal\Core\Template;
  * into PHP code usable for runtime execution of the template.
  *
  * @see \Twig_TokenParser
+ * @see http://twig.sensiolabs.org/doc/extensions/i18n.html
+ * @see https://github.com/fabpot/Twig-extensions
  */
 class TwigTransTokenParser extends \Twig_TokenParser {
 
@@ -41,11 +35,11 @@ class TwigTransTokenParser extends \Twig_TokenParser {
     }
     if (!$body) {
       $stream->expect(\Twig_Token::BLOCK_END_TYPE);
-      $body = $this->parser->subparse(array($this, 'decideForFork'));
+      $body = $this->parser->subparse([$this, 'decideForFork']);
       if ('plural' === $stream->next()->getValue()) {
         $count = $this->parser->getExpressionParser()->parseExpression();
         $stream->expect(\Twig_Token::BLOCK_END_TYPE);
-        $plural = $this->parser->subparse(array($this, 'decideForEnd'), TRUE);
+        $plural = $this->parser->subparse([$this, 'decideForEnd'], TRUE);
       }
     }
 
@@ -62,7 +56,7 @@ class TwigTransTokenParser extends \Twig_TokenParser {
    * Detect a 'plural' switch or the end of a 'trans' tag.
    */
   public function decideForFork($token) {
-    return $token->test(array('plural', 'endtrans'));
+    return $token->test(['plural', 'endtrans']);
   }
 
   /**

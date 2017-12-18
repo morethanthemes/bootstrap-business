@@ -1,0 +1,12 @@
+name: 'Placeholder setting a message test'
+type: module
+description: 'Support module for PlaceholderMessageTest.'
+package: Testing
+# version: VERSION
+# core: 8.x
+
+# Information added by Drupal.org packaging script on 2017-12-06
+version: '8.4.3'
+core: '8.x'
+project: 'drupal'
+datestamp: 1512600826

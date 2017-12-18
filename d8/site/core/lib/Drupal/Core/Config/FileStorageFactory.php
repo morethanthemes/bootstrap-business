@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Config\FileStorageFactory.
- */
-
 namespace Drupal\Core\Config;
 
 /**
@@ -20,7 +15,7 @@ class FileStorageFactory {
    * @deprecated in Drupal 8.0.x and will be removed before 9.0.0. Drupal core
    * no longer creates an active directory.
    */
-  static function getActive() {
+  public static function getActive() {
     return new FileStorage(config_get_config_directory(CONFIG_ACTIVE_DIRECTORY));
   }
 
@@ -29,7 +24,7 @@ class FileStorageFactory {
    *
    * @return \Drupal\Core\Config\FileStorage FileStorage
    */
-  static function getSync() {
+  public static function getSync() {
     return new FileStorage(config_get_config_directory(CONFIG_SYNC_DIRECTORY));
   }
 

@@ -1,11 +1,8 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\PhpStorage\MTimeProtectedFastFileStorage.
- */
-
 namespace Drupal\Component\PhpStorage;
+
+use Drupal\Component\Utility\Crypt;
 
 /**
  * Stores PHP code in files with securely hashed names.
@@ -135,7 +132,7 @@ class MTimeProtectedFastFileStorage extends FileStorage {
     if (!isset($directory_mtime)) {
       $directory_mtime = file_exists($directory) ? filemtime($directory) : 0;
     }
-    return $directory . '/' . hash_hmac('sha256', $name, $this->secret . $directory_mtime) . '.php';
+    return $directory . '/' . Crypt::hmacBase64($name, $this->secret . $directory_mtime) . '.php';
   }
 
   /**
@@ -230,7 +227,7 @@ class MTimeProtectedFastFileStorage extends FileStorage {
    */
   protected function tempnam($directory, $prefix) {
     do {
-      $path = $directory . '/' . $prefix . substr(str_shuffle(hash('sha256', microtime())), 0, 10);
+      $path = $directory . '/' . $prefix . Crypt::randomBytesBase64(20);
     } while (file_exists($path));
     return $path;
   }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\path\tests\Kernel\PathNoCanonicalLinkTest.
- */
-
 namespace Drupal\Tests\path\Kernel;
 
 use Drupal\content_translation_test\Entity\EntityTestTranslatableUISkip;
@@ -23,14 +18,13 @@ class PathNoCanonicalLinkTest extends KernelTestBase {
    *
    * @var array
    */
-  public static $modules = array('path', 'content_translation_test', 'language', 'entity_test', 'user', 'system');
+  public static $modules = ['path', 'content_translation_test', 'language', 'entity_test', 'user', 'system'];
 
   protected function setUp() {
     parent::setUp();
 
     $this->installEntitySchema('entity_test');
     $this->installEntitySchema('entity_test_mul');
-    $this->installSchema('system', 'router');
     \Drupal::service('router.builder')->rebuild();
 
     // Adding german language.

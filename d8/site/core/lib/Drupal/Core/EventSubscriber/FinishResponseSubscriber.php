@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\EventSubscriber\FinishResponseSubscriber.
- */
-
 namespace Drupal\Core\EventSubscriber;
 
 use Drupal\Component\Datetime\DateTimePlus;
@@ -94,6 +89,21 @@ class FinishResponseSubscriber implements EventSubscriberInterface {
   }
 
   /**
+   * Sets extra headers on any responses, also subrequest ones.
+   *
+   * @param \Symfony\Component\HttpKernel\Event\FilterResponseEvent $event
+   *   The event to process.
+   */
+  public function onAllResponds(FilterResponseEvent $event) {
+    $response = $event->getResponse();
+    // Always add the 'http_response' cache tag to be able to invalidate every
+    // response, for example after rebuilding routes.
+    if ($response instanceof CacheableResponseInterface) {
+      $response->getCacheableMetadata()->addCacheTags(['http_response']);
+    }
+  }
+
+  /**
    * Sets extra headers on successful responses.
    *
    * @param \Symfony\Component\HttpKernel\Event\FilterResponseEvent $event
@@ -179,9 +189,9 @@ class FinishResponseSubscriber implements EventSubscriberInterface {
    *
    * When neither Cache-Control nor any of the ETag, Last-Modified, Expires
    * headers are set on the response, ::get('Cache-Control') returns the value
-   * 'no-cache'. If any of ETag, Last-Modified or Expires are set but not
-   * Cache-Control, then 'private, must-revalidate' (in exactly this order) is
-   * returned.
+   * 'no-cache, private'. If any of ETag, Last-Modified or Expires are set but
+   * not Cache-Control, then 'private, must-revalidate' (in exactly this order)
+   * is returned.
    *
    * @see \Symfony\Component\HttpFoundation\ResponseHeaderBag::computeCacheControlValue()
    *
@@ -192,7 +202,7 @@ class FinishResponseSubscriber implements EventSubscriberInterface {
    */
   protected function isCacheControlCustomized(Response $response) {
     $cache_control = $response->headers->get('Cache-Control');
-    return $cache_control != 'no-cache' && $cache_control != 'private, must-revalidate';
+    return $cache_control != 'no-cache, private' && $cache_control != 'private, must-revalidate';
   }
 
   /**
@@ -263,7 +273,7 @@ class FinishResponseSubscriber implements EventSubscriberInterface {
    *   A response object.
    */
   protected function setCacheControlNoCache(Response $response) {
-    $response->headers->set('Cache-Control', 'no-cache, must-revalidate, post-check=0, pre-check=0');
+    $response->headers->set('Cache-Control', 'no-cache, must-revalidate');
   }
 
   /**
@@ -288,7 +298,11 @@ class FinishResponseSubscriber implements EventSubscriberInterface {
    *   An array of event listener definitions.
    */
   public static function getSubscribedEvents() {
-    $events[KernelEvents::RESPONSE][] = array('onRespond');
+    $events[KernelEvents::RESPONSE][] = ['onRespond'];
+    // There is no specific reason for choosing 16 beside it should be executed
+    // before ::onRespond().
+    $events[KernelEvents::RESPONSE][] = ['onAllResponds', 16];
     return $events;
   }
+
 }

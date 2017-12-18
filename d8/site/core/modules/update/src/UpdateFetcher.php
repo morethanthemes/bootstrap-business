@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\update\UpdateFetcher.
- */
-
 namespace Drupal\update;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -67,7 +62,7 @@ class UpdateFetcher implements UpdateFetcherInterface {
     $data = '';
     try {
       $data = (string) $this->httpClient
-        ->get($url, array('headers' => array('Accept' => 'text/xml')))
+        ->get($url, ['headers' => ['Accept' => 'text/xml']])
         ->getBody();
     }
     catch (RequestException $exception) {

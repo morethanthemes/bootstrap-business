@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\comment\Form\DeleteForm.
- */
-
 namespace Drupal\comment\Form;
 
 use Drupal\Core\Entity\ContentEntityDeleteForm;
@@ -47,7 +42,7 @@ class DeleteForm extends ContentEntityDeleteForm {
    * {@inheritdoc}
    */
   public function logDeletionMessage() {
-    $this->logger('content')->notice('Deleted comment @cid and its replies.', array('@cid' => $this->entity->id()));
+    $this->logger('comment')->notice('Deleted comment @cid and its replies.', ['@cid' => $this->entity->id()]);
   }
 
 }

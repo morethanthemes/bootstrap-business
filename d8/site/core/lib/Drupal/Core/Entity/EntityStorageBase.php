@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\EntityStorageBase.
- */
-
 namespace Drupal\Core\Entity;
 
 use Drupal\Core\Entity\Query\QueryInterface;
@@ -19,7 +14,7 @@ abstract class EntityStorageBase extends EntityHandlerBase implements EntityStor
    *
    * @var array
    */
-  protected $entities = array();
+  protected $entities = [];
 
   /**
    * Entity type ID for this storage.
@@ -110,7 +105,7 @@ abstract class EntityStorageBase extends EntityHandlerBase implements EntityStor
    * {@inheritdoc}
    */
   public function loadUnchanged($id) {
-    $this->resetCache(array($id));
+    $this->resetCache([$id]);
     return $this->load($id);
   }
 
@@ -124,7 +119,7 @@ abstract class EntityStorageBase extends EntityHandlerBase implements EntityStor
       }
     }
     else {
-      $this->entities = array();
+      $this->entities = [];
     }
   }
 
@@ -138,7 +133,7 @@ abstract class EntityStorageBase extends EntityHandlerBase implements EntityStor
    *   Array of entities from the entity cache.
    */
   protected function getFromStaticCache(array $ids) {
-    $entities = array();
+    $entities = [];
     // Load any available entities from the internal cache.
     if ($this->entityType->isStaticallyCacheable() && !empty($this->entities)) {
       $entities += array_intersect_key($this->entities, array_flip($ids));
@@ -163,21 +158,21 @@ abstract class EntityStorageBase extends EntityHandlerBase implements EntityStor
    *
    * @param string $hook
    *   One of 'presave', 'insert', 'update', 'predelete', 'delete', or
-   *  'revision_delete'.
-   * @param \Drupal\Core\Entity\EntityInterface  $entity
+   *   'revision_delete'.
+   * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The entity object.
    */
   protected function invokeHook($hook, EntityInterface $entity) {
     // Invoke the hook.
-    $this->moduleHandler()->invokeAll($this->entityTypeId . '_' . $hook, array($entity));
+    $this->moduleHandler()->invokeAll($this->entityTypeId . '_' . $hook, [$entity]);
     // Invoke the respective entity-level hook.
-    $this->moduleHandler()->invokeAll('entity_' . $hook, array($entity));
+    $this->moduleHandler()->invokeAll('entity_' . $hook, [$entity]);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function create(array $values = array()) {
+  public function create(array $values = []) {
     $entity_class = $this->entityClass;
     $entity_class::preCreate($this, $values);
 
@@ -214,7 +209,7 @@ abstract class EntityStorageBase extends EntityHandlerBase implements EntityStor
    * {@inheritdoc}
    */
   public function load($id) {
-    $entities = $this->loadMultiple(array($id));
+    $entities = $this->loadMultiple([$id]);
     return isset($entities[$id]) ? $entities[$id] : NULL;
   }
 
@@ -222,7 +217,7 @@ abstract class EntityStorageBase extends EntityHandlerBase implements EntityStor
    * {@inheritdoc}
    */
   public function loadMultiple(array $ids = NULL) {
-    $entities = array();
+    $entities = [];
 
     // Create a new variable which is either a prepared version of the $ids
     // array for later comparison with the entity cache, or FALSE if no $ids
@@ -322,7 +317,7 @@ abstract class EntityStorageBase extends EntityHandlerBase implements EntityStor
    *   An array of entity objects implementing the EntityInterface.
    */
   protected function mapFromStorageRecords(array $records) {
-    $entities = array();
+    $entities = [];
     foreach ($records as $record) {
       $entity = new $this->entityClass($record, $this->entityTypeId);
       $entities[$entity->id()] = $entity;
@@ -465,7 +460,7 @@ abstract class EntityStorageBase extends EntityHandlerBase implements EntityStor
    *   Specifies whether the entity is being updated or created.
    */
   protected function doPostSave(EntityInterface $entity, $update) {
-    $this->resetCache(array($entity->id()));
+    $this->resetCache([$entity->id()]);
 
     // The entity is no longer new.
     $entity->enforceIsNew(FALSE);
@@ -501,12 +496,23 @@ abstract class EntityStorageBase extends EntityHandlerBase implements EntityStor
   /**
    * {@inheritdoc}
    */
-  public function loadByProperties(array $values = array()) {
+  public function loadByProperties(array $values = []) {
     // Build a query to fetch the entity IDs.
     $entity_query = $this->getQuery();
+    $entity_query->accessCheck(FALSE);
     $this->buildPropertyQuery($entity_query, $values);
     $result = $entity_query->execute();
-    return $result ? $this->loadMultiple($result) : array();
+    return $result ? $this->loadMultiple($result) : [];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function hasData() {
+    return (bool) $this->getQuery()
+      ->accessCheck(FALSE)
+      ->range(0, 1)
+      ->execute();
   }
 
   /**

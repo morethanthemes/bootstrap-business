@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Installer\InstallerTranslationTest.
- */
-
 namespace Drupal\system\Tests\Installer;
 
 use Drupal\Core\Database\Database;
@@ -47,7 +42,7 @@ class InstallerTranslationTest extends InstallerTestBase {
   }
 
   /**
-   * @{inheritdoc}
+   * {@inheritdoc}
    */
   protected function setUpSettings() {
     // We are creating a table here to force an error in the installer because
@@ -89,19 +84,19 @@ class InstallerTranslationTest extends InstallerTestBase {
     $this->assertEqual($account->language()->getId(), 'de', 'New user is German.');
 
     // Ensure that we can enable basic_auth on a non-english site.
-    $this->drupalPostForm('admin/modules', array('modules[Web services][basic_auth][enable]' => TRUE), t('Install'));
+    $this->drupalPostForm('admin/modules', ['modules[basic_auth][enable]' => TRUE], t('Install'));
     $this->assertResponse(200);
 
     // Assert that the theme CSS was added to the page.
-    $edit = array('preprocess_css' => FALSE);
+    $edit = ['preprocess_css' => FALSE];
     $this->drupalPostForm('admin/config/development/performance', $edit, t('Save configuration'));
     $this->drupalGet('<front>');
     $this->assertRaw('classy/css/components/action-links.css');
 
     // Verify the strings from the translation files were imported.
     $test_samples = ['Save and continue', 'Anonymous'];
-    foreach($test_samples as $sample) {
-      $edit = array();
+    foreach ($test_samples as $sample) {
+      $edit = [];
       $edit['langcode'] = 'de';
       $edit['translation'] = 'translated';
       $edit['string'] = $sample;

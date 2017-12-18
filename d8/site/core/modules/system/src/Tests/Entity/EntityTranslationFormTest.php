@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Entity\EntityTranslationFormTest.
- */
-
 namespace Drupal\system\Tests\Entity;
 
 use Drupal\Core\Language\LanguageInterface;
@@ -24,7 +19,7 @@ class EntityTranslationFormTest extends WebTestBase {
    *
    * @var array
    */
-  public static $modules = array('entity_test', 'language', 'node');
+  public static $modules = ['entity_test', 'language', 'node'];
 
   protected $langcodes;
 
@@ -34,12 +29,12 @@ class EntityTranslationFormTest extends WebTestBase {
     \Drupal::state()->set('entity_test.translation', TRUE);
 
     // Create test languages.
-    $this->langcodes = array();
+    $this->langcodes = [];
     for ($i = 0; $i < 2; ++$i) {
-      $language = ConfigurableLanguage::create(array(
+      $language = ConfigurableLanguage::create([
         'id' => 'l' . $i,
         'label' => $this->randomString(),
-      ));
+      ]);
       $this->langcodes[$i] = $language->id();
       $language->save();
     }
@@ -48,14 +43,14 @@ class EntityTranslationFormTest extends WebTestBase {
   /**
    * Tests entity form language.
    */
-  function testEntityFormLanguage() {
-    $this->drupalCreateContentType(array('type' => 'page', 'name' => 'Basic page'));
+  public function testEntityFormLanguage() {
+    $this->drupalCreateContentType(['type' => 'page', 'name' => 'Basic page']);
 
-    $web_user = $this->drupalCreateUser(array('create page content', 'edit own page content', 'administer content types'));
+    $web_user = $this->drupalCreateUser(['create page content', 'edit own page content', 'administer content types']);
     $this->drupalLogin($web_user);
 
     // Create a node with language LanguageInterface::LANGCODE_NOT_SPECIFIED.
-    $edit = array();
+    $edit = [];
     $edit['title[0][value]'] = $this->randomMachineName(8);
     $edit['body[0][value]'] = $this->randomMachineName(16);
     $this->drupalGet('node/add/page');
@@ -80,18 +75,22 @@ class EntityTranslationFormTest extends WebTestBase {
 
     // Enable language selector.
     $this->drupalGet('admin/structure/types/manage/page');
-    $edit = array('language_configuration[language_alterable]' => TRUE, 'language_configuration[langcode]' => LanguageInterface::LANGCODE_NOT_SPECIFIED);
+    $edit = ['language_configuration[language_alterable]' => TRUE, 'language_configuration[langcode]' => LanguageInterface::LANGCODE_NOT_SPECIFIED];
     $this->drupalPostForm('admin/structure/types/manage/page', $edit, t('Save content type'));
-    $this->assertRaw(t('The content type %type has been updated.', array('%type' => 'Basic page')), 'Basic page content type has been updated.');
+    $this->assertRaw(t('The content type %type has been updated.', ['%type' => 'Basic page']), 'Basic page content type has been updated.');
 
     // Create a node with language.
-    $edit = array();
+    $edit = [];
     $langcode = $this->langcodes[0];
     $edit['title[0][value]'] = $this->randomMachineName(8);
     $edit['body[0][value]'] = $this->randomMachineName(16);
     $edit['langcode[0][value]'] = $langcode;
     $this->drupalPostForm('node/add/page', $edit, t('Save'));
-    $this->assertRaw(t('Basic page %title has been created.', array('%title' => $edit['title[0][value]'])), 'Basic page created.');
+    $this->assertText(t('Basic page @title has been created.', ['@title' => $edit['title[0][value]']]), 'Basic page created.');
+
+    // Verify that the creation message contains a link to a node.
+    $view_link = $this->xpath('//div[@class="messages"]//a[contains(@href, :href)]', [':href' => 'node/']);
+    $this->assert(isset($view_link), 'The message area contains a link to a node');
 
     // Check to make sure the node was created.
     $node = $this->drupalGetNodeByTitle($edit['title[0][value]']);
@@ -115,4 +114,5 @@ class EntityTranslationFormTest extends WebTestBase {
     $form_langcode = \Drupal::state()->get('entity_test.form_langcode');
     $this->assertTrue($langcode2 == $form_langcode, "Node edit form language is $langcode2.");
   }
+
 }

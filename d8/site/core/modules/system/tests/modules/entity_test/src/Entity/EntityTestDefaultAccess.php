@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\entity_test\Entity\EntityTestDefaultAccess.
- */
-
 namespace Drupal\entity_test\Entity;
 
 /**
@@ -13,7 +8,7 @@ namespace Drupal\entity_test\Entity;
  * @ContentEntityType(
  *   id = "entity_test_default_access",
  *   label = @Translation("Test entity with default access"),
- *   base_table = "entity_test",
+ *   base_table = "entity_test_default_access",
  *   entity_keys = {
  *     "id" = "id",
  *     "bundle" = "type"

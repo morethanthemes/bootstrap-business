@@ -1,14 +1,11 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\Plugin\Context\ContextDefinitionInterface.
- */
-
 namespace Drupal\Component\Plugin\Context;
 
 /**
- * Interface for context definitions.
+ * Interface used to define definition objects found in ContextInterface.
+ *
+ * @see \Drupal\Component\Plugin\Context\ContextInterface
  *
  * @todo WARNING: This interface is going to receive some additions as part of
  * https://www.drupal.org/node/2346999.

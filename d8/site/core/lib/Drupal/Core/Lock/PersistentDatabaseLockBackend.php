@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Lock\PersistentDatabaseLockBackend.
- */
-
 namespace Drupal\Core\Lock;
 
 use Drupal\Core\Database\Connection;
@@ -33,4 +28,5 @@ class PersistentDatabaseLockBackend extends DatabaseLockBackend {
     // @see \Drupal\Core\Lock\LockBackendInterface::getLockId()
     $this->lockId = 'persistent';
   }
+
 }

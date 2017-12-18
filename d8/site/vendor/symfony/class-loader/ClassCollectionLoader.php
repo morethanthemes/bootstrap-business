@@ -43,12 +43,9 @@ class ClassCollectionLoader
 
         self::$loaded[$name] = true;
 
-        $declared = array_merge(get_declared_classes(), get_declared_interfaces());
-        if (function_exists('get_declared_traits')) {
-            $declared = array_merge($declared, get_declared_traits());
-        }
-
         if ($adaptive) {
+            $declared = array_merge(get_declared_classes(), get_declared_interfaces(), get_declared_traits());
+
             // don't include already declared classes
             $classes = array_diff($classes, $declared);
 
@@ -58,6 +55,11 @@ class ClassCollectionLoader
 
         $classes = array_unique($classes);
 
+        // cache the core classes
+        if (!is_dir($cacheDir) && !@mkdir($cacheDir, 0777, true) && !is_dir($cacheDir)) {
+            throw new \RuntimeException(sprintf('Class Collection Loader was not able to create directory "%s"', $cacheDir));
+        }
+        $cacheDir = rtrim(realpath($cacheDir) ?: $cacheDir, '/'.DIRECTORY_SEPARATOR);
         $cache = $cacheDir.'/'.$name.$extension;
 
         // auto-reload
@@ -87,44 +89,103 @@ class ClassCollectionLoader
             }
         }
 
-        if (!$reload && is_file($cache)) {
+        if (!$reload && file_exists($cache)) {
             require_once $cache;
 
             return;
         }
-
-        $files = array();
-        $content = '';
-        foreach (self::getOrderedClasses($classes) as $class) {
-            if (in_array($class->getName(), $declared)) {
-                continue;
-            }
-
-            $files[] = $class->getFileName();
-
-            $c = preg_replace(array('/^\s*<\?php/', '/\?>\s*$/'), '', file_get_contents($class->getFileName()));
-
-            // fakes namespace declaration for global code
-            if (!$class->inNamespace()) {
-                $c = "\nnamespace\n{\n".$c."\n}\n";
-            }
-
-            $c = self::fixNamespaceDeclarations('<?php '.$c);
-            $c = preg_replace('/^\s*<\?php/', '', $c);
-
-            $content .= $c;
+        if (!$adaptive) {
+            $declared = array_merge(get_declared_classes(), get_declared_interfaces(), get_declared_traits());
         }
 
-        // cache the core classes
-        if (!is_dir(dirname($cache))) {
-            mkdir(dirname($cache), 0777, true);
-        }
-        self::writeCacheFile($cache, '<?php '.$content);
+        $files = self::inline($classes, $cache, $declared);
 
         if ($autoReload) {
             // save the resources
-            self::writeCacheFile($metadata, serialize(array($files, $classes)));
+            self::writeCacheFile($metadata, serialize(array(array_values($files), $classes)));
         }
+    }
+
+    /**
+     * Generates a file where classes and their parents are inlined.
+     *
+     * @param array  $classes  An array of classes to load
+     * @param string $cache    The file where classes are inlined
+     * @param array  $excluded An array of classes that won't be inlined
+     *
+     * @return array The source map of inlined classes, with classes as keys and files as values
+     *
+     * @throws \RuntimeException When class can't be loaded
+     */
+    public static function inline($classes, $cache, array $excluded)
+    {
+        $declared = array();
+        foreach (self::getOrderedClasses($excluded) as $class) {
+            $declared[$class->getName()] = true;
+        }
+
+        // cache the core classes
+        $cacheDir = dirname($cache);
+        if (!is_dir($cacheDir) && !@mkdir($cacheDir, 0777, true) && !is_dir($cacheDir)) {
+            throw new \RuntimeException(sprintf('Class Collection Loader was not able to create directory "%s"', $cacheDir));
+        }
+
+        $spacesRegex = '(?:\s*+(?:(?:\#|//)[^\n]*+\n|/\*(?:(?<!\*/).)++)?+)*+';
+        $dontInlineRegex = <<<REGEX
+            '(?:
+               ^<\?php\s.declare.\(.strict_types.=.1.\).;
+               | \b__halt_compiler.\(.\)
+               | \b__(?:DIR|FILE)__\b
+            )'isx
+REGEX;
+        $dontInlineRegex = str_replace('.', $spacesRegex, $dontInlineRegex);
+
+        $cacheDir = explode('/', str_replace(DIRECTORY_SEPARATOR, '/', $cacheDir));
+        $files = array();
+        $content = '';
+        foreach (self::getOrderedClasses($classes) as $class) {
+            if (isset($declared[$class->getName()])) {
+                continue;
+            }
+            $declared[$class->getName()] = true;
+
+            $files[$class->getName()] = $file = $class->getFileName();
+            $c = file_get_contents($file);
+
+            if (preg_match($dontInlineRegex, $c)) {
+                $file = explode('/', str_replace(DIRECTORY_SEPARATOR, '/', $file));
+
+                for ($i = 0; isset($file[$i], $cacheDir[$i]); ++$i) {
+                    if ($file[$i] !== $cacheDir[$i]) {
+                        break;
+                    }
+                }
+                if (1 >= $i) {
+                    $file = var_export(implode('/', $file), true);
+                } else {
+                    $file = array_slice($file, $i);
+                    $file = str_repeat('../', count($cacheDir) - $i).implode('/', $file);
+                    $file = '__DIR__.'.var_export('/'.$file, true);
+                }
+
+                $c = "\nnamespace {require $file;}";
+            } else {
+                $c = preg_replace(array('/^\s*<\?php/', '/\?>\s*$/'), '', $c);
+
+                // fakes namespace declaration for global code
+                if (!$class->inNamespace()) {
+                    $c = "\nnamespace\n{\n".$c."\n}\n";
+                }
+
+                $c = self::fixNamespaceDeclarations('<?php '.$c);
+                $c = preg_replace('/^\s*<\?php/', '', $c);
+            }
+
+            $content .= $c;
+        }
+        self::writeCacheFile($cache, '<?php '.$content);
+
+        return $files;
     }
 
     /**
@@ -137,8 +198,8 @@ class ClassCollectionLoader
     public static function fixNamespaceDeclarations($source)
     {
         if (!function_exists('token_get_all') || !self::$useTokenizer) {
-            if (preg_match('/namespace(.*?)\s*;/', $source)) {
-                $source = preg_replace('/namespace(.*?)\s*;/', "namespace$1\n{", $source)."}\n";
+            if (preg_match('/(^|\s)namespace(.*?)\s*;/', $source)) {
+                $source = preg_replace('/(^|\s)namespace(.*?)\s*;/', "$1namespace$2\n{", $source)."}\n";
             }
 
             return $source;
@@ -149,8 +210,9 @@ class ClassCollectionLoader
         $inNamespace = false;
         $tokens = token_get_all($source);
 
-        for (reset($tokens); false !== $token = current($tokens); next($tokens)) {
-            if (is_string($token)) {
+        for ($i = 0; isset($tokens[$i]); ++$i) {
+            $token = $tokens[$i];
+            if (!isset($token[1]) || 'b"' === $token) {
                 $rawChunk .= $token;
             } elseif (in_array($token[0], array(T_COMMENT, T_DOC_COMMENT))) {
                 // strip comments
@@ -162,12 +224,12 @@ class ClassCollectionLoader
                 $rawChunk .= $token[1];
 
                 // namespace name and whitespaces
-                while (($t = next($tokens)) && is_array($t) && in_array($t[0], array(T_WHITESPACE, T_NS_SEPARATOR, T_STRING))) {
-                    $rawChunk .= $t[1];
+                while (isset($tokens[++$i][1]) && in_array($tokens[$i][0], array(T_WHITESPACE, T_NS_SEPARATOR, T_STRING))) {
+                    $rawChunk .= $tokens[$i][1];
                 }
-                if ('{' === $t) {
+                if ('{' === $tokens[$i]) {
                     $inNamespace = false;
-                    prev($tokens);
+                    --$i;
                 } else {
                     $rawChunk = rtrim($rawChunk)."\n{";
                     $inNamespace = true;
@@ -175,8 +237,8 @@ class ClassCollectionLoader
             } elseif (T_START_HEREDOC === $token[0]) {
                 $output .= self::compressCode($rawChunk).$token[1];
                 do {
-                    $token = next($tokens);
-                    $output .= is_string($token) ? $token : $token[1];
+                    $token = $tokens[++$i];
+                    $output .= isset($token[1]) && 'b"' !== $token ? $token[1] : $token;
                 } while ($token[0] !== T_END_HEREDOC);
                 $output .= "\n";
                 $rawChunk = '';
@@ -192,7 +254,15 @@ class ClassCollectionLoader
             $rawChunk .= "}\n";
         }
 
-        return $output.self::compressCode($rawChunk);
+        $output .= self::compressCode($rawChunk);
+
+        if (PHP_VERSION_ID >= 70000) {
+            // PHP 7 memory manager will not release after token_get_all(), see https://bugs.php.net/70098
+            unset($tokens, $rawChunk);
+            gc_mem_caches();
+        }
+
+        return $output;
     }
 
     /**
@@ -229,7 +299,13 @@ class ClassCollectionLoader
      */
     private static function writeCacheFile($file, $content)
     {
-        $tmpFile = tempnam(dirname($file), basename($file));
+        $dir = dirname($file);
+        if (!is_writable($dir)) {
+            throw new \RuntimeException(sprintf('Cache directory "%s" is not writable.', $dir));
+        }
+
+        $tmpFile = tempnam($dir, basename($file));
+
         if (false !== @file_put_contents($tmpFile, $content) && @rename($tmpFile, $file)) {
             @chmod($file, 0666 & ~umask());
 
@@ -283,12 +359,10 @@ class ClassCollectionLoader
 
         $traits = array();
 
-        if (method_exists('ReflectionClass', 'getTraits')) {
-            foreach ($classes as $c) {
-                foreach (self::resolveDependencies(self::computeTraitDeps($c), $c) as $trait) {
-                    if ($trait !== $c) {
-                        $traits[] = $trait;
-                    }
+        foreach ($classes as $c) {
+            foreach (self::resolveDependencies(self::computeTraitDeps($c), $c) as $trait) {
+                if ($trait !== $c) {
+                    $traits[] = $trait;
                 }
             }
         }

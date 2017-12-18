@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Plugin\views\sort\Date.
- */
-
 namespace Drupal\views\Plugin\views\sort;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -22,7 +17,7 @@ class Date extends SortPluginBase {
   protected function defineOptions() {
     $options = parent::defineOptions();
 
-    $options['granularity'] = array('default' => 'second');
+    $options['granularity'] = ['default' => 'second'];
 
     return $options;
   }
@@ -30,20 +25,20 @@ class Date extends SortPluginBase {
   public function buildOptionsForm(&$form, FormStateInterface $form_state) {
     parent::buildOptionsForm($form, $form_state);
 
-    $form['granularity'] = array(
+    $form['granularity'] = [
       '#type' => 'radios',
       '#title' => $this->t('Granularity'),
-      '#options' => array(
+      '#options' => [
         'second' => $this->t('Second'),
         'minute' => $this->t('Minute'),
         'hour'   => $this->t('Hour'),
         'day'    => $this->t('Day'),
         'month'  => $this->t('Month'),
         'year'   => $this->t('Year'),
-      ),
+      ],
       '#description' => $this->t('The granularity is the smallest unit to use when determining whether two dates are the same; for example, if the granularity is "Year" then all dates in 1999, regardless of when they fall in 1999, will be considered the same date.'),
       '#default_value' => $this->options['granularity'],
-    );
+    ];
   }
 
   /**

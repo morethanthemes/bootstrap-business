@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Controller\ViewAjaxController.
- */
-
 namespace Drupal\views\Controller;
 
 use Drupal\Component\Utility\UrlHelper;
@@ -106,10 +101,10 @@ class ViewAjaxController implements ContainerInjectionInterface {
    * Loads and renders a view via AJAX.
    *
    * @param \Symfony\Component\HttpFoundation\Request $request
-   *  The current request object.
+   *   The current request object.
    *
    * @return \Drupal\views\Ajax\ViewAjaxResponse
-   *  The view response as ajax response.
+   *   The view response as ajax response.
    *
    * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
    *   Thrown when the view was not found.
@@ -119,7 +114,7 @@ class ViewAjaxController implements ContainerInjectionInterface {
     $display_id = $request->request->get('view_display_id');
     if (isset($name) && isset($display_id)) {
       $args = $request->request->get('view_args');
-      $args = isset($args) && $args !== '' ? explode('/', $args) : array();
+      $args = isset($args) && $args !== '' ? explode('/', $args) : [];
 
       // Arguments can be empty, make sure they are passed on as NULL so that
       // argument validation is not triggered.
@@ -137,7 +132,7 @@ class ViewAjaxController implements ContainerInjectionInterface {
 
       // Remove all of this stuff from the query of the request so it doesn't
       // end up in pagers and tablesort URLs.
-      foreach (array('view_name', 'view_display_id', 'view_args', 'view_path', 'view_dom_id', 'pager_element', 'view_base_path', AjaxResponseSubscriber::AJAX_REQUEST_PARAMETER) as $key) {
+      foreach (['view_name', 'view_display_id', 'view_args', 'view_path', 'view_dom_id', 'pager_element', 'view_base_path', AjaxResponseSubscriber::AJAX_REQUEST_PARAMETER] as $key) {
         $request->query->remove($key);
         $request->request->remove($key);
       }
@@ -147,7 +142,7 @@ class ViewAjaxController implements ContainerInjectionInterface {
         throw new NotFoundHttpException();
       }
       $view = $this->executableFactory->get($entity);
-      if ($view && $view->access($display_id)) {
+      if ($view && $view->access($display_id) && $view->setDisplay($display_id) && $view->display_handler->ajaxEnabled()) {
         $response->setView($view);
         // Fix the current path for paging.
         if (!empty($path)) {
@@ -186,7 +181,7 @@ class ViewAjaxController implements ContainerInjectionInterface {
         $view->dom_id = $dom_id;
 
         $context = new RenderContext();
-        $preview = $this->renderer->executeInRenderContext($context, function() use ($view, $display_id, $args) {
+        $preview = $this->renderer->executeInRenderContext($context, function () use ($view, $display_id, $args) {
           return $view->preview($display_id, $args);
         });
         if (!$context->isEmpty()) {

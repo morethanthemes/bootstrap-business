@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\Element\Radios.
- */
-
 namespace Drupal\Core\Render\Element;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -21,9 +16,9 @@ use Drupal\Component\Utility\Html as HtmlUtility;
  * @code
  * $form['settings']['active'] = array(
  *   '#type' => 'radios',
- *   '#title' => t('Poll status'),
+ *   '#title' => $this->t('Poll status'),
  *   '#default_value' => 1,
- *   '#options' => array(0 => t('Closed'), 1 => t('Active')),
+ *   '#options' => array(0 => $this->t('Closed'), 1 => $this->t('Active')),
  * );
  * @endcode
  *
@@ -42,16 +37,16 @@ class Radios extends FormElement {
    */
   public function getInfo() {
     $class = get_class($this);
-    return array(
+    return [
       '#input' => TRUE,
-      '#process' => array(
-        array($class, 'processRadios'),
-      ),
-      '#theme_wrappers' => array('radios'),
-      '#pre_render' => array(
-        array($class, 'preRenderCompositeFormElement'),
-      ),
-    );
+      '#process' => [
+        [$class, 'processRadios'],
+      ],
+      '#theme_wrappers' => ['radios'],
+      '#pre_render' => [
+        [$class, 'preRenderCompositeFormElement'],
+      ],
+    ];
   }
 
   /**
@@ -66,11 +61,11 @@ class Radios extends FormElement {
         // sub-elements.
         $weight += 0.001;
 
-        $element += array($key => array());
+        $element += [$key => []];
         // Generate the parents as the autogenerator does, so we will have a
         // unique id for each radio button.
-        $parents_for_id = array_merge($element['#parents'], array($key));
-        $element[$key] += array(
+        $parents_for_id = array_merge($element['#parents'], [$key]);
+        $element[$key] += [
           '#type' => 'radio',
           '#title' => $choice,
           // The key is sanitized in Drupal\Core\Template\Attribute during output
@@ -86,7 +81,7 @@ class Radios extends FormElement {
           // Errors should only be shown on the parent radios element.
           '#error_no_message' => TRUE,
           '#weight' => $weight,
-        );
+        ];
       }
     }
     return $element;

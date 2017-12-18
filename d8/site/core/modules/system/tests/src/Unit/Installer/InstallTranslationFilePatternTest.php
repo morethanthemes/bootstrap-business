@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\system\Unit\Installer\InstallTranslationFilePatternTest.
- */
-
 namespace Drupal\Tests\system\Unit\Installer;
 
 use Drupal\Core\StringTranslation\Translator\FileTranslation;
@@ -34,7 +29,7 @@ class InstallTranslationFilePatternTest extends UnitTestCase {
     parent::setUp();
     $this->fileTranslation = new FileTranslation('filename');
     $method = new \ReflectionMethod('\Drupal\Core\StringTranslation\Translator\FileTranslation', 'getTranslationFilesPattern');
-    $method->setAccessible(true);
+    $method->setAccessible(TRUE);
     $this->filePatternMethod = $method;
   }
 
@@ -50,11 +45,11 @@ class InstallTranslationFilePatternTest extends UnitTestCase {
    * @return array
    */
   public function providerValidTranslationFiles() {
-    return array(
-      array('hu', 'drupal-8.0.0-alpha1.hu.po'),
-      array('ta', 'drupal-8.10.10-beta12.ta.po'),
-      array('hi', 'drupal-8.0.0.hi.po'),
-    );
+    return [
+      ['hu', 'drupal-8.0.0-alpha1.hu.po'],
+      ['ta', 'drupal-8.10.10-beta12.ta.po'],
+      ['hi', 'drupal-8.0.0.hi.po'],
+    ];
   }
 
   /**
@@ -69,13 +64,13 @@ class InstallTranslationFilePatternTest extends UnitTestCase {
    * @return array
    */
   public function providerInvalidTranslationFiles() {
-    return array(
-      array('hu', 'drupal-alpha1-*-hu.po'),
-      array('ta', 'drupal-beta12.ta'),
-      array('hi', 'drupal-hi.po'),
-      array('de', 'drupal-dummy-de.po'),
-      array('hu', 'drupal-10.0.1.alpha1-hu.po'),
-    );
+    return [
+      ['hu', 'drupal-alpha1-*-hu.po'],
+      ['ta', 'drupal-beta12.ta'],
+      ['hi', 'drupal-hi.po'],
+      ['de', 'drupal-dummy-de.po'],
+      ['hu', 'drupal-10.0.1.alpha1-hu.po'],
+    ];
   }
 
 }

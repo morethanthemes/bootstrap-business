@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\ckeditor\CKEditorPluginBase.
- */
-
 namespace Drupal\ckeditor;
 
 use Drupal\Core\Plugin\PluginBase;
@@ -38,21 +33,22 @@ abstract class CKEditorPluginBase extends PluginBase implements CKEditorPluginIn
   /**
    * {@inheritdoc}
    */
-  function isInternal() {
+  public function isInternal() {
     return FALSE;
   }
 
   /**
    * {@inheritdoc}
    */
-  function getDependencies(Editor $editor) {
-    return array();
+  public function getDependencies(Editor $editor) {
+    return [];
   }
 
   /**
    * {@inheritdoc}
    */
-  function getLibraries(Editor $editor) {
-    return array();
+  public function getLibraries(Editor $editor) {
+    return [];
   }
+
 }

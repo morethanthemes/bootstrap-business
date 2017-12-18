@@ -1,13 +1,8 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\Plugin\migrate\destination\UserData.
- */
-
 namespace Drupal\user\Plugin\migrate\destination;
 
-use Drupal\migrate\Entity\MigrationInterface;
+use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\user\UserData as UserDataStorage;
 use Drupal\migrate\Row;
 use Drupal\migrate\Plugin\migrate\destination\DestinationBase;
@@ -35,7 +30,7 @@ class UserData extends DestinationBase implements ContainerFactoryPluginInterfac
    *   The plugin_id for the plugin instance.
    * @param mixed $plugin_definition
    *   The plugin implementation definition.
-   * @param \Drupal\migrate\Entity\MigrationInterface $migration
+   * @param \Drupal\migrate\Plugin\MigrationInterface $migration
    *   The migration.
    * @param \Drupal\user\UserData $user_data
    *   The user data service.
@@ -61,7 +56,7 @@ class UserData extends DestinationBase implements ContainerFactoryPluginInterfac
   /**
    * {@inheritdoc}
    */
-  public function import(Row $row, array $old_destination_id_values = array()) {
+  public function import(Row $row, array $old_destination_id_values = []) {
     $uid = $row->getDestinationProperty('uid');
     $module = $row->getDestinationProperty('module');
     $key = $row->getDestinationProperty('key');

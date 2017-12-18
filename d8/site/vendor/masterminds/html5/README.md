@@ -1,18 +1,24 @@
 # HTML5-PHP
 
-The need for an HTML5 parser in PHP is clear. This project initially
-began with the seemingly abandoned `html5lib` project [original source](https://code.google.com/p/html5lib/source/checkout).
-But after some initial refactoring work, we began a new parser.
+HTML5 is a standards-compliant HTML5 parser and writer written entirely in PHP.
+It is stable and used in many production websites, and has
+well over [one million downloads](https://packagist.org/packages/masterminds/html5).
+
+HTML5 provides the following features.
 
 - An HTML5 serializer
 - Support for PHP namespaces
 - Composer support
 - Event-based (SAX-like) parser
-- DOM tree builder
-- Interoperability with QueryPath [[in progress](https://github.com/technosophos/querypath/issues/114)]
+- A DOM tree builder
+- Interoperability with [QueryPath](https://github.com/technosophos/querypath)
 - Runs on **PHP** 5.3.0 or newer and **HHVM** 3.2 or newer
 
-[![Build Status](https://travis-ci.org/Masterminds/html5-php.png?branch=master)](https://travis-ci.org/Masterminds/html5-php) [![Latest Stable Version](https://poser.pugx.org/masterminds/html5/v/stable.png)](https://packagist.org/packages/masterminds/html5) [![Coverage Status](https://coveralls.io/repos/Masterminds/html5-php/badge.png?branch=master)](https://coveralls.io/r/Masterminds/html5-php?branch=master)
+[![Build Status](https://travis-ci.org/Masterminds/html5-php.png?branch=master)](https://travis-ci.org/Masterminds/html5-php)
+[![Latest Stable Version](https://poser.pugx.org/masterminds/html5/v/stable.png)](https://packagist.org/packages/masterminds/html5)
+[![Code Coverage](https://scrutinizer-ci.com/g/Masterminds/html5-php/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/Masterminds/html5-php/?branch=master)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/Masterminds/html5-php/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/Masterminds/html5-php/?branch=master)
+[![Stability: Sustained](https://masterminds.github.io/stability/sustained.svg)](https://masterminds.github.io/stability/sustained.html)
 
 ## Installation
 
@@ -20,7 +26,7 @@ Install HTML5-PHP using [composer](http://getcomposer.org/).
 
 To install, add `masterminds/html5` to your `composer.json` file:
 
-```
+```json
 {
   "require" : {
     "masterminds/html5": "2.*"
@@ -36,7 +42,7 @@ install.
 
 ## Basic Usage
 
-HTML5-PHP has a high-level API and a low-level API. 
+HTML5-PHP has a high-level API and a low-level API.
 
 Here is how you use the high-level `HTML5` library API:
 
@@ -144,14 +150,14 @@ The serializer is broken into three parts:
 
 - The `OutputRules` contain the rules to turn DOM elements into strings. The
 rules are an implementation of the interface `RulesInterface` allowing for
-different rule sets to be used. 
+different rule sets to be used.
 - The `Traverser`, which is a special-purpose tree walker. It visits
 each node node in the tree and uses the `OutputRules` to transform the node
 into a string.
 - `HTML5` manages the `Traverser` and stores the resultant data
 in the correct place.
 
-The serializer (`save()`, `saveHTML()`) follows the 
+The serializer (`save()`, `saveHTML()`) follows the
 [section 8.9 of the HTML 5.0 spec](http://www.w3.org/TR/2012/CR-html5-20121217/syntax.html#serializing-html-fragments).
 So tags are serialized according to these rules:
 
@@ -166,8 +172,8 @@ issues known issues that are not presently on the roadmap:
 
 - Namespaces: HTML5 only [supports a selected list of namespaces](http://www.w3.org/TR/html5/infrastructure.html#namespaces)
   and they do not operate in the same way as XML namespaces. A `:` has no special
-  meaning. 
-  By default the parser does not support XML style namespaces via `:`; 
+  meaning.
+  By default the parser does not support XML style namespaces via `:`;
   to enable the XML namespaces see the  [XML Namespaces section](#xml-namespaces)
 - Scripts: This parser does not contain a JavaScript or a CSS
   interpreter. While one may be supplied, not all features will be
@@ -184,13 +190,13 @@ issues known issues that are not presently on the roadmap:
   * Per the spec, many legacy tags are admitted and correctly handled,
     even though they are technically not part of HTML5.
 - Attribute names and values: Due to the implementation details of the
-  PHP implementation of DOM, attribute names that do not follow the 
+  PHP implementation of DOM, attribute names that do not follow the
   XML 1.0 standard are not inserted into the DOM. (Effectively, they
   are ignored.) If you've got a clever fix for this, jump in!
 - Processor Instructions: The HTML5 spec does not allow processor
   instructions. We do. Since this is a server-side library, we think
   this is useful. And that means, dear reader, that in some cases you
-  can parse the HTML from a mixed PHP/HTML document. This, however, 
+  can parse the HTML from a mixed PHP/HTML document. This, however,
   is an incidental feature, not a core feature.
 - HTML manifests: Unsupported.
 - PLAINTEXT: Unsupported.

@@ -79,9 +79,9 @@
  * Web services make it possible for applications and web sites to read and
  * update information from other web sites. There are several standard
  * techniques for providing web services, including:
- * - SOAP: http://en.wikipedia.org/wiki/SOAP SOAP
- * - XML-RPC: http://en.wikipedia.org/wiki/XML-RPC
- * - REST: http://en.wikipedia.org/wiki/Representational_state_transfer
+ * - SOAP: http://wikipedia.org/wiki/SOAP
+ * - XML-RPC: http://wikipedia.org/wiki/XML-RPC
+ * - REST: http://wikipedia.org/wiki/Representational_state_transfer
  * Drupal sites can both provide web services and integrate third-party web
  * services.
  *
@@ -254,7 +254,7 @@
  * - Exporting and importing configuration.
  *
  * The file storage format for configuration information in Drupal is
- * @link http://en.wikipedia.org/wiki/YAML YAML files. @endlink Configuration is
+ * @link http://wikipedia.org/wiki/YAML YAML files. @endlink Configuration is
  * divided into files, each containing one configuration object. The file name
  * for a configuration object is equal to the unique name of the configuration,
  * with a '.yml' extension. The default configuration files for each module are
@@ -283,16 +283,16 @@
  *
  * The first task in using the simple configuration API is to define the
  * configuration file structure, file name, and schema of your settings (see
- * @ref sec_yaml above). Once you have done that, you can retrieve the
- * active configuration object that corresponds to configuration file
- * mymodule.foo.yml with a call to:
+ * @ref sec_yaml above). Once you have done that, you can retrieve the active
+ * configuration object that corresponds to configuration file mymodule.foo.yml
+ * with a call to:
  * @code
  * $config = \Drupal::config('mymodule.foo');
  * @endcode
  *
  * This will be an object of class \Drupal\Core\Config\Config, which has methods
- * for getting and setting configuration information.  For instance, if your
- * YAML file structure looks like this:
+ * for getting configuration information. For instance, if your YAML file
+ * structure looks like this:
  * @code
  * enabled: '0'
  * bar:
@@ -307,11 +307,33 @@
  * $bar = $config->get('bar');
  * // Get one element of the array.
  * $bar_baz = $config->get('bar.baz');
- * // Update a value. Nesting works the same as get().
- * $config->set('bar.baz', 'string2');
- * // Nothing actually happens with set() until you call save().
+ * @endcode
+ *
+ * The Config object that was obtained and used in the previous examples does
+ * not allow you to change configuration. If you want to change configuration,
+ * you will instead need to get the Config object by making a call to
+ * getEditable() on the config factory:
+ * @code
+ * $config =\Drupal::service('config.factory')->getEditable('mymodule.foo');
+ * @endcode
+ *
+ * Individual configuration values can be changed or added using the set()
+ * method and saved using the save() method:
+ * @code
+ * // Set a scalar value.
+ * $config->set('enabled', 1);
+ * // Save the configuration.
  * $config->save();
  * @endcode
+ *
+ * Configuration values can also be unset using the clear() method, which is
+ * also chainable:
+ * @code
+ * $config->clear('bar.boo')->save();
+ * $config_data = $config->get('bar');
+ * @endcode
+ * In this example $config_data would return an array with one key - 'baz' -
+ * because 'boo' was unset.
  *
  * @section sec_entity Configuration entities
  * In contrast to the simple configuration settings described in the previous
@@ -439,7 +461,8 @@
  * caches.
  *
  * Other common cache bins are the following:
- *   - bootstrap: Small caches needed for the bootstrap on every request.
+ *   - bootstrap: Data needed from the beginning to the end of most requests,
+ *     that has a very strict limit on variations and is invalidated rarely.
  *   - render: Contains cached HTML strings like cached pages and blocks, can
  *     grow to large size.
  *   - data: Contains data that can vary by path or similar context.
@@ -583,6 +606,30 @@
  *  $settings['cache']['default'] = 'cache.custom';
  * @endcode
  *
+ * For cache bins that are stored in the database, the number of rows is limited
+ * to 5000 by default. This can be changed for all database cache bins. For
+ * example, to instead limit the number of rows to 50000:
+ * @code
+ * $settings['database_cache_max_rows']['default'] = 50000;
+ * @endcode
+ *
+ * Or per bin (in this example we allow infinite entries):
+ * @code
+ * $settings['database_cache_max_rows']['bins']['dynamic_page_cache'] = -1;
+ * @endcode
+ *
+ * For monitoring reasons it might be useful to figure out the amount of data
+ * stored in tables. The following SQL snippet can be used for that:
+ * @code
+ * SELECT table_name AS `Table`, table_rows AS 'Num. of Rows',
+ * ROUND(((data_length + index_length) / 1024 / 1024), 2) `Size in MB` FROM
+ * information_schema.TABLES WHERE table_schema = '***DATABASE_NAME***' AND
+ * table_name LIKE 'cache_%'  ORDER BY (data_length + index_length) DESC
+ * LIMIT 10;
+ * @endcode
+ *
+ * @see \Drupal\Core\Cache\DatabaseBackend
+ *
  * Finally, you can chain multiple cache backends together, see
  * \Drupal\Core\Cache\ChainedFastBackend and \Drupal\Core\Cache\BackendChain.
  *
@@ -709,7 +756,8 @@
  * top-level core directory). Some Drupal Core modules and contributed modules
  * also define services in modulename.services.yml files. API reference sites
  * (such as https://api.drupal.org) generate lists of all existing services from
- * these files, or you can look through the individual files manually.
+ * these files. Look for the Services link in the API Navigation block.
+ * Alternatively you can look through the individual files manually.
  *
  * A typical service definition in a *.services.yml file looks like this:
  * @code
@@ -1045,12 +1093,13 @@
  * - The class name needs to end in the word Test.
  * - The namespace must be a subspace/subdirectory of \Drupal\yourmodule\Tests,
  *   where yourmodule is your module's machine name.
- * - The test class file must be named and placed under the yourmodule/tests/src
- *   directory, according to the PSR-4 standard.
+ * - The test class file must be named and placed under the
+ *   yourmodule/tests/src/Unit directory, according to the PSR-4 standard.
  * - Your test class needs a phpDoc comment block with a description and
  *   a @group annotation, which gives information about the test.
- * - Methods in your test class whose names start with 'test' are the actual
- *   test cases. Each one should test a logical subset of the functionality.
+ * - Add test cases by adding method names that start with 'test' and have no
+ *   arguments, for example testYourTestCase(). Each one should test a logical
+ *   subset of the functionality.
  * For more details, see:
  * - https://www.drupal.org/phpunit for full documentation on how to write
  *   PHPUnit tests for Drupal.
@@ -1071,7 +1120,7 @@
  *   $modules member variable -- keep in mind that by default, WebTestBase uses
  *   a "testing" install profile, with a minimal set of modules enabled.
  * - For functional tests that do not test web output, define a class that
- *   extends \Drupal\simpletest\KernelTestBase. This class is much faster
+ *   extends \Drupal\KernelTests\KernelTestBase. This class is much faster
  *   than WebTestBase, because instead of making a full install of Drupal, it
  *   uses an in-memory pseudo-installation (similar to what the installer and
  *   update scripts use). To use this test class, you will need to create the
@@ -1086,9 +1135,9 @@
  *   set up content types and similar procedures.
  * - In some cases, you may need to write a test module to support your test;
  *   put such modules under the yourmodule/tests/modules directory.
- * - Methods in your test class whose names start with 'test', and which have
- *   no arguments, are the actual test cases. Each one should test a logical
- *   subset of the functionality, and each one runs in a new, isolated test
+ * - Add test cases by adding method names that start with 'test' and have no
+ *   arguments, for example testYourTestCase(). Each one should test a logical
+ *   subset of the functionality. Each method runs in a new, isolated test
  *   environment, so it can only rely on the setUp() method, not what has
  *   been set up by other test methods.
  * For more details, see:
@@ -1096,6 +1145,52 @@
  *   functional tests for Drupal.
  * - @link oo_conventions Object-oriented programming topic @endlink for more
  *   on PSR-4, namespaces, and where to place classes.
+ *
+ * @section write_functional_phpunit Write functional PHP tests (phpunit)
+ * Functional tests extend the BrowserTestBase base class, and use PHPUnit as
+ * their underlying framework. They use a simulated browser, in which the test
+ * can click links, visit URLs, post to forms, etc. To write a functional test:
+ * - Extend \Drupal\Tests\BrowserTestBase.
+ * - Place the test in the yourmodule/tests/src/Functional/ directory and use
+ *   the \Drupal\Tests\yourmodule\Functional namespace.
+ * - Add a @group annotation. For example, if the test is for a Drupal 6
+ *   migration process, the group core uses is migrate_drupal_6. Use yourmodule
+ *   as the group name if the test does not belong to another larger group.
+ * - You may also override the default setUp() method, which can be used to set
+ *   up content types and similar procedures. Don't forget to call the parent
+ *   method.
+ * - In some cases, you may need to write a test module to support your test;
+ *   put such modules under the yourmodule/tests/modules directory.
+ * - Add test cases by adding method names that start with 'test' and have no
+ *   arguments, for example testYourTestCase(). Each one should test a logical
+ *   subset of the functionality. Each method runs in a new, isolated test
+ *   environment, so it can only rely on the setUp() method, not what has
+ *   been set up by other test methods.
+ * For more details, see:
+ * - https://www.drupal.org/docs/8/phpunit/phpunit-browser-test-tutorial for
+ *   a full tutorial on how to write functional PHPUnit tests for Drupal.
+ * - https://www.drupal.org/phpunit for the full documentation on how to write
+ *   PHPUnit tests for Drupal.
+ *
+ * @section write_jsfunctional_phpunit Write functional JavaScript tests (phpunit)
+ * To write a functional test that relies on JavaScript:
+ * - Extend \Drupal\FunctionalJavaScriptTests\JavascriptTestBase.
+ * - Place the test into the yourmodule/tests/src/FunctionalJavascript/
+ *   directory and use the \Drupal\Tests\yourmodule\FunctionalJavascript
+ *   namespace.
+ * - Add a @group annotation. Use yourmodule as the group name if the test does
+ *   not belong to another larger group.
+ * - Set up PhantomJS; see http://phantomjs.org/download.html.
+ * - To run tests, see core/tests/README.md.
+ * - When clicking a link/button with Ajax behavior attached, keep in mind that
+ *   the underlying browser might take time to deliver changes to the HTML. Use
+ *   $this->assertSession()->assertWaitOnAjaxRequest() to wait for the Ajax
+ *   request to finish.
+ * For more details, see:
+ * - https://www.drupal.org/docs/8/phpunit/phpunit-javascript-testing-tutorial
+ *   for a full tutorial on how to write PHPUnit JavaScript tests for Drupal.
+ * - https://www.drupal.org/phpunit for the full documentation on how to write
+ *   PHPUnit tests for Drupal.
  *
  * @section running Running tests
  * You can run both Simpletest and PHPUnit tests by enabling the core Testing
@@ -1120,7 +1215,7 @@
  *
  * A runtime assertion is a statement that is expected to always be true at
  * the point in the code it appears at. They are tested using PHP's internal
- * @link http://www.php.net/assert assert() @endlink statement. If an
+ * @link http://php.net/assert assert() @endlink statement. If an
  * assertion is ever FALSE it indicates an error in the code or in module or
  * theme configuration files. User-provided configuration files should be
  * verified with standard control structures at all times, not just checked in
@@ -1201,7 +1296,7 @@
  *   site; CSS files, which alter the styling applied to the HTML; and
  *   JavaScript, Flash, images, and other files. For more information, see the
  *   @link theme_render Theme system and render API topic @endlink and
- *   https://www.drupal.org/theme-guide/8
+ *   https://www.drupal.org/docs/8/theming
  * - Modules: Modules add to or alter the behavior and functionality of Drupal,
  *   by using one or more of the methods listed below. For more information
  *   about creating modules, see https://www.drupal.org/developing/modules/8
@@ -1668,7 +1763,11 @@
  *     // Create a $form API array.
  *     $form['phone_number'] = array(
  *       '#type' => 'tel',
- *       '#title' => $this->t('Your phone number')
+ *       '#title' => $this->t('Your phone number'),
+ *     );
+ *     $form['save'] = array(
+ *       '#type' => 'submit',
+ *       '#value' => $this->t('Save'),
  *     );
  *     return $form;
  *   }
@@ -1693,8 +1792,8 @@
  * processing state.
  *
  * The argument to \Drupal::formBuilder()->getForm() is the name of a class that
- * implements FormBuilderInterface. Any additional arguments passed to the
- * getForm() method will be passed along as additional arguments to the
+ * implements FormInterface. Any additional arguments passed to the getForm()
+ * method will be passed along as additional arguments to the
  * ExampleForm::buildForm() method.
  *
  * For example:
@@ -1870,21 +1969,32 @@
 function hook_cron() {
   // Short-running operation example, not using a queue:
   // Delete all expired records since the last cron run.
-  $expires = \Drupal::state()->get('mymodule.cron_last_run', REQUEST_TIME);
-  db_delete('mymodule_table')
+  $expires = \Drupal::state()->get('mymodule.last_check', 0);
+  \Drupal::database()->delete('mymodule_table')
     ->condition('expires', $expires, '>=')
     ->execute();
-  \Drupal::state()->set('mymodule.cron_last_run', REQUEST_TIME);
+  \Drupal::state()->set('mymodule.last_check', REQUEST_TIME);
 
   // Long-running operation example, leveraging a queue:
-  // Fetch feeds from other sites.
-  $result = db_query('SELECT * FROM {aggregator_feed} WHERE checked + refresh < :time AND refresh <> :never', array(
-    ':time' => REQUEST_TIME,
-    ':never' => AGGREGATOR_CLEAR_NEVER,
-  ));
+  // Queue news feeds for updates once their refresh interval has elapsed.
   $queue = \Drupal::queue('aggregator_feeds');
-  foreach ($result as $feed) {
-    $queue->createItem($feed);
+  $ids = \Drupal::entityManager()->getStorage('aggregator_feed')->getFeedIdsToRefresh();
+  foreach (Feed::loadMultiple($ids) as $feed) {
+    if ($queue->createItem($feed)) {
+      // Add timestamp to avoid queueing item more than once.
+      $feed->setQueuedTime(REQUEST_TIME);
+      $feed->save();
+    }
+  }
+  $ids = \Drupal::entityQuery('aggregator_feed')
+    ->condition('queued', REQUEST_TIME - (3600 * 6), '<')
+    ->execute();
+  if ($ids) {
+    $feeds = Feed::loadMultiple($ids);
+    foreach ($feeds as $feed) {
+      $feed->setQueuedTime(0);
+      $feed->save();
+    }
   }
 }
 
@@ -1934,33 +2044,34 @@ function hook_queue_info_alter(&$queues) {
  *
  * @param $message
  *   An array containing the message data. Keys in this array include:
- *  - 'id':
+ *   - 'id':
  *     The MailManagerInterface->mail() id of the message. Look at module source
  *     code or MailManagerInterface->mail() for possible id values.
- *  - 'to':
+ *   - 'to':
  *     The address or addresses the message will be sent to. The
  *     formatting of this string must comply with RFC 2822.
- *  - 'from':
+ *   - 'from':
  *     The address the message will be marked as being from, which is
  *     either a custom address or the site-wide default email address.
- *  - 'subject':
+ *   - 'subject':
  *     Subject of the email to be sent. This must not contain any newline
  *     characters, or the email may not be sent properly.
- *  - 'body':
- *     An array of strings containing the message text. The message body is
- *     created by concatenating the individual array strings into a single text
- *     string using "\n\n" as a separator.
- *  - 'headers':
+ *   - 'body':
+ *     An array of strings or objects that implement
+ *     \Drupal\Component\Render\MarkupInterface containing the message text. The
+ *     message body is created by concatenating the individual array strings
+ *     into a single text string using "\n\n" as a separator.
+ *   - 'headers':
  *     Associative array containing mail headers, such as From, Sender,
  *     MIME-Version, Content-Type, etc.
- *  - 'params':
+ *   - 'params':
  *     An array of optional parameters supplied by the caller of
  *     MailManagerInterface->mail() that is used to build the message before
  *     hook_mail_alter() is invoked.
- *  - 'language':
+ *   - 'language':
  *     The language object used to build the message before hook_mail_alter()
  *     is invoked.
- *  - 'send':
+ *   - 'send':
  *     Set to FALSE to abort sending this email message.
  *
  * @see \Drupal\Core\Mail\MailManagerInterface::mail()
@@ -1998,7 +2109,9 @@ function hook_mail_alter(&$message) {
  *     string when the hook is invoked.
  *   - body: An array of lines containing the message to be sent. Drupal will
  *     format the correct line endings for you. MailManagerInterface->mail()
- *     sets this to an empty array when the hook is invoked.
+ *     sets this to an empty array when the hook is invoked. The array may
+ *     contain either strings or objects implementing
+ *     \Drupal\Component\Render\MarkupInterface.
  *   - from: The address the message will be marked as being from, which is
  *     set by MailManagerInterface->mail() to either a custom address or the
  *     site-wide default email address when the hook is invoked.
@@ -2009,44 +2122,44 @@ function hook_mail_alter(&$message) {
  *   An array of parameters supplied by the caller of
  *   MailManagerInterface->mail().
  *
- * @see \Drupal\Core\Mail\MailManagerInterface->mail()
+ * @see \Drupal\Core\Mail\MailManagerInterface::mail()
  */
 function hook_mail($key, &$message, $params) {
   $account = $params['account'];
   $context = $params['context'];
-  $variables = array(
+  $variables = [
     '%site_name' => \Drupal::config('system.site')->get('name'),
     '%username' => $account->getDisplayName(),
-  );
+  ];
   if ($context['hook'] == 'taxonomy') {
     $entity = $params['entity'];
     $vocabulary = Vocabulary::load($entity->id());
-    $variables += array(
+    $variables += [
       '%term_name' => $entity->name,
       '%term_description' => $entity->description,
       '%term_id' => $entity->id(),
       '%vocabulary_name' => $vocabulary->label(),
       '%vocabulary_description' => $vocabulary->getDescription(),
       '%vocabulary_id' => $vocabulary->id(),
-    );
+    ];
   }
 
   // Node-based variable translation is only available if we have a node.
   if (isset($params['node'])) {
     /** @var \Drupal\node\NodeInterface $node */
     $node = $params['node'];
-    $variables += array(
+    $variables += [
       '%uid' => $node->getOwnerId(),
-      '%url' => $node->url('canonical', array('absolute' => TRUE)),
+      '%url' => $node->url('canonical', ['absolute' => TRUE]),
       '%node_type' => node_get_type_label($node),
       '%title' => $node->getTitle(),
       '%teaser' => $node->teaser,
       '%body' => $node->body,
-    );
+    ];
   }
   $subject = strtr($context['subject'], $variables);
   $body = strtr($context['message'], $variables);
-  $message['subject'] .= str_replace(array("\r", "\n"), '', $subject);
+  $message['subject'] .= str_replace(["\r", "\n"], '', $subject);
   $message['body'][] = MailFormatHelper::htmlToText($body);
 }
 
@@ -2069,7 +2182,7 @@ function hook_mail_backend_info_alter(&$info) {
  * @param $countries
  *   The associative array of countries keyed by two-letter country code.
  *
- * @see \Drupal\Core\Locale\CountryManager::getList().
+ * @see \Drupal\Core\Locale\CountryManager::getList()
  */
 function hook_countries_alter(&$countries) {
   // Elbonia is now independent, so add it to the country list.
@@ -2087,6 +2200,17 @@ function hook_countries_alter(&$countries) {
  */
 function hook_display_variant_plugin_alter(array &$definitions) {
   $definitions['full_page']['admin_label'] = t('Block layout');
+}
+
+/**
+ * Allow modules to alter layout plugin definitions.
+ *
+ * @param \Drupal\Core\Layout\LayoutDefinition[] $definitions
+ *   The array of layout definitions, keyed by plugin ID.
+ */
+function hook_layout_alter(&$definitions) {
+  // Remove a layout.
+  unset($definitions['twocol']);
 }
 
 /**
@@ -2430,8 +2554,8 @@ function hook_validation_constraint_alter(array &$definitions) {
  *
  * @section sec_dispatch Dispatching events
  * To dispatch an event, call the
- * \Symfony\Component\EventDispatcher\EventDispatchInterface::dispatch() method
- * on the 'event_dispatcher' service (see the
+ * \Symfony\Component\EventDispatcher\EventDispatcherInterface::dispatch()
+ * method on the 'event_dispatcher' service (see the
  * @link container Services topic @endlink for more information about how to
  * interact with services). The first argument is the unique event name, which
  * you should normally define as a constant in a separate static class (see
@@ -2451,7 +2575,7 @@ function hook_validation_constraint_alter(array &$definitions) {
  *   this class is subscribed to, and which methods on the class should be
  *   called for each one. Example:
  *   @code
- *   public function getSubscribedEvents() {
+ *   public static function getSubscribedEvents() {
  *     // Subscribe to kernel terminate with priority 100.
  *     $events[KernelEvents::TERMINATE][] = array('onTerminate', 100);
  *     // Subscribe to kernel request with default priority of 0.

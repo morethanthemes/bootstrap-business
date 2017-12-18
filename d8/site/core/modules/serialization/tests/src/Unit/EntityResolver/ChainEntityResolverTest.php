@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\serialization\Unit\EntityResolver\ChainEntityResolverTest.
- */
-
 namespace Drupal\Tests\serialization\Unit\EntityResolver;
 
 use Drupal\Tests\UnitTestCase;
@@ -52,10 +47,10 @@ class ChainEntityResolverTest extends UnitTestCase {
    * @covers ::resolve
    */
   public function testResolverWithNoneResolved() {
-    $resolvers = array(
+    $resolvers = [
       $this->createEntityResolverMock(),
       $this->createEntityResolverMock(),
-    );
+    ];
 
     $resolver = new ChainEntityResolver($resolvers);
 
@@ -83,10 +78,10 @@ class ChainEntityResolverTest extends UnitTestCase {
    * @covers ::resolve
    */
   public function testResolverWithFirstResolved() {
-    $resolvers = array(
+    $resolvers = [
       $this->createEntityResolverMock(10),
       $this->createEntityResolverMock(NULL, FALSE),
-    );
+    ];
 
     $resolver = new ChainEntityResolver($resolvers);
 
@@ -100,10 +95,10 @@ class ChainEntityResolverTest extends UnitTestCase {
    * @covers ::resolve
    */
   public function testResolverWithLastResolved() {
-    $resolvers = array(
+    $resolvers = [
       $this->createEntityResolverMock(),
       $this->createEntityResolverMock(10),
-    );
+    ];
 
     $resolver = new ChainEntityResolver($resolvers);
 
@@ -117,10 +112,10 @@ class ChainEntityResolverTest extends UnitTestCase {
    * @covers ::resolve
    */
   public function testResolverWithResolvedToZero() {
-    $resolvers = array(
+    $resolvers = [
       $this->createEntityResolverMock(0),
       $this->createEntityResolverMock(NULL, FALSE),
-    );
+    ];
 
     $resolver = new ChainEntityResolver($resolvers);
 
@@ -132,7 +127,6 @@ class ChainEntityResolverTest extends UnitTestCase {
    *
    * @param null|int $return
    *   Whether the mocked resolve method should return TRUE or FALSE.
-   *
    * @param bool $called
    *   Whether or not the resolve method is expected to be called.
    *

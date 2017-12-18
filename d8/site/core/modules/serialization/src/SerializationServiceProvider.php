@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\serialization\SerializationServiceProvider.
- */
-
 namespace Drupal\serialization;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;
@@ -24,4 +19,5 @@ class SerializationServiceProvider implements ServiceProviderInterface {
     // Add a compiler pass for adding concrete Resolvers to chain Resolver.
     $container->addCompilerPass(new RegisterEntityResolversCompilerPass());
   }
+
 }

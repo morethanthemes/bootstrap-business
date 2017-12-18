@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\config_test\ConfigTestController.
- */
-
 namespace Drupal\config_test;
 
 use Drupal\Core\Controller\ControllerBase;
@@ -26,7 +21,7 @@ class ConfigTestController extends ControllerBase {
    *   The title for the ConfigTest edit form.
    */
   public function editTitle(ConfigTest $config_test) {
-    return $this->t('Edit %label', array('%label' => $config_test->label()));
+    return $this->t('Edit %label', ['%label' => $config_test->label()]);
   }
 
   /**
@@ -38,9 +33,9 @@ class ConfigTestController extends ControllerBase {
    * @return \Symfony\Component\HttpFoundation\RedirectResponse
    *   A redirect response to the config_test listing page.
    */
-  function enable(ConfigTest $config_test) {
+  public function enable(ConfigTest $config_test) {
     $config_test->enable()->save();
-    return new RedirectResponse($config_test->url('collection', array('absolute' => TRUE)));
+    return new RedirectResponse($config_test->url('collection', ['absolute' => TRUE]));
   }
 
   /**
@@ -52,9 +47,9 @@ class ConfigTestController extends ControllerBase {
    * @return \Symfony\Component\HttpFoundation\RedirectResponse
    *   A redirect response to the config_test listing page.
    */
-  function disable(ConfigTest $config_test) {
+  public function disable(ConfigTest $config_test) {
     $config_test->disable()->save();
-    return new RedirectResponse($config_test->url('collection', array('absolute' => TRUE)));
+    return new RedirectResponse($config_test->url('collection', ['absolute' => TRUE]));
   }
 
 }

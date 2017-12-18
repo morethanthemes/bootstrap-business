@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\field_test\Plugin\Validation\Constraint\TestFieldConstraint.
- */
-
 namespace Drupal\field_test\Plugin\Validation\Constraint;
 
 use Symfony\Component\Validator\Constraints\NotEqualTo;
@@ -24,7 +19,7 @@ class TestFieldConstraint extends NotEqualTo {
    * {@inheritdoc}
    */
   public function getRequiredOptions() {
-    return array('value');
+    return ['value'];
   }
 
   /**

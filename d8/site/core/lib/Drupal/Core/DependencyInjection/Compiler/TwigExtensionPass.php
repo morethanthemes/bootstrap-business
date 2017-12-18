@@ -1,12 +1,8 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\DependencyInjection\Compiler\TwigExtensionPass.
- */
-
 namespace Drupal\Core\DependencyInjection\Compiler;
 
+use Drupal\Component\Utility\Crypt;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
@@ -31,7 +27,7 @@ class TwigExtensionPass implements CompilerPassInterface {
       $twig_extension_hash .= $class_name . filemtime($reflection->getFileName());
     }
 
-    $container->setParameter('twig_extension_hash', hash('crc32b', $twig_extension_hash));
+    $container->setParameter('twig_extension_hash', Crypt::hashBase64($twig_extension_hash));
   }
 
 }

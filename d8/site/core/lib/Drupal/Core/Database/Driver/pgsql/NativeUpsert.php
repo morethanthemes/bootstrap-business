@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Database\Driver\pgsql\NativeUpsert.
- */
-
 namespace Drupal\Core\Database\Driver\pgsql;
 
 use Drupal\Core\Database\Query\Upsert as QueryUpsert;
@@ -65,7 +60,7 @@ class NativeUpsert extends QueryUpsert {
             // used twice. However, trying to insert a value into a serial
             // column should only be done in very rare cases and is not thread
             // safe by definition.
-            $this->connection->query("SELECT setval('" . $table_information->sequences[$index] . "', GREATEST(MAX(" . $serial_field . "), :serial_value)) FROM {" . $this->table . "}", array(':serial_value' => (int)$serial_value));
+            $this->connection->query("SELECT setval('" . $table_information->sequences[$index] . "', GREATEST(MAX(" . $serial_field . "), :serial_value)) FROM {" . $this->table . "}", [':serial_value' => (int) $serial_value]);
           }
         }
       }
@@ -76,10 +71,22 @@ class NativeUpsert extends QueryUpsert {
       $options['sequence_name'] = $table_information->sequences[0];
     }
 
-    $this->connection->query($stmt, [], $options);
-
     // Re-initialize the values array so that we can re-use this query.
     $this->insertValues = [];
+
+    // Create a savepoint so we can rollback a failed query. This is so we can
+    // mimic MySQL and SQLite transactions which don't fail if a single query
+    // fails. This is important for tables that are created on demand. For
+    // example, \Drupal\Core\Cache\DatabaseBackend.
+    $this->connection->addSavepoint();
+    try {
+      $this->connection->query($stmt, [], $options);
+      $this->connection->releaseSavepoint();
+    }
+    catch (\Exception $e) {
+      $this->connection->rollbackSavepoint();
+      throw $e;
+    }
 
     return TRUE;
   }
@@ -93,7 +100,9 @@ class NativeUpsert extends QueryUpsert {
 
     // Default fields are always placed first for consistency.
     $insert_fields = array_merge($this->defaultFields, $this->insertFields);
-    $insert_fields = array_map(function($f) { return $this->connection->escapeField($f); }, $insert_fields);
+    $insert_fields = array_map(function ($f) {
+      return $this->connection->escapeField($f);
+    }, $insert_fields);
 
     $query = $comments . 'INSERT INTO {' . $this->table . '} (' . implode(', ', $insert_fields) . ') VALUES ';
 

@@ -9,7 +9,6 @@ use Drupal\Core\Database\Database;
 use Drupal\Core\Url;
 use Drupal\Core\Utility\UpdateException;
 
-
 /**
  * @defgroup update_api Update API
  * @{
@@ -72,6 +71,8 @@ use Drupal\Core\Utility\UpdateException;
  * frequently called should be left in the main module file so that they are
  * always available.
  *
+ * See system_hook_info() for all hook groups defined by Drupal core.
+ *
  * @return
  *   An associative array whose keys are hook names and whose values are an
  *   associative array containing:
@@ -79,17 +80,15 @@ use Drupal\Core\Utility\UpdateException;
  *     system will determine whether a file with the name $module.$group.inc
  *     exists, and automatically load it when required.
  *
- * See system_hook_info() for all hook groups defined by Drupal core.
- *
- * @see hook_hook_info_alter().
+ * @see hook_hook_info_alter()
  */
 function hook_hook_info() {
-  $hooks['token_info'] = array(
+  $hooks['token_info'] = [
     'group' => 'tokens',
-  );
-  $hooks['tokens'] = array(
+  ];
+  $hooks['tokens'] = [
     'group' => 'tokens',
-  );
+  ];
   return $hooks;
 }
 
@@ -175,7 +174,7 @@ function hook_module_preinstall($module) {
  * This function differs from hook_install() in that it gives all other modules
  * a chance to perform actions when a module is installed, whereas
  * hook_install() is only called on the module actually being installed. See
- * \Drupal\Core\Extension\ModuleHandler::install() for a detailed description of
+ * \Drupal\Core\Extension\ModuleInstaller::install() for a detailed description of
  * the order in which install hooks are invoked.
  *
  * This hook should be implemented in a .module file, not in an .install file.
@@ -183,7 +182,7 @@ function hook_module_preinstall($module) {
  * @param $modules
  *   An array of the modules that were installed.
  *
- * @see \Drupal\Core\Extension\ModuleHandler::install()
+ * @see \Drupal\Core\Extension\ModuleInstaller::install()
  * @see hook_install()
  */
 function hook_modules_installed($modules) {
@@ -197,6 +196,12 @@ function hook_modules_installed($modules) {
  *
  * If the module implements hook_schema(), the database tables will
  * be created before this hook is fired.
+ *
+ * If the module provides a MODULE.routing.yml or alters routing information
+ * these changes will not be available when this hook is fired. If up-to-date
+ * router information is required, for example to use \Drupal\Core\Url, then
+ * (preferably) use hook_modules_installed() or rebuild the router in the
+ * hook_install() implementation.
  *
  * Implementations of this hook are by convention declared in the module's
  * .install file. The implementation can rely on the .module file being loaded.
@@ -217,15 +222,14 @@ function hook_modules_installed($modules) {
  * be removed during uninstall should be removed with hook_uninstall().
  *
  * @see hook_schema()
- * @see \Drupal\Core\Extension\ModuleHandler::install()
+ * @see \Drupal\Core\Extension\ModuleInstaller::install()
  * @see hook_uninstall()
  * @see hook_modules_installed()
  */
 function hook_install() {
   // Create the styles directory and ensure it's writable.
   $directory = file_default_scheme() . '://styles';
-  $mode = isset($GLOBALS['install_state']['mode']) ? $GLOBALS['install_state']['mode'] : NULL;
-  file_prepare_directory($directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS, $mode);
+  file_prepare_directory($directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
 }
 
 /**
@@ -392,7 +396,7 @@ function hook_install_tasks(&$install_state) {
   // processor-intensive batch process needs to be triggered later on in the
   // installation.
   $myprofile_needs_batch_processing = \Drupal::state()->get('myprofile.needs_batch_processing', FALSE);
-  $tasks = array(
+  $tasks = [
     // This is an example of a task that defines a form which the user who is
     // installing the site will be asked to fill out. To implement this task,
     // your profile would define a function named myprofile_data_import_form()
@@ -402,10 +406,10 @@ function hook_install_tasks(&$install_state) {
     // \Drupal::state()->set('myprofile.needs_batch_processing', TRUE) if the
     // user has entered data which requires that batch processing will need to
     // occur later on.
-    'myprofile_data_import_form' => array(
+    'myprofile_data_import_form' => [
       'display_name' => t('Data import options'),
       'type' => 'form',
-    ),
+    ],
     // Similarly, to implement this task, your profile would define a function
     // named myprofile_settings_form() with associated validation and submit
     // handlers. This form might be used to collect and save additional
@@ -413,10 +417,10 @@ function hook_install_tasks(&$install_state) {
     // steps required for your profile to act as an "installation wizard"; you
     // can simply define as many tasks of type 'form' as you wish to execute,
     // and the forms will be presented to the user, one after another.
-    'myprofile_settings_form' => array(
+    'myprofile_settings_form' => [
       'display_name' => t('Additional options'),
       'type' => 'form',
-    ),
+    ],
     // This is an example of a task that performs batch operations. To
     // implement this task, your profile would define a function named
     // myprofile_batch_processing() which returns a batch API array definition
@@ -424,12 +428,12 @@ function hook_install_tasks(&$install_state) {
     // 'myprofile.needs_batch_processing' variable used here, this task will be
     // hidden and skipped unless your profile set it to TRUE in one of the
     // previous tasks.
-    'myprofile_batch_processing' => array(
+    'myprofile_batch_processing' => [
       'display_name' => t('Import additional data'),
       'display' => $myprofile_needs_batch_processing,
       'type' => 'batch',
       'run' => $myprofile_needs_batch_processing ? INSTALL_TASK_RUN_IF_NOT_COMPLETED : INSTALL_TASK_SKIP,
-    ),
+    ],
     // This is an example of a task that will not be displayed in the list that
     // the user sees. To implement this task, your profile would define a
     // function named myprofile_final_site_setup(), in which additional,
@@ -443,9 +447,8 @@ function hook_install_tasks(&$install_state) {
     // tasks are complete, with a link to reload the current page and therefore
     // pass on to the final Drupal installation tasks when the user is ready to
     // do so).
-    'myprofile_final_site_setup' => array(
-    ),
-  );
+    'myprofile_final_site_setup' => [],
+  ];
   return $tasks;
 }
 
@@ -616,12 +619,12 @@ function hook_update_N(&$sandbox) {
 
   // Example function body for adding a field to a database table, which does
   // not require a batch operation:
-  $spec = array(
+  $spec = [
     'type' => 'varchar',
     'description' => "New Col",
     'length' => 20,
     'not null' => FALSE,
-  );
+  ];
   $schema = Database::getConnection()->schema();
   $schema->addField('mytable1', 'newcol', $spec);
 
@@ -641,7 +644,7 @@ function hook_update_N(&$sandbox) {
 
   // Update in chunks of 20.
   $records = Database::getConnection()->select('mytable1', 'm')
-    ->fields('m', array('myprimarykey', 'otherfield'))
+    ->fields('m', ['myprimarykey', 'otherfield'])
     ->condition('myprimarykey', $sandbox['current_pk'], '>')
     ->range(0, 20)
     ->orderBy('myprimarykey', 'ASC')
@@ -650,7 +653,7 @@ function hook_update_N(&$sandbox) {
     // Here, you would make an update something related to this record. In this
     // example, some text is added to the other field.
     Database::getConnection()->update('mytable1')
-      ->fields(array('otherfield' => $record->otherfield . '-suffix'))
+      ->fields(['otherfield' => $record->otherfield . '-suffix'])
       ->condition('myprimarykey', $record->myprimarykey)
       ->execute();
 
@@ -761,9 +764,9 @@ function hook_update_dependencies() {
   // Indicate that the mymodule_update_8001() function provided by this module
   // must run after the another_module_update_8003() function provided by the
   // 'another_module' module.
-  $dependencies['mymodule'][8001] = array(
+  $dependencies['mymodule'][8001] = [
     'another_module' => 8003,
-  );
+  ];
   // Indicate that the mymodule_update_8002() function provided by this module
   // must run before the yet_another_module_update_8005() function provided by
   // the 'yet_another_module' module. (Note that declaring dependencies in this
@@ -771,9 +774,9 @@ function hook_update_dependencies() {
   // following problem: If a site has already run the yet_another_module
   // module's database updates before it updates its codebase to pick up the
   // newest mymodule code, then the dependency declared here will be ignored.)
-  $dependencies['yet_another_module'][8005] = array(
+  $dependencies['yet_another_module'][8005] = [
     'mymodule' => 8002,
-  );
+  ];
   return $dependencies;
 }
 
@@ -828,18 +831,18 @@ function hook_update_last_removed() {
  * @see hook_updater_info_alter()
  */
 function hook_updater_info() {
-  return array(
-    'module' => array(
+  return [
+    'module' => [
       'class' => 'Drupal\Core\Updater\Module',
       'name' => t('Update modules'),
       'weight' => 0,
-    ),
-    'theme' => array(
+    ],
+    'theme' => [
       'class' => 'Drupal\Core\Updater\Theme',
       'name' => t('Update themes'),
       'weight' => 0,
-    ),
-  );
+    ],
+  ];
 }
 
 /**
@@ -888,6 +891,9 @@ function hook_updater_info_alter(&$updaters) {
  * Module dependencies do not belong to these installation requirements,
  * but should be defined in the module's .info.yml file.
  *
+ * During installation (when $phase == 'install'), if you need to load a class
+ * from your module, you'll need to include the class file directly.
+ *
  * The 'runtime' phase is not limited to pure installation requirements
  * but can also be used for more general status information like maintenance
  * tasks and security issues.
@@ -919,24 +925,24 @@ function hook_updater_info_alter(&$updaters) {
  *     - REQUIREMENT_ERROR: The requirement failed with an error.
  */
 function hook_requirements($phase) {
-  $requirements = array();
+  $requirements = [];
 
   // Report Drupal version
   if ($phase == 'runtime') {
-    $requirements['drupal'] = array(
+    $requirements['drupal'] = [
       'title' => t('Drupal'),
       'value' => \Drupal::VERSION,
       'severity' => REQUIREMENT_INFO
-    );
+    ];
   }
 
   // Test PHP version
-  $requirements['php'] = array(
+  $requirements['php'] = [
     'title' => t('PHP'),
     'value' => ($phase == 'runtime') ? \Drupal::l(phpversion(), new Url('system.php')) : phpversion(),
-  );
+  ];
   if (version_compare(phpversion(), DRUPAL_MINIMUM_PHP) < 0) {
-    $requirements['php']['description'] = t('Your PHP installation is too old. Drupal requires at least PHP %version.', array('%version' => DRUPAL_MINIMUM_PHP));
+    $requirements['php']['description'] = t('Your PHP installation is too old. Drupal requires at least PHP %version.', ['%version' => DRUPAL_MINIMUM_PHP]);
     $requirements['php']['severity'] = REQUIREMENT_ERROR;
   }
 
@@ -945,17 +951,17 @@ function hook_requirements($phase) {
     $cron_last = \Drupal::state()->get('system.cron_last');
 
     if (is_numeric($cron_last)) {
-      $requirements['cron']['value'] = t('Last run @time ago', array('@time' => \Drupal::service('date.formatter')->formatTimeDiffSince($cron_last)));
+      $requirements['cron']['value'] = t('Last run @time ago', ['@time' => \Drupal::service('date.formatter')->formatTimeDiffSince($cron_last)]);
     }
     else {
-      $requirements['cron'] = array(
-        'description' => t('Cron has not run. It appears cron jobs have not been setup on your system. Check the help pages for <a href=":url">configuring cron jobs</a>.', array(':url' => 'https://www.drupal.org/cron')),
+      $requirements['cron'] = [
+        'description' => t('Cron has not run. It appears cron jobs have not been setup on your system. Check the help pages for <a href=":url">configuring cron jobs</a>.', [':url' => 'https://www.drupal.org/cron']),
         'severity' => REQUIREMENT_ERROR,
         'value' => t('Never run'),
-      );
+      ];
     }
 
-    $requirements['cron']['description'] .= ' ' . t('You can <a href=":cron">run cron manually</a>.', array(':cron' => \Drupal::url('system.run_cron')));
+    $requirements['cron']['description'] .= ' ' . t('You can <a href=":cron">run cron manually</a>.', [':cron' => \Drupal::url('system.run_cron')]);
 
     $requirements['cron']['title'] = t('Cron maintenance tasks');
   }

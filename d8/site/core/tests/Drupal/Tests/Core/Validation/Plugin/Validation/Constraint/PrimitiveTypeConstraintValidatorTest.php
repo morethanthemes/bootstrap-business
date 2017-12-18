@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Validation\Plugin\Validation\Constraint\PrimitiveTypeConstraintValidatorTest.
- */
-
 namespace Drupal\Tests\Core\Validation\Plugin\Validation\Constraint;
 
 use Drupal\Core\TypedData\DataDefinition;
@@ -18,9 +13,10 @@ use Drupal\Core\Validation\Plugin\Validation\Constraint\PrimitiveTypeConstraint;
 use Drupal\Core\Validation\Plugin\Validation\Constraint\PrimitiveTypeConstraintValidator;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Tests\UnitTestCase;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 /**
- * @coversDefaultClass Drupal\Core\Validation\Plugin\Validation\Constraint\PrimitiveTypeConstraintValidator
+ * @coversDefaultClass \Drupal\Core\Validation\Plugin\Validation\Constraint\PrimitiveTypeConstraintValidator
  * @group validation
  */
 class PrimitiveTypeConstraintValidatorTest extends UnitTestCase {
@@ -31,7 +27,7 @@ class PrimitiveTypeConstraintValidatorTest extends UnitTestCase {
    * @dataProvider provideTestValidate
    */
   public function testValidate(PrimitiveInterface $typed_data, $value, $valid) {
-    $context = $this->getMock('\Symfony\Component\Validator\Context\ExecutionContextInterface');
+    $context = $this->getMock(ExecutionContextInterface::class);
     $context->expects($this->any())
       ->method('getObject')
       ->willReturn($typed_data);

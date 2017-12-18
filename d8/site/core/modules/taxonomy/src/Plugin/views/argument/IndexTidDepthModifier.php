@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\taxonomy\Plugin\views\argument\IndexTidDepthModifier.
- */
-
 namespace Drupal\taxonomy\Plugin\views\argument;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -22,9 +17,9 @@ use Drupal\views\Plugin\views\argument\ArgumentPluginBase;
  */
 class IndexTidDepthModifier extends ArgumentPluginBase {
 
-  public function buildOptionsForm(&$form, FormStateInterface $form_state) { }
+  public function buildOptionsForm(&$form, FormStateInterface $form_state) {}
 
-  public function query($group_by = FALSE) { }
+  public function query($group_by = FALSE) {}
 
   public function preQuery() {
     // We don't know our argument yet, but it's based upon our position:

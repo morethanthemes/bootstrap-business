@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\breakpoint\Breakpoint.
- */
-
 namespace Drupal\breakpoint;
 
 use Drupal\Core\Plugin\PluginBase;
@@ -21,7 +16,7 @@ class Breakpoint extends PluginBase implements BreakpointInterface {
    * {@inheritdoc}
    */
   public function getLabel() {
-    return $this->t($this->pluginDefinition['label'], array(), array('context' => 'breakpoint'));
+    return $this->t($this->pluginDefinition['label'], [], ['context' => 'breakpoint']);
   }
 
   /**

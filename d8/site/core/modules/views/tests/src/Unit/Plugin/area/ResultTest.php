@@ -1,15 +1,16 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\views\Unit\Plugin\area\ResultTest.
- */
-
 namespace Drupal\Tests\views\Unit\Plugin\area;
 
+use Drupal\Core\Routing\RouteProviderInterface;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\Tests\UnitTestCase;
+use Drupal\views\Entity\View;
+use Drupal\views\Plugin\views\pager\PagerPluginBase;
 use Drupal\views\ViewExecutable;
 use Drupal\views\Plugin\views\area\Result;
+use Drupal\views\ViewsData;
+use Prophecy\Argument;
 
 /**
  * @coversDefaultClass \Drupal\views\Plugin\views\area\Result
@@ -34,22 +35,16 @@ class ResultTest extends UnitTestCase {
   protected function setUp() {
     parent::setUp();
 
-    $storage = $this->getMockBuilder('Drupal\views\Entity\View')
-      ->disableOriginalConstructor()
-      ->setMethods(array('label'))
-      ->getMock();
-    $storage->expects($this->any())
-      ->method('label')
-      ->will($this->returnValue('ResultTest'));
+    $storage = $this->prophesize(View::class);
+    $storage->label()->willReturn('ResultTest');
+    $storage->set(Argument::cetera())->willReturn(NULL);
 
-    $user = $this->getMock('Drupal\Core\Session\AccountInterface');
-    $views_data = $this->getMockBuilder('Drupal\views\ViewsData')
-      ->disableOriginalConstructor()
-      ->getMock();
-    $route_provider = $this->getMock('Drupal\Core\Routing\RouteProviderInterface');
-    $this->view = new ViewExecutable($storage, $user, $views_data, $route_provider);
+    $user = $this->prophesize(AccountInterface::class)->reveal();
+    $views_data = $this->prophesize(ViewsData::class)->reveal();
+    $route_provider = $this->prophesize(RouteProviderInterface::class)->reveal();
+    $this->view = new ViewExecutable($storage->reveal(), $user, $views_data, $route_provider);
 
-    $this->resultHandler = new Result(array(), 'result', array());
+    $this->resultHandler = new Result([], 'result', []);
     $this->resultHandler->view = $this->view;
   }
 
@@ -84,7 +79,7 @@ class ResultTest extends UnitTestCase {
   public function testResultArea($content, $expected, $items_per_page = 0) {
     $this->setupViewPager($items_per_page);
     $this->resultHandler->options['content'] = $content;
-    $this->assertEquals(array('#markup' => $expected), $this->resultHandler->render());
+    $this->assertEquals(['#markup' => $expected], $this->resultHandler->render());
   }
 
   /**
@@ -93,25 +88,25 @@ class ResultTest extends UnitTestCase {
    * @return array
    */
   public function providerTestResultArea() {
-    return array(
-      array('@label', 'ResultTest'),
-      array('@start', '1'),
-      array('@start', '1', 1),
-      array('@end', '100'),
-      array('@end', '1', 1),
-      array('@total', '100'),
-      array('@total', '100', 1),
-      array('@per_page', '0'),
-      array('@per_page', '1', 1),
-      array('@current_page', '1'),
-      array('@current_page', '1', 1),
-      array('@current_record_count', '100'),
-      array('@current_record_count', '1', 1),
-      array('@page_count', '1'),
-      array('@page_count', '100', 1),
-      array('@start | @end | @total', '1 | 100 | 100'),
-      array('@start | @end | @total', '1 | 1 | 100', 1),
-    );
+    return [
+      ['@label', 'ResultTest'],
+      ['@start', '1'],
+      ['@start', '1', 1],
+      ['@end', '100'],
+      ['@end', '1', 1],
+      ['@total', '100'],
+      ['@total', '100', 1],
+      ['@per_page', '0'],
+      ['@per_page', '1', 1],
+      ['@current_page', '1'],
+      ['@current_page', '1', 1],
+      ['@current_record_count', '100'],
+      ['@current_record_count', '1', 1],
+      ['@page_count', '1'],
+      ['@page_count', '100', 1],
+      ['@start | @end | @total', '1 | 100 | 100'],
+      ['@start | @end | @total', '1 | 1 | 100', 1],
+    ];
   }
 
   /**
@@ -121,21 +116,18 @@ class ResultTest extends UnitTestCase {
    *   The value to return from getItemsPerPage().
    */
   protected function setupViewPager($items_per_page = 0) {
-    $pager = $this->getMockBuilder('Drupal\views\Plugin\views\pager\PagerPluginBase')
-      ->disableOriginalConstructor()
-      ->setMethods(array('getItemsPerPage', 'getCurrentPage'))
-      ->getMock();
-    $pager->expects($this->once())
-      ->method('getItemsPerPage')
-      ->will($this->returnValue($items_per_page));
-    $pager->expects($this->once())
-      ->method('getCurrentPage')
-      ->will($this->returnValue(0));
+    $pager = $this->prophesize(PagerPluginBase::class);
+    $pager->getItemsPerPage()
+      ->willReturn($items_per_page)
+      ->shouldBeCalledTimes(1);
+    $pager->getCurrentPage()
+      ->willReturn(0)
+      ->shouldBeCalledTimes(1);
 
-    $this->view->pager = $pager;
+    $this->view->pager = $pager->reveal();
     $this->view->style_plugin = new \stdClass();
     $this->view->total_rows = 100;
-    $this->view->result = array(1, 2, 3, 4, 5);
+    $this->view->result = [1, 2, 3, 4, 5];
   }
 
 }

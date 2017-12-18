@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\Plugin\Validation\Constraint\BundleConstraintValidator.
- */
-
 namespace Drupal\Core\Entity\Plugin\Validation\Constraint;
 
 use Symfony\Component\Validator\Constraint;
@@ -24,7 +19,7 @@ class BundleConstraintValidator extends ConstraintValidator {
     }
 
     if (!in_array($entity->bundle(), $constraint->getBundleOption())) {
-      $this->context->addViolation($constraint->message, array('%bundle' => implode(', ', $constraint->getBundleOption())));
+      $this->context->addViolation($constraint->message, ['%bundle' => implode(', ', $constraint->getBundleOption())]);
     }
   }
 

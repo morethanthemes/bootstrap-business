@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\views\Unit\ViewsHandlerManagerTest.
- */
-
 namespace Drupal\Tests\views\Unit;
 
 use Drupal\Tests\UnitTestCase;
@@ -47,12 +42,13 @@ class ViewsHandlerManagerTest extends UnitTestCase {
    * {@inheritdoc}
    */
   protected function setUp() {
+    parent::setUp();
     $this->viewsData = $this->getMockBuilder('Drupal\views\ViewsData')
       ->disableOriginalConstructor()
       ->getMock();
     $cache_backend = $this->getMock('Drupal\Core\Cache\CacheBackendInterface');
     $this->moduleHandler = $this->getMock('Drupal\Core\Extension\ModuleHandlerInterface');
-    $this->handlerManager = new ViewsHandlerManager('test', new \ArrayObject(array()), $this->viewsData, $cache_backend, $this->moduleHandler);
+    $this->handlerManager = new ViewsHandlerManager('test', new \ArrayObject([]), $this->viewsData, $cache_backend, $this->moduleHandler);
   }
 
   /**
@@ -76,7 +72,7 @@ class ViewsHandlerManagerTest extends UnitTestCase {
   public function testAlterHookInvocation() {
     $this->moduleHandler->expects($this->once())
       ->method('alter')
-      ->with('views_plugins_test', array());
+      ->with('views_plugins_test', []);
 
     $this->handlerManager->getDefinitions();
   }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\text\Plugin\Field\FieldWidget\TextareaWidget.
- */
-
 namespace Drupal\text\Plugin\Field\FieldWidget;
 
 use Drupal\Core\Field\FieldItemListInterface;
@@ -28,6 +23,15 @@ class TextareaWidget extends StringTextareaWidget {
   /**
    * {@inheritdoc}
    */
+  public function settingsForm(array $form, FormStateInterface $form_state) {
+    $element = parent::settingsForm($form, $form_state);
+    $element['rows']['#description'] = $this->t('Text editors (like CKEditor) may override this setting.');
+    return $element;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function formElement(FieldItemListInterface $items, $delta, array $element, array &$form, FormStateInterface $form_state) {
     $main_widget = parent::formElement($items, $delta, $element, $form, $form_state);
 
@@ -42,7 +46,7 @@ class TextareaWidget extends StringTextareaWidget {
    * {@inheritdoc}
    */
   public function errorElement(array $element, ConstraintViolationInterface $violation, array $form, FormStateInterface $form_state) {
-    if ($violation->arrayPropertyPath == array('format') && isset($element['format']['#access']) && !$element['format']['#access']) {
+    if ($violation->arrayPropertyPath == ['format'] && isset($element['format']['#access']) && !$element['format']['#access']) {
       // Ignore validation errors for formats if formats may not be changed,
       // i.e. when existing formats become invalid. See filter_process_format().
       return FALSE;

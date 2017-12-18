@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Menu\MenuLinkTree.
- */
-
 namespace Drupal\Core\Menu;
 
 use Drupal\Component\Utility\NestedArray;
@@ -25,6 +20,13 @@ class MenuLinkTree implements MenuLinkTreeInterface {
    * @var \Drupal\Core\Menu\MenuTreeStorageInterface
    */
   protected $treeStorage;
+
+  /**
+   * The menu link plugin manager.
+   *
+   * @var \Drupal\Core\Menu\MenuLinkManagerInterface
+   */
+  protected $menuLinkManager;
 
   /**
    * The route provider to load routes by name.
@@ -112,7 +114,7 @@ class MenuLinkTree implements MenuLinkTreeInterface {
    *   An array containing the elements of a menu tree.
    */
   protected function createInstances(array $data_tree) {
-    $tree = array();
+    $tree = [];
     foreach ($data_tree as $key => $element) {
       $subtree = $this->createInstances($element['subtree']);
       // Build a MenuLinkTreeElement out of the menu tree link definition:
@@ -207,7 +209,7 @@ class MenuLinkTree implements MenuLinkTreeInterface {
    * @throws \DomainException
    */
   protected function buildItems(array $tree, CacheableMetadata &$tree_access_cacheability, CacheableMetadata &$tree_link_cacheability) {
-    $items = array();
+    $items = [];
 
     foreach ($tree as $data) {
       /** @var \Drupal\Core\Menu\MenuLinkInterface $link */
@@ -267,7 +269,7 @@ class MenuLinkTree implements MenuLinkTreeInterface {
       $element['title'] = $link->getTitle();
       $element['url'] = $link->getUrlObject();
       $element['url']->setOption('set_active_class', TRUE);
-      $element['below'] = $data->subtree ? $this->buildItems($data->subtree, $tree_access_cacheability, $tree_link_cacheability) : array();
+      $element['below'] = $data->subtree ? $this->buildItems($data->subtree, $tree_access_cacheability, $tree_link_cacheability) : [];
       if (isset($data->options)) {
         $element['url']->setOptions(NestedArray::mergeDeep($element['url']->getOptions(), $data->options));
       }

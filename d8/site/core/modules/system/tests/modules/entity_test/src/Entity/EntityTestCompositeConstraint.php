@@ -1,11 +1,7 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\entity_test\Entity\EntityTestCompositeConstraint.
- */
-
 namespace Drupal\entity_test\Entity;
+
 use Drupal\Core\Entity\EntityTypeInterface;
 
 /**
@@ -41,15 +37,15 @@ class EntityTestCompositeConstraint extends EntityTest {
   public static function baseFieldDefinitions(EntityTypeInterface $entity_type) {
     $fields = parent::baseFieldDefinitions($entity_type);
 
-    $fields['name']->setDisplayOptions('form', array(
+    $fields['name']->setDisplayOptions('form', [
       'type' => 'string',
       'weight' => 0,
-    ));
+    ]);
 
-    $fields['type']->setDisplayOptions('form', array(
+    $fields['type']->setDisplayOptions('form', [
       'type' => 'entity_reference_autocomplete',
       'weight' => 0,
-    ));
+    ]);
 
     return $fields;
   }

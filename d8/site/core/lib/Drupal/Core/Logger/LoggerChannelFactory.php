@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Logger\LoggerChannelFactory.
- */
-
 namespace Drupal\Core\Logger;
 
 use Psr\Log\LoggerInterface;
@@ -22,14 +17,14 @@ class LoggerChannelFactory implements LoggerChannelFactoryInterface, ContainerAw
    *
    * @var \Drupal\Core\Logger\LoggerChannelInterface[]
    */
-  protected $channels = array();
+  protected $channels = [];
 
   /**
    * An array of arrays of \Psr\Log\LoggerInterface keyed by priority.
    *
    * @var array
    */
-  protected $loggers = array();
+  protected $loggers = [];
 
   /**
    * {@inheritdoc}

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\PathProcessor\NullPathProcessorManager.
- */
-
 namespace Drupal\Core\PathProcessor;
 
 use Drupal\Core\Render\BubbleableMetadata;
@@ -27,7 +22,7 @@ class NullPathProcessorManager implements InboundPathProcessorInterface, Outboun
   /**
    * {@inheritdoc}
    */
-  public function processOutbound($path, &$options = array(), Request $request = NULL, BubbleableMetadata $bubbleable_metadata = NULL) {
+  public function processOutbound($path, &$options = [], Request $request = NULL, BubbleableMetadata $bubbleable_metadata = NULL) {
     return $path;
   }
 

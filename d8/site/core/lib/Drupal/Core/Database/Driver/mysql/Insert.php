@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Database\Driver\mysql\Insert.
- */
-
 namespace Drupal\Core\Database\Driver\mysql;
 
 use Drupal\Core\Database\Query\Insert as QueryInsert;
@@ -23,7 +18,7 @@ class Insert extends QueryInsert {
     // pass it back, as any remaining options are irrelevant.
     if (empty($this->fromQuery)) {
       $max_placeholder = 0;
-      $values = array();
+      $values = [];
       foreach ($this->insertValues as $insert_values) {
         foreach ($insert_values as $value) {
           $values[':db_insert_placeholder_' . $max_placeholder++] = $value;
@@ -37,7 +32,7 @@ class Insert extends QueryInsert {
     $last_insert_id = $this->connection->query((string) $this, $values, $this->queryOptions);
 
     // Re-initialize the values array so that we can re-use this query.
-    $this->insertValues = array();
+    $this->insertValues = [];
 
     return $last_insert_id;
   }
@@ -63,4 +58,5 @@ class Insert extends QueryInsert {
 
     return $query;
   }
+
 }

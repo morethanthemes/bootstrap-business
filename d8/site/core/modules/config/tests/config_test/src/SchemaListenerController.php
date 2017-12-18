@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\config_test\SchemaListenerController.
- */
-
 namespace Drupal\config_test;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -13,7 +8,7 @@ use Drupal\Core\Controller\ControllerBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Controller for testing \Drupal\Core\Config\Testing\ConfigSchemaChecker.
+ * Controller for testing \Drupal\Core\Config\Development\ConfigSchemaChecker.
  */
 class SchemaListenerController extends ControllerBase {
 

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Password\PhpassHashedPassword.
- */
-
 namespace Drupal\Core\Password;
 
 use Drupal\Component\Utility\Crypt;
@@ -33,8 +28,10 @@ class PhpassHashedPassword implements PasswordInterface {
 
   /**
    * Returns a string for mapping an int to the corresponding base 64 character.
+   *
+   * @var string
    */
-  static $ITOA64 = './0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  public static $ITOA64 = './0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
   /**
    * Specifies the number of times the hashing function will be applied when
@@ -52,7 +49,7 @@ class PhpassHashedPassword implements PasswordInterface {
    *   The number of times is calculated by raising 2 to the power of the given
    *   value.
    */
-  function __construct($countLog2) {
+  public function __construct($countLog2) {
     // Ensure that $countLog2 is within set bounds.
     $this->countLog2 = $this->enforceLog2Boundaries($countLog2);
   }
@@ -192,7 +189,7 @@ class PhpassHashedPassword implements PasswordInterface {
     } while (--$count);
 
     $len = strlen($hash);
-    $output =  $setting . $this->base64Encode($hash, $len);
+    $output = $setting . $this->base64Encode($hash, $len);
     // $this->base64Encode() of a 16 byte MD5 will always be 22 characters.
     // $this->base64Encode() of a 64 byte sha512 will always be 86 characters.
     $expected = 12 + ceil((8 * $len) / 6);

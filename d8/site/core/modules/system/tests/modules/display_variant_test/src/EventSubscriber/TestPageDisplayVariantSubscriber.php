@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\display_variant_test\EventSubscriber\TestPageDisplayVariantSubscriber.
- */
-
 namespace Drupal\display_variant_test\EventSubscriber;
 
 use Drupal\Core\Plugin\Context\Context;
@@ -36,8 +31,8 @@ class TestPageDisplayVariantSubscriber implements EventSubscriberInterface {
   /**
    * {@inheritdoc}
    */
-  static function getSubscribedEvents() {
-    $events[RenderEvents::SELECT_PAGE_DISPLAY_VARIANT][] = array('onSelectPageDisplayVariant');
+  public static function getSubscribedEvents() {
+    $events[RenderEvents::SELECT_PAGE_DISPLAY_VARIANT][] = ['onSelectPageDisplayVariant'];
     return $events;
   }
 

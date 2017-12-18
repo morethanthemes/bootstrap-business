@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Queue\QueueInterface.
- */
-
 namespace Drupal\Core\Queue;
 
 /**
@@ -111,4 +106,5 @@ interface QueueInterface {
    * Deletes a queue and every item in the queue.
    */
   public function deleteQueue();
+
 }

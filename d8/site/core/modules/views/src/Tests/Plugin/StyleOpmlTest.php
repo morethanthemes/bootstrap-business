@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Tests\Plugin\StyleOpmlTest.
- */
-
 namespace Drupal\views\Tests\Plugin;
 
 /**
@@ -20,14 +15,14 @@ class StyleOpmlTest extends PluginTestBase {
    *
    * @var array
    */
-  public static $testViews = array('test_style_opml');
+  public static $testViews = ['test_style_opml'];
 
   /**
    * Modules to enable.
    *
    * @var array
    */
-  public static $modules = array('aggregator');
+  public static $modules = ['aggregator'];
 
   /**
    * {@inheritdoc}
@@ -37,7 +32,7 @@ class StyleOpmlTest extends PluginTestBase {
 
     $this->enableViewsTestModule();
 
-    $admin_user = $this->drupalCreateUser(array('administer news feeds'));
+    $admin_user = $this->drupalCreateUser(['administer news feeds']);
     $this->drupalLogin($admin_user);
   }
 
@@ -46,11 +41,11 @@ class StyleOpmlTest extends PluginTestBase {
    */
   public function testOpmlOutput() {
     // Create a test feed.
-    $values = array(
+    $values = [
       'title' => $this->randomMachineName(10),
       'url' => 'http://example.com/rss.xml',
       'refresh' => '900',
-    );
+    ];
     $feed = $this->container->get('entity.manager')
       ->getStorage('aggregator_feed')
       ->create($values);
@@ -74,7 +69,7 @@ class StyleOpmlTest extends PluginTestBase {
     $outline = $this->xpath('//outline[1]');
     $this->assertEqual($outline[0]['type'], 'link', 'The correct type attribute is used for link OPML.');
     $this->assertEqual($outline[0]['text'], $feed->label(), 'The correct text attribute is used for link OPML.');
-    $this->assertEqual($outline[0]['url'], $feed->getUrl(), 'The correct url attribute is used for link OPML.');
+    $this->assertEqual($outline[0]['url'], $feed->getUrl(), 'The correct URL attribute is used for link OPML.');
     // xmlUrl should not be present when type is link.
     $this->assertNull($outline[0]['xmlUrl'], 'The xmlUrl attribute is not used for link OPML.');
   }

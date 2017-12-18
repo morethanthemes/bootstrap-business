@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\options\Plugin\Field\FieldType\ListFloatItem.
- */
-
 namespace Drupal\options\Plugin\Field\FieldType;
 
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
@@ -39,16 +34,16 @@ class ListFloatItem extends ListItemBase {
    * {@inheritdoc}
    */
   public static function schema(FieldStorageDefinitionInterface $field_definition) {
-    return array(
-      'columns' => array(
-        'value' => array(
+    return [
+      'columns' => [
+        'value' => [
           'type' => 'float',
-        ),
-      ),
-      'indexes' => array(
-        'value' => array('value'),
-      ),
-    );
+        ],
+      ],
+      'indexes' => [
+        'value' => ['value'],
+      ],
+    ];
   }
 
   /**
@@ -60,7 +55,7 @@ class ListFloatItem extends ListItemBase {
     $description .= '<br/>' . t('The label is optional: if a line contains a single number, it will be used as key and label.');
     $description .= '<br/>' . t('Lists of labels are also accepted (one label per line), only if the field does not hold any values yet. Numeric keys will be automatically generated from the positions in the list.');
     $description .= '</p>';
-    $description .= '<p>' . t('Allowed HTML tags in labels: @tags', array('@tags' => $this->displayAllowedTags())) . '</p>';
+    $description .= '<p>' . t('Allowed HTML tags in labels: @tags', ['@tags' => $this->displayAllowedTags()]) . '</p>';
     return $description;
   }
 
@@ -95,7 +90,7 @@ class ListFloatItem extends ListItemBase {
    * {@inheritdoc}
    */
   public static function simplifyAllowedValues(array $structured_values) {
-    $values = array();
+    $values = [];
     foreach ($structured_values as $item) {
       // Nested elements are embedded in the label.
       if (is_array($item['label'])) {
@@ -104,7 +99,7 @@ class ListFloatItem extends ListItemBase {
       // Cast the value to a float first so that .5 and 0.5 are the same value
       // and then cast to a string so that values like 0.5 can be used as array
       // keys.
-      // @see http://php.net/manual/en/language.types.array.php
+      // @see http://php.net/manual/language.types.array.php
       $values[(string) (float) $item['value']] = $item['label'];
     }
     return $values;

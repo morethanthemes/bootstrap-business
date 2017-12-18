@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Ajax\SettingsCommand.
- */
-
 namespace Drupal\Core\Ajax;
 
 /**
@@ -59,11 +54,11 @@ class SettingsCommand implements CommandInterface {
    */
   public function render() {
 
-    return array(
+    return [
       'command' => 'settings',
       'settings' => $this->settings,
       'merge' => $this->merge,
-    );
+    ];
   }
 
 }

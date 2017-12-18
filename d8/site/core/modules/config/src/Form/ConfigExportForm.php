@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\config\Form\ConfigExportForm.
- */
-
 namespace Drupal\config\Form;
 
 use Drupal\Core\Form\FormBase;
@@ -26,10 +21,10 @@ class ConfigExportForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    $form['submit'] = array(
+    $form['submit'] = [
       '#type' => 'submit',
       '#value' => $this->t('Export'),
-    );
+    ];
     return $form;
   }
 

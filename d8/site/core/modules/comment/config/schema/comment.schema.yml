@@ -4,6 +4,9 @@ field.formatter.settings.comment_default:
   type: mapping
   label: 'Comment display format settings'
   mapping:
+    view_mode:
+      type: string
+      label: 'The comment entity view mode to be used in this formatter'
     pager_id:
       type: integer
       label: 'Pager ID'
@@ -34,6 +37,10 @@ action.configuration.comment_unpublish_by_keyword_action:
 action.configuration.comment_unpublish_action:
   type: action_configuration_default
   label: 'Unpublish comment configuration'
+
+action.configuration.comment_delete_action:
+  type: action_configuration_default
+  label: 'Delete comment configuration'
 
 comment.type.*:
   type: config_entity
@@ -102,3 +109,6 @@ field.field_settings.comment:
     preview:
       type: integer
       label: 'Preview comment'
+
+field.formatter.settings.comment_permalink:
+  type: field.formatter.settings.string

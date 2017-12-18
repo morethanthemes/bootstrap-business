@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\form_test\Form\FormTestUrlForm.
- */
-
 namespace Drupal\form_test\Form;
 
 use Drupal\Core\Form\FormBase;
@@ -27,21 +22,21 @@ class FormTestUrlForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    $form['url'] = array(
+    $form['url'] = [
       '#type' => 'url',
       '#title' => 'Optional URL',
       '#description' => 'An optional URL field.',
-    );
-    $form['url_required'] = array(
+    ];
+    $form['url_required'] = [
       '#type' => 'url',
       '#title' => 'Required URL',
       '#description' => 'A required URL field.',
       '#required' => TRUE,
-    );
-    $form['submit'] = array(
+    ];
+    $form['submit'] = [
       '#type' => 'submit',
       '#value' => 'Submit',
-    );
+    ];
     return $form;
   }
 

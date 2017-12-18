@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\update\UpdateFetcherInterface.
- */
 
 namespace Drupal\update;
 
@@ -10,6 +6,26 @@ namespace Drupal\update;
  * Fetches project information from remote locations.
  */
 interface UpdateFetcherInterface {
+
+  /**
+   * Project's status cannot be checked.
+   */
+  const NOT_CHECKED = -1;
+
+  /**
+   * No available update data was found for project.
+   */
+  const UNKNOWN = -2;
+
+  /**
+   * There was a failure fetching available update data for this project.
+   */
+  const NOT_FETCHED = -3;
+
+  /**
+   * We need to (re)fetch available update data for this project.
+   */
+  const FETCH_PENDING = -4;
 
   /**
    * Returns the base of the URL to fetch available update data for a project.
@@ -60,4 +76,5 @@ interface UpdateFetcherInterface {
    * @see \Drupal\update\UpdateManager::getProjects()
    */
   public function buildFetchUrl(array $project, $site_key = '');
+
 }

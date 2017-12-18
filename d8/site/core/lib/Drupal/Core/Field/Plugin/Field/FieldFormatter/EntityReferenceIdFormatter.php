@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Field\Plugin\Field\FieldFormatter\EntityReferenceIdFormatter.
- */
-
 namespace Drupal\Core\Field\Plugin\Field\FieldFormatter;
 
 use Drupal\Core\Field\FieldItemListInterface;
@@ -27,22 +22,23 @@ class EntityReferenceIdFormatter extends EntityReferenceFormatterBase {
    * {@inheritdoc}
    */
   public function viewElements(FieldItemListInterface $items, $langcode) {
-    $elements = array();
+    $elements = [];
 
     foreach ($this->getEntitiesToView($items, $langcode) as $delta => $entity) {
       if ($entity->id()) {
-        $elements[$delta] = array(
+        $elements[$delta] = [
           '#plain_text' => $entity->id(),
           // Create a cache tag entry for the referenced entity. In the case
           // that the referenced entity is deleted, the cache for referring
           // entities must be cleared.
-          '#cache' => array(
+          '#cache' => [
             'tags' => $entity->getCacheTags(),
-          ),
-        );
+          ],
+        ];
       }
     }
 
     return $elements;
   }
+
 }

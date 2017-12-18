@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\StringTranslation\TranslationManager.
- */
-
 namespace Drupal\Core\StringTranslation;
 
 use Drupal\Core\Language\LanguageDefault;
@@ -26,7 +21,7 @@ class TranslationManager implements TranslationInterface, TranslatorInterface {
    * @see \Drupal\Core\StringTranslation\TranslationManager::addTranslator()
    * @see \Drupal\Core\StringTranslation\TranslationManager::sortTranslators()
    */
-  protected $translators = array();
+  protected $translators = [];
 
   /**
    * An array of translators, sorted by priority.
@@ -82,7 +77,7 @@ class TranslationManager implements TranslationInterface, TranslatorInterface {
    *   A sorted array of translator objects.
    */
   protected function sortTranslators() {
-    $sorted = array();
+    $sorted = [];
     krsort($this->translators);
 
     foreach ($this->translators as $translators) {
@@ -111,7 +106,7 @@ class TranslationManager implements TranslationInterface, TranslatorInterface {
   /**
    * {@inheritdoc}
    */
-  public function translate($string, array $args = array(), array $options = array()) {
+  public function translate($string, array $args = [], array $options = []) {
     return new TranslatableMarkup($string, $args, $options, $this);
   }
 
@@ -136,7 +131,7 @@ class TranslationManager implements TranslationInterface, TranslatorInterface {
    * @return string
    *   The translated string.
    */
-  protected function doTranslate($string, array $options = array()) {
+  protected function doTranslate($string, array $options = []) {
     // If a NULL langcode has been provided, unset it.
     if (!isset($options['langcode']) && array_key_exists('langcode', $options)) {
       unset($options['langcode']);
@@ -154,7 +149,7 @@ class TranslationManager implements TranslationInterface, TranslatorInterface {
   /**
    * {@inheritdoc}
    */
-  public function formatPlural($count, $singular, $plural, array $args = array(), array $options = array()) {
+  public function formatPlural($count, $singular, $plural, array $args = [], array $options = []) {
     return new PluralTranslatableMarkup($count, $singular, $plural, $args, $options, $this);
   }
 

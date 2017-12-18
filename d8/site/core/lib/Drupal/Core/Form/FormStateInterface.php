@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Form\FormStateInterface.
- */
-
 namespace Drupal\Core\Form;
 
 use Drupal\Core\Url;
@@ -134,7 +129,7 @@ interface FormStateInterface {
    *
    * @see \Drupal\Core\Form\FormSubmitterInterface::redirectForm()
    */
-  public function setRedirect($route_name, array $route_parameters = array(), array $options = array());
+  public function setRedirect($route_name, array $route_parameters = [], array $options = []);
 
   /**
    * Sets the redirect URL for the form.
@@ -785,7 +780,7 @@ interface FormStateInterface {
   /**
    * Returns the HTTP form method.
    *
-   * @param string
+   * @param string $method_type
    *   The HTTP form method.
    *
    * @return bool

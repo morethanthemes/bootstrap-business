@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\search\Entity\SearchPage.
- */
-
 namespace Drupal\search\Entity;
 
 use Drupal\Core\Config\Entity\ConfigEntityBase;
@@ -27,7 +22,6 @@ use Drupal\search\SearchPageInterface;
  *     "form" = {
  *       "add" = "Drupal\search\Form\SearchPageAddForm",
  *       "edit" = "Drupal\search\Form\SearchPageEditForm",
- *       "search" = "Drupal\search\Form\SearchPageForm",
  *       "delete" = "Drupal\Core\Entity\EntityDeleteForm"
  *     }
  *   },
@@ -78,7 +72,7 @@ class SearchPage extends ConfigEntityBase implements SearchPageInterface, Entity
    *
    * @var array
    */
-  protected $configuration = array();
+  protected $configuration = [];
 
   /**
    * The search plugin ID.
@@ -134,7 +128,7 @@ class SearchPage extends ConfigEntityBase implements SearchPageInterface, Entity
    * {@inheritdoc}
    */
   public function getPluginCollections() {
-    return array('configuration' => $this->getPluginCollection());
+    return ['configuration' => $this->getPluginCollection()];
   }
 
   /**

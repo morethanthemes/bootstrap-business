@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\Diff\Engine\DiffEngine.
- */
-
 namespace Drupal\Component\Diff\Engine;
 
 use Drupal\Component\Utility\Unicode;
@@ -43,9 +38,9 @@ class DiffEngine {
     $n_from = sizeof($from_lines);
     $n_to = sizeof($to_lines);
 
-    $this->xchanged = $this->ychanged = array();
-    $this->xv = $this->yv = array();
-    $this->xind = $this->yind = array();
+    $this->xchanged = $this->ychanged = [];
+    $this->xv = $this->yv = [];
+    $this->xind = $this->yind = [];
     unset($this->seq);
     unset($this->in_seq);
     unset($this->lcs);
@@ -98,14 +93,14 @@ class DiffEngine {
     $this->_shift_boundaries($to_lines, $this->ychanged, $this->xchanged);
 
     // Compute the edit operations.
-    $edits = array();
+    $edits = [];
     $xi = $yi = 0;
     while ($xi < $n_from || $yi < $n_to) {
       $this::USE_ASSERTS && assert($yi < $n_to || $this->xchanged[$xi]);
       $this::USE_ASSERTS && assert($xi < $n_from || $this->ychanged[$yi]);
 
       // Skip matching "snake".
-      $copy = array();
+      $copy = [];
       while ( $xi < $n_from && $yi < $n_to && !$this->xchanged[$xi] && !$this->ychanged[$yi]) {
         $copy[] = $from_lines[$xi++];
         ++$yi;
@@ -114,11 +109,11 @@ class DiffEngine {
         $edits[] = new DiffOpCopy($copy);
       }
       // Find deletes & adds.
-      $delete = array();
+      $delete = [];
       while ($xi < $n_from && $this->xchanged[$xi]) {
         $delete[] = $from_lines[$xi++];
       }
-      $add = array();
+      $add = [];
       while ($yi < $n_to && $this->ychanged[$yi]) {
         $add[] = $to_lines[$yi++];
       }
@@ -172,7 +167,7 @@ class DiffEngine {
       // Things seems faster (I'm not sure I understand why)
       // when the shortest sequence in X.
       $flip = TRUE;
-      list($xoff, $xlim, $yoff, $ylim) = array($yoff, $ylim, $xoff, $xlim);
+      list($xoff, $xlim, $yoff, $ylim) = [$yoff, $ylim, $xoff, $xlim];
     }
 
     if ($flip) {
@@ -186,21 +181,21 @@ class DiffEngine {
       }
     }
     $this->lcs = 0;
-    $this->seq[0]= $yoff - 1;
-    $this->in_seq = array();
-    $ymids[0] = array();
+    $this->seq[0] = $yoff - 1;
+    $this->in_seq = [];
+    $ymids[0] = [];
 
     $numer = $xlim - $xoff + $nchunks - 1;
     $x = $xoff;
     for ($chunk = 0; $chunk < $nchunks; $chunk++) {
       if ($chunk > 0) {
         for ($i = 0; $i <= $this->lcs; $i++) {
-          $ymids[$i][$chunk-1] = $this->seq[$i];
+          $ymids[$i][$chunk - 1] = $this->seq[$i];
         }
       }
 
-      $x1 = $xoff + (int)(($numer + ($xlim-$xoff)*$chunk) / $nchunks);
-      for ( ; $x < $x1; $x++) {
+      $x1 = $xoff + (int)(($numer + ($xlim - $xoff) * $chunk) / $nchunks);
+      for (; $x < $x1; $x++) {
         $line = $flip ? $this->yv[$x] : $this->xv[$x];
         if (empty($ymatches[$line])) {
           continue;
@@ -211,12 +206,12 @@ class DiffEngine {
           if (empty($this->in_seq[$y])) {
             $k = $this->_lcs_pos($y);
             $this::USE_ASSERTS && assert($k > 0);
-            $ymids[$k] = $ymids[$k-1];
+            $ymids[$k] = $ymids[$k - 1];
             break;
           }
         }
         while (list ($junk, $y) = each($matches)) {
-          if ($y > $this->seq[$k-1]) {
+          if ($y > $this->seq[$k - 1]) {
             $this::USE_ASSERTS && assert($y < $this->seq[$k]);
             // Optimization: this is a common case:
             // next match is just replacing previous match.
@@ -227,22 +222,22 @@ class DiffEngine {
           elseif (empty($this->in_seq[$y])) {
             $k = $this->_lcs_pos($y);
             $this::USE_ASSERTS && assert($k > 0);
-            $ymids[$k] = $ymids[$k-1];
+            $ymids[$k] = $ymids[$k - 1];
           }
         }
       }
     }
 
-    $seps[] = $flip ? array($yoff, $xoff) : array($xoff, $yoff);
+    $seps[] = $flip ? [$yoff, $xoff] : [$xoff, $yoff];
     $ymid = $ymids[$this->lcs];
     for ($n = 0; $n < $nchunks - 1; $n++) {
       $x1 = $xoff + (int)(($numer + ($xlim - $xoff) * $n) / $nchunks);
       $y1 = $ymid[$n] + 1;
-      $seps[] = $flip ? array($y1, $x1) : array($x1, $y1);
+      $seps[] = $flip ? [$y1, $x1] : [$x1, $y1];
     }
-    $seps[] = $flip ? array($ylim, $xlim) : array($xlim, $ylim);
+    $seps[] = $flip ? [$ylim, $xlim] : [$xlim, $ylim];
 
-    return array($this->lcs, $seps);
+    return [$this->lcs, $seps];
   }
 
   protected function _lcs_pos($ypos) {
@@ -307,8 +302,7 @@ class DiffEngine {
       //$nchunks = sqrt(min($xlim - $xoff, $ylim - $yoff) / 2.5);
       //$nchunks = max(2, min(8, (int)$nchunks));
       $nchunks = min(7, $xlim - $xoff, $ylim - $yoff) + 1;
-      list($lcs, $seps)
-      = $this->_diag($xoff, $xlim, $yoff, $ylim, $nchunks);
+      list($lcs, $seps) = $this->_diag($xoff, $xlim, $yoff, $ylim, $nchunks);
     }
 
     if ($lcs == 0) {
@@ -368,7 +362,7 @@ class DiffEngine {
       while ($j < $other_len && $other_changed[$j]) {
         $j++;
       }
-      while ($i < $len && ! $changed[$i]) {
+      while ($i < $len && !$changed[$i]) {
         $this::USE_ASSERTS && assert('$j < $other_len && ! $other_changed[$j]');
         $i++;
         $j++;
@@ -458,4 +452,5 @@ class DiffEngine {
       }
     }
   }
+
 }

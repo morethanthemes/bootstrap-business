@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\language\Form\LanguageEditForm.
- */
-
 namespace Drupal\language\Form;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -34,12 +29,12 @@ class LanguageEditForm extends LanguageFormBase {
    * {@inheritdoc}
    */
   public function actions(array $form, FormStateInterface $form_state) {
-    $actions['submit'] = array(
+    $actions['submit'] = [
       '#type' => 'submit',
       '#value' => $this->t('Save language'),
-      '#validate' => array('::validateCommon'),
-      '#submit' => array('::submitForm', '::save'),
-    );
+      '#validate' => ['::validateCommon'],
+      '#submit' => ['::submitForm', '::save'],
+    ];
     return $actions;
   }
 
@@ -49,7 +44,7 @@ class LanguageEditForm extends LanguageFormBase {
   public function save(array $form, FormStateInterface $form_state) {
     parent::save($form, $form_state);
     $form_state->setRedirectUrl($this->entity->urlInfo('collection'));
-    $this->logger('language')->notice('The %language (%langcode) language has been updated.', array('%language' => $this->entity->label(), '%langcode' => $this->entity->id()));
+    $this->logger('language')->notice('The %language (%langcode) language has been updated.', ['%language' => $this->entity->label(), '%langcode' => $this->entity->id()]);
   }
 
 }

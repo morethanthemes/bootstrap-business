@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\serialization_test\SerializationTestNormalizer.
- */
-
 namespace Drupal\serialization_test;
 
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -30,7 +25,7 @@ class SerializationTestNormalizer implements NormalizerInterface {
    *   An array containing a normalized representation of $object, appropriate
    *   for encoding to the requested format.
    */
-  public function normalize($object, $format = NULL, array $context = array()) {
+  public function normalize($object, $format = NULL, array $context = []) {
     $normalized = (array) $object;
     // Add identifying value that can be used to verify that the expected
     // normalizer was invoked.
@@ -41,7 +36,7 @@ class SerializationTestNormalizer implements NormalizerInterface {
   /**
    * Checks whether format is supported by this normalizer.
    *
-   * @param mixed  $data
+   * @param mixed $data
    *   Data to normalize.
    * @param string $format
    *   Format the normalization result will be encoded as.
@@ -52,4 +47,5 @@ class SerializationTestNormalizer implements NormalizerInterface {
   public function supportsNormalization($data, $format = NULL) {
     return static::$format === $format;
   }
+
 }

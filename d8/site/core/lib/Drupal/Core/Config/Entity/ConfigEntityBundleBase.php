@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Config\Entity\ConfigEntityBundleBase.
- */
-
 namespace Drupal\Core\Config\Entity;
 
 use Drupal\Core\Config\ConfigNameException;
@@ -114,7 +109,7 @@ abstract class ConfigEntityBundleBase extends ConfigEntityBase {
       $storage = $this->entityManager()->getStorage($entity_type_id);
       return $storage->loadMultiple($ids);
     }
-    return array();
+    return [];
   }
 
 }

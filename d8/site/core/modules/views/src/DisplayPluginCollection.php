@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\DisplayPluginCollection.
- */
-
 namespace Drupal\views;
 
 use Drupal\Component\Plugin\Exception\PluginException;
@@ -31,7 +26,7 @@ class DisplayPluginCollection extends DefaultLazyPluginCollection {
   /**
    * Constructs a DisplayPluginCollection object.
    *
-   * @param \Drupal\views\ViewExecutable
+   * @param \Drupal\views\ViewExecutable $view
    *   The view which has this displays attached.
    * @param \Drupal\Component\Plugin\PluginManagerInterface $manager
    *   The manager to be used for instantiating plugins.
@@ -85,7 +80,7 @@ class DisplayPluginCollection extends DefaultLazyPluginCollection {
     // display plugin isn't found.
     catch (PluginException $e) {
       $message = $e->getMessage();
-      drupal_set_message(t('@message', array('@message' => $message)), 'warning');
+      drupal_set_message(t('@message', ['@message' => $message]), 'warning');
     }
 
     // If no plugin instance has been created, return NULL.
@@ -109,6 +104,5 @@ class DisplayPluginCollection extends DefaultLazyPluginCollection {
 
     parent::remove($instance_id);
   }
-
 
 }

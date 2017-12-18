@@ -21,7 +21,6 @@
  *   - class: HTML classes.
  */
 #}
-{{ attach_library('classy/messages') }}
 {% block messages %}
 {% for type, messages in message_list %}
   {%
@@ -51,6 +50,6 @@
     {% endif %}
   </div>
   {# Remove type specific classes. #}
-  {{ attributes.removeClass(classes) }}
+  {% set attributes = attributes.removeClass(classes) %}
 {% endfor %}
 {% endblock messages %}

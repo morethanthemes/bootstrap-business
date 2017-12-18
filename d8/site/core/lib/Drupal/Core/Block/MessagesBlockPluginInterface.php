@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Block\MessagesBlockPluginInterface.
- */
-
 namespace Drupal\Core\Block;
 
 /**
@@ -17,4 +12,4 @@ namespace Drupal\Core\Block;
  *
  * @ingroup block_api
  */
-interface MessagesBlockPluginInterface extends BlockPluginInterface { }
+interface MessagesBlockPluginInterface extends BlockPluginInterface {}

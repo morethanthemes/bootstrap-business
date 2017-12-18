@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\FileTransfer\Form\FileTransferAuthorizeForm.
- */
-
 namespace Drupal\Core\FileTransfer\Form;
 
 use Drupal\Core\Form\FormBase;
@@ -56,38 +51,37 @@ class FileTransferAuthorizeForm extends FormBase {
     // Get all the available ways to transfer files.
     if (empty($_SESSION['authorize_filetransfer_info'])) {
       drupal_set_message($this->t('Unable to continue, no available methods of file transfer'), 'error');
-      return array();
+      return [];
     }
     $available_backends = $_SESSION['authorize_filetransfer_info'];
 
     if (!$this->getRequest()->isSecure()) {
-      $form['information']['https_warning'] = array(
+      $form['information']['https_warning'] = [
         '#prefix' => '<div class="messages messages--error">',
-        '#markup' => $this->t('WARNING: You are not using an encrypted connection, so your password will be sent in plain text. <a href=":https-link">Learn more</a>.', array(':https-link' => 'https://www.drupal.org/https-information')),
+        '#markup' => $this->t('WARNING: You are not using an encrypted connection, so your password will be sent in plain text. <a href=":https-link">Learn more</a>.', [':https-link' => 'https://www.drupal.org/https-information']),
         '#suffix' => '</div>',
-      );
+      ];
     }
 
     // Decide on a default backend.
-    if ($authorize_filetransfer_default = $form_state->getValue(array('connection_settings', 'authorize_filetransfer_default')));
-    elseif ($authorize_filetransfer_default = $this->config('system.authorize')->get('filetransfer_default'));
-    else {
+    $authorize_filetransfer_default = $form_state->getValue(['connection_settings', 'authorize_filetransfer_default']);
+    if (!$authorize_filetransfer_default) {
       $authorize_filetransfer_default = key($available_backends);
     }
 
-    $form['information']['main_header'] = array(
+    $form['information']['main_header'] = [
       '#prefix' => '<h3>',
       '#markup' => $this->t('To continue, provide your server connection details'),
       '#suffix' => '</h3>',
-    );
+    ];
 
     $form['connection_settings']['#tree'] = TRUE;
-    $form['connection_settings']['authorize_filetransfer_default'] = array(
+    $form['connection_settings']['authorize_filetransfer_default'] = [
       '#type' => 'select',
       '#title' => $this->t('Connection method'),
       '#default_value' => $authorize_filetransfer_default,
       '#weight' => -10,
-    );
+    ];
 
     /*
      * Here we create two submit buttons. For a JS enabled client, they will
@@ -96,46 +90,46 @@ class FileTransferAuthorizeForm extends FormBase {
      * what filetransfer type to use, and submit_process on the second one (which
      * leads to the actual operation).
      */
-    $form['submit_connection'] = array(
+    $form['submit_connection'] = [
       '#prefix' => "<br style='clear:both'/>",
       '#name' => 'enter_connection_settings',
       '#type' => 'submit',
       '#value' => $this->t('Enter connection settings'),
       '#weight' => 100,
-    );
+    ];
 
-    $form['submit_process'] = array(
+    $form['submit_process'] = [
       '#name' => 'process_updates',
       '#type' => 'submit',
       '#value' => $this->t('Continue'),
       '#weight' => 100,
-    );
+    ];
 
     // Build a container for each connection type.
     foreach ($available_backends as $name => $backend) {
       $form['connection_settings']['authorize_filetransfer_default']['#options'][$name] = $backend['title'];
-      $form['connection_settings'][$name] = array(
+      $form['connection_settings'][$name] = [
         '#type' => 'container',
-        '#attributes' => array('class' => array("filetransfer-$name", 'filetransfer')),
-        '#states' => array(
-          'visible' => array(
-            'select[name="connection_settings[authorize_filetransfer_default]"]' => array('value' => $name),
-          ),
-        ),
-      );
+        '#attributes' => ['class' => ["filetransfer-$name", 'filetransfer']],
+        '#states' => [
+          'visible' => [
+            'select[name="connection_settings[authorize_filetransfer_default]"]' => ['value' => $name],
+          ],
+        ],
+      ];
       // We can't use #prefix on the container itself since then the header won't
       // be hidden and shown when the containers are being manipulated via JS.
-      $form['connection_settings'][$name]['header'] = array(
-        '#markup' => '<h4>' . $this->t('@backend connection settings', array('@backend' => $backend['title'])) . '</h4>',
-      );
+      $form['connection_settings'][$name]['header'] = [
+        '#markup' => '<h4>' . $this->t('@backend connection settings', ['@backend' => $backend['title']]) . '</h4>',
+      ];
 
       $form['connection_settings'][$name] += $this->addConnectionSettings($name);
 
       // Start non-JS code.
-      if ($form_state->getValue(array('connection_settings', 'authorize_filetransfer_default')) == $name) {
+      if ($form_state->getValue(['connection_settings', 'authorize_filetransfer_default']) == $name) {
 
         // Change the submit button to the submit_process one.
-        $form['submit_process']['#attributes'] = array();
+        $form['submit_process']['#attributes'] = [];
         unset($form['submit_connection']);
 
         // Activate the proper filetransfer settings form.
@@ -144,13 +138,13 @@ class FileTransferAuthorizeForm extends FormBase {
         $form['connection_settings']['authorize_filetransfer_default']['#disabled'] = TRUE;
 
         // Create a button for changing the type of connection.
-        $form['connection_settings']['change_connection_type'] = array(
+        $form['connection_settings']['change_connection_type'] = [
           '#name' => 'change_connection_type',
           '#type' => 'submit',
           '#value' => $this->t('Change connection type'),
           '#weight' => -5,
-          '#attributes' => array('class' => array('filetransfer-change-connection-type')),
-        );
+          '#attributes' => ['class' => ['filetransfer-change-connection-type']],
+        ];
       }
       // End non-JS code.
     }
@@ -172,17 +166,17 @@ class FileTransferAuthorizeForm extends FormBase {
       $filetransfer = $this->getFiletransfer($backend, $form_connection_settings[$backend]);
       try {
         if (!$filetransfer) {
-          throw new \Exception($this->t('The connection protocol %backend does not exist.', array('%backend' => $backend)));
+          throw new \Exception($this->t('The connection protocol %backend does not exist.', ['%backend' => $backend]));
         }
         $filetransfer->connect();
       }
       catch (\Exception $e) {
         // The format of this error message is similar to that used on the
         // database connection form in the installer.
-        $form_state->setErrorByName('connection_settings', $this->t('Failed to connect to the server. The server reports the following message: <p class="error">@message</p> For more help installing or updating code on your server, see the <a href=":handbook_url">handbook</a>.', array(
+        $form_state->setErrorByName('connection_settings', $this->t('Failed to connect to the server. The server reports the following message: <p class="error">@message</p> For more help installing or updating code on your server, see the <a href=":handbook_url">handbook</a>.', [
           '@message' => $e->getMessage(),
           ':handbook_url' => 'https://www.drupal.org/documentation/install/modules-themes',
-        )));
+        ]));
       }
     }
   }
@@ -203,27 +197,6 @@ class FileTransferAuthorizeForm extends FormBase {
         // likely) be called during the installation process, before the
         // database is set up.
         try {
-          $connection_settings = array();
-          foreach ($form_connection_settings[$filetransfer_backend] as $key => $value) {
-            // We do *not* want to store passwords in the database, unless the
-            // backend explicitly says so via the magic #filetransfer_save form
-            // property. Otherwise, we store everything that's not explicitly
-            // marked with #filetransfer_save set to FALSE.
-            if (!isset($form['connection_settings'][$filetransfer_backend][$key]['#filetransfer_save'])) {
-              if ($form['connection_settings'][$filetransfer_backend][$key]['#type'] != 'password') {
-                $connection_settings[$key] = $value;
-              }
-            }
-            // The attribute is defined, so only save if set to TRUE.
-            elseif ($form['connection_settings'][$filetransfer_backend][$key]['#filetransfer_save']) {
-              $connection_settings[$key] = $value;
-            }
-          }
-          // Set this one as the default authorize method.
-          $this->config('system.authorize')->set('filetransfer_default', $filetransfer_backend);
-          // Save the connection settings minus the password.
-          $this->config('system.authorize')->set('filetransfer_connection_settings_' . $filetransfer_backend, $connection_settings);
-
           $filetransfer = $this->getFiletransfer($filetransfer_backend, $form_connection_settings[$filetransfer_backend]);
 
           // Now run the operation.
@@ -245,7 +218,7 @@ class FileTransferAuthorizeForm extends FormBase {
 
       case 'change_connection_type':
         $form_state->setRebuild();
-        $form_state->unsetValue(array('connection_settings', 'authorize_filetransfer_default'));
+        $form_state->unsetValue(['connection_settings', 'authorize_filetransfer_default']);
         break;
     }
   }
@@ -262,7 +235,7 @@ class FileTransferAuthorizeForm extends FormBase {
    *   An instantiated FileTransfer object for the requested method and settings,
    *   or FALSE if there was an error finding or instantiating it.
    */
-  protected function getFiletransfer($backend, $settings = array()) {
+  protected function getFiletransfer($backend, $settings = []) {
     $filetransfer = FALSE;
     if (!empty($_SESSION['authorize_filetransfer_info'][$backend])) {
       $backend_info = $_SESSION['authorize_filetransfer_info'][$backend];
@@ -285,9 +258,8 @@ class FileTransferAuthorizeForm extends FormBase {
    * @see hook_filetransfer_backends()
    */
   protected function addConnectionSettings($backend) {
-    $auth_connection_config = $this->config('system.authorize')->get('filetransfer_connection_settings_' . $backend);
-    $defaults = $auth_connection_config ? $auth_connection_config : array();
-    $form = array();
+    $defaults = [];
+    $form = [];
 
     // Create an instance of the file transfer class to get its settings form.
     $filetransfer = $this->getFiletransfer($backend);
@@ -347,8 +319,8 @@ class FileTransferAuthorizeForm extends FormBase {
     $operation = $_SESSION['authorize_operation'];
     unset($_SESSION['authorize_operation']);
 
-    require_once $this->root . '/' . $operation['file'];
-    return call_user_func_array($operation['callback'], array_merge(array($filetransfer), $operation['arguments']));
+    require_once $operation['file'];
+    return call_user_func_array($operation['callback'], array_merge([$filetransfer], $operation['arguments']));
   }
 
 }

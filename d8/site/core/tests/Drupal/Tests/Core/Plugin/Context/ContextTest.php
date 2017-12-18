@@ -10,6 +10,7 @@ namespace Drupal\Tests\Core\Plugin\Context;
 use Drupal\Core\Cache\CacheableDependencyInterface;
 use Drupal\Core\Plugin\Context\Context;
 use Drupal\Core\TypedData\TypedDataInterface;
+use Drupal\Core\TypedData\TypedDataManagerInterface;
 use Drupal\Tests\UnitTestCase;
 use Symfony\Component\DependencyInjection\Container;
 
@@ -46,10 +47,7 @@ class ContextTest extends UnitTestCase {
   protected function setUp() {
     parent::setUp();
 
-    $this->typedDataManager = $this->getMockBuilder('Drupal\Core\TypedData\TypedDataManager')
-      ->disableOriginalConstructor()
-      ->setMethods(array('create'))
-      ->getMock();
+    $this->typedDataManager = $this->getMock(TypedDataManagerInterface::class);
   }
 
   /**
@@ -91,7 +89,7 @@ class ContextTest extends UnitTestCase {
   public function testSetContextValueTypedData() {
 
     $this->contextDefinition = $this->getMockBuilder('Drupal\Core\Plugin\Context\ContextDefinitionInterface')
-      ->setMethods(array('getDefaultValue', 'getDataDefinition'))
+      ->setMethods(['getDefaultValue', 'getDataDefinition'])
       ->getMockForAbstractClass();
 
     $typed_data = $this->getMock('Drupal\Core\TypedData\TypedDataInterface');
@@ -146,7 +144,7 @@ class ContextTest extends UnitTestCase {
     $mock_data_definition = $this->getMock('Drupal\Core\TypedData\DataDefinitionInterface');
 
     $this->contextDefinition = $this->getMockBuilder('Drupal\Core\Plugin\Context\ContextDefinitionInterface')
-      ->setMethods(array('getDefaultValue', 'getDataDefinition'))
+      ->setMethods(['getDefaultValue', 'getDataDefinition'])
       ->getMockForAbstractClass();
 
     $this->contextDefinition->expects($this->once())
@@ -164,9 +162,10 @@ class ContextTest extends UnitTestCase {
       ->with($mock_data_definition, $default_value)
       ->willReturn($this->typedData);
   }
+
 }
 
 /**
  * Test interface used for mocking.
  */
-interface TypedDataCacheableDependencyInterface extends CacheableDependencyInterface, TypedDataInterface { }
+interface TypedDataCacheableDependencyInterface extends CacheableDependencyInterface, TypedDataInterface {}

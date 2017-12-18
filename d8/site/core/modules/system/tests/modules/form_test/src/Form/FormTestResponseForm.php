@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\form_test\Form\FormTestResponseForm.
- */
-
 namespace Drupal\form_test\Form;
 
 use Drupal\Core\Form\FormBase;
@@ -27,19 +22,19 @@ class FormTestResponseForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    $form['content'] = array(
+    $form['content'] = [
       '#type' => 'textfield',
       '#title' => 'Content',
-    );
-    $form['status'] = array(
+    ];
+    $form['status'] = [
       '#type' => 'textfield',
       '#title' => 'Status',
       '#default_value' => 200,
-    );
-    $form['submit'] = array(
+    ];
+    $form['submit'] = [
       '#type' => 'submit',
       '#value' => 'Submit',
-    );
+    ];
     return $form;
   }
 

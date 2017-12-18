@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\Annotation\PluginID.
- */
-
 namespace Drupal\Component\Annotation;
 
 /**
@@ -27,11 +22,11 @@ class PluginID extends AnnotationBase {
    * {@inheritdoc}
    */
   public function get() {
-    return array(
+    return [
       'id' => $this->value,
       'class' => $this->class,
       'provider' => $this->provider,
-    );
+    ];
   }
 
   /**

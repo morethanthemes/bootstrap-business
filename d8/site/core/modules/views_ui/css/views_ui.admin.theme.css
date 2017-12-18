@@ -158,7 +158,7 @@ details.box-padding {
 
 /* Hide 'remove' checkboxes. */
 .views-remove-checkbox {
-    display: none;
+  display: none;
 }
 
 /* sizes the labels of checkboxes and radio button to the height of the text */
@@ -170,9 +170,9 @@ details.box-padding {
   margin-bottom: 6px;
   margin-top: 6px;
 }
-.views-ui-view-title {
+.views-ui-view-name h3 {
   font-weight: bold;
-  margin-top: 0;
+  margin: 0.25em 0;
 }
 .view-changed {
   margin-bottom: 21px;
@@ -183,22 +183,33 @@ details.box-padding {
   margin-bottom: 0;
   margin-top: 18px;
 }
+.views-ui-view-displays ul {
+  margin-left: 0; /* LTR */
+  padding-left: 0; /* LTR */
+  list-style: none;
+}
+[dir="rtl"] .views-ui-view-displays ul {
+  margin-right: 0;
+  padding-right: 0;
+  margin-left: inherit;
+  padding-left: inherit;
+}
 
 /* These header classes are ambiguous and should be scoped to th elements */
 .views-ui-name {
-  width: 18%;
+  width: 20%;
 }
 .views-ui-description {
-  width: 26%;
+  width: 30%;
 }
-.views-ui-tag {
-  width: 8%;
+.views-ui-machine-name {
+  width: 15%;
 }
-.views-ui-path {
-  width: auto;
+.views-ui-displays {
+  width: 25%;
 }
 .views-ui-operations {
-  width: 24%;
+  width: 10%;
 }
 
 /**
@@ -334,7 +345,7 @@ td.group-title {
   padding: 0;
   width: auto;
 }
-.views-displays .tabs li.add ul.action-list li{
+.views-displays .tabs li.add ul.action-list li {
   margin: 0;
 }
 .views-displays .tabs.secondary li {
@@ -391,7 +402,7 @@ td.group-title {
   color: #0074bd;
   background-color: #f1f1f1;
 }
-.views-displays .tabs .action-list  li {
+.views-displays .tabs .action-list li {
   background-color: #f1f1f1;
   border-color: #cbcbcb;
   border-style: solid;
@@ -401,10 +412,10 @@ td.group-title {
 .views-displays .tabs .action-list li:first-child {
   border-width: 1px 1px 0;
 }
-.views-displays .action-list  li:last-child {
+.views-displays .action-list li:last-child {
   border-width: 0 1px 1px;
 }
-.views-displays .tabs .action-list  li:last-child {
+.views-displays .tabs .action-list li:last-child {
   border-width: 0 1px 1px;
 }
 .views-displays .tabs .action-list input.form-submit {
@@ -472,7 +483,7 @@ td.group-title {
 .view-preview-form .form-actions {
   vertical-align: top;
 }
-@media screen and (min-width:45em) { /* 720px */
+@media screen and (min-width: 45em) { /* 720px */
   .view-preview-form .form-type-textfield .description {
     white-space: nowrap;
   }

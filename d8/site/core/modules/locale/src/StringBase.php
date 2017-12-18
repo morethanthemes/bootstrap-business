@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\locale\StringBase.
- */
-
 namespace Drupal\locale;
 
 /**
@@ -62,7 +57,7 @@ abstract class StringBase implements StringInterface {
    * @param object|array $values
    *   Object or array with initial values.
    */
-  public function __construct($values = array()) {
+  public function __construct($values = []) {
     $this->setValues((array) $values);
   }
 
@@ -142,7 +137,7 @@ abstract class StringBase implements StringInterface {
    * {@inheritdoc}
    */
   public function getValues(array $fields) {
-    $values = array();
+    $values = [];
     foreach ($fields as $field) {
       if (isset($this->$field)) {
         $values[$field] = $this->$field;
@@ -156,12 +151,12 @@ abstract class StringBase implements StringInterface {
    */
   public function getLocations($check_only = FALSE) {
     if (!isset($this->locations) && !$check_only) {
-      $this->locations = array();
-      foreach ($this->getStorage()->getLocations(array('sid' => $this->getId())) as $location) {
+      $this->locations = [];
+      foreach ($this->getStorage()->getLocations(['sid' => $this->getId()]) as $location) {
         $this->locations[$location->type][$location->name] = $location->lid;
       }
     }
-    return isset($this->locations) ? $this->locations : array();
+    return isset($this->locations) ? $this->locations : [];
   }
 
   /**

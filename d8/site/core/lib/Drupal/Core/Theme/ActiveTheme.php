@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Theme\ActiveTheme.
- */
-
 namespace Drupal\Core\Theme;
 
 /**
@@ -182,6 +177,8 @@ class ActiveTheme {
    * @return mixed
    *
    * @deprecated in Drupal 8.0.0, will be removed before Drupal 9.0.0.
+   *
+   * @see https://www.drupal.org/node/2497313
    */
   public function getStyleSheetsRemove() {
     return $this->styleSheetsRemove;

@@ -1,3 +1,13 @@
 <?php
 
-function module_handler_test_all2_hook($arg) { return $arg; }
+/**
+ * @file
+ * Test module.
+ */
+
+/**
+ * Test function.
+ */
+function module_handler_test_all2_hook($arg) {
+  return $arg;
+}

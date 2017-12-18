@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\contact\ContactMessageAccessControlHandler.
- */
-
 namespace Drupal\contact;
 
 use Drupal\Core\Access\AccessResult;
@@ -24,4 +19,5 @@ class ContactMessageAccessControlHandler extends EntityAccessControlHandler {
   protected function checkCreateAccess(AccountInterface $account, array $context, $entity_bundle = NULL) {
     return AccessResult::allowedIfHasPermission($account, 'access site-wide contact form');
   }
+
 }

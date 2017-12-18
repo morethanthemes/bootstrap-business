@@ -21,6 +21,7 @@
  */
 
 use Drupal\Core\DrupalKernel;
+use Drupal\Core\Form\EnforcedResponseException;
 use Drupal\Core\Url;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -48,7 +49,7 @@ const MAINTENANCE_MODE = 'update';
  * have access to the 'administer software updates' permission.
  *
  * @param \Symfony\Component\HttpFoundation\Request $request
- *  The incoming request.
+ *   The incoming request.
  *
  * @return bool
  *   TRUE if the current user can run authorize.php, and FALSE if not.
@@ -115,10 +116,10 @@ if ($is_allowed) {
       drupal_set_message($results['page_message']['message'], $results['page_message']['type']);
     }
 
-    $content['authorize_report'] = array(
+    $content['authorize_report'] = [
       '#theme' => 'authorize_report',
       '#messages' => $results['messages'],
-    );
+    ];
 
     if (is_array($results['tasks'])) {
       $links = $results['tasks'];
@@ -147,11 +148,11 @@ if ($is_allowed) {
       ];
     }
 
-    $content['next_steps'] = array(
+    $content['next_steps'] = [
       '#theme' => 'item_list',
       '#items' => $links,
       '#title' => t('Next steps'),
-    );
+    ];
   }
   // If a batch is running, let it run.
   elseif ($request->query->has('batch')) {
@@ -169,7 +170,13 @@ if ($is_allowed) {
     }
     elseif (!$batch = batch_get()) {
       // We have a batch to process, show the filetransfer form.
-      $content = \Drupal::formBuilder()->getForm('Drupal\Core\FileTransfer\Form\FileTransferAuthorizeForm');
+      try {
+        $content = \Drupal::formBuilder()->getForm('Drupal\Core\FileTransfer\Form\FileTransferAuthorizeForm');
+      }
+      catch (EnforcedResponseException $e) {
+        $e->getResponse()->send();
+        exit;
+      }
     }
   }
   // We defer the display of messages until all operations are done.
@@ -182,9 +189,9 @@ else {
 }
 
 $bare_html_page_renderer = \Drupal::service('bare_html_page_renderer');
-$response = $bare_html_page_renderer->renderBarePage($content, $page_title, 'maintenance_page', array(
+$response = $bare_html_page_renderer->renderBarePage($content, $page_title, 'maintenance_page', [
   '#show_messages' => $show_messages,
-));
+]);
 if (!$is_allowed) {
   $response->setStatusCode(403);
 }

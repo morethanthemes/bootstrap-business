@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Database\Query\PagerSelectExtender.
- */
-
 namespace Drupal\Core\Database\Query;
 
 use Drupal\Core\Database\Connection;
@@ -26,7 +21,7 @@ class PagerSelectExtender extends SelectExtender {
    *
    * @var int
    */
-  static $maxElement = 0;
+  public static $maxElement = 0;
 
   /**
    * The number of elements per page to allow.
@@ -171,4 +166,5 @@ class PagerSelectExtender extends SelectExtender {
     }
     return $this;
   }
+
 }

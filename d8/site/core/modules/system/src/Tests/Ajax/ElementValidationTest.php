@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Ajax\ElementValidationTest.
- */
-
 namespace Drupal\system\Tests\Ajax;
 
 /**
@@ -21,8 +16,8 @@ class ElementValidationTest extends AjaxTestBase {
    * filled in, and we want to see if the activation of the "drivertext"
    * Ajax-enabled field fails due to the required field being empty.
    */
-  function testAjaxElementValidation() {
-    $edit = array('drivertext' => t('some dumb text'));
+  public function testAjaxElementValidation() {
+    $edit = ['drivertext' => t('some dumb text')];
 
     // Post with 'drivertext' as the triggering element.
     $this->drupalPostAjaxForm('ajax_validation_test', $edit, 'drivertext');
@@ -31,7 +26,7 @@ class ElementValidationTest extends AjaxTestBase {
     $this->assertText('ajax_forms_test_validation_form_callback invoked', 'The correct callback was invoked');
 
     $this->drupalGet('ajax_validation_test');
-    $edit = array('drivernumber' => 12345);
+    $edit = ['drivernumber' => 12345];
 
     // Post with 'drivernumber' as the triggering element.
     $this->drupalPostAjaxForm('ajax_validation_test', $edit, 'drivernumber');
@@ -39,4 +34,5 @@ class ElementValidationTest extends AjaxTestBase {
     $this->assertNoText(t('Error message'), 'No error message in resultant JSON');
     $this->assertText('ajax_forms_test_validation_number_form_callback invoked', 'The correct callback was invoked');
   }
+
 }

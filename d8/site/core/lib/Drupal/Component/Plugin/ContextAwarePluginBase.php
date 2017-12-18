@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\Plugin\ContextAwarePluginBase.
- */
-
 namespace Drupal\Component\Plugin;
 
 use Drupal\Component\Plugin\Context\ContextInterface;
@@ -72,7 +67,7 @@ abstract class ContextAwarePluginBase extends PluginBase implements ContextAware
    */
   public function getContextDefinitions() {
     $definition = $this->getPluginDefinition();
-    return !empty($definition['context']) ? $definition['context'] : array();
+    return !empty($definition['context']) ? $definition['context'] : [];
   }
 
   /**
@@ -119,7 +114,7 @@ abstract class ContextAwarePluginBase extends PluginBase implements ContextAware
    * {@inheritdoc}
    */
   public function getContextValues() {
-    $values = array();
+    $values = [];
     foreach ($this->getContextDefinitions() as $name => $definition) {
       $values[$name] = isset($this->context[$name]) ? $this->context[$name]->getContextValue() : NULL;
     }

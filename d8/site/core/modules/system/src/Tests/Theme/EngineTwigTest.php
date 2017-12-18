@@ -1,12 +1,8 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Theme\EngineTwigTest.
- */
-
 namespace Drupal\system\Tests\Theme;
 
+use Drupal\Core\Render\Markup;
 use Drupal\Core\Url;
 use Drupal\simpletest\WebTestBase;
 
@@ -22,17 +18,17 @@ class EngineTwigTest extends WebTestBase {
    *
    * @var array
    */
-  public static $modules = array('theme_test', 'twig_theme_test');
+  public static $modules = ['theme_test', 'twig_theme_test'];
 
   protected function setUp() {
     parent::setUp();
-    \Drupal::service('theme_handler')->install(array('test_theme'));
+    \Drupal::service('theme_handler')->install(['test_theme']);
   }
 
   /**
    * Tests that the Twig engine handles PHP data correctly.
    */
-  function testTwigVariableDataTypes() {
+  public function testTwigVariableDataTypes() {
     $this->config('system.theme')
       ->set('default', 'test_theme')
       ->save();
@@ -49,13 +45,13 @@ class EngineTwigTest extends WebTestBase {
     $this->drupalGet('twig-theme-test/url-generator');
     // Find the absolute URL of the current site.
     $url_generator = $this->container->get('url_generator');
-    $expected = array(
+    $expected = [
       'path (as route) not absolute: ' . $url_generator->generateFromRoute('user.register'),
-      'url (as route) absolute: ' . $url_generator->generateFromRoute('user.register', array(), array('absolute' => TRUE)),
-      'path (as route) not absolute with fragment: ' . $url_generator->generateFromRoute('user.register', array(), array('fragment' => 'bottom')),
-      'url (as route) absolute despite option: ' . $url_generator->generateFromRoute('user.register', array(), array('absolute' => TRUE)),
-      'url (as route) absolute with fragment: ' . $url_generator->generateFromRoute('user.register', array(), array('absolute' => TRUE, 'fragment' => 'bottom')),
-    );
+      'url (as route) absolute: ' . $url_generator->generateFromRoute('user.register', [], ['absolute' => TRUE]),
+      'path (as route) not absolute with fragment: ' . $url_generator->generateFromRoute('user.register', [], ['fragment' => 'bottom']),
+      'url (as route) absolute despite option: ' . $url_generator->generateFromRoute('user.register', [], ['absolute' => TRUE]),
+      'url (as route) absolute with fragment: ' . $url_generator->generateFromRoute('user.register', [], ['absolute' => TRUE, 'fragment' => 'bottom']),
+    ];
 
     // Verify that url() has the ability to bubble cacheability metadata:
     // absolute URLs should bubble the 'url.site' cache context. (This only
@@ -77,15 +73,19 @@ class EngineTwigTest extends WebTestBase {
   public function testTwigLinkGenerator() {
     $this->drupalGet('twig-theme-test/link-generator');
 
-     /** @var \Drupal\Core\Utility\LinkGenerator $link_generator */
+    /** @var \Drupal\Core\Utility\LinkGenerator $link_generator */
     $link_generator = $this->container->get('link_generator');
 
+    $generated_url = Url::fromRoute('user.register', [], ['absolute' => TRUE])->toString(TRUE)->getGeneratedUrl();
     $expected = [
       'link via the linkgenerator: ' . $link_generator->generate('register', new Url('user.register', [], ['absolute' => TRUE])),
       'link via the linkgenerator: ' . $link_generator->generate('register', new Url('user.register', [], ['absolute' => TRUE, 'attributes' => ['foo' => 'bar']])),
       'link via the linkgenerator: ' . $link_generator->generate('register', new Url('user.register', [], ['attributes' => ['foo' => 'bar', 'id' => 'kitten']])),
       'link via the linkgenerator: ' . $link_generator->generate('register', new Url('user.register', [], ['attributes' => ['id' => 'kitten']])),
       'link via the linkgenerator: ' . $link_generator->generate('register', new Url('user.register', [], ['attributes' => ['class' => ['llama', 'kitten', 'panda']]])),
+      'link via the linkgenerator: ' . $link_generator->generate(Markup::create('<span>register</span>'), new Url('user.register', [], ['absolute' => TRUE])),
+      'link via the linkgenerator: <a href="' . $generated_url . '"><span>register</span><svg></svg></a>',
+      'link via the linkgenerator: ' . $link_generator->generate('register', new Url('user.register', [], ['attributes' => ['foo' => 'bar']])) . ' ' . $link_generator->generate('register', new Url('user.register', [], ['attributes' => ['foo' => 'bar']])),
     ];
 
     // Verify that link() has the ability to bubble cacheability metadata:

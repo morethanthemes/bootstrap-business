@@ -1,22 +1,20 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rest\Routing\ResourceRoutes.
- */
-
 namespace Drupal\rest\Routing;
 
-use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Routing\RouteSubscriberBase;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Routing\RouteBuildEvent;
+use Drupal\Core\Routing\RoutingEvents;
 use Drupal\rest\Plugin\Type\ResourcePluginManager;
+use Drupal\rest\RestResourceConfigInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Routing\RouteCollection;
 
 /**
  * Subscriber for REST-style routes.
  */
-class ResourceRoutes extends RouteSubscriberBase {
+class ResourceRoutes implements EventSubscriberInterface {
 
   /**
    * The plugin manager for REST plugins.
@@ -26,11 +24,11 @@ class ResourceRoutes extends RouteSubscriberBase {
   protected $manager;
 
   /**
-   * The Drupal configuration factory.
+   * The REST resource config storage.
    *
-   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   * @var \Drupal\Core\Entity\EntityManagerInterface
    */
-  protected $config;
+  protected $resourceConfigStorage;
 
   /**
    * A logger instance.
@@ -44,66 +42,103 @@ class ResourceRoutes extends RouteSubscriberBase {
    *
    * @param \Drupal\rest\Plugin\Type\ResourcePluginManager $manager
    *   The resource plugin manager.
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config
-   *   The configuration factory holding resource settings.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager
    * @param \Psr\Log\LoggerInterface $logger
    *   A logger instance.
    */
-  public function __construct(ResourcePluginManager $manager, ConfigFactoryInterface $config, LoggerInterface $logger) {
+  public function __construct(ResourcePluginManager $manager, EntityTypeManagerInterface $entity_type_manager, LoggerInterface $logger) {
     $this->manager = $manager;
-    $this->config = $config;
+    $this->resourceConfigStorage = $entity_type_manager->getStorage('rest_resource_config');
     $this->logger = $logger;
   }
 
   /**
    * Alters existing routes for a specific collection.
    *
-   * @param \Symfony\Component\Routing\RouteCollection $collection
-   *   The route collection for adding routes.
+   * @param \Drupal\Core\Routing\RouteBuildEvent $event
+   *   The route build event.
    * @return array
    */
-  protected function alterRoutes(RouteCollection $collection) {
-    $routes = array();
-    $enabled_resources = $this->config->get('rest.settings')->get('resources') ?: array();
-
-    // Iterate over all enabled resource plugins.
-    foreach ($enabled_resources as $id => $enabled_methods) {
-      $plugin = $this->manager->getInstance(array('id' => $id));
-
-      foreach ($plugin->routes() as $name => $route) {
-        // @todo: Are multiple methods possible here?
-        $methods = $route->getMethods();
-        // Only expose routes where the method is enabled in the configuration.
-        if ($methods && ($method = $methods[0]) && $method && isset($enabled_methods[$method])) {
-          $route->setRequirement('_access_rest_csrf', 'TRUE');
-
-          // Check that authentication providers are defined.
-          if (empty($enabled_methods[$method]['supported_auth']) || !is_array($enabled_methods[$method]['supported_auth'])) {
-            $this->logger->error('At least one authentication provider must be defined for resource @id', array(':id' => $id));
-            continue;
-          }
-
-          // Check that formats are defined.
-          if (empty($enabled_methods[$method]['supported_formats']) || !is_array($enabled_methods[$method]['supported_formats'])) {
-            $this->logger->error('At least one format must be defined for resource @id', array(':id' => $id));
-            continue;
-          }
-
-          // If the route has a format requirement, then verify that the
-          // resource has it.
-          $format_requirement = $route->getRequirement('_format');
-          if ($format_requirement && !in_array($format_requirement, $enabled_methods[$method]['supported_formats'])) {
-            continue;
-          }
-
-          // The configuration seems legit at this point, so we set the
-          // authentication provider and add the route.
-          $route->setOption('_auth', $enabled_methods[$method]['supported_auth']);
-          $routes["rest.$name"] = $route;
-          $collection->add("rest.$name", $route);
-        }
+  public function onDynamicRouteEvent(RouteBuildEvent $event) {
+    // Iterate over all enabled REST resource config entities.
+    /** @var \Drupal\rest\RestResourceConfigInterface[] $resource_configs */
+    $resource_configs = $this->resourceConfigStorage->loadMultiple();
+    foreach ($resource_configs as $resource_config) {
+      if ($resource_config->status()) {
+        $resource_routes = $this->getRoutesForResourceConfig($resource_config);
+        $event->getRouteCollection()->addCollection($resource_routes);
       }
     }
+  }
+
+  /**
+   * Provides all routes for a given REST resource config.
+   *
+   * This method determines where a resource is reachable, what path
+   * replacements are used, the required HTTP method for the operation etc.
+   *
+   * @param \Drupal\rest\RestResourceConfigInterface $rest_resource_config
+   *   The rest resource config.
+   *
+   * @return \Symfony\Component\Routing\RouteCollection
+   *   The route collection.
+   */
+  protected function getRoutesForResourceConfig(RestResourceConfigInterface $rest_resource_config) {
+    $plugin = $rest_resource_config->getResourcePlugin();
+    $collection = new RouteCollection();
+
+    foreach ($plugin->routes() as $name => $route) {
+      /** @var \Symfony\Component\Routing\Route $route */
+      // @todo: Are multiple methods possible here?
+      $methods = $route->getMethods();
+      // Only expose routes where the method is enabled in the configuration.
+      if ($methods && ($method = $methods[0]) && $supported_formats = $rest_resource_config->getFormats($method)) {
+        $route->setRequirement('_csrf_request_header_token', 'TRUE');
+
+        // Check that authentication providers are defined.
+        if (empty($rest_resource_config->getAuthenticationProviders($method))) {
+          $this->logger->error('At least one authentication provider must be defined for resource @id', [':id' => $rest_resource_config->id()]);
+          continue;
+        }
+
+        // Check that formats are defined.
+        if (empty($rest_resource_config->getFormats($method))) {
+          $this->logger->error('At least one format must be defined for resource @id', [':id' => $rest_resource_config->id()]);
+          continue;
+        }
+
+        // If the route has a format requirement, then verify that the
+        // resource has it.
+        $format_requirement = $route->getRequirement('_format');
+        if ($format_requirement && !in_array($format_requirement, $rest_resource_config->getFormats($method))) {
+          continue;
+        }
+
+        // The configuration has been validated, so we update the route to:
+        // - set the allowed request body content types/formats for methods that
+        //   allow request bodies to be sent
+        // - set the allowed authentication providers
+        if (in_array($method, ['POST', 'PATCH', 'PUT'], TRUE)) {
+          // Restrict the incoming HTTP Content-type header to the allowed
+          // formats.
+          $route->addRequirements(['_content_type_format' => implode('|', $rest_resource_config->getFormats($method))]);
+        }
+        $route->setOption('_auth', $rest_resource_config->getAuthenticationProviders($method));
+        $route->setDefault('_rest_resource_config', $rest_resource_config->id());
+        $collection->add("rest.$name", $route);
+      }
+
+    }
+    return $collection;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getSubscribedEvents() {
+    $events[RoutingEvents::DYNAMIC] = 'onDynamicRouteEvent';
+    return $events;
   }
 
 }

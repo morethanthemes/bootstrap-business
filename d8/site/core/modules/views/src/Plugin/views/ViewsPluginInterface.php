@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Plugin\views\ViewsPluginInterface.
- */
-
 namespace Drupal\views\Plugin\views;
 
 use Drupal\Component\Plugin\DerivativeInspectionInterface;
@@ -118,7 +113,7 @@ interface ViewsPluginInterface extends PluginInspectionInterface, DerivativeInsp
    * @return array
    *   An array of available token replacement info or tokens, grouped by type.
    */
-  public function getAvailableGlobalTokens($prepared = FALSE, array $types = array());
+  public function getAvailableGlobalTokens($prepared = FALSE, array $types = []);
 
   /**
    * Flattens the structure of form elements.
@@ -146,7 +141,7 @@ interface ViewsPluginInterface extends PluginInspectionInterface, DerivativeInsp
    * @return string
    *   The tokenized string.
    */
-  public function globalTokenReplace($string = '', array $options = array());
+  public function globalTokenReplace($string = '', array $options = []);
 
   /**
    * Clears a plugin.

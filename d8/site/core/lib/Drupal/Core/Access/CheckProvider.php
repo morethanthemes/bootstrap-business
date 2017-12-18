@@ -1,28 +1,26 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Access\CheckProvider.
- */
-
 namespace Drupal\Core\Access;
 
 use Drupal\Core\Routing\Access\AccessInterface;
-use Symfony\Component\DependencyInjection\ContainerAware;
+use Symfony\Component\DependencyInjection\ContainerAwareInterface;
+use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 
 /**
  * Loads access checkers from the container.
  */
-class CheckProvider extends ContainerAware implements CheckProviderInterface {
+class CheckProvider implements CheckProviderInterface, ContainerAwareInterface {
+
+  use ContainerAwareTrait;
 
   /**
    * Array of registered access check service ids.
    *
    * @var array
    */
-  protected $checkIds = array();
+  protected $checkIds = [];
 
   /**
    * Array of access check objects keyed by service id.
@@ -36,12 +34,12 @@ class CheckProvider extends ContainerAware implements CheckProviderInterface {
    *
    * @var array
    */
-  protected $checkMethods = array();
+  protected $checkMethods = [];
 
   /**
    * Array of access checks which only will be run on the incoming request.
    */
-  protected $checksNeedsRequest = array();
+  protected $checksNeedsRequest = [];
 
   /**
    * An array to map static requirement keys to service IDs.
@@ -60,7 +58,7 @@ class CheckProvider extends ContainerAware implements CheckProviderInterface {
   /**
    * {@inheritdoc}
    */
-  public function addCheckService($service_id, $service_method, array $applies_checks = array(), $needs_incoming_request = FALSE) {
+  public function addCheckService($service_id, $service_method, array $applies_checks = [], $needs_incoming_request = FALSE) {
     $this->checkIds[] = $service_id;
     $this->checkMethods[$service_id] = $service_method;
     if ($needs_incoming_request) {
@@ -104,7 +102,7 @@ class CheckProvider extends ContainerAware implements CheckProviderInterface {
       if (!($check instanceof AccessInterface)) {
         throw new AccessException('All access checks must implement AccessInterface.');
       }
-      if (!is_callable(array($check, $this->checkMethods[$service_id]))) {
+      if (!is_callable([$check, $this->checkMethods[$service_id]])) {
         throw new AccessException(sprintf('Access check method %s in service %s must be callable.', $this->checkMethods[$service_id], $service_id));
       }
 
@@ -124,7 +122,7 @@ class CheckProvider extends ContainerAware implements CheckProviderInterface {
    *   route.
    */
   protected function applies(Route $route) {
-    $checks = array();
+    $checks = [];
 
     // Iterate through map requirements from appliesTo() on access checkers.
     // Only iterate through all checkIds if this is not used.
@@ -153,7 +151,7 @@ class CheckProvider extends ContainerAware implements CheckProviderInterface {
     }
 
     // Set them here, so we can use the isset() check above.
-    $this->dynamicRequirementMap = array();
+    $this->dynamicRequirementMap = [];
 
     foreach ($this->checkIds as $service_id) {
       if (empty($this->checks[$service_id])) {

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Annotation\ViewsPager.
- */
-
 namespace Drupal\views\Annotation;
 
 /**
@@ -55,7 +50,7 @@ class ViewsPager extends ViewsPluginAnnotationBase {
   /**
    * The theme function used to render the pager's output.
    *
-   * @return string
+   * @var string
    */
   public $theme;
 

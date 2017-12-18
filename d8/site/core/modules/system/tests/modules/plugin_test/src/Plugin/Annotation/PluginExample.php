@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\plugin_test\Plugin\Annotation\PluginExample.
- */
-
 namespace Drupal\plugin_test\Plugin\Annotation;
 
 use Drupal\Component\Annotation\AnnotationBase;
@@ -34,12 +29,12 @@ class PluginExample extends AnnotationBase {
    * {@inheritdoc}
    */
   public function get() {
-    return array(
+    return [
       'id' => $this->id,
       'custom' => $this->custom,
       'class' => $this->class,
       'provider' => $this->provider,
-    );
+    ];
   }
 
 }

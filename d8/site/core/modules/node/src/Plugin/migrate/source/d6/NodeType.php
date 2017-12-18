@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Plugin\migrate\source\d6\NodeType.
- */
-
 namespace Drupal\node\Plugin\migrate\source\d6;
 
 use Drupal\migrate\Row;
@@ -14,7 +9,8 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
  * Drupal 6 Node types source from database.
  *
  * @MigrateSource(
- *   id = "d6_node_type"
+ *   id = "d6_node_type",
+ *   source_module = "node"
  * )
  */
 class NodeType extends DrupalSqlBase {
@@ -45,7 +41,7 @@ class NodeType extends DrupalSqlBase {
    */
   public function query() {
     return $this->select('node_type', 't')
-      ->fields('t', array(
+      ->fields('t', [
         'type',
         'name',
         'module',
@@ -59,7 +55,7 @@ class NodeType extends DrupalSqlBase {
         'modified',
         'locked',
         'orig_type',
-      ))
+      ])
       ->orderBy('t.type');
   }
 
@@ -67,7 +63,7 @@ class NodeType extends DrupalSqlBase {
    * {@inheritdoc}
    */
   public function fields() {
-    return array(
+    $fields = [
       'type' => $this->t('Machine name of the node type.'),
       'name' => $this->t('Human name of the node type.'),
       'module' => $this->t('The module providing the node type.'),
@@ -82,7 +78,29 @@ class NodeType extends DrupalSqlBase {
       'locked' => $this->t('Flag.'),
       'orig_type' => $this->t('The original type.'),
       'teaser_length' => $this->t('Teaser length'),
-    );
+    ];
+    if ($this->moduleExists('comment')) {
+      $fields += $this->getCommentFields();
+    }
+    return $fields;
+  }
+
+  /**
+   * Returns the fields containing comment settings for each node type.
+   *
+   * @return string[]
+   *   An associative array of field descriptions, keyed by field.
+   */
+  protected function getCommentFields() {
+    return [
+      'comment' => $this->t('Default comment setting'),
+      'comment_default_mode' => $this->t('Default display mode'),
+      'comment_default_per_page' => $this->t('Default comments per page'),
+      'comment_anonymous' => $this->t('Anonymous commenting'),
+      'comment_subject_field' => $this->t('Comment subject field'),
+      'comment_preview' => $this->t('Preview comment'),
+      'comment_form_location' => $this->t('Location of comment submission form'),
+    ];
   }
 
   /**
@@ -91,7 +109,7 @@ class NodeType extends DrupalSqlBase {
   protected function initializeIterator() {
     $this->teaserLength = $this->variableGet('teaser_length', 600);
     $this->nodePreview = $this->variableGet('node_preview', 0);
-    $this->themeSettings = $this->variableGet('theme_settings', array());
+    $this->themeSettings = $this->variableGet('theme_settings', []);
     return parent::initializeIterator();
   }
 
@@ -103,14 +121,25 @@ class NodeType extends DrupalSqlBase {
     $row->setSourceProperty('node_preview', $this->nodePreview);
 
     $type = $row->getSourceProperty('type');
-    $source_options = $this->variableGet('node_options_' . $type, array('promote', 'sticky'));
-    $options = array();
-    foreach (array('promote', 'sticky', 'status', 'revision') as $item) {
+    $source_options = $this->variableGet('node_options_' . $type, ['promote', 'sticky']);
+    $options = [];
+    foreach (['promote', 'sticky', 'status', 'revision'] as $item) {
       $options[$item] = in_array($item, $source_options);
     }
     $row->setSourceProperty('options', $options);
     $submitted = isset($this->themeSettings['toggle_node_info_' . $type]) ? $this->themeSettings['toggle_node_info_' . $type] : FALSE;
     $row->setSourceProperty('display_submitted', $submitted);
+
+    if ($default_node_menu = $this->variableGet('menu_default_node_menu', NULL)) {
+      $row->setSourceProperty('available_menus', [$default_node_menu]);
+      $row->setSourceProperty('parent', $default_node_menu . ':');
+    }
+
+    if ($this->moduleExists('comment')) {
+      foreach (array_keys($this->getCommentFields()) as $field) {
+        $row->setSourceProperty($field, $this->variableGet($field . '_' . $type, NULL));
+      }
+    }
 
     return parent::prepareRow($row);
   }

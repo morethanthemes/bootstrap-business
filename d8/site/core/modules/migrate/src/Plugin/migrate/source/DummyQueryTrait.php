@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\migrate\Plugin\migrate\source\DummyQueryTrait.
- */
-
 namespace Drupal\migrate\Plugin\migrate\source;
 
 /**
@@ -32,7 +27,7 @@ trait DummyQueryTrait {
   /**
    * {@inheritdoc}
    */
-  public function count() {
+  public function count($refresh = FALSE) {
     return 1;
   }
 

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Template\Loader\FilesystemLoader.
- */
-
 namespace Drupal\Core\Template\Loader;
 
 use Drupal\Core\Extension\ModuleHandlerInterface;
@@ -29,11 +24,11 @@ class FilesystemLoader extends \Twig_Loader_Filesystem {
    * @param \Drupal\Core\Extension\ThemeHandlerInterface $theme_handler
    *   The theme handler service.
    */
-  public function __construct($paths = array(), ModuleHandlerInterface $module_handler, ThemeHandlerInterface $theme_handler) {
+  public function __construct($paths, ModuleHandlerInterface $module_handler, ThemeHandlerInterface $theme_handler) {
     parent::__construct($paths);
 
     // Add namespaced paths for modules and themes.
-    $namespaces = array();
+    $namespaces = [];
     foreach ($module_handler->getModuleList() as $name => $extension) {
       $namespaces[$name] = $extension->getPath();
     }
@@ -56,7 +51,7 @@ class FilesystemLoader extends \Twig_Loader_Filesystem {
    */
   public function addPath($path, $namespace = self::MAIN_NAMESPACE) {
     // Invalidate the cache.
-    $this->cache = array();
+    $this->cache = [];
     $this->paths[$namespace][] = rtrim($path, '/\\');
   }
 

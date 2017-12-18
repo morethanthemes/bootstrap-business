@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Field\Annotation\FieldType.
- */
-
 namespace Drupal\Core\Field\Annotation;
 
 use Drupal\Core\TypedData\Annotation\DataType;
@@ -95,5 +90,14 @@ class FieldType extends DataType {
    * {@inheritdoc}
    */
   public $list_class;
+
+  /**
+   * An integer defining a fixed cardinality for this field type.
+   *
+   * If this value is not set, cardinality can be configured in the field UI.
+   *
+   * @var int|null
+   */
+  public $cardinality;
 
 }

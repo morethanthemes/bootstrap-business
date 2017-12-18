@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\entity_test\Entity\EntityTestNoLabel.
- */
-
 namespace Drupal\entity_test\Entity;
 
 /**
@@ -14,7 +9,7 @@ namespace Drupal\entity_test\Entity;
  *   id = "entity_test_no_label",
  *   label = @Translation("Entity Test without label"),
  *   persistent_cache = FALSE,
- *   base_table = "entity_test",
+ *   base_table = "entity_test_no_label",
  *   entity_keys = {
  *     "id" = "id",
  *     "bundle" = "type"
@@ -24,7 +19,7 @@ namespace Drupal\entity_test\Entity;
 class EntityTestNoLabel extends EntityTest {
 
   /**
-   * @{inheritdoc}
+   * {@inheritdoc}
    */
   public function label() {
     return $this->getName();

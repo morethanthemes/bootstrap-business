@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\EventSubscriber\RouteEnhancerSubscriber.
- */
-
 namespace Drupal\Core\EventSubscriber;
 
 use Drupal\Core\Routing\LazyRouteEnhancer;
@@ -45,8 +40,8 @@ class RouteEnhancerSubscriber implements EventSubscriberInterface {
   /**
    * {@inheritdoc}
    */
-  static function getSubscribedEvents() {
-    $events[RoutingEvents::ALTER][] = array('onRouteAlter', -300);
+  public static function getSubscribedEvents() {
+    $events[RoutingEvents::ALTER][] = ['onRouteAlter', -300];
     return $events;
   }
 

@@ -1,12 +1,8 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\block\BlockInterface.
- */
-
 namespace Drupal\block;
 
+use Drupal\Core\Block\BlockPluginInterface;
 use Drupal\Core\Config\Entity\ConfigEntityInterface;
 
 /**
@@ -16,11 +12,18 @@ interface BlockInterface extends ConfigEntityInterface {
 
   /**
    * Indicates the block label (title) should be displayed to end users.
+   *
+   * @deprecated in Drupal 8.3.x, will be removed before Drupal 9.0.0.
+   *   Use \Drupal\Core\Block\BlockPluginInterface::BLOCK_LABEL_VISIBLE.
+   *
+   * @see https://www.drupal.org/node/2829775
    */
-  const BLOCK_LABEL_VISIBLE = 'visible';
+  const BLOCK_LABEL_VISIBLE = BlockPluginInterface::BLOCK_LABEL_VISIBLE;
 
   /**
    * Denotes that a block is not enabled in any region and should not be shown.
+   *
+   * @deprecated Scheduled for removal in Drupal 9.0.0.
    */
   const BLOCK_REGION_NONE = -1;
 

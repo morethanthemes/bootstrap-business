@@ -1,13 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Form\NodeRevisionRevertTranslationForm.
- */
-
 namespace Drupal\node\Form;
 
-use Drupal\Core\Datetime\DateFormatter;
+use Drupal\Component\Datetime\TimeInterface;
+use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
@@ -38,13 +34,15 @@ class NodeRevisionRevertTranslationForm extends NodeRevisionRevertForm {
    *
    * @param \Drupal\Core\Entity\EntityStorageInterface $node_storage
    *   The node storage.
-   * @param \Drupal\Core\Datetime\DateFormatter $date_formatter
+   * @param \Drupal\Core\Datetime\DateFormatterInterface $date_formatter
    *   The date formatter service.
    * @param \Drupal\Core\Language\LanguageManagerInterface $language_manager
    *   The language manager.
+   * @param \Drupal\Component\Datetime\TimeInterface $time
+   *   The time service.
    */
-  public function __construct(EntityStorageInterface $node_storage, DateFormatter $date_formatter, LanguageManagerInterface $language_manager) {
-    parent::__construct($node_storage, $date_formatter);
+  public function __construct(EntityStorageInterface $node_storage, DateFormatterInterface $date_formatter, LanguageManagerInterface $language_manager, TimeInterface $time) {
+    parent::__construct($node_storage, $date_formatter, $time);
     $this->languageManager = $language_manager;
   }
 
@@ -55,7 +53,8 @@ class NodeRevisionRevertTranslationForm extends NodeRevisionRevertForm {
     return new static(
       $container->get('entity.manager')->getStorage('node'),
       $container->get('date.formatter'),
-      $container->get('language_manager')
+      $container->get('language_manager'),
+      $container->get('datetime.time')
     );
   }
 
@@ -87,11 +86,11 @@ class NodeRevisionRevertTranslationForm extends NodeRevisionRevertForm {
     $this->langcode = $langcode;
     $form = parent::buildForm($form, $form_state, $node_revision);
 
-    $form['revert_untranslated_fields'] = array(
+    $form['revert_untranslated_fields'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Revert content shared among translations'),
       '#default_value' => FALSE,
-    );
+    ];
 
     return $form;
   }

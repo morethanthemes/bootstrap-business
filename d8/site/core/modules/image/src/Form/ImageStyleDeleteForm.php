@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\image\Form\ImageStyleDeleteForm.
- */
-
 namespace Drupal\image\Form;
 
 use Drupal\Core\Entity\EntityDeleteForm;
@@ -26,7 +21,7 @@ class ImageStyleDeleteForm extends EntityDeleteForm {
    * {@inheritdoc}
    */
   public function getQuestion() {
-    return $this->t('Optionally select a style before deleting %style', array('%style' => $this->entity->label()));
+    return $this->t('Optionally select a style before deleting %style', ['%style' => $this->entity->label()]);
   }
   /**
    * {@inheritdoc}

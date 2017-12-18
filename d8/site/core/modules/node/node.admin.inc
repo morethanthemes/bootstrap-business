@@ -6,7 +6,6 @@
  */
 
 use Drupal\node\NodeInterface;
-use Drupal\node\Entity\Node;
 
 /**
  * Updates all nodes in the passed-in array with the passed-in field values.
@@ -34,10 +33,10 @@ function node_mass_update(array $nodes, array $updates, $langcode = NULL, $load 
   // We use batch processing to prevent timeout when updating a large number
   // of nodes.
   if (count($nodes) > 10) {
-    $batch = array(
-      'operations' => array(
-        array('_node_mass_update_batch_process', array($nodes, $updates, $langcode, $load, $revisions))
-      ),
+    $batch = [
+      'operations' => [
+        ['_node_mass_update_batch_process', [$nodes, $updates, $langcode, $load, $revisions]]
+      ],
       'finished' => '_node_mass_update_batch_finished',
       'title' => t('Processing'),
       // We use a single multi-pass operation, so the default
@@ -47,16 +46,17 @@ function node_mass_update(array $nodes, array $updates, $langcode = NULL, $load 
       // The operations do not live in the .module file, so we need to
       // tell the batch engine which file to load before calling them.
       'file' => drupal_get_path('module', 'node') . '/node.admin.inc',
-    );
+    ];
     batch_set($batch);
   }
   else {
+    $storage = \Drupal::entityTypeManager()->getStorage('node');
     if ($load && !$revisions) {
-      $nodes = Node::loadMultiple($nodes);
+      $nodes = $storage->loadMultiple($nodes);
     }
     foreach ($nodes as $node) {
       if ($load && $revisions) {
-        $node = entity_revision_load('node', $node);
+        $node = $storage->loadRevision($node);
       }
       _node_mass_update_helper($node, $updates, $langcode);
     }
@@ -81,7 +81,7 @@ function node_mass_update(array $nodes, array $updates, $langcode = NULL, $load 
  * @see node_mass_update()
  */
 function _node_mass_update_helper(NodeInterface $node, array $updates, $langcode = NULL) {
-  $langcodes = isset($langcode) ? array($langcode) : array_keys($node->getTranslationLanguages());
+  $langcodes = isset($langcode) ? [$langcode] : array_keys($node->getTranslationLanguages());
   // For efficiency manually save the original node before applying any changes.
   $node->original = clone $node;
   foreach ($langcodes as $langcode) {
@@ -102,16 +102,19 @@ function _node_mass_update_helper(NodeInterface $node, array $updates, $langcode
  *   An array of node IDs.
  * @param array $updates
  *   Associative array of updates.
+ * @param string $langcode
+ *   The language updates should be applied to. If none is specified all
+ *   available languages are processed.
  * @param bool $load
  *   TRUE if $nodes contains an array of node IDs to be loaded, FALSE if it
  *   contains fully loaded nodes.
  * @param bool $revisions
  *   (optional) TRUE if $nodes contains an array of revision IDs instead of
  *   node IDs. Defaults to FALSE; will be ignored if $load is FALSE.
- * @param array $context
+ * @param array|\ArrayAccess $context
  *   An array of contextual key/values.
  */
-function _node_mass_update_batch_process(array $nodes, array $updates, $load, $revisions, array &$context) {
+function _node_mass_update_batch_process(array $nodes, array $updates, $langcode, $load, $revisions, &$context) {
   if (!isset($context['sandbox']['progress'])) {
     $context['sandbox']['progress'] = 0;
     $context['sandbox']['max'] = count($nodes);
@@ -119,15 +122,16 @@ function _node_mass_update_batch_process(array $nodes, array $updates, $load, $r
   }
 
   // Process nodes by groups of 5.
+  $storage = \Drupal::entityTypeManager()->getStorage('node');
   $count = min(5, count($context['sandbox']['nodes']));
   for ($i = 1; $i <= $count; $i++) {
     // For each nid, load the node, reset the values, and save it.
     $node = array_shift($context['sandbox']['nodes']);
     if ($load) {
       $node = $revisions ?
-        entity_revision_load('node', $node) : Node::load($node);
+        $storage->loadRevision($node) : $storage->load($node);
     }
-    $node = _node_mass_update_helper($node, $updates);
+    $node = _node_mass_update_helper($node, $updates, $langcode);
 
     // Store result for post-processing in the finished callback.
     $context['results'][] = \Drupal::l($node->label(), $node->urlInfo());
@@ -165,11 +169,11 @@ function _node_mass_update_batch_finished($success, $results, $operations) {
   else {
     drupal_set_message(t('An error occurred and processing did not complete.'), 'error');
     $message = \Drupal::translation()->formatPlural(count($results), '1 item successfully processed:', '@count items successfully processed:');
-    $item_list = array(
+    $item_list = [
       '#theme' => 'item_list',
       '#items' => $results,
-    );
-    $message .= drupal_render($item_list);
+    ];
+    $message .= \Drupal::service('renderer')->render($item_list);
     drupal_set_message($message);
   }
 }

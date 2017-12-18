@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Database\Query\QueryConditionTrait.
- */
-
 namespace Drupal\Core\Database\Query;
 
 use Drupal\Core\Database\Connection;
@@ -82,7 +77,7 @@ trait QueryConditionTrait {
   /**
    * {@inheritdoc}
    */
-  public function where($snippet, $args = array()) {
+  public function where($snippet, $args = []) {
     $this->condition->where($snippet, $args);
     return $this;
   }

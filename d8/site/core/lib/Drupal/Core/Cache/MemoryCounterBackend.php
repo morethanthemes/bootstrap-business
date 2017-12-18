@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Cache\MemoryCounterBackend.
- */
-
 namespace Drupal\Core\Cache;
 
 /**
@@ -14,7 +9,6 @@ namespace Drupal\Core\Cache;
  * many times a cache entry was set or requested.
  *
  * @todo On the longrun this backend should be replaced by phpunit mock objects.
- *
  */
 class MemoryCounterBackend extends MemoryBackend {
 
@@ -23,7 +17,7 @@ class MemoryCounterBackend extends MemoryBackend {
    *
    * @var array
    */
-  protected $counter = array();
+  protected $counter = [];
 
   /**
    * {@inheritdoc}
@@ -36,7 +30,7 @@ class MemoryCounterBackend extends MemoryBackend {
   /**
    * {@inheritdoc}
    */
-  public function set($cid, $data, $expire = Cache::PERMANENT, array $tags = array()) {
+  public function set($cid, $data, $expire = Cache::PERMANENT, array $tags = []) {
     $this->increaseCounter(__FUNCTION__, $cid);
     parent::set($cid, $data, $expire, $tags);
   }
@@ -54,7 +48,6 @@ class MemoryCounterBackend extends MemoryBackend {
    *
    * @param string $function
    *   The called function.
-   *
    * @param string $cid
    *   The cache ID of the cache entry to increase the counter.
    */
@@ -83,7 +76,7 @@ class MemoryCounterBackend extends MemoryBackend {
       return isset($this->counter[$method][$cid]) ? $this->counter[$method][$cid] : 0;
     }
     elseif ($method) {
-      return isset($this->counter[$method]) ? $this->counter[$method] : array();
+      return isset($this->counter[$method]) ? $this->counter[$method] : [];
     }
     else {
       return $this->counter;
@@ -94,7 +87,7 @@ class MemoryCounterBackend extends MemoryBackend {
    * Resets the call counter.
    */
   public function resetCounter() {
-    $this->counter = array();
+    $this->counter = [];
   }
 
 }

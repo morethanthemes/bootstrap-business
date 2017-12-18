@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Annotation\ViewsDisplay.
- */
-
 namespace Drupal\views\Annotation;
 
 /**
@@ -116,7 +111,7 @@ class ViewsDisplay extends ViewsPluginAnnotationBase {
   /**
    * The theme function used to render the display's output.
    *
-   * @return string
+   * @var string
    */
   public $theme;
 

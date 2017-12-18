@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\Component\Plugin\Factory\ReflectionFactory.
- */
 
 namespace Drupal\Component\Plugin\Factory;
 
@@ -17,7 +13,7 @@ class ReflectionFactory extends DefaultFactory {
   /**
    * {@inheritdoc}
    */
-  public function createInstance($plugin_id, array $configuration = array()) {
+  public function createInstance($plugin_id, array $configuration = []) {
     $plugin_definition = $this->discovery->getDefinition($plugin_id);
     $plugin_class = static::getPluginClass($plugin_id, $plugin_definition, $this->interface);
 
@@ -55,7 +51,7 @@ class ReflectionFactory extends DefaultFactory {
    */
   protected function getInstanceArguments(\ReflectionClass $reflector, $plugin_id, $plugin_definition, array $configuration) {
 
-    $arguments = array();
+    $arguments = [];
     foreach ($reflector->getMethod('__construct')->getParameters() as $param) {
       $param_name = $param->getName();
 
@@ -80,4 +76,5 @@ class ReflectionFactory extends DefaultFactory {
     }
     return $arguments;
   }
+
 }

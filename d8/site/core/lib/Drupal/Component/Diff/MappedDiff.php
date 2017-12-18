@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\Diff\MappedDiff.
- */
-
 namespace Drupal\Component\Diff;
 
 /**
@@ -24,19 +19,17 @@ class MappedDiff extends Diff {
    * case-insensitive diffs, or diffs which ignore
    * changes in white-space.
    *
-   * @param $from_lines array An array of strings.
-   *  (Typically these are lines from a file.)
-   *
-   * @param $to_lines array An array of strings.
-   *
-   * @param $mapped_from_lines array This array should
-   *  have the same size number of elements as $from_lines.
-   *  The elements in $mapped_from_lines and
-   *  $mapped_to_lines are what is actually compared
-   *  when computing the diff.
-   *
-   * @param $mapped_to_lines array This array should
-   *  have the same number of elements as $to_lines.
+   * @param array $from_lines
+   *   An array of strings.
+   *   (Typically these are lines from a file.)
+   * @param array $to_lines
+   *   An array of strings.
+   * @param array $mapped_from_lines
+   *   This array should have the same size number of elements as $from_lines.
+   *   The elements in $mapped_from_lines and $mapped_to_lines are what is
+   *   actually compared when computing the diff.
+   * @param array $mapped_to_lines
+   *   This array should have the same number of elements as $to_lines.
    */
   public function __construct($from_lines, $to_lines, $mapped_from_lines, $mapped_to_lines) {
 
@@ -60,5 +53,5 @@ class MappedDiff extends Diff {
       }
     }
   }
-}
 
+}

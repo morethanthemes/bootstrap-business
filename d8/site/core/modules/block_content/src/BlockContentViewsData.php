@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\block_content\BlockContentViewsData.
- */
-
 namespace Drupal\block_content;
 
 use Drupal\views\EntityViewsData;
@@ -28,13 +23,13 @@ class BlockContentViewsData extends EntityViewsData {
 
     $data['block_content_field_data']['type']['field']['id'] = 'field';
 
-    $data['block_content']['block_content_listing_empty'] = array(
-      'title' => t('Empty block library behavior'),
-      'help' => t('Provides a link to add a new block.'),
-      'area' => array(
+    $data['block_content']['block_content_listing_empty'] = [
+      'title' => $this->t('Empty block library behavior'),
+      'help' => $this->t('Provides a link to add a new block.'),
+      'area' => [
         'id' => 'block_content_listing_empty',
-      ),
-    );
+      ],
+    ];
     // Advertise this table as a possible base table.
     $data['block_content_field_revision']['table']['base']['help'] = $this->t('Block Content revision is a history of changes to block content.');
     $data['block_content_field_revision']['table']['base']['defaults']['title'] = 'info';

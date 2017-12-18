@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Plugin\Context\ContextHandlerInterface.
- */
-
 namespace Drupal\Core\Plugin\Context;
 
 use Drupal\Core\Plugin\ContextAwarePluginInterface;
@@ -22,7 +17,7 @@ interface ContextHandlerInterface {
    *
    * @param \Drupal\Component\Plugin\Context\ContextInterface[] $contexts
    *   An array of contexts.
-   * @param array $definitions .
+   * @param array $definitions
    *   An array of plugin definitions.
    *
    * @return array
@@ -80,6 +75,6 @@ interface ContextHandlerInterface {
    * @throws \Drupal\Component\Plugin\Exception\ContextException
    *   Thrown when a context assignment was not satisfied.
    */
-  public function applyContextMapping(ContextAwarePluginInterface $plugin, $contexts, $mappings = array());
+  public function applyContextMapping(ContextAwarePluginInterface $plugin, $contexts, $mappings = []);
 
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\history\Controller\HistoryController.
- */
-
 namespace Drupal\history\Controller;
 
 use Symfony\Component\HttpFoundation\Request;
@@ -56,7 +51,7 @@ class HistoryController extends ControllerBase {
     // Update the history table, stating that this user viewed this node.
     history_write($node->id());
 
-    return new JsonResponse((int)history_read($node->id()));
+    return new JsonResponse((int) history_read($node->id()));
   }
 
 }

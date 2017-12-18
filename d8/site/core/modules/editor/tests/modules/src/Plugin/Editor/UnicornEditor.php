@@ -1,15 +1,10 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\editor_test\Plugin\Editor\UnicornEditor.
- */
-
 namespace Drupal\editor_test\Plugin\Editor;
 
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\editor\Entity\Editor;
 use Drupal\editor\Plugin\EditorBase;
-use Drupal\editor\Entity\Editor as EditorEntity;
 
 /**
  * Defines a Unicorn-powered text editor for Drupal (for testing purposes).
@@ -31,27 +26,27 @@ class UnicornEditor extends EditorBase {
   /**
    * {@inheritdoc}
    */
-  function getDefaultSettings() {
-    return array('ponies_too' => TRUE);
+  public function getDefaultSettings() {
+    return ['ponies_too' => TRUE];
   }
 
   /**
    * {@inheritdoc}
    */
-  function settingsForm(array $form, FormStateInterface $form_state, EditorEntity $editor) {
-    $form['ponies_too'] = array(
+  public function settingsForm(array $form, FormStateInterface $form_state, Editor $editor) {
+    $form['ponies_too'] = [
       '#title' => t('Pony mode'),
       '#type' => 'checkbox',
       '#default_value' => TRUE,
-    );
+    ];
     return $form;
   }
 
   /**
    * {@inheritdoc}
    */
-  function getJSSettings(EditorEntity $editor) {
-    $js_settings = array();
+  public function getJSSettings(Editor $editor) {
+    $js_settings = [];
     $settings = $editor->getSettings();
     if ($settings['ponies_too']) {
       $js_settings['ponyModeEnabled'] = TRUE;
@@ -62,10 +57,10 @@ class UnicornEditor extends EditorBase {
   /**
    * {@inheritdoc}
    */
-  public function getLibraries(EditorEntity $editor) {
-    return array(
+  public function getLibraries(Editor $editor) {
+    return [
       'editor_test/unicorn',
-    );
+    ];
   }
 
 }

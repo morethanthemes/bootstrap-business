@@ -11,7 +11,6 @@ use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Cache\Context\ContextCacheKeys;
 use Drupal\Core\Cache\MemoryBackend;
-use Drupal\Core\Render\Element;
 use Drupal\Core\Render\PlaceholderGenerator;
 use Drupal\Core\Render\PlaceholderingRenderCache;
 use Drupal\Core\Render\Renderer;
@@ -23,7 +22,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
 /**
  * Base class for the actual unit tests testing \Drupal\Core\Render\Renderer.
  */
-class RendererTestBase extends UnitTestCase {
+abstract class RendererTestBase extends UnitTestCase {
 
   /**
    * The tested renderer.
@@ -107,7 +106,7 @@ class RendererTestBase extends UnitTestCase {
     'auto_placeholder_conditions' => [
       'max-age' => 0,
       'contexts' => ['session', 'user'],
-      'tags' =>  ['current-temperature'],
+      'tags' => ['current-temperature'],
     ],
   ];
 
@@ -148,7 +147,7 @@ class RendererTestBase extends UnitTestCase {
     $current_user_role = &$this->currentUserRole;
     $this->cacheContextsManager->expects($this->any())
       ->method('convertTokensToKeys')
-      ->willReturnCallback(function($context_tokens) use (&$current_user_role) {
+      ->willReturnCallback(function ($context_tokens) use (&$current_user_role) {
         $keys = [];
         foreach ($context_tokens as $context_id) {
           switch ($context_id) {
@@ -209,7 +208,7 @@ class RendererTestBase extends UnitTestCase {
    * Sets up a memory-based render cache back-end.
    */
   protected function setupMemoryCache() {
-    $this->memoryCache = $this->memoryCache ?: new MemoryBackend('render');
+    $this->memoryCache = $this->memoryCache ?: new MemoryBackend();
 
     $this->cacheFactory->expects($this->atLeastOnce())
       ->method('get')
@@ -259,7 +258,7 @@ class PlaceholdersTest {
    * #lazy_builder callback; attaches setting, generates markup.
    *
    * @param string $animal
-   *  An animal.
+   *   An animal.
    *
    * @return array
    *   A renderable array.
@@ -283,7 +282,7 @@ class PlaceholdersTest {
    * #lazy_builder callback; attaches setting, generates markup, user-specific.
    *
    * @param string $animal
-   *  An animal.
+   *   An animal.
    *
    * @return array
    *   A renderable array.
@@ -298,7 +297,7 @@ class PlaceholdersTest {
    * #lazy_builder callback; attaches setting, generates markup, cache tag.
    *
    * @param string $animal
-   *  An animal.
+   *   An animal.
    *
    * @return array
    *   A renderable array.

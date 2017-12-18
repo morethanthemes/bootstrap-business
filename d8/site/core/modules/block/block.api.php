@@ -151,7 +151,7 @@ function hook_block_view_BASE_BLOCK_ID_alter(array &$build, \Drupal\Core\Block\B
 function hook_block_build_alter(array &$build, \Drupal\Core\Block\BlockPluginInterface $block) {
   // Add the 'user' cache context to some blocks.
   if ($some_condition) {
-    $build['#contexts'][] = 'user';
+    $build['#cache']['contexts'][] = 'user';
   }
 }
 
@@ -209,7 +209,7 @@ function hook_block_access(\Drupal\block\Entity\Block $block, $operation, \Drupa
   // Example code that would prevent displaying the 'Powered by Drupal' block in
   // a region different than the footer.
   if ($operation == 'view' && $block->getPluginId() == 'system_powered_by_block') {
-    return AccessResult::forbiddenIf($block->getRegion() != 'footer')->cacheUntilEntityChanges($block);
+    return AccessResult::forbiddenIf($block->getRegion() != 'footer')->addCacheableDependency($block);
   }
 
   // No opinion.

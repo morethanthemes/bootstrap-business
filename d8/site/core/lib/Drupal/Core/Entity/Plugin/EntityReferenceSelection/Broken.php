@@ -1,14 +1,8 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\Plugin\EntityReferenceSelection\Broken.
- */
-
 namespace Drupal\Core\Entity\Plugin\EntityReferenceSelection;
 
-use Drupal\Core\Database\Query\SelectInterface;
-use Drupal\Core\Entity\EntityReferenceSelection\SelectionInterface;
+use Drupal\Core\Entity\EntityReferenceSelection\SelectionPluginBase;
 use Drupal\Core\Form\FormStateInterface;
 
 /**
@@ -19,33 +13,24 @@ use Drupal\Core\Form\FormStateInterface;
  *   label = @Translation("Broken/Missing")
  * )
  */
-class Broken implements SelectionInterface {
+class Broken extends SelectionPluginBase {
 
   /**
    * {@inheritdoc}
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
-    $form['selection_handler'] = array(
+    $form = parent::buildConfigurationForm($form, $form_state);
+    $form['selection_handler'] = [
       '#markup' => t('The selected selection handler is broken.'),
-    );
+    ];
     return $form;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function validateConfigurationForm(array &$form, FormStateInterface $form_state) { }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) { }
-
-  /**
-   * {@inheritdoc}
-   */
   public function getReferenceableEntities($match = NULL, $match_operator = 'CONTAINS', $limit = 0) {
-    return array();
+    return [];
   }
 
   /**
@@ -59,12 +44,7 @@ class Broken implements SelectionInterface {
    * {@inheritdoc}
    */
   public function validateReferenceableEntities(array $ids) {
-    return array();
+    return [];
   }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function entityQueryAlter(SelectInterface $query) { }
 
 }

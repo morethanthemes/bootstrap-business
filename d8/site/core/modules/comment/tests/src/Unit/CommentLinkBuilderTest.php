@@ -1,17 +1,12 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\comment\Unit\CommentLinkBuilderTest.
- */
-
-namespace Drupal\Tests\comment\Unit {
+namespace Drupal\Tests\comment\Unit;
 
 use Drupal\comment\CommentLinkBuilder;
 use Drupal\comment\Plugin\Field\FieldType\CommentItemInterface;
 use Drupal\Core\Url;
 use Drupal\node\NodeInterface;
-use Drupal\simpletest\TestBase;
+use Drupal\Tests\Traits\Core\GeneratePermutationsTrait;
 use Drupal\Tests\UnitTestCase;
 
 /**
@@ -19,6 +14,8 @@ use Drupal\Tests\UnitTestCase;
  * @group comment
  */
 class CommentLinkBuilderTest extends UnitTestCase {
+
+  use GeneratePermutationsTrait;
 
   /**
    * Comment manager mock.
@@ -80,9 +77,9 @@ class CommentLinkBuilderTest extends UnitTestCase {
     $this->commentManager->expects($this->any())
       ->method('getFields')
       ->with('node')
-      ->willReturn(array(
-        'comment' => array(),
-      ));
+      ->willReturn([
+        'comment' => [],
+      ]);
     $this->commentManager->expects($this->any())
       ->method('forbiddenMessage')
       ->willReturn("Can't let you do that Dave.");
@@ -121,10 +118,10 @@ class CommentLinkBuilderTest extends UnitTestCase {
       ->willReturn($history_exists);
     $this->currentUser->expects($this->any())
       ->method('hasPermission')
-      ->willReturnMap(array(
-        array('access comments', $has_access_comments),
-        array('post comments', $has_post_comments),
-      ));
+      ->willReturnMap([
+        ['access comments', $has_access_comments],
+        ['post comments', $has_post_comments],
+      ]);
     $this->currentUser->expects($this->any())
       ->method('isAuthenticated')
       ->willReturn(!$is_anonymous);
@@ -160,57 +157,57 @@ class CommentLinkBuilderTest extends UnitTestCase {
    * Data provider for ::testCommentLinkBuilder.
    */
   public function getLinkCombinations() {
-    $cases = array();
+    $cases = [];
     // No links should be created if the entity doesn't have the field.
-    $cases[] = array(
+    $cases[] = [
       $this->getMockNode(FALSE, CommentItemInterface::OPEN, CommentItemInterface::FORM_BELOW, 1),
-      array('view_mode' => 'teaser'),
+      ['view_mode' => 'teaser'],
       TRUE,
       TRUE,
       TRUE,
       TRUE,
-      array(),
-    );
-    foreach (array('search_result', 'search_index', 'print') as $view_mode) {
+      [],
+    ];
+    foreach (['search_result', 'search_index', 'print'] as $view_mode) {
       // Nothing should be output in these view modes.
-      $cases[] = array(
+      $cases[] = [
         $this->getMockNode(TRUE, CommentItemInterface::OPEN, CommentItemInterface::FORM_BELOW, 1),
-        array('view_mode' => $view_mode),
+        ['view_mode' => $view_mode],
         TRUE,
         TRUE,
         TRUE,
         TRUE,
-        array(),
-      );
+        [],
+      ];
     }
     // All other combinations.
-    $combinations = array(
-      'is_anonymous' => array(FALSE, TRUE),
-      'comment_count' => array(0, 1),
-      'has_access_comments' => array(0, 1),
-      'history_exists' => array(FALSE, TRUE),
-      'has_post_comments'   => array(0, 1),
-      'form_location'            => array(CommentItemInterface::FORM_BELOW, CommentItemInterface::FORM_SEPARATE_PAGE),
-      'comments'        => array(
+    $combinations = [
+      'is_anonymous' => [FALSE, TRUE],
+      'comment_count' => [0, 1],
+      'has_access_comments' => [0, 1],
+      'history_exists' => [FALSE, TRUE],
+      'has_post_comments'   => [0, 1],
+      'form_location'            => [CommentItemInterface::FORM_BELOW, CommentItemInterface::FORM_SEPARATE_PAGE],
+      'comments'        => [
         CommentItemInterface::OPEN,
         CommentItemInterface::CLOSED,
         CommentItemInterface::HIDDEN,
-      ),
-      'view_mode' => array(
+      ],
+      'view_mode' => [
         'teaser', 'rss', 'full',
-      ),
-    );
-    $permutations = TestBase::generatePermutations($combinations);
+      ],
+    ];
+    $permutations = $this->generatePermutations($combinations);
     foreach ($permutations as $combination) {
-      $case = array(
+      $case = [
         $this->getMockNode(TRUE, $combination['comments'], $combination['form_location'], $combination['comment_count']),
-        array('view_mode' => $combination['view_mode']),
+        ['view_mode' => $combination['view_mode']],
         $combination['has_access_comments'],
         $combination['history_exists'],
         $combination['has_post_comments'],
         $combination['is_anonymous'],
-      );
-      $expected = array();
+      ];
+      $expected = [];
       // When comments are enabled in teaser mode, and comments exist, and the
       // user has access - we can output the comment count.
       if ($combination['comments'] && $combination['view_mode'] == 'teaser' && $combination['comment_count'] && $combination['has_access_comments']) {
@@ -230,7 +227,7 @@ class CommentLinkBuilderTest extends UnitTestCase {
             // comments exist or the form is on a separate page.
             if ($combination['view_mode'] == 'teaser' || ($combination['has_access_comments'] && $combination['comment_count']) || $combination['form_location'] == CommentItemInterface::FORM_SEPARATE_PAGE) {
               // There should be a add comment link.
-              $expected['comment-add'] = array('title' => 'Add new comment');
+              $expected['comment-add'] = ['title' => 'Add new comment'];
               if ($combination['form_location'] == CommentItemInterface::FORM_BELOW) {
                 // On the same page.
                 $expected['comment-add']['url'] = Url::fromRoute('node.view');
@@ -279,11 +276,11 @@ class CommentLinkBuilderTest extends UnitTestCase {
     if (empty($this->timestamp)) {
       $this->timestamp = time();
     }
-    $field_item = (object) array(
+    $field_item = (object) [
       'status' => $comment_status,
       'comment_count' => $comment_count,
       'last_comment_timestamp' => $this->timestamp,
-    );
+    ];
     $node->expects($this->any())
       ->method('get')
       ->with('comment')
@@ -317,19 +314,17 @@ class CommentLinkBuilderTest extends UnitTestCase {
       ->willReturn($url);
     $node->expects($this->any())
       ->method('url')
-      ->willReturn(array('route_name' => 'node.view'));
+      ->willReturn(['route_name' => 'node.view']);
 
     return $node;
   }
 
 }
 
-}
+namespace Drupal\comment;
 
-namespace {
-  if (!function_exists('history_read')) {
-    function history_read() {
-      return 0;
-    }
+if (!function_exists('history_read')) {
+  function history_read() {
+    return 0;
   }
 }

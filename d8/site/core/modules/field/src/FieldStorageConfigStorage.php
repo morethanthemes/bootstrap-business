@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\field\FieldStorageConfigStorage.
- */
-
 namespace Drupal\field;
 
 use Drupal\Component\Uuid\UuidInterface;
@@ -69,7 +64,7 @@ class FieldStorageConfigStorage extends ConfigEntityStorage {
    *   The module handler.
    * @param \Drupal\Core\State\StateInterface $state
    *   The state key value store.
-   * @param \Drupal\Component\Plugin\PluginManagerInterface\FieldTypePluginManagerInterface
+   * @param \Drupal\Component\Plugin\PluginManagerInterface\FieldTypePluginManagerInterface $field_type_manager
    *   The field type plugin manager.
    */
   public function __construct(EntityTypeInterface $entity_type, ConfigFactoryInterface $config_factory, UuidInterface $uuid_service, LanguageManagerInterface $language_manager, EntityManagerInterface $entity_manager, ModuleHandlerInterface $module_handler, StateInterface $state, FieldTypePluginManagerInterface $field_type_manager) {
@@ -99,13 +94,13 @@ class FieldStorageConfigStorage extends ConfigEntityStorage {
   /**
    * {@inheritdoc}
    */
-  public function loadByProperties(array $conditions = array()) {
+  public function loadByProperties(array $conditions = []) {
     // Include deleted fields if specified in the $conditions parameters.
     $include_deleted = isset($conditions['include_deleted']) ? $conditions['include_deleted'] : FALSE;
     unset($conditions['include_deleted']);
 
     /** @var \Drupal\field\FieldStorageConfigInterface[] $storages */
-    $storages = array();
+    $storages = [];
 
     // Get field storages living in configuration. If we are explicitly looking
     // for deleted storages only, this can be skipped, because they will be
@@ -114,7 +109,7 @@ class FieldStorageConfigStorage extends ConfigEntityStorage {
       if (isset($conditions['entity_type']) && isset($conditions['field_name'])) {
         // Optimize for the most frequent case where we do have a specific ID.
         $id = $conditions['entity_type'] . $conditions['field_name'];
-        $storages = $this->loadMultiple(array($id));
+        $storages = $this->loadMultiple([$id]);
       }
       else {
         // No specific ID, we need to examine all existing storages.
@@ -124,14 +119,14 @@ class FieldStorageConfigStorage extends ConfigEntityStorage {
 
     // Merge deleted field storages (living in state) if needed.
     if ($include_deleted || !empty($conditions['deleted'])) {
-      $deleted_storages = $this->state->get('field.storage.deleted') ?: array();
+      $deleted_storages = $this->state->get('field.storage.deleted') ?: [];
       foreach ($deleted_storages as $id => $config) {
         $storages[$id] = $this->create($config);
       }
     }
 
     // Collect matching fields.
-    $matches = array();
+    $matches = [];
     foreach ($storages as $field) {
       foreach ($conditions as $key => $value) {
         // Extract the actual value against which the condition is checked.
@@ -155,8 +150,12 @@ class FieldStorageConfigStorage extends ConfigEntityStorage {
    * {@inheritdoc}
    */
   protected function mapFromStorageRecords(array $records) {
-    foreach ($records as &$record) {
+    foreach ($records as $id => &$record) {
       $class = $this->fieldTypeManager->getPluginClass($record['type']);
+      if (empty($class)) {
+        $config_id = $this->getPrefix() . $id;
+        throw new \RuntimeException("Unable to determine class for field type '{$record['type']}' found in the '$config_id' configuration");
+      }
       $record['settings'] = $class::storageSettingsFromConfigData($record['settings']);
     }
     return parent::mapFromStorageRecords($records);

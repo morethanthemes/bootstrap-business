@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\PageCache\CommandLineOrUnsafeMethodTest.
- */
-
 namespace Drupal\Tests\Core\PageCache;
 
 use Drupal\Core\PageCache\RequestPolicyInterface;
@@ -27,7 +22,7 @@ class CommandLineOrUnsafeMethodTest extends UnitTestCase {
   protected function setUp() {
     // Note that it is necessary to partially mock the class under test in
     // order to disable the isCli-check.
-    $this->policy = $this->getMock('Drupal\Core\PageCache\RequestPolicy\CommandLineOrUnsafeMethod', array('isCli'));
+    $this->policy = $this->getMock('Drupal\Core\PageCache\RequestPolicy\CommandLineOrUnsafeMethod', ['isCli']);
   }
 
   /**

@@ -1,12 +1,12 @@
 <?php
 
-use Drupal\comment\CommentInterface;
-use Drupal\Core\Url;
-
 /**
  * @file
  * Hooks provided by the Comment module.
  */
+
+use Drupal\comment\CommentInterface;
+use Drupal\Core\Url;
 
 /**
  * @addtogroup hooks
@@ -31,16 +31,16 @@ use Drupal\Core\Url;
  * @see \Drupal\comment\CommentViewBuilder::buildLinks()
  */
 function hook_comment_links_alter(array &$links, CommentInterface $entity, array &$context) {
-  $links['mymodule'] = array(
+  $links['mymodule'] = [
     '#theme' => 'links__comment__mymodule',
-    '#attributes' => array('class' => array('links', 'inline')),
-    '#links' => array(
-      'comment-report' => array(
+    '#attributes' => ['class' => ['links', 'inline']],
+    '#links' => [
+      'comment-report' => [
         'title' => t('Report'),
         'url' => Url::fromRoute('comment_test.report', ['comment' => $entity->id()], ['query' => ['token' => \Drupal::getContainer()->get('csrf_token')->get("comment/{$entity->id()}/report")]]),
-      ),
-    ),
-  );
+      ],
+    ],
+  ];
 }
 
 /**

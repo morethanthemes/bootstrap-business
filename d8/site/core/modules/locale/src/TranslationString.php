@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\locale\TranslationString.
- */
-
 namespace Drupal\locale;
 
 /**
@@ -47,7 +42,7 @@ class TranslationString extends StringBase {
   /**
    * {@inheritdoc}
    */
-  public function __construct($values = array()) {
+  public function __construct($values = []) {
     parent::__construct($values);
     if (!isset($this->isNew)) {
       // We mark the string as not new if it is a complete translation.

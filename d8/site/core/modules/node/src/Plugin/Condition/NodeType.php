@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Plugin\Condition\NodeType.
- */
-
 namespace Drupal\node\Plugin\Condition;
 
 use Drupal\Core\Condition\ConditionPluginBase;
@@ -23,7 +18,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *     "node" = @ContextDefinition("entity:node", label = @Translation("Node"))
  *   }
  * )
- *
  */
 class NodeType extends ConditionPluginBase implements ContainerFactoryPluginInterface {
 
@@ -70,17 +64,17 @@ class NodeType extends ConditionPluginBase implements ContainerFactoryPluginInte
    * {@inheritdoc}
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
-    $options = array();
+    $options = [];
     $node_types = $this->entityStorage->loadMultiple();
     foreach ($node_types as $type) {
       $options[$type->id()] = $type->label();
     }
-    $form['bundles'] = array(
+    $form['bundles'] = [
       '#title' => $this->t('Node types'),
       '#type' => 'checkboxes',
       '#options' => $options,
       '#default_value' => $this->configuration['bundles'],
-    );
+    ];
     return parent::buildConfigurationForm($form, $form_state);
   }
 
@@ -100,10 +94,10 @@ class NodeType extends ConditionPluginBase implements ContainerFactoryPluginInte
       $bundles = $this->configuration['bundles'];
       $last = array_pop($bundles);
       $bundles = implode(', ', $bundles);
-      return $this->t('The node bundle is @bundles or @last', array('@bundles' => $bundles, '@last' => $last));
+      return $this->t('The node bundle is @bundles or @last', ['@bundles' => $bundles, '@last' => $last]);
     }
     $bundle = reset($this->configuration['bundles']);
-    return $this->t('The node bundle is @bundle', array('@bundle' => $bundle));
+    return $this->t('The node bundle is @bundle', ['@bundle' => $bundle]);
   }
 
   /**
@@ -121,7 +115,7 @@ class NodeType extends ConditionPluginBase implements ContainerFactoryPluginInte
    * {@inheritdoc}
    */
   public function defaultConfiguration() {
-    return array('bundles' => array()) + parent::defaultConfiguration();
+    return ['bundles' => []] + parent::defaultConfiguration();
   }
 
 }

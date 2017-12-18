@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Config\Entity\ConfigEntityBase.
- */
-
 namespace Drupal\Core\Config\Entity;
 
 use Drupal\Component\Utility\NestedArray;
@@ -91,7 +86,7 @@ abstract class ConfigEntityBase extends Entity implements ConfigEntityInterface 
    *
    * @var array
    */
-  protected $third_party_settings = array();
+  protected $third_party_settings = [];
 
   /**
    * Information maintained by Drupal core about configuration.
@@ -268,7 +263,7 @@ abstract class ConfigEntityBase extends Entity implements ConfigEntityInterface 
    * {@inheritdoc}
    */
   public function toArray() {
-    $properties = array();
+    $properties = [];
     /** @var \Drupal\Core\Config\Entity\ConfigEntityTypeInterface $entity_type */
     $entity_type = $this->getEntityType();
 
@@ -355,6 +350,32 @@ abstract class ConfigEntityBase extends Entity implements ConfigEntityInterface 
   /**
    * {@inheritdoc}
    */
+  public function __sleep() {
+    $keys_to_unset = [];
+    if ($this instanceof EntityWithPluginCollectionInterface) {
+      $vars = get_object_vars($this);
+      foreach ($this->getPluginCollections() as $plugin_config_key => $plugin_collection) {
+        // Save any changes to the plugin configuration to the entity.
+        $this->set($plugin_config_key, $plugin_collection->getConfiguration());
+        // If the plugin collections are stored as properties on the entity,
+        // mark them to be unset.
+        $keys_to_unset += array_filter($vars, function ($value) use ($plugin_collection) {
+          return $plugin_collection === $value;
+        });
+      }
+    }
+
+    $vars = parent::__sleep();
+
+    if (!empty($keys_to_unset)) {
+      $vars = array_diff($vars, array_keys($keys_to_unset));
+    }
+    return $vars;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function calculateDependencies() {
     // All dependencies should be recalculated on every save apart from enforced
     // dependencies. This ensures stale dependencies are never saved.
@@ -390,7 +411,7 @@ abstract class ConfigEntityBase extends Entity implements ConfigEntityInterface 
   /**
    * {@inheritdoc}
    */
-  public function url($rel = 'edit-form', $options = array()) {
+  public function url($rel = 'edit-form', $options = []) {
     // Do not remove this override: the default value of $rel is different.
     return parent::url($rel, $options);
   }
@@ -530,7 +551,7 @@ abstract class ConfigEntityBase extends Entity implements ConfigEntityInterface 
    * {@inheritdoc}
    */
   public function getThirdPartySettings($module) {
-    return isset($this->third_party_settings[$module]) ? $this->third_party_settings[$module] : array();
+    return isset($this->third_party_settings[$module]) ? $this->third_party_settings[$module] : [];
   }
 
   /**

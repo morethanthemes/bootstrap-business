@@ -21,23 +21,23 @@ use Symfony\Component\HttpFoundation\Response;
  * @ingroup logging_severity_levels
  */
 function drupal_error_levels() {
-  $types = array(
-    E_ERROR => array('Error', RfcLogLevel::ERROR),
-    E_WARNING => array('Warning', RfcLogLevel::WARNING),
-    E_PARSE => array('Parse error', RfcLogLevel::ERROR),
-    E_NOTICE => array('Notice', RfcLogLevel::NOTICE),
-    E_CORE_ERROR => array('Core error', RfcLogLevel::ERROR),
-    E_CORE_WARNING => array('Core warning', RfcLogLevel::WARNING),
-    E_COMPILE_ERROR => array('Compile error', RfcLogLevel::ERROR),
-    E_COMPILE_WARNING => array('Compile warning', RfcLogLevel::WARNING),
-    E_USER_ERROR => array('User error', RfcLogLevel::ERROR),
-    E_USER_WARNING => array('User warning', RfcLogLevel::WARNING),
-    E_USER_NOTICE => array('User notice', RfcLogLevel::NOTICE),
-    E_STRICT => array('Strict warning', RfcLogLevel::DEBUG),
-    E_RECOVERABLE_ERROR => array('Recoverable fatal error', RfcLogLevel::ERROR),
-    E_DEPRECATED => array('Deprecated function', RfcLogLevel::DEBUG),
-    E_USER_DEPRECATED => array('User deprecated function', RfcLogLevel::DEBUG),
-  );
+  $types = [
+    E_ERROR => ['Error', RfcLogLevel::ERROR],
+    E_WARNING => ['Warning', RfcLogLevel::WARNING],
+    E_PARSE => ['Parse error', RfcLogLevel::ERROR],
+    E_NOTICE => ['Notice', RfcLogLevel::NOTICE],
+    E_CORE_ERROR => ['Core error', RfcLogLevel::ERROR],
+    E_CORE_WARNING => ['Core warning', RfcLogLevel::WARNING],
+    E_COMPILE_ERROR => ['Compile error', RfcLogLevel::ERROR],
+    E_COMPILE_WARNING => ['Compile warning', RfcLogLevel::WARNING],
+    E_USER_ERROR => ['User error', RfcLogLevel::ERROR],
+    E_USER_WARNING => ['User warning', RfcLogLevel::WARNING],
+    E_USER_NOTICE => ['User notice', RfcLogLevel::NOTICE],
+    E_STRICT => ['Strict warning', RfcLogLevel::DEBUG],
+    E_RECOVERABLE_ERROR => ['Recoverable fatal error', RfcLogLevel::ERROR],
+    E_DEPRECATED => ['Deprecated function', RfcLogLevel::DEBUG],
+    E_USER_DEPRECATED => ['User deprecated function', RfcLogLevel::DEBUG],
+  ];
 
   return $types;
 }
@@ -70,7 +70,7 @@ function _drupal_error_handler_real($error_level, $message, $filename, $line, $c
     // in PHP, we allow them to trigger a fatal error by emitting a user error
     // using trigger_error().
     $to_string = $error_level == E_USER_ERROR && substr($caller['function'], -strlen('__toString()')) == '__toString()';
-    _drupal_log_error(array(
+    _drupal_log_error([
       '%type' => isset($types[$error_level]) ? $severity_msg : 'Unknown error',
       // The standard PHP error handler considers that the error messages
       // are HTML. We mimick this behavior here.
@@ -80,7 +80,8 @@ function _drupal_error_handler_real($error_level, $message, $filename, $line, $c
       '%line' => $caller['line'],
       'severity_level' => $severity_level,
       'backtrace' => $backtrace,
-    ), $recoverable || $to_string);
+      '@backtrace_string' => (new \Exception())->getTraceAsString(),
+    ], $recoverable || $to_string);
   }
 }
 
@@ -116,14 +117,14 @@ function error_displayable($error = NULL) {
  *
  * @param $error
  *   An array with the following keys: %type, @message, %function, %file,
- *   %line, severity_level, and backtrace. All the parameters are plain-text,
- *   with the exception of @message, which needs to be an HTML string, and
- *   backtrace, which is a standard PHP backtrace.
+ *   %line, @backtrace_string, severity_level, and backtrace. All the parameters
+ *   are plain-text, with the exception of @message, which needs to be an HTML
+ *   string, and backtrace, which is a standard PHP backtrace.
  * @param bool $fatal
- *  TRUE for:
+ *   TRUE for:
  *   - An exception is thrown and not caught by something else.
  *   - A recoverable fatal error, which is a fatal error.
- *  Non-recoverable fatal errors cannot be logged by Drupal.
+ *   Non-recoverable fatal errors cannot be logged by Drupal.
  */
 function _drupal_log_error($error, $fatal = FALSE) {
   $is_installer = drupal_installation_attempted();
@@ -138,15 +139,15 @@ function _drupal_log_error($error, $fatal = FALSE) {
     // $number does not use drupal_static as it should not be reset
     // as it uniquely identifies each PHP error.
     static $number = 0;
-    $assertion = array(
+    $assertion = [
       $error['@message'],
       $error['%type'],
-      array(
+      [
         'function' => $error['%function'],
         'file' => $error['%file'],
         'line' => $error['%line'],
-      ),
-    );
+      ],
+    ];
     // For non-fatal errors (e.g. PHP notices) _drupal_log_error can be called
     // multiple times per request. In that case the response is typically
     // generated outside of the error handler, e.g., in a controller. As a
@@ -163,25 +164,25 @@ function _drupal_log_error($error, $fatal = FALSE) {
   // installer.
   if (\Drupal::hasService('logger.factory')) {
     try {
-      \Drupal::logger('php')->log($error['severity_level'], '%type: @message in %function (line %line of %file).', $error);
+      \Drupal::logger('php')->log($error['severity_level'], '%type: @message in %function (line %line of %file) @backtrace_string.', $error);
     }
     catch (\Exception $e) {
       // We can't log, for example because the database connection is not
       // available. At least try to log to PHP error log.
-      error_log(strtr('Failed to log error: %type: @message in %function (line %line of %file).', $error));
+      error_log(strtr('Failed to log error: %type: @message in %function (line %line of %file). @backtrace_string', $error));
     }
   }
 
   // Log fatal errors, so developers can find and debug them.
   if ($fatal) {
-    error_log(sprintf('%s: %s in %s on line %d', $error['%type'], $error['@message'], $error['%file'], $error['%line']));
+    error_log(sprintf('%s: %s in %s on line %d %s', $error['%type'], $error['@message'], $error['%file'], $error['%line'], $error['@backtrace_string']));
   }
 
   if (PHP_SAPI === 'cli') {
     if ($fatal) {
       // When called from CLI, simply output a plain text message.
       // Should not translate the string to avoid errors producing more errors.
-      $response->setContent(html_entity_decode(strip_tags(SafeMarkup::format('%type: @message in %function (line %line of %file).', $error))). "\n");
+      $response->setContent(html_entity_decode(strip_tags(SafeMarkup::format('%type: @message in %function (line %line of %file).', $error))) . "\n");
       $response->send();
       exit;
     }
@@ -256,10 +257,10 @@ function _drupal_log_error($error, $fatal = FALSE) {
 
       if ($is_installer) {
         // install_display_output() prints the output and ends script execution.
-        $output = array(
+        $output = [
           '#title' => 'Error',
           '#markup' => $message,
-        );
+        ];
         install_display_output($output, $GLOBALS['install_state'], $response->headers->all());
         exit;
       }

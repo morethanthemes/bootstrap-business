@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Condition\ConditionPluginCollection.
- */
-
 namespace Drupal\Core\Condition;
 
 use Drupal\Component\Plugin\Context\ContextInterface;
@@ -20,7 +15,7 @@ class ConditionPluginCollection extends DefaultLazyPluginCollection {
    *
    * @var \Drupal\Component\Plugin\Context\ContextInterface[]
    */
-  protected $conditionContexts = array();
+  protected $conditionContexts = [];
 
   /**
    * {@inheritdoc}
@@ -38,7 +33,7 @@ class ConditionPluginCollection extends DefaultLazyPluginCollection {
     $configuration = parent::getConfiguration();
     // Remove configuration if it matches the defaults.
     foreach ($configuration as $instance_id => $instance_config) {
-      $default_config = array();
+      $default_config = [];
       $default_config['id'] = $instance_id;
       $default_config += $this->get($instance_id)->defaultConfiguration();
       // In order to determine if a plugin is configured, we must compare it to

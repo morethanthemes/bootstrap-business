@@ -1,20 +1,18 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\StreamWrapper\StreamWrapperManager.
- */
-
 namespace Drupal\Core\StreamWrapper;
 
-use Symfony\Component\DependencyInjection\ContainerAware;
+use Symfony\Component\DependencyInjection\ContainerAwareInterface;
+use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 
 /**
  * Provides a StreamWrapper manager.
  *
  * @see \Drupal\Core\StreamWrapper\StreamWrapperInterface
  */
-class StreamWrapperManager extends ContainerAware implements StreamWrapperManagerInterface {
+class StreamWrapperManager implements ContainerAwareInterface, StreamWrapperManagerInterface {
+
+  use ContainerAwareTrait;
 
   /**
    * Contains stream wrapper info.
@@ -25,7 +23,7 @@ class StreamWrapperManager extends ContainerAware implements StreamWrapperManage
    *
    * @var array
    */
-  protected $info = array();
+  protected $info = [];
 
   /**
    * Contains collected stream wrappers.
@@ -43,7 +41,7 @@ class StreamWrapperManager extends ContainerAware implements StreamWrapperManage
    *
    * @var array
    */
-  protected $wrappers = array();
+  protected $wrappers = [];
 
   /**
    * {@inheritdoc}
@@ -53,7 +51,7 @@ class StreamWrapperManager extends ContainerAware implements StreamWrapperManage
       return $this->wrappers[$filter];
     }
     elseif (isset($this->wrappers[StreamWrapperInterface::ALL])) {
-      $this->wrappers[$filter] = array();
+      $this->wrappers[$filter] = [];
       foreach ($this->wrappers[StreamWrapperInterface::ALL] as $scheme => $info) {
         // Bit-wise filter.
         if (($info['type'] & $filter) == $filter) {
@@ -63,7 +61,7 @@ class StreamWrapperManager extends ContainerAware implements StreamWrapperManage
       return $this->wrappers[$filter];
     }
     else {
-      return array();
+      return [];
     }
   }
 
@@ -71,7 +69,7 @@ class StreamWrapperManager extends ContainerAware implements StreamWrapperManage
    * {@inheritdoc}
    */
   public function getNames($filter = StreamWrapperInterface::ALL) {
-    $names = array();
+    $names = [];
     foreach (array_keys($this->getWrappers($filter)) as $scheme) {
       $names[$scheme] = $this->getViaScheme($scheme)->getName();
     }
@@ -83,7 +81,7 @@ class StreamWrapperManager extends ContainerAware implements StreamWrapperManage
    * {@inheritdoc}
    */
   public function getDescriptions($filter = StreamWrapperInterface::ALL) {
-    $descriptions = array();
+    $descriptions = [];
     foreach (array_keys($this->getWrappers($filter)) as $scheme) {
       $descriptions[$scheme] = $this->getViaScheme($scheme)->getDescription();
     }
@@ -151,11 +149,11 @@ class StreamWrapperManager extends ContainerAware implements StreamWrapperManage
    *   The scheme for which the wrapper should be registered.
    */
   public function addStreamWrapper($service_id, $class, $scheme) {
-    $this->info[$scheme] = array(
+    $this->info[$scheme] = [
       'class' => $class,
       'type' => $class::getType(),
       'service_id' => $service_id,
-    );
+    ];
   }
 
   /**
@@ -202,7 +200,7 @@ class StreamWrapperManager extends ContainerAware implements StreamWrapperManage
     }
 
     // Pre-populate the static cache with the filters most typically used.
-    $info = array('type' => $type, 'class' => $class);
+    $info = ['type' => $type, 'class' => $class];
     $this->wrappers[StreamWrapperInterface::ALL][$scheme] = $info;
 
     if (($type & StreamWrapperInterface::WRITE_VISIBLE) == StreamWrapperInterface::WRITE_VISIBLE) {

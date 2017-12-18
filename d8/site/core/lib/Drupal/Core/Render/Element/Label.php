@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\Element\Label.
- */
-
 namespace Drupal\Core\Render\Element;
 
 /**
@@ -22,9 +17,9 @@ class Label extends RenderElement {
    * {@inheritdoc}
    */
   public function getInfo() {
-    return array(
+    return [
       '#theme' => 'form_element_label',
-    );
+    ];
   }
 
 }

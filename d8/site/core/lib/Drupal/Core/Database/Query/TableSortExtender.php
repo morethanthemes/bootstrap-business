@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Database\Query\TableSortExtender.
- */
-
 namespace Drupal\Core\Database\Query;
 
 use Drupal\Core\Database\Connection;
@@ -17,7 +12,7 @@ class TableSortExtender extends SelectExtender {
   /**
    * The array of fields that can be sorted by.
    */
-  protected $header = array();
+  protected $header = [];
 
   public function __construct(SelectInterface $query, Connection $connection) {
     parent::__construct($query, $connection);
@@ -101,4 +96,5 @@ class TableSortExtender extends SelectExtender {
   protected function order() {
     return tablesort_get_order($this->header);
   }
+
 }

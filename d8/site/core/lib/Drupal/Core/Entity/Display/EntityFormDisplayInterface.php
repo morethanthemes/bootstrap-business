@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\Display\EntityFormDisplayInterface.
- */
-
 namespace Drupal\Core\Entity\Display;
 
 use Drupal\Core\Entity\EntityConstraintViolationListInterface;
@@ -60,7 +55,7 @@ interface EntityFormDisplayInterface extends EntityDisplayInterface {
    *       // For 'single-value' widgets:
    *       '#theme' => 'field_multiple_value_form',
    *       '#cardinality' => The field cardinality,
-   *       '#cardinality_multiple => TRUE if the field can contain multiple
+   *       '#cardinality_multiple' => TRUE if the field can contain multiple
    *         items, FALSE otherwise.
    *       // One sub-array per copy of the widget, keyed by delta.
    *       0 => array(

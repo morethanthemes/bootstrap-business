@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\plugin_test\Plugin\TestLazyPluginCollection.
- */
-
 namespace Drupal\plugin_test\Plugin;
 
 use Drupal\Component\Plugin\LazyPluginCollection;
@@ -39,14 +34,14 @@ class TestLazyPluginCollection extends LazyPluginCollection {
    * {@inheritdoc}
    */
   protected function initializePlugin($instance_id) {
-    $this->pluginInstances[$instance_id] = $this->manager->createInstance($instance_id, array());
+    $this->pluginInstances[$instance_id] = $this->manager->createInstance($instance_id, []);
   }
 
   /**
    * {@inheritdoc}
    */
   public function getConfiguration() {
-    return array();
+    return [];
   }
 
   /**

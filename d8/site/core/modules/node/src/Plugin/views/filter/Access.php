@@ -1,12 +1,8 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Plugin\views\filter\Access.
- */
-
 namespace Drupal\node\Plugin\views\filter;
 
+use Drupal\Core\Database\Query\Condition;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\views\Plugin\views\filter\FilterPluginBase;
 
@@ -19,8 +15,8 @@ use Drupal\views\Plugin\views\filter\FilterPluginBase;
  */
 class Access extends FilterPluginBase {
 
-  public function adminSummary() { }
-  protected function operatorForm(&$form, FormStateInterface $form_state) { }
+  public function adminSummary() {}
+  protected function operatorForm(&$form, FormStateInterface $form_state) {}
   public function canExpose() {
     return FALSE;
   }
@@ -30,12 +26,12 @@ class Access extends FilterPluginBase {
    */
   public function query() {
     $account = $this->view->getUser();
-    if (!$account->hasPermission('administer nodes')) {
+    if (!$account->hasPermission('bypass node access')) {
       $table = $this->ensureMyTable();
-      $grants = db_or();
+      $grants = new Condition('OR');
       foreach (node_access_grants('view', $account) as $realm => $gids) {
         foreach ($gids as $gid) {
-          $grants->condition(db_and()
+          $grants->condition((new Condition('AND'))
             ->condition($table . '.gid', $gid)
             ->condition($table . '.realm', $realm)
           );

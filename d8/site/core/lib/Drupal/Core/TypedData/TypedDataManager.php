@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\TypedData\TypedDataManager.
- */
-
 namespace Drupal\Core\TypedData;
 
 use Drupal\Component\Plugin\Exception\PluginException;
@@ -45,7 +40,7 @@ class TypedDataManager extends DefaultPluginManager implements TypedDataManagerI
    *
    * @var array
    */
-  protected $prototypes = array();
+  protected $prototypes = [];
 
   /**
    * The class resolver.
@@ -78,7 +73,7 @@ class TypedDataManager extends DefaultPluginManager implements TypedDataManagerI
   /**
    * {@inheritdoc}
    */
-  public function createInstance($data_type, array $configuration = array()) {
+  public function createInstance($data_type, array $configuration = []) {
     $data_definition = $configuration['data_definition'];
     $type_definition = $this->getDefinition($data_type);
 
@@ -102,11 +97,11 @@ class TypedDataManager extends DefaultPluginManager implements TypedDataManagerI
    * {@inheritdoc}
    */
   public function create(DataDefinitionInterface $definition, $value = NULL, $name = NULL, $parent = NULL) {
-    $typed_data = $this->createInstance($definition->getDataType(), array(
+    $typed_data = $this->createInstance($definition->getDataType(), [
       'data_definition' => $definition,
       'name' => $name,
       'parent' => $parent,
-    ));
+    ]);
     if (isset($value)) {
       $typed_data->setValue($value, FALSE);
     }
@@ -122,7 +117,13 @@ class TypedDataManager extends DefaultPluginManager implements TypedDataManagerI
       throw new \InvalidArgumentException("Invalid data type '$data_type' has been given");
     }
     $class = $type_definition['definition_class'];
-    return $class::createFromDataType($data_type);
+    $data_definition = $class::createFromDataType($data_type);
+
+    if (method_exists($data_definition, 'setTypedDataManager')) {
+      $data_definition->setTypedDataManager($this);
+    }
+
+    return $data_definition;
   }
 
   /**
@@ -163,9 +164,9 @@ class TypedDataManager extends DefaultPluginManager implements TypedDataManagerI
     // Root data type and settings.
     $parts[] = $root_definition->getDataType();
     if ($settings = $root_definition->getSettings()) {
-      // Hash the settings into a string. crc32 is the fastest way to hash
-      // something for non-cryptographic purposes.
-      $parts[] = hash('crc32b', serialize($settings));
+      // Include the settings serialized as JSON as part of the key. The JSON is
+      // a shorter string than the serialized form, so array access is faster.
+      $parts[] = json_encode($settings);
     }
     // Property path for the requested data object. When creating a list item,
     // use 0 in the key as all items look the same.
@@ -244,12 +245,12 @@ class TypedDataManager extends DefaultPluginManager implements TypedDataManagerI
    * {@inheritdoc}
    */
   public function getDefaultConstraints(DataDefinitionInterface $definition) {
-    $constraints = array();
+    $constraints = [];
     $type_definition = $this->getDefinition($definition->getDataType());
     // Auto-generate a constraint for data types implementing a primitive
     // interface.
     if (is_subclass_of($type_definition['class'], '\Drupal\Core\TypedData\PrimitiveInterface')) {
-      $constraints['PrimitiveType'] = array();
+      $constraints['PrimitiveType'] = [];
     }
     // Add in constraints specified by the data type.
     if (isset($type_definition['constraints'])) {
@@ -257,11 +258,11 @@ class TypedDataManager extends DefaultPluginManager implements TypedDataManagerI
     }
     // Add the NotNull constraint for required data.
     if ($definition->isRequired()) {
-      $constraints['NotNull'] = array();
+      $constraints['NotNull'] = [];
     }
     // Check if the class provides allowed values.
     if (is_subclass_of($definition->getClass(), 'Drupal\Core\TypedData\OptionsProviderInterface')) {
-      $constraints['AllowedValues'] = array();
+      $constraints['AllowedValues'] = [];
     }
     return $constraints;
   }
@@ -271,7 +272,7 @@ class TypedDataManager extends DefaultPluginManager implements TypedDataManagerI
    */
   public function clearCachedDefinitions() {
     parent::clearCachedDefinitions();
-    $this->prototypes = array();
+    $this->prototypes = [];
   }
 
   /**

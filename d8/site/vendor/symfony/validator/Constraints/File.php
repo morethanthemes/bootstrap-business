@@ -24,11 +24,11 @@ class File extends Constraint
 {
     // Check the Image constraint for clashes if adding new constants here
 
-    const NOT_FOUND_ERROR = 1;
-    const NOT_READABLE_ERROR = 2;
-    const EMPTY_ERROR = 3;
-    const TOO_LARGE_ERROR = 4;
-    const INVALID_MIME_TYPE_ERROR = 5;
+    const NOT_FOUND_ERROR = 'd2a3fb6e-7ddc-4210-8fbf-2ab345ce1998';
+    const NOT_READABLE_ERROR = 'c20c92a4-5bfa-4202-9477-28e800e0f6ff';
+    const EMPTY_ERROR = '5d743385-9775-4aa5-8ff5-495fb1e60137';
+    const TOO_LARGE_ERROR = 'df8637af-d466-48c6-a59d-e7126250a654';
+    const INVALID_MIME_TYPE_ERROR = '744f00bc-4389-4c74-92de-9a43cde55534';
 
     protected static $errorNames = array(
         self::NOT_FOUND_ERROR => 'NOT_FOUND_ERROR',
@@ -88,20 +88,22 @@ class File extends Constraint
 
     private function normalizeBinaryFormat($maxSize)
     {
+        $sizeInt = (int) $maxSize;
+
         if (ctype_digit((string) $maxSize)) {
-            $this->maxSize = (int) $maxSize;
+            $this->maxSize = $sizeInt;
             $this->binaryFormat = null === $this->binaryFormat ? false : $this->binaryFormat;
         } elseif (preg_match('/^\d++k$/i', $maxSize)) {
-            $this->maxSize = $maxSize * 1000;
+            $this->maxSize = $sizeInt * 1000;
             $this->binaryFormat = null === $this->binaryFormat ? false : $this->binaryFormat;
         } elseif (preg_match('/^\d++M$/i', $maxSize)) {
-            $this->maxSize = $maxSize * 1000000;
+            $this->maxSize = $sizeInt * 1000000;
             $this->binaryFormat = null === $this->binaryFormat ? false : $this->binaryFormat;
         } elseif (preg_match('/^\d++Ki$/i', $maxSize)) {
-            $this->maxSize = $maxSize << 10;
+            $this->maxSize = $sizeInt << 10;
             $this->binaryFormat = null === $this->binaryFormat ? true : $this->binaryFormat;
         } elseif (preg_match('/^\d++Mi$/i', $maxSize)) {
-            $this->maxSize = $maxSize << 20;
+            $this->maxSize = $sizeInt << 20;
             $this->binaryFormat = null === $this->binaryFormat ? true : $this->binaryFormat;
         } else {
             throw new ConstraintDefinitionException(sprintf('"%s" is not a valid maximum size', $this->maxSize));

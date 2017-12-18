@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\menu_test\Plugin\Menu\LocalAction\TestLocalAction4.
- */
-
 namespace Drupal\menu_test\Plugin\Menu\LocalAction;
 
 use Drupal\Core\Menu\LocalActionDefault;
@@ -21,7 +16,7 @@ class TestLocalAction4 extends LocalActionDefault {
    * {@inheritdoc}
    */
   public function getTitle() {
-    return $this->t('My @arg action', array('@arg' => 'dynamic-title'));
+    return $this->t('My @arg action', ['@arg' => 'dynamic-title']);
   }
 
 }

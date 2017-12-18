@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Entity\EntityRepositoryTest.
- */
-
 namespace Drupal\Tests\Core\Entity;
 
 use Drupal\Core\Entity\ContentEntityInterface;
@@ -68,7 +63,7 @@ class EntityRepositoryTest extends UnitTestCase {
     $this->languageManager->getFallbackCandidates(Argument::type('array'))
       ->will(function ($args) {
         $context = $args[0];
-        $candidates = array();
+        $candidates = [];
         if (!empty($context['langcode'])) {
           $candidates[$context['langcode']] = $context['langcode'];
         }

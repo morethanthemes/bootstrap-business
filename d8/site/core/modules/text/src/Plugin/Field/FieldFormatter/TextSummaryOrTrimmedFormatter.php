@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\text\Plugin\Field\FieldFormatter\TextSummaryOrTrimmedFormatter.
- */
-
 namespace Drupal\text\Plugin\Field\FieldFormatter;
 
 /**
@@ -21,4 +16,4 @@ namespace Drupal\text\Plugin\Field\FieldFormatter;
  *   }
  * )
  */
-class TextSummaryOrTrimmedFormatter extends TextTrimmedFormatter { }
+class TextSummaryOrTrimmedFormatter extends TextTrimmedFormatter {}

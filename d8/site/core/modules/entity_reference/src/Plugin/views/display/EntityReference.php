@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\entity_reference\Plugin\views\display\EntityReference.
- */
-
 namespace Drupal\entity_reference\Plugin\views\display;
 
 use Drupal\views\Plugin\views\display\EntityReference as ViewsEntityReference;
@@ -17,4 +12,4 @@ use Drupal\views\Plugin\views\display\EntityReference as ViewsEntityReference;
  *
  * @see \Drupal\views\Plugin\views\display\EntityReference
  */
-class EntityReference extends ViewsEntityReference { }
+class EntityReference extends ViewsEntityReference {}

@@ -1,12 +1,8 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\image\Tests\FileMoveTest.
- */
-
 namespace Drupal\image\Tests;
 
+use Drupal\file\Entity\File;
 use Drupal\simpletest\WebTestBase;
 use Drupal\image\Entity\ImageStyle;
 
@@ -22,14 +18,14 @@ class FileMoveTest extends WebTestBase {
    *
    * @var array
    */
-  public static $modules = array('image');
+  public static $modules = ['image'];
 
   /**
    * Tests moving a randomly generated image.
    */
-  function testNormal() {
+  public function testNormal() {
     // Pick a file for testing.
-    $file = entity_create('file', (array) current($this->drupalGetTestFiles('image')));
+    $file = File::create((array) current($this->drupalGetTestFiles('image')));
 
     // Create derivative image.
     $styles = ImageStyle::loadMultiple();
@@ -52,4 +48,5 @@ class FileMoveTest extends WebTestBase {
     // Check if derivative image has been flushed.
     $this->assertFalse(file_exists($derivative_uri), 'Make sure derivative image has been flushed.');
   }
+
 }

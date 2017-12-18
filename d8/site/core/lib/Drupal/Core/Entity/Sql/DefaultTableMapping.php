@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\Sql\DefaultTableMapping.
- */
-
 namespace Drupal\Core\Entity\Sql;
 
 use Drupal\Core\Entity\ContentEntityTypeInterface;
@@ -27,7 +22,7 @@ class DefaultTableMapping implements TableMappingInterface {
    *
    * @var \Drupal\Core\Field\FieldStorageDefinitionInterface[]
    */
-  protected $fieldStorageDefinitions = array();
+  protected $fieldStorageDefinitions = [];
 
   /**
    * A list of field names per table.
@@ -38,7 +33,7 @@ class DefaultTableMapping implements TableMappingInterface {
    *
    * @var array[]
    */
-  protected $fieldNames = array();
+  protected $fieldNames = [];
 
   /**
    * A list of database columns which store denormalized data per table.
@@ -49,7 +44,7 @@ class DefaultTableMapping implements TableMappingInterface {
    *
    * @var array[]
    */
-  protected $extraColumns = array();
+  protected $extraColumns = [];
 
   /**
    * A mapping of column names per field name.
@@ -63,7 +58,7 @@ class DefaultTableMapping implements TableMappingInterface {
    *
    * @var array[]
    */
-  protected $columnMapping = array();
+  protected $columnMapping = [];
 
   /**
    * A list of all database columns per table.
@@ -78,7 +73,7 @@ class DefaultTableMapping implements TableMappingInterface {
    *
    * @var array[]
    */
-  protected $allColumns = array();
+  protected $allColumns = [];
 
   /**
    * Constructs a DefaultTableMapping.
@@ -106,7 +101,7 @@ class DefaultTableMapping implements TableMappingInterface {
    */
   public function getAllColumns($table_name) {
     if (!isset($this->allColumns[$table_name])) {
-      $this->allColumns[$table_name] = array();
+      $this->allColumns[$table_name] = [];
 
       foreach ($this->getFieldNames($table_name) as $field_name) {
         $this->allColumns[$table_name] = array_merge($this->allColumns[$table_name], array_values($this->getColumnNames($field_name)));
@@ -133,7 +128,7 @@ class DefaultTableMapping implements TableMappingInterface {
     if (isset($this->fieldNames[$table_name])) {
       return $this->fieldNames[$table_name];
     }
-    return array();
+    return [];
   }
 
   /**
@@ -152,15 +147,16 @@ class DefaultTableMapping implements TableMappingInterface {
       //   https://www.drupal.org/node/2274017.
       /** @var \Drupal\Core\Entity\Sql\SqlContentEntityStorage $storage */
       $storage = \Drupal::entityManager()->getStorage($this->entityType->id());
-      $table_names = array(
+      $storage_definition = $this->fieldStorageDefinitions[$field_name];
+      $table_names = [
         $storage->getDataTable(),
         $storage->getBaseTable(),
         $storage->getRevisionTable(),
-      );
+        $this->getDedicatedDataTableName($storage_definition),
+      ];
 
       // Collect field columns.
-      $field_columns = array();
-      $storage_definition = $this->fieldStorageDefinitions[$field_name];
+      $field_columns = [];
       foreach (array_keys($storage_definition->getColumns()) as $property_name) {
         $field_columns[] = $this->getFieldColumnName($storage_definition, $property_name);
       }
@@ -188,8 +184,8 @@ class DefaultTableMapping implements TableMappingInterface {
    */
   public function getColumnNames($field_name) {
     if (!isset($this->columnMapping[$field_name])) {
-      $this->columnMapping[$field_name] = array();
-      if (isset($this->fieldStorageDefinitions[$field_name])) {
+      $this->columnMapping[$field_name] = [];
+      if (isset($this->fieldStorageDefinitions[$field_name]) && !$this->fieldStorageDefinitions[$field_name]->hasCustomStorage()) {
         foreach (array_keys($this->fieldStorageDefinitions[$field_name]->getColumns()) as $property_name) {
           $this->columnMapping[$field_name][$property_name] = $this->getFieldColumnName($this->fieldStorageDefinitions[$field_name], $property_name);
         }
@@ -205,10 +201,15 @@ class DefaultTableMapping implements TableMappingInterface {
     $field_name = $storage_definition->getName();
 
     if ($this->allowsSharedTableStorage($storage_definition)) {
-      $column_name = count($storage_definition->getColumns()) == 1 ? $field_name :  $field_name . '__' . $property_name;
+      $column_name = count($storage_definition->getColumns()) == 1 ? $field_name : $field_name . '__' . $property_name;
     }
     elseif ($this->requiresDedicatedTableStorage($storage_definition)) {
-      $column_name = !in_array($property_name, $this->getReservedColumns()) ? $field_name . '_' . $property_name : $property_name;
+      if ($property_name == TableMappingInterface::DELTA) {
+        $column_name = 'delta';
+      }
+      else {
+        $column_name = !in_array($property_name, $this->getReservedColumns()) ? $field_name . '_' . $property_name : $property_name;
+      }
     }
     else {
       throw new SqlContentEntityStorageException("Column information not available for the '$field_name' field.");
@@ -241,7 +242,7 @@ class DefaultTableMapping implements TableMappingInterface {
     if (isset($this->extraColumns[$table_name])) {
       return $this->extraColumns[$table_name];
     }
-    return array();
+    return [];
   }
 
   /**
@@ -295,9 +296,15 @@ class DefaultTableMapping implements TableMappingInterface {
    */
   public function getDedicatedTableNames() {
     $table_mapping = $this;
-    $definitions = array_filter($this->fieldStorageDefinitions, function($definition) use ($table_mapping) { return $table_mapping->requiresDedicatedTableStorage($definition); });
-    $data_tables = array_map(function($definition) use ($table_mapping) { return $table_mapping->getDedicatedDataTableName($definition); }, $definitions);
-    $revision_tables = array_map(function($definition) use ($table_mapping) { return $table_mapping->getDedicatedRevisionTableName($definition); }, $definitions);
+    $definitions = array_filter($this->fieldStorageDefinitions, function ($definition) use ($table_mapping) {
+      return $table_mapping->requiresDedicatedTableStorage($definition);
+    });
+    $data_tables = array_map(function ($definition) use ($table_mapping) {
+      return $table_mapping->getDedicatedDataTableName($definition);
+    }, $definitions);
+    $revision_tables = array_map(function ($definition) use ($table_mapping) {
+      return $table_mapping->getDedicatedRevisionTableName($definition);
+    }, $definitions);
     $dedicated_tables = array_merge(array_values($data_tables), array_values($revision_tables));
     return $dedicated_tables;
   }
@@ -306,7 +313,7 @@ class DefaultTableMapping implements TableMappingInterface {
    * {@inheritdoc}
    */
   public function getReservedColumns() {
-    return array('deleted');
+    return ['deleted'];
   }
 
   /**

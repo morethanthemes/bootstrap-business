@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Cache\CacheFactoryTest.
- */
-
 namespace Drupal\Tests\Core\Cache;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;
@@ -25,7 +20,7 @@ class CacheFactoryTest extends UnitTestCase {
    * @covers ::get
    */
   public function testCacheFactoryWithDefaultSettings() {
-    $settings = new Settings(array());
+    $settings = new Settings([]);
     $cache_factory = new CacheFactory($settings);
 
     $container = new ContainerBuilder();
@@ -51,12 +46,48 @@ class CacheFactoryTest extends UnitTestCase {
    * @covers ::get
    */
   public function testCacheFactoryWithCustomizedDefaultBackend() {
-    $settings = new Settings(array(
-      'cache' => array(
+    $settings = new Settings([
+      'cache' => [
         'default' => 'cache.backend.custom',
-      ),
-    ));
+      ],
+    ]);
     $cache_factory = new CacheFactory($settings);
+
+    $container = new ContainerBuilder();
+    $cache_factory->setContainer($container);
+
+    $custom_default_backend_factory = $this->getMock('\Drupal\Core\Cache\CacheFactoryInterface');
+    $container->set('cache.backend.custom', $custom_default_backend_factory);
+
+    $render_bin = $this->getMock('\Drupal\Core\Cache\CacheBackendInterface');
+    $custom_default_backend_factory->expects($this->once())
+      ->method('get')
+      ->with('render')
+      ->will($this->returnValue($render_bin));
+
+    $actual_bin = $cache_factory->get('render');
+    $this->assertSame($render_bin, $actual_bin);
+  }
+
+  /**
+   * Test that the cache factory uses the correct default bin backend.
+   *
+   * @covers ::__construct
+   * @covers ::get
+   */
+  public function testCacheFactoryWithDefaultBinBackend() {
+    // Ensure the default bin backends are used before the configured default.
+    $settings = new Settings([
+      'cache' => [
+        'default' => 'cache.backend.unused',
+      ],
+    ]);
+
+    $default_bin_backends = [
+      'render' => 'cache.backend.custom',
+    ];
+
+    $cache_factory = new CacheFactory($settings, $default_bin_backends);
 
     $container = new ContainerBuilder();
     $cache_factory->setContainer($container);
@@ -81,14 +112,22 @@ class CacheFactoryTest extends UnitTestCase {
    * @covers ::get
    */
   public function testCacheFactoryWithSpecifiedPerBinBackend() {
-    $settings = new Settings(array(
-      'cache' => array(
-        'bins' => array(
+    // Ensure the per-bin configuration is used before the configured default
+    // and per-bin defaults.
+    $settings = new Settings([
+      'cache' => [
+        'default' => 'cache.backend.unused',
+        'bins' => [
           'render' => 'cache.backend.custom',
-        ),
-      ),
-    ));
-    $cache_factory = new CacheFactory($settings);
+        ],
+      ],
+    ]);
+
+    $default_bin_backends = [
+      'render' => 'cache.backend.unused',
+    ];
+
+    $cache_factory = new CacheFactory($settings, $default_bin_backends);
 
     $container = new ContainerBuilder();
     $cache_factory->setContainer($container);

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Extension\Discovery\RecursiveExtensionFilterIterator.
- */
-
 namespace Drupal\Core\Extension\Discovery;
 
 /**
@@ -43,11 +38,11 @@ class RecursiveExtensionFilterIterator extends \RecursiveFilterIterator {
    *
    * @var array
    */
-  protected $whitelist = array(
+  protected $whitelist = [
     'profiles',
     'modules',
     'themes',
-  );
+  ];
 
   /**
    * List of directory names to skip when recursing.
@@ -58,7 +53,7 @@ class RecursiveExtensionFilterIterator extends \RecursiveFilterIterator {
    *
    * @var array
    */
-  protected $blacklist = array(
+  protected $blacklist = [
     // Object-oriented code subdirectories.
     'src',
     'lib',
@@ -77,7 +72,7 @@ class RecursiveExtensionFilterIterator extends \RecursiveFilterIterator {
     'fixtures',
     // @todo ./tests/Drupal should be ./tests/src/Drupal
     'Drupal',
-  );
+  ];
 
   /**
    * Whether to include test directories when recursing.
@@ -85,6 +80,20 @@ class RecursiveExtensionFilterIterator extends \RecursiveFilterIterator {
    * @var bool
    */
   protected $acceptTests = FALSE;
+
+  /**
+   * Construct a RecursiveExtensionFilterIterator.
+   *
+   * @param \RecursiveIterator $iterator
+   *   The iterator to filter.
+   * @param array $blacklist
+   *   (optional) Add to the blacklist of directories that should be filtered
+   *   out during the iteration.
+   */
+  public function __construct(\RecursiveIterator $iterator, array $blacklist = []) {
+    parent::__construct($iterator);
+    $this->blacklist = array_merge($this->blacklist, $blacklist);
+  }
 
   /**
    * Controls whether test directories will be scanned.
@@ -107,6 +116,8 @@ class RecursiveExtensionFilterIterator extends \RecursiveFilterIterator {
    */
   public function getChildren() {
     $filter = parent::getChildren();
+    // Pass on the blacklist.
+    $filter->blacklist = $this->blacklist;
     // Pass the $acceptTests flag forward to child iterators.
     $filter->acceptTests($this->acceptTests);
     return $filter;

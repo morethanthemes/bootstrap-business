@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Plugin\views\BrokenHandlerTrait.
- */
-
 namespace Drupal\views\Plugin\views;
 
 use Drupal\Component\Utility\SafeMarkup;
@@ -18,7 +13,7 @@ trait BrokenHandlerTrait {
   /**
    * Returns this handlers name in the UI.
    *
-   * @see \Drupal\views\Plugin\views\PluginBase::defineOptions().
+   * @see \Drupal\views\Plugin\views\PluginBase::defineOptions()
    */
   public function adminLabel($short = FALSE) {
     return t('Broken/missing handler');
@@ -27,17 +22,17 @@ trait BrokenHandlerTrait {
   /**
    * The option definition for this handler.
    *
-   * @see \Drupal\views\Plugin\views\PluginBase::defineOptions().
+   * @see \Drupal\views\Plugin\views\PluginBase::defineOptions()
    */
   public function defineOptions() {
-    return array();
+    return [];
   }
 
   /**
    * Ensure the main table for this handler is in the query. This is used
    * a lot.
    *
-   * @see \Drupal\views\Plugin\views\HandlerBase::ensureMyTable().
+   * @see \Drupal\views\Plugin\views\HandlerBase::ensureMyTable()
    */
   public function ensureMyTable() {
     // No table to ensure.
@@ -53,35 +48,35 @@ trait BrokenHandlerTrait {
   /**
    * Provides a form to edit options for this plugin.
    *
-   * @see \Drupal\views\Plugin\views\PluginBase::defineOptions().
+   * @see \Drupal\views\Plugin\views\PluginBase::defineOptions()
    */
   public function buildOptionsForm(&$form, FormStateInterface $form_state) {
     $description_top = t('The handler for this item is broken or missing. The following details are available:');
 
     foreach ($this->definition['original_configuration'] as $key => $value) {
       if (is_scalar($value)) {
-        $items[] = SafeMarkup::format('@key: @value', array('@key' => $key, '@value' => $value));
+        $items[] = SafeMarkup::format('@key: @value', ['@key' => $key, '@value' => $value]);
       }
     }
 
-    $description_bottom = t('Enabling the appropriate module will may solve this issue. Otherwise, check to see if there is a module update available.');
+    $description_bottom = t('Enabling the appropriate module may solve this issue. Otherwise, check to see if there is a module update available.');
 
-    $form['description'] = array(
+    $form['description'] = [
       '#type' => 'container',
-      '#attributes' => array(
-        'class' => array('js-form-item', 'form-item', 'description'),
-      ),
-      'description_top' => array(
+      '#attributes' => [
+        'class' => ['js-form-item', 'form-item', 'description'],
+      ],
+      'description_top' => [
         '#markup' => '<p>' . $description_top . '</p>',
-      ),
-      'detail_list' => array(
+      ],
+      'detail_list' => [
         '#theme' => 'item_list',
         '#items' => $items,
-      ),
-      'description_bottom' => array(
+      ],
+      'description_bottom' => [
         '#markup' => '<p>' . $description_bottom . '</p>',
-      ),
-    );
+      ],
+    ];
   }
 
   /**
@@ -89,7 +84,7 @@ trait BrokenHandlerTrait {
    *
    * This means it's a placeholder used when a handler can't be found.
    *
-   * @see \Drupal\views\Plugin\views\HandlerBase::broken().
+   * @see \Drupal\views\Plugin\views\HandlerBase::broken()
    */
   public function broken() {
     return TRUE;
@@ -100,7 +95,7 @@ trait BrokenHandlerTrait {
    *
    * @return array
    *
-   * @see \Drupal\views\Plugin\views\PluginBase::calculateDependencies().
+   * @see \Drupal\views\Plugin\views\PluginBase::calculateDependencies()
    */
   public function calculateDependencies() {
     return [];

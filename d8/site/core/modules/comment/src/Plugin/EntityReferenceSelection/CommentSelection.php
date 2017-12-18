@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\comment\Plugin\EntityReferenceSelection\CommentSelection.
- */
-
 namespace Drupal\comment\Plugin\EntityReferenceSelection;
 
 use Drupal\Core\Database\Query\SelectInterface;
@@ -71,6 +66,8 @@ class CommentSelection extends DefaultSelection {
    * {@inheritdoc}
    */
   public function entityQueryAlter(SelectInterface $query) {
+    parent::entityQueryAlter($query);
+
     $tables = $query->getTables();
     $data_table = 'comment_field_data';
     if (!isset($tables['comment_field_data']['alias'])) {

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Cache\Context\QueryArgsCacheContext.
- */
-
 namespace Drupal\Core\Cache\Context;
 
 use Drupal\Core\Cache\CacheableMetadata;
@@ -30,11 +25,22 @@ class QueryArgsCacheContext extends RequestStackCacheContextBase implements Calc
    */
   public function getContext($query_arg = NULL) {
     if ($query_arg === NULL) {
-      return $this->requestStack->getCurrentRequest()->getQueryString();
+      // All arguments requested. Use normalized query string to minimize
+      // variations.
+      $value = $this->requestStack->getCurrentRequest()->getQueryString();
+      return ($value !== NULL) ? $value : '';
     }
-    else {
-      return $this->requestStack->getCurrentRequest()->query->get($query_arg);
+    elseif ($this->requestStack->getCurrentRequest()->query->has($query_arg)) {
+      $value = $this->requestStack->getCurrentRequest()->query->get($query_arg);
+      if (is_array($value)) {
+        return http_build_query($value);
+      }
+      elseif ($value !== '') {
+        return $value;
+      }
+      return '?valueless?';
     }
+    return '';
   }
 
   /**

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\content_translation\Access\ContentTranslationOverviewAccess.
- */
-
 namespace Drupal\content_translation\Access;
 
 use Drupal\Core\Access\AccessResult;
@@ -80,4 +75,5 @@ class ContentTranslationOverviewAccess implements AccessInterface {
     // No opinion.
     return AccessResult::neutral();
   }
+
 }

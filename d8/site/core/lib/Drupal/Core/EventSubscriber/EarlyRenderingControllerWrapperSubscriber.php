@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\EventSubscriber\EarlyRenderingControllerWrapperSubscriber.
- */
-
 namespace Drupal\Core\EventSubscriber;
 
 use Drupal\Core\Ajax\AjaxResponse;
@@ -98,7 +93,7 @@ class EarlyRenderingControllerWrapperSubscriber implements EventSubscriberInterf
     // See \Symfony\Component\HttpKernel\HttpKernel::handleRaw().
     $arguments = $this->controllerResolver->getArguments($event->getRequest(), $controller);
 
-    $event->setController(function() use ($controller, $arguments) {
+    $event->setController(function () use ($controller, $arguments) {
       return $this->wrapControllerExecutionInRenderContext($controller, $arguments);
     });
   }
@@ -123,7 +118,7 @@ class EarlyRenderingControllerWrapperSubscriber implements EventSubscriberInterf
   protected function wrapControllerExecutionInRenderContext($controller, array $arguments) {
     $context = new RenderContext();
 
-    $response = $this->renderer->executeInRenderContext($context, function() use ($controller, $arguments) {
+    $response = $this->renderer->executeInRenderContext($context, function () use ($controller, $arguments) {
       // Now call the actual controller, just like HttpKernel does.
       return call_user_func_array($controller, $arguments);
     });

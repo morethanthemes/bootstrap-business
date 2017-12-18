@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\image\Plugin\migrate\destination\EntityImageStyle.
- */
-
 namespace Drupal\image\Plugin\migrate\destination;
 
 use Drupal\Component\Plugin\Exception\PluginNotFoundException;
@@ -51,7 +46,7 @@ class EntityImageStyle extends EntityConfigBase {
 
     $style->save();
 
-    return array($style->id());
+    return [$style->id()];
   }
 
 }

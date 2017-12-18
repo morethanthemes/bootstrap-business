@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\Element\MoreLink.
- */
-
 namespace Drupal\Core\Render\Element;
 
 /**
@@ -32,14 +27,14 @@ class MoreLink extends Link {
    */
   public function getInfo() {
     $info = parent::getInfo();
-    return array(
+    return [
       '#title' => $this->t('More'),
-      '#theme_wrappers' => array(
-        'container' => array(
-          '#attributes' => array('class' => array('more-link')),
-        ),
-      ),
-    ) + $info;
+      '#theme_wrappers' => [
+        'container' => [
+          '#attributes' => ['class' => ['more-link']],
+        ],
+      ],
+    ] + $info;
   }
 
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Site\Settings.
- */
-
 namespace Drupal\Core\Site;
 
 use Drupal\Component\Utility\Crypt;
@@ -22,14 +17,14 @@ final class Settings {
    *
    * @var array
    */
-  private $storage = array();
+  private $storage = [];
 
   /**
    * Singleton instance.
    *
    * @var \Drupal\Core\Site\Settings
    */
-  private static $instance;
+  private static $instance = NULL;
 
   /**
    * Constructor.
@@ -49,8 +44,14 @@ final class Settings {
    * available.
    *
    * @return \Drupal\Core\Site\Settings
+   *
+   * @throws \BadMethodCallException
+   *   Thrown when the settings instance has not been initialized yet.
    */
   public static function getInstance() {
+    if (self::$instance === NULL) {
+      throw new \BadMethodCallException('Settings::$instance is not initialized yet. Whatever you are trying to do, it might be too early for that. You could call Settings::initialize(), but it is probably better to wait until it is called in the regular way. Also check for recursions.');
+    }
     return self::$instance;
   }
 
@@ -113,9 +114,9 @@ final class Settings {
   public static function initialize($app_root, $site_path, &$class_loader) {
     // Export these settings.php variables to the global namespace.
     global $config_directories, $config;
-    $settings = array();
-    $config = array();
-    $databases = array();
+    $settings = [];
+    $config = [];
+    $databases = [];
 
     if (is_readable($app_root . '/' . $site_path . '/settings.php')) {
       require $app_root . '/' . $site_path . '/settings.php';

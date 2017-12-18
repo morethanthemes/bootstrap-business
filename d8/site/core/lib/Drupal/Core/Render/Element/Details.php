@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\Element\Details.
- */
-
 namespace Drupal\Core\Render\Element;
 
 use Drupal\Core\Render\Element;
@@ -25,12 +20,12 @@ use Drupal\Core\Render\Element;
  * @code
  * $form['author'] = array(
  *   '#type' => 'details',
- *   '#title' => 'Author',
+ *   '#title' => $this->t('Author'),
  * );
  *
  * $form['author']['name'] = array(
  *   '#type' => 'textfield',
- *   '#title' => t('Name'),
+ *   '#title' => $this->t('Name'),
  * );
  * @endcode
  *
@@ -46,19 +41,19 @@ class Details extends RenderElement {
    */
   public function getInfo() {
     $class = get_class($this);
-    return array(
+    return [
       '#open' => FALSE,
       '#value' => NULL,
-      '#process' => array(
-        array($class, 'processGroup'),
-        array($class, 'processAjaxForm'),
-      ),
-      '#pre_render' => array(
-        array($class, 'preRenderDetails'),
-        array($class, 'preRenderGroup'),
-      ),
-      '#theme_wrappers' => array('details'),
-    );
+      '#process' => [
+        [$class, 'processGroup'],
+        [$class, 'processAjaxForm'],
+      ],
+      '#pre_render' => [
+        [$class, 'preRenderDetails'],
+        [$class, 'preRenderGroup'],
+      ],
+      '#theme_wrappers' => ['details'],
+    ];
   }
 
   /**
@@ -72,15 +67,17 @@ class Details extends RenderElement {
    *   The modified element.
    */
   public static function preRenderDetails($element) {
-    Element::setAttributes($element, array('id'));
+    Element::setAttributes($element, ['id']);
 
     // The .js-form-wrapper class is required for #states to treat details like
     // containers.
-    static::setAttributes($element, array('js-form-wrapper', 'form-wrapper'));
+    static::setAttributes($element, ['js-form-wrapper', 'form-wrapper']);
 
     // Collapsible details.
     $element['#attached']['library'][] = 'core/drupal.collapse';
-    if (!empty($element['#open'])) {
+
+    // Open the detail if specified or if a child has an error.
+    if (!empty($element['#open']) || !empty($element['#children_errors'])) {
       $element['#attributes']['open'] = 'open';
     }
 

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Session\PermissionsHashGenerator.
- */
-
 namespace Drupal\Core\Session;
 
 use Drupal\Core\PrivateKey;
@@ -45,7 +40,7 @@ class PermissionsHashGenerator implements PermissionsHashGeneratorInterface {
    *   The private key service.
    * @param \Drupal\Core\Cache\CacheBackendInterface $cache
    *   The cache backend interface to use for the persistent cache.
-   * @param \Drupal\Core\Cache\CacheBackendInterface
+   * @param \Drupal\Core\Cache\CacheBackendInterface $static
    *   The cache backend interface to use for the static cache.
    */
   public function __construct(PrivateKey $private_key, CacheBackendInterface $cache, CacheBackendInterface $static) {

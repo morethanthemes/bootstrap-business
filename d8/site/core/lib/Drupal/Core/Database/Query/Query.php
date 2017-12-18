@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Database\Query\Query.
- */
-
 namespace Drupal\Core\Database\Query;
 
 use Drupal\Core\Database\Database;
@@ -53,6 +48,8 @@ abstract class Query implements PlaceholderInterface {
 
   /**
    * The placeholder counter.
+   *
+   * @var int
    */
   protected $nextPlaceholder = 0;
 
@@ -61,7 +58,7 @@ abstract class Query implements PlaceholderInterface {
    *
    * @var array
    */
-  protected $comments = array();
+  protected $comments = [];
 
   /**
    * Constructs a Query object.

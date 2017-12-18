@@ -1,17 +1,17 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Menu\AssertBreadcrumbTrait.
- */
-
 namespace Drupal\system\Tests\Menu;
+
+@trigger_error(__NAMESPACE__ . '\AssertBreadcrumbTrait is deprecated in Drupal 8.4.0 and will be removed before Drupal 9.0.0. Instead, use \Drupal\Tests\system\Functional\Menu\AssertBreadcrumbTrait', E_USER_DEPRECATED);
 
 use Drupal\Component\Utility\Html;
 use Drupal\Core\Url;
 
 /**
  * Provides test assertions for verifying breadcrumbs.
+ *
+ * @deprecated Scheduled for removal in Drupal 9.0.0.
+ *   Use \Drupal\Tests\system\Functional\Menu\AssertBreadcrumbTrait instead.
  */
 trait AssertBreadcrumbTrait {
 
@@ -37,7 +37,7 @@ trait AssertBreadcrumbTrait {
    *   (optional) Whether the last link in $tree is expected to be active (TRUE)
    *   or just to be in the active trail (FALSE).
    */
-  protected function assertBreadcrumb($goto, array $trail, $page_title = NULL, array $tree = array(), $last_active = TRUE) {
+  protected function assertBreadcrumb($goto, array $trail, $page_title = NULL, array $tree = [], $last_active = TRUE) {
     if (isset($goto)) {
       $this->drupalGet($goto);
     }
@@ -45,7 +45,7 @@ trait AssertBreadcrumbTrait {
 
     // Additionally assert page title, if given.
     if (isset($page_title)) {
-      $this->assertTitle(strtr('@title | Drupal', array('@title' => $page_title)));
+      $this->assertTitle(strtr('@title | Drupal', ['@title' => $page_title]));
     }
 
     // Additionally assert active trail in a menu tree output, if given.
@@ -89,25 +89,25 @@ trait AssertBreadcrumbTrait {
     // No parts must be left, or an expected "Home" will always pass.
     $pass = ($pass && empty($parts));
 
-    $this->assertTrue($pass, format_string('Breadcrumb %parts found on @path.', array(
+    $this->assertTrue($pass, format_string('Breadcrumb %parts found on @path.', [
       '%parts' => implode(' » ', $trail),
       '@path' => $this->getUrl(),
-    )));
+    ]));
   }
 
   /**
    * Returns the breadcrumb contents of the current page in the internal browser.
    */
   protected function getBreadcrumbParts() {
-    $parts = array();
+    $parts = [];
     $elements = $this->xpath('//nav[@class="breadcrumb"]/ol/li/a');
     if (!empty($elements)) {
       foreach ($elements as $element) {
-        $parts[] = array(
+        $parts[] = [
           'text' => (string) $element,
           'href' => (string) $element['href'],
           'title' => (string) $element['title'],
-        );
+        ];
       }
     }
     return $parts;

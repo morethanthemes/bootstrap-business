@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Ajax\ChangedCommand.
- */
-
 namespace Drupal\Core\Ajax;
 
 /**
@@ -55,11 +50,11 @@ class ChangedCommand implements CommandInterface {
    */
   public function render() {
 
-    return array(
+    return [
       'command' => 'changed',
       'selector' => $this->selector,
       'asterisk' => $this->asterisk,
-    );
+    ];
   }
 
 }

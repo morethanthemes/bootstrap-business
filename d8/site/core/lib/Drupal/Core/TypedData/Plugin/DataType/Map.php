@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\TypedData\Plugin\DataType\Map.
- */
-
 namespace Drupal\Core\TypedData\Plugin\DataType;
 
 use Drupal\Core\TypedData\TypedData;
@@ -43,14 +38,14 @@ class Map extends TypedData implements \IteratorAggregate, ComplexDataInterface 
    *
    * @var array
    */
-  protected $values = array();
+  protected $values = [];
 
   /**
    * The array of properties.
    *
    * @var \Drupal\Core\TypedData\TypedDataInterface[]
    */
-  protected $properties = array();
+  protected $properties = [];
 
   /**
    * {@inheritdoc}
@@ -100,7 +95,7 @@ class Map extends TypedData implements \IteratorAggregate, ComplexDataInterface 
    * {@inheritdoc}
    */
   public function getString() {
-    $strings = array();
+    $strings = [];
     foreach ($this->getProperties() as $property) {
       $strings[] = $property->getString();
     }
@@ -159,7 +154,7 @@ class Map extends TypedData implements \IteratorAggregate, ComplexDataInterface 
    * {@inheritdoc}
    */
   public function getProperties($include_computed = FALSE) {
-    $properties = array();
+    $properties = [];
     foreach ($this->definition->getPropertyDefinitions() as $name => $definition) {
       if ($include_computed || !$definition->isComputed()) {
         $properties[$name] = $this->get($name);
@@ -172,7 +167,7 @@ class Map extends TypedData implements \IteratorAggregate, ComplexDataInterface 
    * {@inheritdoc}
    */
   public function toArray() {
-    $values = array();
+    $values = [];
     foreach ($this->getProperties() as $name => $property) {
       $values[$name] = $property->getValue();
     }
@@ -241,4 +236,5 @@ class Map extends TypedData implements \IteratorAggregate, ComplexDataInterface 
     }
     return $this;
   }
+
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Plugin\views\PluginBase.
- */
-
 namespace Drupal\views\Plugin\views;
 
 use Drupal\Component\Plugin\DependentPluginInterface;
@@ -71,7 +66,7 @@ abstract class PluginBase extends ComponentPluginBase implements ContainerFactor
    *
    * @var array
    */
-  public $options = array();
+  public $options = [];
 
   /**
    * The top object of a view.
@@ -160,7 +155,9 @@ abstract class PluginBase extends ComponentPluginBase implements ContainerFactor
    * @return array
    *   Returns the options of this handler/plugin.
    */
-  protected function defineOptions() { return array(); }
+  protected function defineOptions() {
+    return [];
+  }
 
   /**
    * Fills up the options of the plugin with defaults.
@@ -180,7 +177,7 @@ abstract class PluginBase extends ComponentPluginBase implements ContainerFactor
   protected function setOptionDefaults(array &$storage, array $options) {
     foreach ($options as $option => $definition) {
       if (isset($definition['contains'])) {
-        $storage[$option] = array();
+        $storage[$option] = [];
         $this->setOptionDefaults($storage[$option], $definition['contains']);
       }
       else {
@@ -201,7 +198,6 @@ abstract class PluginBase extends ComponentPluginBase implements ContainerFactor
    *
    * @param array $storage
    *   The stored options.
-   *
    * @param array $options
    *   The defined options.
    */
@@ -237,7 +233,7 @@ abstract class PluginBase extends ComponentPluginBase implements ContainerFactor
         }
 
         if (!isset($storage[$key]) || !is_array($storage[$key])) {
-          $storage[$key] = array();
+          $storage[$key] = [];
         }
 
         // If we're just unpacking our known options, and we're dropping an
@@ -248,7 +244,7 @@ abstract class PluginBase extends ComponentPluginBase implements ContainerFactor
           continue;
         }
 
-        $this->unpackOptions($storage[$key], $value, isset($definition[$key]['contains']) ? $definition[$key]['contains'] : array(), $all, FALSE);
+        $this->unpackOptions($storage[$key], $value, isset($definition[$key]['contains']) ? $definition[$key]['contains'] : [], $all, FALSE);
       }
       elseif ($all || !empty($definition[$key])) {
         $storage[$key] = $value;
@@ -271,23 +267,23 @@ abstract class PluginBase extends ComponentPluginBase implements ContainerFactor
     // be moved into one because of the $form_state->getValues() hierarchy. Those
     // elements can add a #fieldset => 'fieldset_name' property, and they'll
     // be moved to their fieldset during pre_render.
-    $form['#pre_render'][] = array(get_class($this), 'preRenderAddFieldsetMarkup');
+    $form['#pre_render'][] = [get_class($this), 'preRenderAddFieldsetMarkup'];
   }
 
   /**
    * {@inheritdoc}
    */
-  public function validateOptionsForm(&$form, FormStateInterface $form_state) { }
+  public function validateOptionsForm(&$form, FormStateInterface $form_state) {}
 
   /**
    * {@inheritdoc}
    */
-  public function submitOptionsForm(&$form, FormStateInterface $form_state) { }
+  public function submitOptionsForm(&$form, FormStateInterface $form_state) {}
 
   /**
    * {@inheritdoc}
    */
-  public function query() { }
+  public function query() {}
 
   /**
    * {@inheritdoc}
@@ -299,7 +295,9 @@ abstract class PluginBase extends ComponentPluginBase implements ContainerFactor
   /**
    * {@inheritdoc}
    */
-  public function validate() { return array(); }
+  public function validate() {
+    return [];
+  }
 
   /**
    * {@inheritdoc}
@@ -329,8 +327,8 @@ abstract class PluginBase extends ComponentPluginBase implements ContainerFactor
   /**
    * {@inheritdoc}
    */
-  public function globalTokenReplace($string = '', array $options = array()) {
-    return \Drupal::token()->replace($string, array('view' => $this->view), $options);
+  public function globalTokenReplace($string = '', array $options = []) {
+    return \Drupal::token()->replace($string, ['view' => $this->view], $options);
   }
 
   /**
@@ -342,7 +340,7 @@ abstract class PluginBase extends ComponentPluginBase implements ContainerFactor
    * @param $tokens
    *   Array of token => replacement_value items.
    *
-   * @return String
+   * @return string
    */
   protected function viewsTokenReplace($text, $tokens) {
     if (!strlen($text)) {
@@ -353,11 +351,11 @@ abstract class PluginBase extends ComponentPluginBase implements ContainerFactor
       return Xss::filterAdmin($text);
     }
 
-    $twig_tokens = array();
+    $twig_tokens = [];
     foreach ($tokens as $token => $replacement) {
       // Twig wants a token replacement array stripped of curly-brackets.
       // Some Views tokens come with curly-braces, others do not.
-      //@todo: https://www.drupal.org/node/2544392
+      // @todo: https://www.drupal.org/node/2544392
       if (strpos($token, '{{') !== FALSE) {
         // Twig wants a token replacement array stripped of curly-brackets.
         $token = trim(str_replace(['{{', '}}'], '', $token));
@@ -369,7 +367,7 @@ abstract class PluginBase extends ComponentPluginBase implements ContainerFactor
       if (strpos($token, '.') === FALSE) {
         // We need to validate tokens are valid Twig variables. Twig uses the
         // same variable naming rules as PHP.
-        // @see http://php.net/manual/en/language.variables.basics.php
+        // @see http://php.net/manual/language.variables.basics.php
         assert('preg_match(\'/^[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*$/\', $token) === 1', 'Tokens need to be valid Twig variables.');
         $twig_tokens[$token] = $replacement;
       }
@@ -377,10 +375,11 @@ abstract class PluginBase extends ComponentPluginBase implements ContainerFactor
         $parts = explode('.', $token);
         $top = array_shift($parts);
         assert('preg_match(\'/^[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*$/\', $top) === 1', 'Tokens need to be valid Twig variables.');
-        $token_array = array(array_pop($parts) => $replacement);
-        foreach(array_reverse($parts) as $key) {
-          assert('preg_match(\'/^[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*$/\', $key) === 1', 'Tokens need to be valid Twig variables.');
-          $token_array = array($key => $token_array);
+        $token_array = [array_pop($parts) => $replacement];
+        foreach (array_reverse($parts) as $key) {
+          // The key could also be numeric (array index) so allow that.
+          assert('is_numeric($key) || (preg_match(\'/^[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*$/\', $key) === 1)', 'Tokens need to be valid Twig variables.');
+          $token_array = [$key => $token_array];
         }
         if (!isset($twig_tokens[$top])) {
           $twig_tokens[$top] = [];
@@ -394,7 +393,7 @@ abstract class PluginBase extends ComponentPluginBase implements ContainerFactor
       // Otherwise, Xss::filterAdmin could remove valid Twig syntax before the
       // template is parsed.
 
-      $build = array(
+      $build = [
         '#type' => 'inline_template',
         '#template' => $text,
         '#context' => $twig_tokens,
@@ -403,7 +402,7 @@ abstract class PluginBase extends ComponentPluginBase implements ContainerFactor
             return Xss::filterAdmin($children);
           }
         ],
-      );
+      ];
 
       // Currently you cannot attach assets to tokens with
       // Renderer::renderPlain(). This may be unnecessarily limiting. Consider
@@ -419,15 +418,15 @@ abstract class PluginBase extends ComponentPluginBase implements ContainerFactor
   /**
    * {@inheritdoc}
    */
-  public function getAvailableGlobalTokens($prepared = FALSE, array $types = array()) {
+  public function getAvailableGlobalTokens($prepared = FALSE, array $types = []) {
     $info = \Drupal::token()->getInfo();
     // Site and view tokens should always be available.
-    $types += array('site', 'view');
+    $types += ['site', 'view'];
     $available = array_intersect_key($info['tokens'], array_flip($types));
 
     // Construct the token string for each token.
     if ($prepared) {
-      $prepared = array();
+      $prepared = [];
       foreach ($available as $type => $tokens) {
         foreach (array_keys($tokens) as $token) {
           $prepared[$type][] = "[$type:$token]";
@@ -444,13 +443,13 @@ abstract class PluginBase extends ComponentPluginBase implements ContainerFactor
    * {@inheritdoc}
    */
   public function globalTokenForm(&$form, FormStateInterface $form_state) {
-    $token_items = array();
+    $token_items = [];
 
     foreach ($this->getAvailableGlobalTokens() as $type => $tokens) {
-      $item = array(
+      $item = [
         '#markup' => $type,
-        'children' => array(),
-      );
+        'children' => [],
+      ];
       foreach ($tokens as $name => $info) {
         $item['children'][$name] = "[$type:$name]" . ' - ' . $info['name'] . ': ' . $info['description'];
       }
@@ -458,17 +457,17 @@ abstract class PluginBase extends ComponentPluginBase implements ContainerFactor
       $token_items[$type] = $item;
     }
 
-    $form['global_tokens'] = array(
+    $form['global_tokens'] = [
       '#type' => 'details',
       '#title' => $this->t('Available global token replacements'),
-    );
-    $form['global_tokens']['list'] = array(
+    ];
+    $form['global_tokens']['list'] = [
       '#theme' => 'item_list',
       '#items' => $token_items,
-      '#attributes' => array(
-        'class' => array('global-tokens'),
-      ),
-    );
+      '#attributes' => [
+        'class' => ['global-tokens'],
+      ],
+    ];
   }
 
   /**
@@ -551,7 +550,7 @@ abstract class PluginBase extends ComponentPluginBase implements ContainerFactor
   protected function listLanguages($flags = LanguageInterface::STATE_ALL, array $current_values = NULL) {
     $manager = \Drupal::languageManager();
     $languages = $manager->getLanguages($flags);
-    $list = array();
+    $list = [];
 
     // The entity languages should come first, if requested.
     if ($flags & PluginBase::INCLUDE_ENTITY) {
@@ -587,7 +586,7 @@ abstract class PluginBase extends ComponentPluginBase implements ContainerFactor
           $name = $types_info[$id]['name'];
           // Surround IDs by '***LANGUAGE_...***', to avoid query collisions.
           $id = '***LANGUAGE_' . $id . '***';
-          $list[$id] = $this->t('@type language selected for page', array('@type' => $name));
+          $list[$id] = $this->t('@type language selected for page', ['@type' => $name]);
         }
       }
       if (!empty($current_values)) {
@@ -597,7 +596,7 @@ abstract class PluginBase extends ComponentPluginBase implements ContainerFactor
           // add that option too, so it is not lost. If not among the current
           // values, skip displaying it to avoid user confusion.
           if (isset($type['name']) && !isset($list[$id]) && in_array($id, $current_values)) {
-            $list[$id] = $this->t('@type language selected for page', array('@type' => $type['name']));
+            $list[$id] = $this->t('@type language selected for page', ['@type' => $type['name']]);
           }
         }
       }
@@ -624,7 +623,7 @@ abstract class PluginBase extends ComponentPluginBase implements ContainerFactor
    *   the query substitutions needed for the special language types.
    */
   public static function queryLanguageSubstitutions() {
-    $changes = array();
+    $changes = [];
     $manager = \Drupal::languageManager();
 
     // Handle default language.

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\comment\Plugin\views\field\EntityLink.
- */
-
 namespace Drupal\comment\Plugin\views\field;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -32,7 +27,7 @@ class EntityLink extends FieldPluginBase {
    */
   protected function defineOptions() {
     $options = parent::defineOptions();
-    $options['teaser'] = array('default' => FALSE);
+    $options['teaser'] = ['default' => FALSE];
     return $options;
   }
 
@@ -40,12 +35,12 @@ class EntityLink extends FieldPluginBase {
    * {@inheritdoc}
    */
   public function buildOptionsForm(&$form, FormStateInterface $form_state) {
-    $form['teaser'] = array(
+    $form['teaser'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Show teaser-style link'),
       '#default_value' => $this->options['teaser'],
       '#description' => $this->t('Show the comment link in the form used on standard entity teasers, rather than the full entity form.'),
-    );
+    ];
 
     parent::buildOptionsForm($form, $form_state);
   }
@@ -60,7 +55,7 @@ class EntityLink extends FieldPluginBase {
    */
   public function preRender(&$values) {
     // Render all nodes, so you can grep the comment links.
-    $entities = array();
+    $entities = [];
     foreach ($values as $row) {
       $entity = $row->_entity;
       $entities[$entity->id()] = $entity;
@@ -77,7 +72,7 @@ class EntityLink extends FieldPluginBase {
     $entity = $this->getEntity($values);
 
     // Only render the links, if they are defined.
-    return !empty($this->build[$entity->id()]['links']['comment__comment']) ? drupal_render($this->build[$entity->id()]['links']['comment__comment']) : '';
+    return !empty($this->build[$entity->id()]['links']['comment__comment']) ? \Drupal::service('renderer')->render($this->build[$entity->id()]['links']['comment__comment']) : '';
   }
 
 }

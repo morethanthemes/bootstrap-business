@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Plugin\views\field\MultiItemsFieldHandlerInterface.
- */
-
 namespace Drupal\views\Plugin\views\field;
 
 use Drupal\views\ResultRow;
@@ -50,4 +45,3 @@ interface MultiItemsFieldHandlerInterface extends FieldHandlerInterface {
   public function renderItems($items);
 
 }
-

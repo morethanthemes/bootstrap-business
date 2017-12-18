@@ -1,19 +1,28 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rest\Tests\RESTTestBase.
- */
-
 namespace Drupal\rest\Tests;
 
+use Drupal\Component\Utility\NestedArray;
+use Drupal\Core\Config\Entity\ConfigEntityType;
 use Drupal\node\NodeInterface;
+use Drupal\rest\RestResourceConfigInterface;
 use Drupal\simpletest\WebTestBase;
+use GuzzleHttp\Cookie\FileCookieJar;
+use GuzzleHttp\Cookie\SetCookie;
 
 /**
  * Test helper class that provides a REST client method to send HTTP requests.
+ *
+ * @deprecated in Drupal 8.3.x-dev and will be removed before Drupal 9.0.0. Use \Drupal\Tests\rest\Functional\ResourceTestBase and \Drupal\Tests\rest\Functional\EntityResource\EntityResourceTestBase instead. Only retained for contributed module tests that may be using this base class.
  */
 abstract class RESTTestBase extends WebTestBase {
+
+  /**
+   * The REST resource config storage.
+   *
+   * @var \Drupal\Core\Entity\EntityStorageInterface
+   */
+  protected $resourceConfigStorage;
 
   /**
    * The default serialization format to use for testing REST operations.
@@ -56,15 +65,57 @@ abstract class RESTTestBase extends WebTestBase {
    *
    * @var array
    */
-  public static $modules = array('rest', 'entity_test', 'node');
+  public static $modules = ['rest', 'entity_test'];
+
+  /**
+   * The last response.
+   *
+   * @var \Psr\Http\Message\ResponseInterface
+   */
+  protected $response;
 
   protected function setUp() {
     parent::setUp();
     $this->defaultFormat = 'hal_json';
     $this->defaultMimeType = 'application/hal+json';
-    $this->defaultAuth = array('cookie');
+    $this->defaultAuth = ['cookie'];
+    $this->resourceConfigStorage = $this->container->get('entity_type.manager')->getStorage('rest_resource_config');
     // Create a test content type for node testing.
-    $this->drupalCreateContentType(array('name' => 'resttest', 'type' => 'resttest'));
+    if (in_array('node', static::$modules)) {
+      $this->drupalCreateContentType(['name' => 'resttest', 'type' => 'resttest']);
+    }
+
+    $this->cookieFile = $this->publicFilesDirectory . '/cookie.jar';
+  }
+
+  /**
+   * Calculates cookies used by guzzle later.
+   *
+   * @return \GuzzleHttp\Cookie\CookieJarInterface
+   *   The used CURL options in guzzle.
+   */
+  protected function cookies() {
+    $cookies = [];
+
+    foreach ($this->cookies as $key => $cookie) {
+      $cookies[$key][] = $cookie['value'];
+    }
+
+    $request = \Drupal::request();
+    $cookies = NestedArray::mergeDeep($cookies, $this->extractCookiesFromRequest($request));
+
+    $cookie_jar = new FileCookieJar($this->cookieFile);
+    foreach ($cookies as $key => $cookie_values) {
+      foreach ($cookie_values as $cookie_value) {
+        // setcookie() sets the value of a cookie to be deleted, when its gonna
+        // be removed.
+        if ($cookie_value !== 'deleted') {
+          $cookie_jar->setCookie(new SetCookie(['Name' => $key, 'Value' => $cookie_value, 'Domain' => $request->getHost()]));
+        }
+      }
+    }
+
+    return $cookie_jar;
   }
 
   /**
@@ -78,99 +129,148 @@ abstract class RESTTestBase extends WebTestBase {
    *   The body for POST and PUT.
    * @param string $mime_type
    *   The MIME type of the transmitted content.
+   * @param bool $csrf_token
+   *   If NULL, a CSRF token will be retrieved and used. If FALSE, omit the
+   *   X-CSRF-Token request header (to simulate developer error). Otherwise, the
+   *   passed in value will be used as the value for the X-CSRF-Token request
+   *   header (to simulate developer error, by sending an invalid CSRF token).
    *
    * @return string
    *   The content returned from the request.
    */
-  protected function httpRequest($url, $method, $body = NULL, $mime_type = NULL) {
+  protected function httpRequest($url, $method, $body = NULL, $mime_type = NULL, $csrf_token = NULL) {
     if (!isset($mime_type)) {
       $mime_type = $this->defaultMimeType;
     }
-    if (!in_array($method, array('GET', 'HEAD', 'OPTIONS', 'TRACE'))) {
+    if (!in_array($method, ['GET', 'HEAD', 'OPTIONS', 'TRACE'])) {
       // GET the CSRF token first for writing requests.
-      $token = $this->drupalGet('rest/session/token');
+      $requested_token = $this->drupalGet('session/token');
     }
 
+    $client = \Drupal::httpClient();
     $url = $this->buildUrl($url);
 
+    $options = [
+      'http_errors' => FALSE,
+      'cookies' => $this->cookies(),
+      'curl' => [
+        CURLOPT_HEADERFUNCTION => [&$this, 'curlHeaderCallback'],
+      ],
+    ];
     switch ($method) {
       case 'GET':
-        // Set query if there are additional GET parameters.
-        $curl_options = array(
-          CURLOPT_HTTPGET => TRUE,
-          CURLOPT_CUSTOMREQUEST => 'GET',
-          CURLOPT_URL => $url,
-          CURLOPT_NOBODY => FALSE,
-          CURLOPT_HTTPHEADER => array('Accept: ' . $mime_type),
-        );
+        $options += [
+          'headers' => [
+            'Accept' => $mime_type,
+          ],
+        ];
+        $response = $client->get($url, $options);
+        break;
+
+      case 'HEAD':
+        $response = $client->head($url, $options);
         break;
 
       case 'POST':
-        $curl_options = array(
-          CURLOPT_HTTPGET => FALSE,
-          CURLOPT_POST => TRUE,
-          CURLOPT_POSTFIELDS => $body,
-          CURLOPT_URL => $url,
-          CURLOPT_NOBODY => FALSE,
-          CURLOPT_HTTPHEADER => array(
-            'Content-Type: ' . $mime_type,
-            'X-CSRF-Token: ' . $token,
-          ),
-        );
+        $options += [
+          'headers' => $csrf_token !== FALSE ? [
+            'Content-Type' => $mime_type,
+            'X-CSRF-Token' => ($csrf_token === NULL ? $requested_token : $csrf_token),
+          ] : [
+            'Content-Type' => $mime_type,
+          ],
+          'body' => $body,
+        ];
+        $response = $client->post($url, $options);
         break;
 
       case 'PUT':
-        $curl_options = array(
-          CURLOPT_HTTPGET => FALSE,
-          CURLOPT_CUSTOMREQUEST => 'PUT',
-          CURLOPT_POSTFIELDS => $body,
-          CURLOPT_URL => $url,
-          CURLOPT_NOBODY => FALSE,
-          CURLOPT_HTTPHEADER => array(
-            'Content-Type: ' . $mime_type,
-            'X-CSRF-Token: ' . $token,
-          ),
-        );
+        $options += [
+          'headers' => $csrf_token !== FALSE ? [
+            'Content-Type' => $mime_type,
+            'X-CSRF-Token' => ($csrf_token === NULL ? $requested_token : $csrf_token),
+          ] : [
+            'Content-Type' => $mime_type,
+          ],
+          'body' => $body,
+        ];
+        $response = $client->put($url, $options);
         break;
 
       case 'PATCH':
-        $curl_options = array(
-          CURLOPT_HTTPGET => FALSE,
-          CURLOPT_CUSTOMREQUEST => 'PATCH',
-          CURLOPT_POSTFIELDS => $body,
-          CURLOPT_URL => $url,
-          CURLOPT_NOBODY => FALSE,
-          CURLOPT_HTTPHEADER => array(
-            'Content-Type: ' . $mime_type,
-            'X-CSRF-Token: ' . $token,
-          ),
-        );
+        $options += [
+          'headers' => $csrf_token !== FALSE ? [
+            'Content-Type' => $mime_type,
+            'X-CSRF-Token' => ($csrf_token === NULL ? $requested_token : $csrf_token),
+          ] : [
+            'Content-Type' => $mime_type,
+          ],
+          'body' => $body,
+        ];
+        $response = $client->patch($url, $options);
         break;
 
       case 'DELETE':
-        $curl_options = array(
-          CURLOPT_HTTPGET => FALSE,
-          CURLOPT_CUSTOMREQUEST => 'DELETE',
-          CURLOPT_URL => $url,
-          CURLOPT_NOBODY => FALSE,
-          CURLOPT_HTTPHEADER => array('X-CSRF-Token: ' . $token),
-        );
+        $options += [
+          'headers' => $csrf_token !== FALSE ? [
+            'Content-Type' => $mime_type,
+            'X-CSRF-Token' => ($csrf_token === NULL ? $requested_token : $csrf_token),
+          ] : [],
+        ];
+        $response = $client->delete($url, $options);
         break;
     }
 
-    $this->responseBody = $this->curlExec($curl_options);
+    $this->response = $response;
+    $this->responseBody = (string) $response->getBody();
+    $this->setRawContent($this->responseBody);
 
     // Ensure that any changes to variables in the other thread are picked up.
     $this->refreshVariables();
 
-    $headers = $this->drupalGetHeaders();
-
     $this->verbose($method . ' request to: ' . $url .
-      '<hr />Code: ' . curl_getinfo($this->curlHandle, CURLINFO_HTTP_CODE) .
-      '<hr />Response headers: ' . nl2br(print_r($headers, TRUE)) .
+      '<hr />Code: ' . $this->response->getStatusCode() .
+      (isset($options['headers']) ? '<hr />Request headers: ' . nl2br(print_r($options['headers'], TRUE)) : '') .
+      (isset($options['body']) ? '<hr />Request body: ' . nl2br(print_r($options['body'], TRUE)) : '') .
+      '<hr />Response headers: ' . nl2br(print_r($response->getHeaders(), TRUE)) .
       '<hr />Response body: ' . $this->responseBody);
 
     return $this->responseBody;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function assertResponse($code, $message = '', $group = 'Browser') {
+    if (!isset($this->response)) {
+      return parent::assertResponse($code, $message, $group);
+    }
+    return $this->assertEqual($code, $this->response->getStatusCode(), $message ? $message : "HTTP response expected $code, actual {$this->response->getStatusCode()}", $group);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function drupalGetHeaders($all_requests = FALSE) {
+    if (!isset($this->response)) {
+      return parent::drupalGetHeaders($all_requests);
+    }
+    $lowercased_keys = array_map('strtolower', array_keys($this->response->getHeaders()));
+    return array_map(function (array $header) {
+      return implode(', ', $header);
+    }, array_combine($lowercased_keys, array_values($this->response->getHeaders())));
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function drupalGetHeader($name, $all_requests = FALSE) {
+    if (!isset($this->response)) {
+      return parent::drupalGetHeader($name, $all_requests);
+    }
+    if ($header = $this->response->getHeader($name)) {
+      return implode(', ', $header);
+    }
   }
 
   /**
@@ -183,7 +283,9 @@ abstract class RESTTestBase extends WebTestBase {
    *   The new entity object.
    */
   protected function entityCreate($entity_type) {
-    return entity_create($entity_type, $this->entityValues($entity_type));
+    return $this->container->get('entity_type.manager')
+      ->getStorage($entity_type)
+      ->create($this->entityValues($entity_type));
   }
 
   /**
@@ -192,32 +294,39 @@ abstract class RESTTestBase extends WebTestBase {
    * Required properties differ from entity type to entity type, so we keep a
    * minimum mapping here.
    *
-   * @param string $entity_type
-   *   The type of the entity that should be created.
+   * @param string $entity_type_id
+   *   The ID of the type of entity that should be created.
    *
    * @return array
    *   An array of values keyed by property name.
    */
-  protected function entityValues($entity_type) {
-    switch ($entity_type) {
+  protected function entityValues($entity_type_id) {
+    switch ($entity_type_id) {
       case 'entity_test':
-        return array(
+        return [
           'name' => $this->randomMachineName(),
           'user_id' => 1,
-          'field_test_text' => array(0 => array(
-            'value' => $this->randomString(),
-            'format' => 'plain_text',
-          )),
-        );
+          'field_test_text' => [
+            0 => [
+              'value' => $this->randomString(),
+              'format' => 'plain_text',
+            ],
+          ],
+        ];
+      case 'config_test':
+        return [
+          'id' => $this->randomMachineName(),
+          'label' => 'Test label',
+        ];
       case 'node':
-        return array('title' => $this->randomString(), 'type' => 'resttest');
+        return ['title' => $this->randomString(), 'type' => 'resttest'];
       case 'node_type':
-        return array(
+        return [
           'type' => 'article',
           'name' => $this->randomMachineName(),
-        );
+        ];
       case 'user':
-        return array('name' => $this->randomMachineName());
+        return ['name' => $this->randomMachineName()];
 
       case 'comment':
         return [
@@ -228,43 +337,84 @@ abstract class RESTTestBase extends WebTestBase {
           'entity_id' => 'invalid',
           'field_name' => 'comment',
         ];
-
+      case 'taxonomy_vocabulary':
+        return [
+          'vid' => 'tags',
+          'name' => $this->randomMachineName(),
+        ];
+      case 'block':
+        // Block placements depend on themes, ensure Bartik is installed.
+        $this->container->get('theme_installer')->install(['bartik']);
+        return [
+          'id' => strtolower($this->randomMachineName(8)),
+          'plugin' => 'system_powered_by_block',
+          'theme' => 'bartik',
+          'region' => 'header',
+        ];
       default:
-        return array();
+        if ($this->isConfigEntity($entity_type_id)) {
+          return $this->configEntityValues($entity_type_id);
+        }
+        return [];
     }
   }
 
   /**
    * Enables the REST service interface for a specific entity type.
    *
-   * @param string|FALSE $resource_type
+   * @param string|false $resource_type
    *   The resource type that should get REST API enabled or FALSE to disable all
    *   resource types.
    * @param string $method
    *   The HTTP method to enable, e.g. GET, POST etc.
-   * @param string $format
-   *   (Optional) The serialization format, e.g. hal_json.
+   * @param string|array $format
+   *   (Optional) The serialization format, e.g. hal_json, or a list of formats.
    * @param array $auth
    *   (Optional) The list of valid authentication methods.
    */
-  protected function enableService($resource_type, $method = 'GET', $format = NULL, $auth = NULL) {
-    // Enable REST API for this entity type.
-    $config = $this->config('rest.settings');
-    $settings = array();
-
+  protected function enableService($resource_type, $method = 'GET', $format = NULL, array $auth = []) {
     if ($resource_type) {
-      if ($format == NULL) {
-        $format = $this->defaultFormat;
+      // Enable REST API for this entity type.
+      $resource_config_id = str_replace(':', '.', $resource_type);
+      // get entity by id
+      /** @var \Drupal\rest\RestResourceConfigInterface $resource_config */
+      $resource_config = $this->resourceConfigStorage->load($resource_config_id);
+      if (!$resource_config) {
+        $resource_config = $this->resourceConfigStorage->create([
+          'id' => $resource_config_id,
+          'granularity' => RestResourceConfigInterface::METHOD_GRANULARITY,
+          'configuration' => []
+        ]);
       }
-      $settings[$resource_type][$method]['supported_formats'][] = $format;
+      $configuration = $resource_config->get('configuration');
 
-      if ($auth == NULL) {
+      if (is_array($format)) {
+        for ($i = 0; $i < count($format); $i++) {
+          $configuration[$method]['supported_formats'][] = $format[$i];
+        }
+      }
+      else {
+        if ($format == NULL) {
+          $format = $this->defaultFormat;
+        }
+        $configuration[$method]['supported_formats'][] = $format;
+      }
+
+      if (!is_array($auth) || empty($auth)) {
         $auth = $this->defaultAuth;
       }
-      $settings[$resource_type][$method]['supported_auth'] = $auth;
+      foreach ($auth as $auth_provider) {
+        $configuration[$method]['supported_auth'][] = $auth_provider;
+      }
+
+      $resource_config->set('configuration', $configuration);
+      $resource_config->save();
     }
-    $config->set('resources', $settings);
-    $config->save();
+    else {
+      foreach ($this->resourceConfigStorage->loadMultiple() as $resource_config) {
+        $resource_config->delete();
+      }
+    }
     $this->rebuildCache();
   }
 
@@ -272,8 +422,7 @@ abstract class RESTTestBase extends WebTestBase {
    * Rebuilds routing caches.
    */
   protected function rebuildCache() {
-    // Rebuild routing cache, so that the REST API paths are available.
-    $this->container->get('router.builder')->rebuild();
+    $this->container->get('router.builder')->rebuildIfNeeded();
   }
 
   /**
@@ -284,6 +433,8 @@ abstract class RESTTestBase extends WebTestBase {
    * override it every time it is omitted.
    */
   protected function curlExec($curl_options, $redirect = FALSE) {
+    unset($this->response);
+
     if (!isset($curl_options[CURLOPT_CUSTOMREQUEST])) {
       if (!empty($curl_options[CURLOPT_HTTPGET])) {
         $curl_options[CURLOPT_CUSTOMREQUEST] = 'GET';
@@ -298,7 +449,7 @@ abstract class RESTTestBase extends WebTestBase {
   /**
    * Provides the necessary user permissions for entity operations.
    *
-   * @param string $entity_type
+   * @param string $entity_type_id
    *   The entity type.
    * @param string $operation
    *   The operation, one of 'view', 'create', 'update' or 'delete'.
@@ -306,27 +457,27 @@ abstract class RESTTestBase extends WebTestBase {
    * @return array
    *   The set of user permission strings.
    */
-  protected function entityPermissions($entity_type, $operation) {
-    switch ($entity_type) {
+  protected function entityPermissions($entity_type_id, $operation) {
+    switch ($entity_type_id) {
       case 'entity_test':
         switch ($operation) {
           case 'view':
-            return array('view test entity');
+            return ['view test entity'];
           case 'create':
           case 'update':
           case 'delete':
-            return array('administer entity_test content');
+            return ['administer entity_test content'];
         }
       case 'node':
         switch ($operation) {
           case 'view':
-            return array('access content');
+            return ['access content'];
           case 'create':
-            return array('create resttest content');
+            return ['create resttest content'];
           case 'update':
-            return array('edit any resttest content');
+            return ['edit any resttest content'];
           case 'delete':
-            return array('delete any resttest content');
+            return ['delete any resttest content'];
         }
 
       case 'comment':
@@ -352,9 +503,17 @@ abstract class RESTTestBase extends WebTestBase {
 
           default:
             return ['administer users'];
+        }
 
+      default:
+        if ($this->isConfigEntity($entity_type_id)) {
+          $entity_type = \Drupal::entityTypeManager()->getDefinition($entity_type_id);
+          if ($admin_permission = $entity_type->getAdminPermission()) {
+            return [$admin_permission];
+          }
         }
     }
+    return [];
   }
 
   /**
@@ -363,13 +522,14 @@ abstract class RESTTestBase extends WebTestBase {
    * @param string $location_url
    *   The URL returned in the Location header.
    *
-   * @return \Drupal\Core\Entity\Entity|FALSE.
+   * @return \Drupal\Core\Entity\Entity|false
    *   The entity or FALSE if there is no matching entity.
    */
   protected function loadEntityFromLocationHeader($location_url) {
     $url_parts = explode('/', $location_url);
     $id = end($url_parts);
-    return entity_load($this->testEntityType, $id);
+    return $this->container->get('entity_type.manager')
+      ->getStorage($this->testEntityType)->load($id);
   }
 
   /**
@@ -415,6 +575,52 @@ abstract class RESTTestBase extends WebTestBase {
    *   TRUE if the assertion succeeded, FALSE otherwise.
    */
   protected function assertResponseBody($expected, $message = '', $group = 'REST Response') {
-    return $this->assertIdentical($expected, $this->responseBody, $message ? $message : strtr('Response body @expected (expected) is equal to @response (actual).', array('@expected' => var_export($expected, TRUE), '@response' => var_export($this->responseBody, TRUE))), $group);
+    return $this->assertIdentical($expected, $this->responseBody, $message ? $message : strtr('Response body @expected (expected) is equal to @response (actual).', ['@expected' => var_export($expected, TRUE), '@response' => var_export($this->responseBody, TRUE)]), $group);
   }
+
+  /**
+   * Checks if an entity type id is for a Config Entity.
+   *
+   * @param string $entity_type_id
+   *   The entity type ID to check.
+   *
+   * @return bool
+   *   TRUE if the entity is a Config Entity, FALSE otherwise.
+   */
+  protected function isConfigEntity($entity_type_id) {
+    return \Drupal::entityTypeManager()->getDefinition($entity_type_id) instanceof ConfigEntityType;
+  }
+
+  /**
+   * Provides an array of suitable property values for a config entity type.
+   *
+   * Config entities have some common keys that need to be created. Required
+   * properties differ among config entity types, so we keep a minimum mapping
+   * here.
+   *
+   * @param string $entity_type_id
+   *   The ID of the type of entity that should be created.
+   *
+   * @return array
+   *   An array of values keyed by property name.
+   */
+  protected function configEntityValues($entity_type_id) {
+    $entity_type = \Drupal::entityTypeManager()->getDefinition($entity_type_id);
+    $keys = $entity_type->getKeys();
+    $values = [];
+    // Fill out known key values that are shared across entity types.
+    foreach ($keys as $key) {
+      if ($key === 'id' || $key === 'label') {
+        $values[$key] = $this->randomMachineName();
+      }
+    }
+    // Add extra values for particular entity types.
+    switch ($entity_type_id) {
+      case 'block':
+        $values['plugin'] = 'system_powered_by_block';
+        break;
+    }
+    return $values;
+  }
+
 }

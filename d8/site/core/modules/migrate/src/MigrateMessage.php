@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\migrate\MigrateMessage.
- */
-
 namespace Drupal\migrate;
 
 use Drupal\Core\Logger\RfcLogLevel;
@@ -19,10 +14,10 @@ class MigrateMessage implements MigrateMessageInterface {
    *
    * @var array
    */
-  protected $map = array(
+  protected $map = [
     'status' => RfcLogLevel::INFO,
     'error' => RfcLogLevel::ERROR,
-  );
+  ];
 
   /**
    * {@inheritdoc}

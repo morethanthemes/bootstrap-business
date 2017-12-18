@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Routing\AccessAwareRouterTest.
- */
-
 namespace Drupal\Tests\Core\Routing;
 
 use Drupal\Core\Access\AccessResult;
@@ -13,6 +8,7 @@ use Drupal\Core\Routing\AccessAwareRouterInterface;
 use Drupal\Tests\UnitTestCase;
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\Routing\Route;
 
 /**
@@ -65,7 +61,7 @@ class AccessAwareRouterTest extends UnitTestCase {
       ->getMock();
     $this->chainRouter->expects($this->once())
       ->method('matchRequest')
-      ->will($this->returnValue(array(RouteObjectInterface::ROUTE_OBJECT => $this->route)));
+      ->will($this->returnValue([RouteObjectInterface::ROUTE_OBJECT => $this->route]));
     $this->router = new AccessAwareRouter($this->chainRouter, $this->accessManager, $this->currentUser);
   }
 
@@ -91,8 +87,6 @@ class AccessAwareRouterTest extends UnitTestCase {
 
   /**
    * Tests the matchRequest() function for access denied.
-   *
-   * @expectedException \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException
    */
   public function testMatchRequestDenied() {
     $this->setupRouter();
@@ -102,12 +96,24 @@ class AccessAwareRouterTest extends UnitTestCase {
       ->method('checkRequest')
       ->with($request)
       ->willReturn($access_result);
-    $parameters = $this->router->matchRequest($request);
-    $expected = [
-      AccessAwareRouterInterface::ACCESS_RESULT => $access_result,
-    ];
-    $this->assertSame($expected, $request->attributes->all());
-    $this->assertSame($expected, $parameters);
+    $this->setExpectedException(AccessDeniedHttpException::class);
+    $this->router->matchRequest($request);
+  }
+
+  /**
+   * Tests the matchRequest() function for access denied with reason message.
+   */
+  public function testCheckAccessResultWithReason() {
+    $this->setupRouter();
+    $request = new Request();
+    $reason = $this->getRandomGenerator()->string();
+    $access_result = AccessResult::forbidden($reason);
+    $this->accessManager->expects($this->once())
+      ->method('checkRequest')
+      ->with($request)
+      ->willReturn($access_result);
+    $this->setExpectedException(AccessDeniedHttpException::class, $reason);
+    $this->router->matchRequest($request);
   }
 
   /**

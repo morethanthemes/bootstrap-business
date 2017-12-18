@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Entity\Render\EntityTranslationRenderTrait.
- */
-
 namespace Drupal\views\Entity\Render;
 
 use Drupal\Core\Entity\EntityInterface;
@@ -35,10 +30,10 @@ trait EntityTranslationRenderTrait {
       $view = $this->getView();
       $rendering_language = $view->display_handler->getOption('rendering_language');
       $langcode = NULL;
-      $dynamic_renderers = array(
+      $dynamic_renderers = [
         '***LANGUAGE_entity_translation***' => 'TranslationLanguageRenderer',
         '***LANGUAGE_entity_default***' => 'DefaultLanguageRenderer',
-      );
+      ];
       if (isset($dynamic_renderers[$rendering_language])) {
         // Dynamic language set based on result rows or instance defaults.
         $renderer = $dynamic_renderers[$rendering_language];

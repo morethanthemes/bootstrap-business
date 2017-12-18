@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\EventSubscriber\ViewsEntitySchemaSubscriber.
- */
-
 namespace Drupal\views\EventSubscriber;
 
 use Drupal\Core\Entity\EntityManagerInterface;
@@ -149,6 +144,11 @@ class ViewsEntitySchemaSubscriber implements EntityTypeListenerInterface, EventS
       $changes[] = static::REVISION_DATA_TABLE_REMOVAL;
     }
 
+    // Stop here if no changes are needed.
+    if (empty($changes)) {
+      return;
+    }
+
     /** @var \Drupal\views\Entity\View[] $all_views */
     $all_views = $this->entityManager->getStorage('view')->loadMultiple(NULL);
 
@@ -274,7 +274,6 @@ class ViewsEntitySchemaSubscriber implements EntityTypeListenerInterface, EventS
   }
 
   /**
-   *
    * Updates views if a data table is renamed.
    *
    * @param \Drupal\views\Entity\View[] $all_views

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\locale\Gettext.
- */
-
 namespace Drupal\locale;
 
 use Drupal\Component\Gettext\PoStreamReader;
@@ -46,12 +41,12 @@ class Gettext {
    */
   public static function fileToDatabase($file, $options) {
     // Add the default values to the options array.
-    $options += array(
-      'overwrite_options' => array(),
+    $options += [
+      'overwrite_options' => [],
       'customized' => LOCALE_NOT_CUSTOMIZED,
       'items' => -1,
       'seek' => 0,
-    );
+    ];
     // Instantiate and initialize the stream reader for this file.
     $reader = new PoStreamReader();
     $reader->setLangcode($file->langcode);
@@ -72,10 +67,10 @@ class Gettext {
     // Initialize the database writer.
     $writer = new PoDatabaseWriter();
     $writer->setLangcode($file->langcode);
-    $writer_options = array(
+    $writer_options = [
       'overwrite_options' => $options['overwrite_options'],
       'customized' => $options['customized'],
-    );
+    ];
     $writer->setOptions($writer_options);
     $writer->setHeader($header);
 
@@ -98,4 +93,5 @@ class Gettext {
     $report['seek'] = $reader->getSeek();
     return $report;
   }
+
 }

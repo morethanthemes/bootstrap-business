@@ -18,10 +18,9 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
  *   \Drupal\Core\TypedData\OptionsProviderInterface::getSettableOptions(). An
  *   empty option (_none) might have been added, depending on the field
  *   properties.
- *
  * @param array $context
  *   An associative array containing:
- *   - field_definition: The field definition
+ *   - fieldDefinition: The field definition
  *     (\Drupal\Core\Field\FieldDefinitionInterface).
  *   - entity: The entity object the field is attached to
  *     (\Drupal\Core\Entity\EntityInterface).
@@ -31,7 +30,7 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
  */
 function hook_options_list_alter(array &$options, array $context) {
   // Check if this is the field we want to change.
-  if ($context['field']->id() == 'field_option') {
+  if ($context['fieldDefinition']->id() == 'field_option') {
     // Change the label of the empty option.
     $options['_none'] = t('== Empty ==');
   }
@@ -82,21 +81,21 @@ function hook_options_list_alter(array &$options, array $context) {
  */
 function callback_allowed_values_function(FieldStorageDefinitionInterface $definition, FieldableEntityInterface $entity = NULL, &$cacheable = TRUE) {
   if (isset($entity) && ($entity->bundle() == 'not_a_programmer')) {
-    $values = array(
+    $values = [
       1 => 'One',
       2 => 'Two',
-    );
+    ];
   }
   else {
-    $values = array(
-      'Group 1' => array(
+    $values = [
+      'Group 1' => [
         0 => 'Zero',
         1 => 'One',
-      ),
-      'Group 2' => array(
+      ],
+      'Group 2' => [
         2 => 'Two',
-      ),
-    );
+      ],
+    ];
   }
 
   return $values;

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\Tests\UserRegistrationTest.
- */
-
 namespace Drupal\user\Tests;
 
 use Drupal\Core\Entity\Entity\EntityFormDisplay;
@@ -26,9 +21,9 @@ class UserRegistrationTest extends WebTestBase {
    *
    * @var array
    */
-  public static $modules = array('field_test');
+  public static $modules = ['field_test'];
 
-  function testRegistrationWithEmailVerification() {
+  public function testRegistrationWithEmailVerification() {
     $config = $this->config('user.settings');
     // Require email verification.
     $config->set('verify_mail', TRUE)->save();
@@ -40,12 +35,15 @@ class UserRegistrationTest extends WebTestBase {
 
     // Allow registration by site visitors without administrator approval.
     $config->set('register', USER_REGISTER_VISITORS)->save();
-    $edit = array();
+    $edit = [];
     $edit['name'] = $name = $this->randomMachineName();
     $edit['mail'] = $mail = $edit['name'] . '@example.com';
     $this->drupalPostForm('user/register', $edit, t('Create new account'));
     $this->assertText(t('A welcome message with further instructions has been sent to your email address.'), 'User registered successfully.');
-    $accounts = entity_load_multiple_by_properties('user', array('name' => $name, 'mail' => $mail));
+
+    /** @var EntityStorageInterface $storage */
+    $storage = $this->container->get('entity_type.manager')->getStorage('user');
+    $accounts = $storage->loadByProperties(['name' => $name, 'mail' => $mail]);
     $new_user = reset($accounts);
     $this->assertTrue($new_user->isActive(), 'New account is active after registration.');
     $resetURL = user_pass_reset_url($new_user);
@@ -54,17 +52,17 @@ class UserRegistrationTest extends WebTestBase {
 
     // Allow registration by site visitors, but require administrator approval.
     $config->set('register', USER_REGISTER_VISITORS_ADMINISTRATIVE_APPROVAL)->save();
-    $edit = array();
+    $edit = [];
     $edit['name'] = $name = $this->randomMachineName();
     $edit['mail'] = $mail = $edit['name'] . '@example.com';
     $this->drupalPostForm('user/register', $edit, t('Create new account'));
     $this->container->get('entity.manager')->getStorage('user')->resetCache();
-    $accounts = entity_load_multiple_by_properties('user', array('name' => $name, 'mail' => $mail));
+    $accounts = $storage->loadByProperties(['name' => $name, 'mail' => $mail]);
     $new_user = reset($accounts);
     $this->assertFalse($new_user->isActive(), 'New account is blocked until approved by an administrator.');
   }
 
-  function testRegistrationWithoutEmailVerification() {
+  public function testRegistrationWithoutEmailVerification() {
     $config = $this->config('user.settings');
     // Don't require email verification and allow registration by site visitors
     // without administrator approval.
@@ -73,7 +71,7 @@ class UserRegistrationTest extends WebTestBase {
       ->set('register', USER_REGISTER_VISITORS)
       ->save();
 
-    $edit = array();
+    $edit = [];
     $edit['name'] = $name = $this->randomMachineName();
     $edit['mail'] = $mail = $edit['name'] . '@example.com';
 
@@ -88,7 +86,8 @@ class UserRegistrationTest extends WebTestBase {
     $edit['pass[pass2]'] = $new_pass;
     $this->drupalPostForm('user/register', $edit, t('Create new account'));
     $this->container->get('entity.manager')->getStorage('user')->resetCache();
-    $accounts = entity_load_multiple_by_properties('user', array('name' => $name, 'mail' => $mail));
+    $accounts = $this->container->get('entity_type.manager')->getStorage('user')
+      ->loadByProperties(['name' => $name, 'mail' => $mail]);
     $new_user = reset($accounts);
     $this->assertNotNull($new_user, 'New account successfully created with matching passwords.');
     $this->assertText(t('Registration successful. You are now logged in.'), 'Users are logged in after registering.');
@@ -96,7 +95,7 @@ class UserRegistrationTest extends WebTestBase {
 
     // Allow registration by site visitors, but require administrator approval.
     $config->set('register', USER_REGISTER_VISITORS_ADMINISTRATIVE_APPROVAL)->save();
-    $edit = array();
+    $edit = [];
     $edit['name'] = $name = $this->randomMachineName();
     $edit['mail'] = $mail = $edit['name'] . '@example.com';
     $edit['pass[pass1]'] = $pass = $this->randomMachineName();
@@ -104,31 +103,32 @@ class UserRegistrationTest extends WebTestBase {
     $this->drupalPostForm('user/register', $edit, t('Create new account'));
     $this->assertText(t('Thank you for applying for an account. Your account is currently pending approval by the site administrator.'), 'Users are notified of pending approval');
 
-    // Try to login before administrator approval.
-    $auth = array(
+    // Try to log in before administrator approval.
+    $auth = [
       'name' => $name,
       'pass' => $pass,
-    );
+    ];
     $this->drupalPostForm('user/login', $auth, t('Log in'));
-    $this->assertText(t('The username @name has not been activated or is blocked.', array('@name' => $name)), 'User cannot login yet.');
+    $this->assertText(t('The username @name has not been activated or is blocked.', ['@name' => $name]), 'User cannot log in yet.');
 
     // Activate the new account.
-    $accounts = entity_load_multiple_by_properties('user', array('name' => $name, 'mail' => $mail));
+    $accounts = $this->container->get('entity_type.manager')->getStorage('user')
+      ->loadByProperties(['name' => $name, 'mail' => $mail]);
     $new_user = reset($accounts);
-    $admin_user = $this->drupalCreateUser(array('administer users'));
+    $admin_user = $this->drupalCreateUser(['administer users']);
     $this->drupalLogin($admin_user);
-    $edit = array(
+    $edit = [
       'status' => 1,
-    );
+    ];
     $this->drupalPostForm('user/' . $new_user->id() . '/edit', $edit, t('Save'));
     $this->drupalLogout();
 
-    // Login after administrator approval.
+    // Log in after administrator approval.
     $this->drupalPostForm('user/login', $auth, t('Log in'));
     $this->assertText(t('Member for'), 'User can log in after administrator approval.');
   }
 
-  function testRegistrationEmailDuplicates() {
+  public function testRegistrationEmailDuplicates() {
     // Don't require email verification and allow registration by site visitors
     // without administrator approval.
     $this->config('user.settings')
@@ -139,19 +139,19 @@ class UserRegistrationTest extends WebTestBase {
     // Set up a user to check for duplicates.
     $duplicate_user = $this->drupalCreateUser();
 
-    $edit = array();
+    $edit = [];
     $edit['name'] = $this->randomMachineName();
     $edit['mail'] = $duplicate_user->getEmail();
 
     // Attempt to create a new account using an existing email address.
     $this->drupalPostForm('user/register', $edit, t('Create new account'));
-    $this->assertText(t('The email address @email is already taken.', array('@email' => $duplicate_user->getEmail())), 'Supplying an exact duplicate email address displays an error message');
+    $this->assertText(t('The email address @email is already taken.', ['@email' => $duplicate_user->getEmail()]), 'Supplying an exact duplicate email address displays an error message');
 
     // Attempt to bypass duplicate email registration validation by adding spaces.
     $edit['mail'] = '   ' . $duplicate_user->getEmail() . '   ';
 
     $this->drupalPostForm('user/register', $edit, t('Create new account'));
-    $this->assertText(t('The email address @email is already taken.', array('@email' => $duplicate_user->getEmail())), 'Supplying a duplicate email address with added whitespace displays an error message');
+    $this->assertText(t('The email address @email is already taken.', ['@email' => $duplicate_user->getEmail()]), 'Supplying a duplicate email address with added whitespace displays an error message');
   }
 
   /**
@@ -223,7 +223,7 @@ class UserRegistrationTest extends WebTestBase {
     $this->assertTrue($user_storage->loadByProperties(['name' => $edit['name']]));
   }
 
-  function testRegistrationDefaultValues() {
+  public function testRegistrationDefaultValues() {
     // Don't require email verification and allow registration by site visitors
     // without administrator approval.
     $config_user_settings = $this->config('user.settings')
@@ -237,15 +237,11 @@ class UserRegistrationTest extends WebTestBase {
       ->set('timezone.default', 'Europe/Brussels')
       ->save();
 
-    // Check that the account information options are not displayed
-    // as a details element if there is not more than one details in the form.
-    $this->drupalGet('user/register');
-    $this->assertNoRaw('<details id="edit-account"><summary>Account information</summary>');
-
     // Check the presence of expected cache tags.
+    $this->drupalGet('user/register');
     $this->assertCacheTag('config:user.settings');
 
-    $edit = array();
+    $edit = [];
     $edit['name'] = $name = $this->randomMachineName();
     $edit['mail'] = $mail = $edit['name'] . '@example.com';
     $edit['pass[pass1]'] = $new_pass = $this->randomMachineName();
@@ -253,11 +249,12 @@ class UserRegistrationTest extends WebTestBase {
     $this->drupalPostForm(NULL, $edit, t('Create new account'));
 
     // Check user fields.
-    $accounts = entity_load_multiple_by_properties('user', array('name' => $name, 'mail' => $mail));
+    $accounts = $this->container->get('entity_type.manager')->getStorage('user')
+      ->loadByProperties(['name' => $name, 'mail' => $mail]);
     $new_user = reset($accounts);
     $this->assertEqual($new_user->getUsername(), $name, 'Username matches.');
     $this->assertEqual($new_user->getEmail(), $mail, 'Email address matches.');
-    $this->assertTrue(($new_user->getCreatedTime() > REQUEST_TIME - 20 ), 'Correct creation time.');
+    $this->assertTrue(($new_user->getCreatedTime() > REQUEST_TIME - 20), 'Correct creation time.');
     $this->assertEqual($new_user->isActive(), $config_user_settings->get('register') == USER_REGISTER_VISITORS ? 1 : 0, 'Correct status field.');
     $this->assertEqual($new_user->getTimezone(), $config_system_date->get('timezone.default'), 'Correct time zone field.');
     $this->assertEqual($new_user->langcode->value, \Drupal::languageManager()->getDefaultLanguage()->getId(), 'Correct language field.');
@@ -286,24 +283,24 @@ class UserRegistrationTest extends WebTestBase {
   /**
    * Tests Field API fields on user registration forms.
    */
-  function testRegistrationWithUserFields() {
+  public function testRegistrationWithUserFields() {
     // Create a field on 'user' entity type.
-    $field_storage = entity_create('field_storage_config', array(
+    $field_storage = FieldStorageConfig::create([
       'field_name' => 'test_user_field',
       'entity_type' => 'user',
       'type' => 'test_field',
       'cardinality' => 1,
-    ));
+    ]);
     $field_storage->save();
-    $field = entity_create('field_config', array(
+    $field = FieldConfig::create([
       'field_storage' => $field_storage,
       'label' => 'Some user field',
       'bundle' => 'user',
       'required' => TRUE,
-    ));
+    ]);
     $field->save();
     entity_get_form_display('user', 'user', 'default')
-      ->setComponent('test_user_field', array('type' => 'test_field_widget'))
+      ->setComponent('test_user_field', ['type' => 'test_field_widget'])
       ->save();
     entity_get_form_display('user', 'user', 'register')
       ->save();
@@ -316,7 +313,7 @@ class UserRegistrationTest extends WebTestBase {
 
     // Have the field appear on the registration form.
     entity_get_form_display('user', 'user', 'register')
-      ->setComponent('test_user_field', array('type' => 'test_field_widget'))
+      ->setComponent('test_user_field', ['type' => 'test_field_widget'])
       ->save();
 
     $this->drupalGet('user/register');
@@ -324,38 +321,39 @@ class UserRegistrationTest extends WebTestBase {
     $this->assertRegistrationFormCacheTagsWithUserFields();
 
     // Check that validation errors are correctly reported.
-    $edit = array();
+    $edit = [];
     $edit['name'] = $name = $this->randomMachineName();
     $edit['mail'] = $mail = $edit['name'] . '@example.com';
     // Missing input in required field.
     $edit['test_user_field[0][value]'] = '';
     $this->drupalPostForm(NULL, $edit, t('Create new account'));
     $this->assertRegistrationFormCacheTagsWithUserFields();
-    $this->assertRaw(t('@name field is required.', array('@name' => $field->label())), 'Field validation error was correctly reported.');
+    $this->assertRaw(t('@name field is required.', ['@name' => $field->label()]), 'Field validation error was correctly reported.');
     // Invalid input.
     $edit['test_user_field[0][value]'] = '-1';
     $this->drupalPostForm(NULL, $edit, t('Create new account'));
     $this->assertRegistrationFormCacheTagsWithUserFields();
-    $this->assertRaw(t('%name does not accept the value -1.', array('%name' => $field->label())), 'Field validation error was correctly reported.');
+    $this->assertRaw(t('%name does not accept the value -1.', ['%name' => $field->label()]), 'Field validation error was correctly reported.');
 
     // Submit with valid data.
     $value = rand(1, 255);
     $edit['test_user_field[0][value]'] = $value;
     $this->drupalPostForm(NULL, $edit, t('Create new account'));
     // Check user fields.
-    $accounts = entity_load_multiple_by_properties('user', array('name' => $name, 'mail' => $mail));
+    $accounts = $this->container->get('entity_type.manager')->getStorage('user')
+      ->loadByProperties(['name' => $name, 'mail' => $mail]);
     $new_user = reset($accounts);
     $this->assertEqual($new_user->test_user_field->value, $value, 'The field value was correctly saved.');
 
     // Check that the 'add more' button works.
     $field_storage->setCardinality(FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED);
     $field_storage->save();
-    foreach (array('js', 'nojs') as $js) {
+    foreach (['js', 'nojs'] as $js) {
       $this->drupalGet('user/register');
       $this->assertRegistrationFormCacheTagsWithUserFields();
       // Add two inputs.
       $value = rand(1, 255);
-      $edit = array();
+      $edit = [];
       $edit['test_user_field[0][value]'] = $value;
       if ($js == 'js') {
         $this->drupalPostAjaxForm(NULL, $edit, 'test_user_field_add_more');
@@ -372,11 +370,12 @@ class UserRegistrationTest extends WebTestBase {
       $edit['mail'] = $mail = $edit['name'] . '@example.com';
       $this->drupalPostForm(NULL, $edit, t('Create new account'));
       // Check user fields.
-      $accounts = entity_load_multiple_by_properties('user', array('name' => $name, 'mail' => $mail));
+      $accounts = $this->container->get('entity_type.manager')->getStorage('user')
+        ->loadByProperties(['name' => $name, 'mail' => $mail]);
       $new_user = reset($accounts);
-      $this->assertEqual($new_user->test_user_field[0]->value, $value, format_string('@js : The field value was correctly saved.', array('@js' => $js)));
-      $this->assertEqual($new_user->test_user_field[1]->value, $value + 1, format_string('@js : The field value was correctly saved.', array('@js' => $js)));
-      $this->assertEqual($new_user->test_user_field[2]->value, $value + 2, format_string('@js : The field value was correctly saved.', array('@js' => $js)));
+      $this->assertEqual($new_user->test_user_field[0]->value, $value, format_string('@js : The field value was correctly saved.', ['@js' => $js]));
+      $this->assertEqual($new_user->test_user_field[1]->value, $value + 1, format_string('@js : The field value was correctly saved.', ['@js' => $js]));
+      $this->assertEqual($new_user->test_user_field[2]->value, $value + 2, format_string('@js : The field value was correctly saved.', ['@js' => $js]));
     }
   }
 

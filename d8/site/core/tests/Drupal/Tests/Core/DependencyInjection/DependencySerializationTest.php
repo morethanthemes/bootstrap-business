@@ -36,15 +36,35 @@ class DependencySerializationTest extends UnitTestCase {
     $dependencySerialization->setContainer($container);
 
     $string = serialize($dependencySerialization);
-    $object = unserialize($string);
-
-    $string = serialize($dependencySerialization);
-    /** @var \Drupal\Tests\Core\DependencyInjection\DependencySerializationTestDummy $object */
+    /** @var \Drupal\Tests\Core\DependencyInjection\DependencySerializationTestDummy $dependencySerialization */
     $dependencySerialization = unserialize($string);
 
     $this->assertSame($service, $dependencySerialization->service);
     $this->assertSame($container, $dependencySerialization->container);
     $this->assertEmpty($dependencySerialization->getServiceIds());
+  }
+
+  /**
+   * @covers ::__sleep
+   * @covers ::__wakeup
+   */
+  public function testSerializationWithMissingService() {
+    // Create a pseudo service and dependency injected object.
+    $service = new \stdClass();
+    $service->_serviceId = 'test_service_not_existing';
+    $container = new Container();
+    $container->set('test_service', $service);
+    $container->set('service_container', $container);
+    \Drupal::setContainer($container);
+
+    $dependencySerialization = new DependencySerializationTestDummy($service);
+    $dependencySerialization->setContainer($container);
+
+    $string = serialize($dependencySerialization);
+    /** @var \Drupal\Tests\Core\DependencyInjection\DependencySerializationTestDummy $dependencySerialization */
+    $dependencySerialization = unserialize($string);
+
+    $this->assertSame($container, $dependencySerialization->container);
   }
 
 }
@@ -93,4 +113,5 @@ class DependencySerializationTestDummy implements ContainerAwareInterface {
   public function getServiceIds() {
     return $this->_serviceIds;
   }
+
 }

@@ -1,15 +1,12 @@
 <?php
-
-/**
- * @file
- * Contains \Drupal\Core\DependencyInjection\ContainerBuilder.
- */
+// @codingStandardsIgnoreFile
 
 namespace Drupal\Core\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder as SymfonyContainerBuilder;
 use Symfony\Component\DependencyInjection\Container as SymfonyContainer;
-use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\LazyProxy\Instantiator\RealServiceInstantiator;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 /**
@@ -22,11 +19,40 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 class ContainerBuilder extends SymfonyContainerBuilder {
 
   /**
+   * @var \Doctrine\Instantiator\InstantiatorInterface|null
+   */
+  private $proxyInstantiator;
+
+  /**
    * {@inheritdoc}
    */
   public function __construct(ParameterBagInterface $parameterBag = NULL) {
     $this->setResourceTracking(FALSE);
     parent::__construct($parameterBag);
+  }
+
+  /**
+   * Retrieves the currently set proxy instantiator or instantiates one.
+   *
+   * @return InstantiatorInterface
+   */
+  private function getProxyInstantiator()
+  {
+    if (!$this->proxyInstantiator) {
+      $this->proxyInstantiator = new RealServiceInstantiator();
+    }
+
+    return $this->proxyInstantiator;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function shareService(Definition $definition, $service, $id)
+  {
+    if ($definition->isShared()) {
+      $this->services[$lowerId = strtolower($id)] = $service;
+    }
   }
 
   /**
@@ -40,11 +66,11 @@ class ContainerBuilder extends SymfonyContainerBuilder {
    *   ContainerBuilder class should be fixed to allow setting synthetic
    *   services in a frozen builder.
    */
-  public function set($id, $service, $scope = self::SCOPE_CONTAINER) {
+  public function set($id, $service) {
     if (strtolower($id) !== $id) {
       throw new \InvalidArgumentException("Service ID names must be lowercase: $id");
     }
-    SymfonyContainer::set($id, $service, $scope);
+    SymfonyContainer::set($id, $service);
 
     // Ensure that the _serviceId property is set on synthetic services as well.
     if (isset($this->services[$id]) && is_object($this->services[$id]) && !isset($this->services[$id]->_serviceId)) {

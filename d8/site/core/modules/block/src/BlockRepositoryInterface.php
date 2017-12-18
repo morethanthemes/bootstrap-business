@@ -1,13 +1,22 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\block\BlockRepositoryInterface.
- */
-
 namespace Drupal\block;
 
 interface BlockRepositoryInterface {
+
+  /**
+   * Return only visible regions.
+   *
+   * @see system_region_list()
+   */
+  const REGIONS_VISIBLE = 'visible';
+
+  /**
+   * Return all regions.
+   *
+   * @see system_region_list()
+   */
+  const REGIONS_ALL = 'all';
 
   /**
    * Returns an array of regions and their block entities.

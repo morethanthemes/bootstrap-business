@@ -7,8 +7,8 @@
 
 namespace Drupal\Tests\Core\Routing;
 
-use Drupal\Component\Discovery\YamlDiscovery;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
+use Drupal\Core\Discovery\YamlDiscovery;
 use Drupal\Core\Routing\RouteBuilder;
 use Drupal\Core\Routing\RouteBuildEvent;
 use Drupal\Core\Routing\RoutingEvents;
@@ -53,7 +53,7 @@ class RouteBuilderTest extends UnitTestCase {
   /**
    * The mocked YAML discovery.
    *
-   * @var \Drupal\Component\Discovery\YamlDiscovery|\PHPUnit_Framework_MockObject_MockObject
+   * @var \Drupal\Core\Discovery\YamlDiscovery|\PHPUnit_Framework_MockObject_MockObject
    */
   protected $yamlDiscovery;
 
@@ -82,7 +82,7 @@ class RouteBuilderTest extends UnitTestCase {
     $this->dispatcher = $this->getMock('\Symfony\Component\EventDispatcher\EventDispatcherInterface');
     $this->moduleHandler = $this->getMock('Drupal\Core\Extension\ModuleHandlerInterface');
     $this->controllerResolver = $this->getMock('Drupal\Core\Controller\ControllerResolverInterface');
-    $this->yamlDiscovery = $this->getMockBuilder('\Drupal\Component\Discovery\YamlDiscovery')
+    $this->yamlDiscovery = $this->getMockBuilder('\Drupal\Core\Discovery\YamlDiscovery')
       ->disableOriginalConstructor()
       ->getMock();
     $this->checkProvider = $this->getMock('\Drupal\Core\Access\CheckProviderInterface');
@@ -106,7 +106,7 @@ class RouteBuilderTest extends UnitTestCase {
 
     $this->yamlDiscovery->expects($this->any())
       ->method('findAll')
-      ->will($this->returnValue(array()));
+      ->will($this->returnValue([]));
 
     $this->assertTrue($this->routeBuilder->rebuild());
   }
@@ -149,7 +149,7 @@ class RouteBuilderTest extends UnitTestCase {
 
     $this->yamlDiscovery->expects($this->once())
       ->method('findAll')
-      ->will($this->returnValue(array('test_module' => $routes)));
+      ->will($this->returnValue(['test_module' => $routes]));
 
     $route_collection = $routing_fixtures->sampleRouteCollection();
     $route_build_event = new RouteBuildEvent($route_collection);
@@ -192,14 +192,14 @@ class RouteBuilderTest extends UnitTestCase {
 
     $this->yamlDiscovery->expects($this->once())
       ->method('findAll')
-      ->will($this->returnValue(array(
-        'test_module' => array(
-          'route_callbacks' => array(
+      ->will($this->returnValue([
+        'test_module' => [
+          'route_callbacks' => [
             '\Drupal\Tests\Core\Routing\TestRouteSubscriber::routesFromArray',
             'test_module.route_service:routesFromCollection',
-          ),
-        ),
-      )));
+          ],
+        ],
+      ]));
 
     $container = new ContainerBuilder();
     $container->set('test_module.route_service', new TestRouteSubscriber());
@@ -215,7 +215,7 @@ class RouteBuilderTest extends UnitTestCase {
           list($class, $method) = explode('::', $controller, 2);
           $object = new $class();
         }
-        return array($object, $method);
+        return [$object, $method];
       }));
 
     $route_collection_filled = new RouteCollection();
@@ -262,8 +262,8 @@ class RouteBuilderTest extends UnitTestCase {
       ->with('router_rebuild');
 
     $this->yamlDiscovery->expects($this->any())
-                        ->method('findAll')
-                        ->will($this->returnValue(array()));
+      ->method('findAll')
+      ->will($this->returnValue([]));
 
     $this->routeBuilder->setRebuildNeeded();
 
@@ -273,6 +273,7 @@ class RouteBuilderTest extends UnitTestCase {
     // This will not trigger a rebuild.
     $this->assertFalse($this->routeBuilder->rebuildIfNeeded());
   }
+
 }
 
 /**
@@ -283,14 +284,14 @@ class TestRouteBuilder extends RouteBuilder {
   /**
    * The mocked YAML discovery.
    *
-   * @var \Drupal\Component\Discovery\YamlDiscovery|\PHPUnit_Framework_MockObject_MockObject
+   * @var \Drupal\Core\Discovery\YamlDiscovery|\PHPUnit_Framework_MockObject_MockObject
    */
   protected $yamlDiscovery;
 
   /**
    * Sets the YAML discovery.
    *
-   * @param \Drupal\Component\Discovery\YamlDiscovery $yaml_discovery
+   * @param \Drupal\Core\Discovery\YamlDiscovery $yaml_discovery
    *   The YAML discovery to set.
    */
   public function setYamlDiscovery(YamlDiscovery $yaml_discovery) {
@@ -311,13 +312,14 @@ class TestRouteBuilder extends RouteBuilder {
  */
 class TestRouteSubscriber {
   public function routesFromArray() {
-    return array(
+    return [
       'test_route.1' => new Route('/test-route/1'),
-    );
+    ];
   }
   public function routesFromCollection() {
     $collection = new RouteCollection();
     $collection->add('test_route.2', new Route('/test-route/2'));
     return $collection;
   }
+
 }

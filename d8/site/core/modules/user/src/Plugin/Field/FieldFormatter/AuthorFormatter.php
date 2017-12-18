@@ -1,13 +1,7 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\Plugin\Field\FieldFormatter\AuthorFormatter.
- */
-
 namespace Drupal\user\Plugin\Field\FieldFormatter;
 
-use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
@@ -31,18 +25,18 @@ class AuthorFormatter extends EntityReferenceFormatterBase {
    * {@inheritdoc}
    */
   public function viewElements(FieldItemListInterface $items, $langcode) {
-    $elements = array();
+    $elements = [];
 
     foreach ($this->getEntitiesToView($items, $langcode) as $delta => $entity) {
       /** @var $referenced_user \Drupal\user\UserInterface */
-      $elements[$delta] = array(
+      $elements[$delta] = [
         '#theme' => 'username',
         '#account' => $entity,
-        '#link_options' => array('attributes' => array('rel' => 'author')),
-        '#cache' => array(
+        '#link_options' => ['attributes' => ['rel' => 'author']],
+        '#cache' => [
           'tags' => $entity->getCacheTags(),
-        ),
-      );
+        ],
+      ];
     }
 
     return $elements;
@@ -59,9 +53,7 @@ class AuthorFormatter extends EntityReferenceFormatterBase {
    * {@inheritdoc}
    */
   protected function checkAccess(EntityInterface $entity) {
-    // Always allow an entity author's username to be read, even if the current
-    // user does not have permission to view the entity author's profile.
-    return AccessResult::allowed();
+    return $entity->access('view label', NULL, TRUE);
   }
 
 }

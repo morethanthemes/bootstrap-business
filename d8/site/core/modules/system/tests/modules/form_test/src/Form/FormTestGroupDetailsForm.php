@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\form_test\Form\FormTestGroupDetailsForm.
- */
-
 namespace Drupal\form_test\Form;
 
 use Drupal\Core\Form\FormBase;
@@ -25,22 +20,23 @@ class FormTestGroupDetailsForm extends FormBase {
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state) {
-    $form['details'] = array(
+  public function buildForm(array $form, FormStateInterface $form_state, $required = FALSE) {
+    $form['details'] = [
       '#type' => 'details',
       '#title' => 'Root element',
       '#open' => TRUE,
-    );
-    $form['meta'] = array(
+      '#required' => !empty($required),
+    ];
+    $form['meta'] = [
       '#type' => 'details',
       '#title' => 'Group element',
       '#open' => TRUE,
       '#group' => 'details',
-    );
-    $form['meta']['element'] = array(
+    ];
+    $form['meta']['element'] = [
       '#type' => 'textfield',
       '#title' => 'Nest in details element',
-    );
+    ];
     return $form;
   }
 

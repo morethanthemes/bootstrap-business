@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Extension\ModuleHandlerInterface.
- */
-
 namespace Drupal\Core\Extension;
 
 /**
@@ -78,7 +73,7 @@ interface ModuleHandlerInterface {
    *   An associative array whose keys are the names of the modules and whose
    *   values are Extension objects.
    */
-  public function setModuleList(array $module_list = array());
+  public function setModuleList(array $module_list = []);
 
   /**
    * Adds a module to the list of currently active modules.
@@ -149,7 +144,7 @@ interface ModuleHandlerInterface {
    *   // Load node.admin.inc from the node module.
    *   $this->loadInclude('node', 'inc', 'node.admin');
    *   // Load content_types.inc from the node module.
-   *   $this->loadInclude('node', 'inc', ''content_types');
+   *   $this->loadInclude('node', 'inc', 'content_types');
    * @endcode
    *
    * @param string $module
@@ -219,13 +214,13 @@ interface ModuleHandlerInterface {
    *   The name of the module (without the .module extension).
    * @param string $hook
    *   The name of the hook to invoke.
-   * @param ...
+   * @param array $args
    *   Arguments to pass to the hook implementation.
    *
    * @return mixed
    *   The return value of the hook implementation.
    */
-  public function invoke($module, $hook, array $args = array());
+  public function invoke($module, $hook, array $args = []);
 
   /**
    * Invokes a hook in all enabled modules that implement it.
@@ -241,7 +236,7 @@ interface ModuleHandlerInterface {
    *   recursively. Note: integer keys in arrays will be lost, as the merge is
    *   done using array_merge_recursive().
    */
-  public function invokeAll($hook, array $args = array());
+  public function invokeAll($hook, array $args = []);
 
   /**
    * Passes alterable variables to specific hook_TYPE_alter() implementations.

@@ -11,9 +11,9 @@ process:
       plugin: machine_name
       source: category
     -
-      plugin: dedupe_entity
-      entity_type: user_role
-      field: cid
+      plugin: make_unique_entity_field
+      entity_type: contact_form
+      field: id
       length: 32
   label: category
   recipients: recipients

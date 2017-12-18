@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\menu_ui\Form\MenuLinkResetForm.
- */
-
 namespace Drupal\menu_ui\Form;
 
 use Drupal\Core\Access\AccessResult;
@@ -64,16 +59,16 @@ class MenuLinkResetForm extends ConfirmFormBase {
    * {@inheritdoc}
    */
   public function getQuestion() {
-    return $this->t('Are you sure you want to reset the link %item to its default values?', array('%item' => $this->link->getTitle()));
+    return $this->t('Are you sure you want to reset the link %item to its default values?', ['%item' => $this->link->getTitle()]);
   }
 
   /**
    * {@inheritdoc}
    */
   public function getCancelUrl() {
-    return new Url('entity.menu.edit_form', array(
+    return new Url('entity.menu.edit_form', [
       'menu' => $this->link->getMenuName(),
-    ));
+    ]);
   }
 
   /**

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Ajax\ScrollTopCommand.
- */
-
 namespace Drupal\views\Ajax;
 
 use Drupal\Core\Ajax\CommandInterface;
@@ -37,10 +32,10 @@ class ScrollTopCommand implements CommandInterface {
    * {@inheritdoc}
    */
   public function render() {
-    return array(
+    return [
       'command' => 'viewsScrollTop',
       'selector' => $this->selector,
-    );
+    ];
   }
 
 }

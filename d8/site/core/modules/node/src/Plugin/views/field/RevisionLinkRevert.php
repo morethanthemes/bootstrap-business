@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Plugin\views\field\RevisionLinkRevert.
- */
-
 namespace Drupal\node\Plugin\views\field;
 
 use Drupal\Core\Url;
@@ -34,4 +29,5 @@ class RevisionLinkRevert extends RevisionLink {
   protected function getDefaultLabel() {
     return $this->t('Revert');
   }
+
 }

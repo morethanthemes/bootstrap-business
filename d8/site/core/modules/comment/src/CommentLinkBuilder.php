@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\comment\CommentLinkBuilder.
- */
-
 namespace Drupal\comment;
 
 use Drupal\comment\Plugin\Field\FieldType\CommentItemInterface;
@@ -20,7 +15,7 @@ use Drupal\Core\Url;
 /**
  * Defines a class for building markup for comment links on a commented entity.
  *
- * Comment links include 'login to post new comment', 'add new comment' etc.
+ * Comment links include 'log in to post new comment', 'add new comment' etc.
  */
 class CommentLinkBuilder implements CommentLinkBuilderInterface {
 
@@ -80,7 +75,7 @@ class CommentLinkBuilder implements CommentLinkBuilderInterface {
    * {@inheritdoc}
    */
   public function buildCommentedEntityLinks(FieldableEntityInterface $entity, array &$context) {
-    $entity_links = array();
+    $entity_links = [];
     $view_mode = $context['view_mode'];
     if ($view_mode == 'search_index' || $view_mode == 'search_result' || $view_mode == 'print' || $view_mode == 'rss') {
       // Do not add any links if the entity is displayed for:
@@ -88,7 +83,7 @@ class CommentLinkBuilder implements CommentLinkBuilderInterface {
       // - constructing a search result excerpt.
       // - print.
       // - rss.
-      return array();
+      return [];
     }
 
     $fields = $this->commentManager->getFields($entity->getEntityTypeId());
@@ -97,7 +92,7 @@ class CommentLinkBuilder implements CommentLinkBuilderInterface {
       if (!$entity->hasField($field_name)) {
         continue;
       }
-      $links = array();
+      $links = [];
       $commenting_status = $entity->get($field_name)->status;
       if ($commenting_status != CommentItemInterface::HIDDEN) {
         // Entity has commenting status open or closed.
@@ -108,23 +103,23 @@ class CommentLinkBuilder implements CommentLinkBuilderInterface {
           // entity is open to new comments, and there currently are none.
           if ($this->currentUser->hasPermission('access comments')) {
             if (!empty($entity->get($field_name)->comment_count)) {
-              $links['comment-comments'] = array(
+              $links['comment-comments'] = [
                 'title' => $this->formatPlural($entity->get($field_name)->comment_count, '1 comment', '@count comments'),
-                'attributes' => array('title' => $this->t('Jump to the first comment.')),
+                'attributes' => ['title' => $this->t('Jump to the first comment.')],
                 'fragment' => 'comments',
                 'url' => $entity->urlInfo(),
-              );
+              ];
               if ($this->moduleHandler->moduleExists('history')) {
-                $links['comment-new-comments'] = array(
+                $links['comment-new-comments'] = [
                   'title' => '',
                   'url' => Url::fromRoute('<current>'),
-                  'attributes' => array(
+                  'attributes' => [
                     'class' => 'hidden',
                     'title' => $this->t('Jump to the first new comment.'),
                     'data-history-node-last-comment-timestamp' => $entity->get($field_name)->last_comment_timestamp,
                     'data-history-node-field-name' => $field_name,
-                  ),
-                );
+                  ],
+                ];
               }
             }
           }
@@ -132,12 +127,12 @@ class CommentLinkBuilder implements CommentLinkBuilderInterface {
           if ($commenting_status == CommentItemInterface::OPEN) {
             $comment_form_location = $field_definition->getSetting('form_location');
             if ($this->currentUser->hasPermission('post comments')) {
-              $links['comment-add'] = array(
+              $links['comment-add'] = [
                 'title' => $this->t('Add new comment'),
                 'language' => $entity->language(),
-                'attributes' => array('title' => $this->t('Share your thoughts and opinions.')),
+                'attributes' => ['title' => $this->t('Share your thoughts and opinions.')],
                 'fragment' => 'comment-form',
-              );
+              ];
               if ($comment_form_location == CommentItemInterface::FORM_SEPARATE_PAGE) {
                 $links['comment-add']['url'] = Url::fromRoute('comment.reply', [
                   'entity_type' => $entity->getEntityTypeId(),
@@ -150,9 +145,9 @@ class CommentLinkBuilder implements CommentLinkBuilderInterface {
               }
             }
             elseif ($this->currentUser->isAnonymous()) {
-              $links['comment-forbidden'] = array(
+              $links['comment-forbidden'] = [
                 'title' => $this->commentManager->forbiddenMessage($entity, $field_name),
-              );
+              ];
             }
           }
         }
@@ -166,11 +161,11 @@ class CommentLinkBuilder implements CommentLinkBuilderInterface {
               // Show the "post comment" link if the form is on another page, or
               // if there are existing comments that the link will skip past.
               if ($comment_form_location == CommentItemInterface::FORM_SEPARATE_PAGE || (!empty($entity->get($field_name)->comment_count) && $this->currentUser->hasPermission('access comments'))) {
-                $links['comment-add'] = array(
+                $links['comment-add'] = [
                   'title' => $this->t('Add new comment'),
-                  'attributes' => array('title' => $this->t('Share your thoughts and opinions.')),
+                  'attributes' => ['title' => $this->t('Share your thoughts and opinions.')],
                   'fragment' => 'comment-form',
-                );
+                ];
                 if ($comment_form_location == CommentItemInterface::FORM_SEPARATE_PAGE) {
                   $links['comment-add']['url'] = Url::fromRoute('comment.reply', [
                     'entity_type' => $entity->getEntityTypeId(),
@@ -184,20 +179,20 @@ class CommentLinkBuilder implements CommentLinkBuilderInterface {
               }
             }
             elseif ($this->currentUser->isAnonymous()) {
-              $links['comment-forbidden'] = array(
+              $links['comment-forbidden'] = [
                 'title' => $this->commentManager->forbiddenMessage($entity, $field_name),
-              );
+              ];
             }
           }
         }
       }
 
       if (!empty($links)) {
-        $entity_links['comment__' . $field_name] = array(
+        $entity_links['comment__' . $field_name] = [
           '#theme' => 'links__entity__comment__' . $field_name,
           '#links' => $links,
-          '#attributes' => array('class' => array('links', 'inline')),
-        );
+          '#attributes' => ['class' => ['links', 'inline']],
+        ];
         if ($view_mode == 'teaser' && $this->moduleHandler->moduleExists('history') && $this->currentUser->isAuthenticated()) {
           $entity_links['comment__' . $field_name]['#cache']['contexts'][] = 'user';
           $entity_links['comment__' . $field_name]['#attached']['library'][] = 'comment/drupal.node-new-comments-link';

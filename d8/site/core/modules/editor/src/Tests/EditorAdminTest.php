@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\editor\Tests\EditorAdminTest.
- */
-
 namespace Drupal\editor\Tests;
 
 use Drupal\Component\Utility\Unicode;
@@ -25,7 +20,7 @@ class EditorAdminTest extends WebTestBase {
    *
    * @var array
    */
-  public static $modules = array('filter', 'editor');
+  public static $modules = ['filter', 'editor'];
 
   /**
    * A user with the 'administer filters' permission.
@@ -38,16 +33,16 @@ class EditorAdminTest extends WebTestBase {
     parent::setUp();
 
     // Add text format.
-    $filtered_html_format = entity_create('filter_format', array(
+    $filtered_html_format = FilterFormat::create([
       'format' => 'filtered_html',
       'name' => 'Filtered HTML',
       'weight' => 0,
-      'filters' => array(),
-    ));
+      'filters' => [],
+    ]);
     $filtered_html_format->save();
 
     // Create admin user.
-    $this->adminUser = $this->drupalCreateUser(array('administer filters'));
+    $this->adminUser = $this->drupalCreateUser(['administer filters']);
   }
 
   /**
@@ -88,9 +83,9 @@ class EditorAdminTest extends WebTestBase {
     $this->verifyUnicornEditorConfiguration('filtered_html', FALSE);
 
     // Switch back to 'None' and check the Unicorn Editor's settings are gone.
-    $edit = array(
+    $edit = [
       'editor[editor]' => '',
-    );
+    ];
     $this->drupalPostAjaxForm(NULL, $edit, 'editor_configure');
     $unicorn_setting = $this->xpath('//input[@name="editor[settings][ponies_too]" and @type="checkbox" and @checked]');
     $this->assertTrue(count($unicorn_setting) === 0, "Unicorn Editor's settings form is no longer present.");
@@ -108,7 +103,7 @@ class EditorAdminTest extends WebTestBase {
    * Tests format disabling.
    */
   public function testDisableFormatWithEditor() {
-    $formats = ['monocerus' => 'Monocerus', 'tattoo' =>  'Tattoo'];
+    $formats = ['monocerus' => 'Monocerus', 'tattoo' => 'Tattoo'];
 
     // Install the node module.
     $this->container->get('module_installer')->install(['node']);
@@ -135,12 +130,12 @@ class EditorAdminTest extends WebTestBase {
     $node->body->format = 'monocerus';
     $node->save();
 
-    // Login as an user able to use both formats and edit nodes of created type.
+    // Log in as an user able to use both formats and edit nodes of created type.
     $account = $this->drupalCreateUser($permissions);
     $this->drupalLogin($account);
 
     // The node edit page header.
-    $text = t('<em>Edit @type</em> @title', array('@type' => $node_type->label(), '@title' => $node->label()));
+    $text = t('<em>Edit @type</em> @title', ['@type' => $node_type->label(), '@title' => $node->label()]);
 
     // Go to node edit form.
     $this->drupalGet('node/' . $node->id() . '/edit');
@@ -167,10 +162,10 @@ class EditorAdminTest extends WebTestBase {
     $this->drupalLogin($this->adminUser);
     $this->drupalGet('admin/config/content/formats/add');
     // Configure the text format name.
-    $edit = array(
+    $edit = [
       'name' => $format_name,
       'format' => $format_id,
-    );
+    ];
     $edit += $this->selectUnicornEditor();
     $this->drupalPostForm(NULL, $edit, t('Save configuration'));
   }
@@ -180,7 +175,7 @@ class EditorAdminTest extends WebTestBase {
    */
   protected function enableUnicornEditor() {
     if (!$this->container->get('module_handler')->moduleExists('editor_test')) {
-      $this->container->get('module_installer')->install(array('editor_test'));
+      $this->container->get('module_installer')->install(['editor_test']);
     }
   }
 
@@ -205,9 +200,9 @@ class EditorAdminTest extends WebTestBase {
     $this->assertNoRaw(t('This option is disabled because no modules that provide a text editor are currently enabled.'), 'Description for select absent that tells users to install a text editor module.');
 
     // Select the "Unicorn Editor" editor and click the "Configure" button.
-    $edit = array(
+    $edit = [
       'editor[editor]' => 'unicorn',
-    );
+    ];
     $this->drupalPostAjaxForm(NULL, $edit, 'editor_configure');
     $unicorn_setting = $this->xpath('//input[@name="editor[settings][ponies_too]" and @type="checkbox" and @checked]');
     $this->assertTrue(count($unicorn_setting), "Unicorn Editor's settings form is present.");
@@ -228,7 +223,7 @@ class EditorAdminTest extends WebTestBase {
     $settings = $editor->getSettings();
     $this->assertIdentical($editor->getEditor(), 'unicorn', 'The text editor is configured correctly.');
     $this->assertIdentical($settings['ponies_too'], $ponies_too, 'The text editor settings are stored correctly.');
-    $this->drupalGet('admin/config/content/formats/manage/'. $format_id);
+    $this->drupalGet('admin/config/content/formats/manage/' . $format_id);
     $select = $this->xpath('//select[@name="editor[editor]"]');
     $select_is_disabled = $this->xpath('//select[@name="editor[editor]" and @disabled="disabled"]');
     $options = $this->xpath('//select[@name="editor[editor]"]/option');

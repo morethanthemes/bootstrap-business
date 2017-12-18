@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Config\Entity\Query\QueryFactory.
- */
-
 namespace Drupal\Core\Config\Entity\Query;
 
 use Drupal\Core\Config\Config;
@@ -71,8 +66,8 @@ class QueryFactory implements QueryFactoryInterface, EventSubscriberInterface {
   /**
    * {@inheritdoc}
    */
-   public function getAggregate(EntityTypeInterface $entity_type, $conjunction) {
-      throw new QueryException('Aggregation over configuration entities is not supported');
+  public function getAggregate(EntityTypeInterface $entity_type, $conjunction) {
+    throw new QueryException('Aggregation over configuration entities is not supported');
   }
 
   /**
@@ -168,7 +163,7 @@ class QueryFactory implements QueryFactoryInterface, EventSubscriberInterface {
 
     $values = (array) $this->getValues($config, $parts[0], $get_method, $parts);
 
-    $output = array();
+    $output = [];
     // Flatten the array to a single dimension and add the key to all the
     // values.
     array_walk_recursive($values, function ($current) use (&$output, $key) {
@@ -194,7 +189,7 @@ class QueryFactory implements QueryFactoryInterface, EventSubscriberInterface {
    * @param int $start
    *   Which position of $parts we are processing. Defaults to 0.
    *
-   * @return array|NULL
+   * @return array|null
    *   The array of configuration values the match the provided key. NULL if
    *   the configuration object does not have a value that corresponds to the
    *   key.
@@ -224,7 +219,7 @@ class QueryFactory implements QueryFactoryInterface, EventSubscriberInterface {
   /**
    * Updates configuration entity in the key store.
    *
-   * @param ConfigCrudEvent $event
+   * @param \Drupal\Core\Config\ConfigCrudEvent $event
    *   The configuration event.
    */
   public function onConfigSave(ConfigCrudEvent $event) {
@@ -254,9 +249,9 @@ class QueryFactory implements QueryFactoryInterface, EventSubscriberInterface {
   /**
    * {@inheritdoc}
    */
-  static function getSubscribedEvents() {
-    $events[ConfigEvents::SAVE][] = array('onConfigSave', 128);
-    $events[ConfigEvents::DELETE][] = array('onConfigDelete', 128);
+  public static function getSubscribedEvents() {
+    $events[ConfigEvents::SAVE][] = ['onConfigSave', 128];
+    $events[ConfigEvents::DELETE][] = ['onConfigDelete', 128];
     return $events;
   }
 

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\config_entity_static_cache_test\ConfigOverrider.
- */
-
 namespace Drupal\config_entity_static_cache_test;
 
 use Drupal\Core\Cache\CacheableMetadata;
@@ -20,11 +15,11 @@ class ConfigOverrider implements ConfigFactoryOverrideInterface {
    * {@inheritdoc}
    */
   public function loadOverrides($names) {
-    return array(
-      'config_test.dynamic.test_1' => array(
+    return [
+      'config_test.dynamic.test_1' => [
         'label' => 'Overridden label',
-      )
-    );
+      ]
+    ];
   }
 
   /**

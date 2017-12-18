@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\taxonomy\TermAccessControlHandler.
- */
-
 namespace Drupal\taxonomy;
 
 use Drupal\Core\Access\AccessResult;
@@ -26,15 +21,12 @@ class TermAccessControlHandler extends EntityAccessControlHandler {
     switch ($operation) {
       case 'view':
         return AccessResult::allowedIfHasPermission($account, 'access content');
-        break;
 
       case 'update':
         return AccessResult::allowedIfHasPermissions($account, ["edit terms in {$entity->bundle()}", 'administer taxonomy'], 'OR');
-        break;
 
       case 'delete':
         return AccessResult::allowedIfHasPermissions($account, ["delete terms in {$entity->bundle()}", 'administer taxonomy'], 'OR');
-        break;
 
       default:
         // No opinion.

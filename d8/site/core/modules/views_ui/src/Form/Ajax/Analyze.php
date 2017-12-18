@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views_ui\Form\Ajax\Analyze.
- */
-
 namespace Drupal\views_ui\Form\Ajax;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -41,11 +36,11 @@ class Analyze extends ViewsFormBase {
     $analyzer = Views::analyzer();
     $messages = $analyzer->getMessages($view->getExecutable());
 
-    $form['analysis'] = array(
+    $form['analysis'] = [
       '#prefix' => '<div class="js-form-item form-item">',
       '#suffix' => '</div>',
       '#markup' => $analyzer->formatMessages($messages),
-    );
+    ];
 
     // Inform the standard button function that we want an OK button.
     $form_state->set('ok_button', TRUE);

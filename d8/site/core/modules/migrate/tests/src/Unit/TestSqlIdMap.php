@@ -1,14 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\migrate\Unit\TestSqlIdMap.
- */
-
 namespace Drupal\Tests\migrate\Unit;
 
 use Drupal\Core\Database\Connection;
-use Drupal\migrate\Entity\MigrationInterface;
+use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate\MigrateException;
 use Drupal\migrate\Plugin\migrate\id_map\Sql;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -29,7 +24,7 @@ class TestSqlIdMap extends Sql implements \Iterator {
    *   The plugin ID for the migration process to do.
    * @param mixed $plugin_definition
    *   The configuration for the plugin.
-   * @param \Drupal\migrate\Entity\MigrationInterface $migration
+   * @param \Drupal\migrate\Plugin\MigrationInterface $migration
    *   The migration to do.
    * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $event_dispatcher
    *   The event dispatcher service.
@@ -60,21 +55,21 @@ class TestSqlIdMap extends Sql implements \Iterator {
    */
   protected function getFieldSchema(array $id_definition) {
     if (!isset($id_definition['type'])) {
-      return array();
+      return [];
     }
     switch ($id_definition['type']) {
       case 'integer':
-        return array(
+        return [
           'type' => 'int',
           'not null' => TRUE,
-        );
+        ];
 
       case 'string':
-        return array(
+        return [
           'type' => 'varchar',
           'length' => 255,
           'not null' => FALSE,
-        );
+        ];
 
       default:
         throw new MigrateException($id_definition['type'] . ' not supported');

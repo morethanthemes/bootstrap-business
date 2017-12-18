@@ -11,21 +11,21 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
 /**
  * Implements callback_allowed_values_function().
  *
- * @see options_allowed_values().
+ * @see options_allowed_values()
  */
 function options_test_allowed_values_callback(FieldStorageDefinitionInterface $definition, FieldableEntityInterface $entity = NULL) {
-  $values = array(
-    'Group 1' => array(
+  $values = [
+    'Group 1' => [
       0 => 'Zero',
-    ),
+    ],
     1 => 'One',
-    'Group 2' => array(
+    'Group 2' => [
       2 => 'Some <script>dangerous</script> & unescaped <strong>markup</strong>',
-    ),
-    'More <script>dangerous</script> markup' => array(
+    ],
+    'More <script>dangerous</script> markup' => [
       3 => 'Three',
-    ),
-  );
+    ],
+  ];
 
   return $values;
 }
@@ -38,18 +38,18 @@ function options_test_allowed_values_callback(FieldStorageDefinitionInterface $d
  *   NULL. Since this is not yet used for testing Views integration, that is
  *   alright for now. Fix this in https://www.drupal.org/node/2012130.
  *
- * @see options_allowed_values().
+ * @see options_allowed_values()
  */
 function options_test_dynamic_values_callback(FieldStorageDefinitionInterface $definition, FieldableEntityInterface $entity = NULL, &$cacheable = NULL) {
-  $values = array();
+  $values = [];
   if (isset($entity)) {
     $cacheable = FALSE;
-    $values = array(
+    $values = [
       $entity->label(),
       $entity->url(),
       $entity->uuid(),
       $entity->bundle(),
-    );
+    ];
   }
   // We need the values of the entity as keys.
   return array_combine($values, $values);

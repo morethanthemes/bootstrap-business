@@ -1,18 +1,13 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Utility\LinkGenerator.
- */
-
 namespace Drupal\Core\Utility;
 
 use Drupal\Component\Serialization\Json;
 use Drupal\Component\Utility\Html;
-use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Component\Render\MarkupInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\GeneratedLink;
+use Drupal\Core\GeneratedNoLink;
 use Drupal\Core\Link;
 use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\Routing\UrlGeneratorInterface;
@@ -81,6 +76,11 @@ class LinkGenerator implements LinkGeneratorInterface {
    * @see system_page_attachments()
    */
   public function generate($text, Url $url) {
+    // The link generator should not modify the original URL object, this
+    // ensures consistent rendering.
+    // @see https://www.drupal.org/node/2842399
+    $url = clone $url;
+
     // Performance: avoid Url::toString() needing to retrieve the URL generator
     // service from the container.
     $url->setUrlGenerator($this->urlGenerator);
@@ -90,20 +90,20 @@ class LinkGenerator implements LinkGeneratorInterface {
     }
 
     // Start building a structured representation of our link to be altered later.
-    $variables = array(
+    $variables = [
       'text' => $text,
       'url' => $url,
       'options' => $url->getOptions(),
-    );
+    ];
 
     // Merge in default options.
-    $variables['options'] += array(
-      'attributes' => array(),
-      'query' => array(),
+    $variables['options'] += [
+      'attributes' => [],
+      'query' => [],
       'language' => NULL,
       'set_active_class' => FALSE,
       'absolute' => FALSE,
-    );
+    ];
 
     // Add a hreflang attribute if we know the language of this link's url and
     // hreflang has not already been set.
@@ -112,7 +112,7 @@ class LinkGenerator implements LinkGeneratorInterface {
     }
 
     // Ensure that query values are strings.
-    array_walk($variables['options']['query'], function(&$value) {
+    array_walk($variables['options']['query'], function (&$value) {
       if ($value instanceof MarkupInterface) {
         $value = (string) $value;
       }
@@ -146,10 +146,11 @@ class LinkGenerator implements LinkGeneratorInterface {
 
     // Allow other modules to modify the structure of the link.
     $this->moduleHandler->alter('link', $variables);
+    $url = $variables['url'];
 
     // Move attributes out of options since generateFromRoute() doesn't need
-    // them. Include a placeholder for the href.
-    $attributes = array('href' => '') + $variables['options']['attributes'];
+    // them. Make sure the "href" comes first for testing purposes.
+    $attributes = ['href' => ''] + $variables['options']['attributes'];
     unset($variables['options']['attributes']);
     $url->setOptions($variables['options']);
 
@@ -157,6 +158,10 @@ class LinkGenerator implements LinkGeneratorInterface {
     if ($url->isExternal()) {
       $generated_link = new GeneratedLink();
       $attributes['href'] = $url->toString(FALSE);
+    }
+    elseif ($url->isRouted() && $url->getRouteName() === '<nolink>') {
+      $generated_link = new GeneratedNoLink();
+      unset($attributes['href']);
     }
     else {
       $generated_url = $url->toString(TRUE);
@@ -166,13 +171,13 @@ class LinkGenerator implements LinkGeneratorInterface {
       $attributes['href'] = $generated_url->getGeneratedUrl();
     }
 
-    if (!SafeMarkup::isSafe($variables['text'])) {
+    if (!($variables['text'] instanceof MarkupInterface)) {
       $variables['text'] = Html::escape($variables['text']);
     }
     $attributes = new Attribute($attributes);
     // This is safe because Attribute does escaping and $variables['text'] is
     // either rendered or escaped.
-    return $generated_link->setGeneratedLink('<a' . $attributes . '>' . $variables['text'] . '</a>');
+    return $generated_link->setGeneratedLink('<' . $generated_link::TAG . $attributes . '>' . $variables['text'] . '</' . $generated_link::TAG . '>');
   }
 
 }

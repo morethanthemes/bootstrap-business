@@ -12,10 +12,14 @@ source:
     type: image
     name: user_picture
     cardinality: 1
+  source_module: user
 process:
   entity_type: 'constants/entity_type'
   field_name: 'constants/name'
   type: 'constants/type'
   cardinality: 'constants/cardinality'
 destination:
-  plugin: md_entity:field_storage_config
+  plugin: entity:field_storage_config
+  dependencies:
+    module:
+      - image

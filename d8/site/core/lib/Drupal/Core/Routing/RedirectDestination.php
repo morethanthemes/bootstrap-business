@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Routing\RedirectDestination.
- */
-
 namespace Drupal\Core\Routing;
 
 use Drupal\Component\Utility\UrlHelper;
@@ -69,7 +64,7 @@ class RedirectDestination implements RedirectDestinationInterface {
         $this->destination = $query->get('destination');
       }
       else {
-        $this->destination = $this->urlGenerator->generateFromRoute('<current>', [], ['query' => UrlHelper::buildQuery(UrlHelper::filterQueryParameters($query->all()))]);
+        $this->destination = $this->urlGenerator->generateFromRoute('<current>', [], ['query' => UrlHelper::filterQueryParameters($query->all())]);
       }
     }
 

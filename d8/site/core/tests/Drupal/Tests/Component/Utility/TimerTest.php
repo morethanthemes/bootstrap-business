@@ -1,14 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Component\Utility\TimerTest.
- */
-
 namespace Drupal\Tests\Component\Utility;
 
-use Drupal\Tests\UnitTestCase;
 use Drupal\Component\Utility\Timer;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Tests the Timer system.
@@ -17,7 +12,7 @@ use Drupal\Component\Utility\Timer;
  *
  * @coversDefaultClass \Drupal\Component\Utility\Timer
  */
-class TimerTest extends UnitTestCase {
+class TimerTest extends TestCase {
 
   /**
    * Tests Timer::read() time accumulation accuracy across multiple restarts.
@@ -39,7 +34,7 @@ class TimerTest extends UnitTestCase {
 
     // Although we sleep for 5 milliseconds, we should test that at least 4 ms
     // have past because usleep() is not reliable on Windows. See
-    // http://php.net/manual/en/function.usleep.php for more information. The
+    // http://php.net/manual/function.usleep.php for more information. The
     // purpose of the test to validate that the Timer class can measure elapsed
     // time not the granularity of usleep() on a particular OS.
     $this->assertGreaterThanOrEqual(4, $value, 'Timer failed to measure at least 4 milliseconds of sleeping while running.');

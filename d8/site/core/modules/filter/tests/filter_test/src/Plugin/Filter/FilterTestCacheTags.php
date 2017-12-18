@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\filter_test\Plugin\Filter\FilterTestCacheTags.
- */
-
 namespace Drupal\filter_test\Plugin\Filter;
 
 use Drupal\filter\FilterProcessResult;
@@ -27,8 +22,8 @@ class FilterTestCacheTags extends FilterBase {
    */
   public function process($text, $langcode) {
     $result = new FilterProcessResult($text);
-    $result->addCacheTags(array('foo:bar'));
-    $result->addCacheTags(array('foo:baz'));
+    $result->addCacheTags(['foo:bar']);
+    $result->addCacheTags(['foo:baz']);
     return $result;
   }
 

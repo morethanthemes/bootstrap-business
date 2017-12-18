@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Path\PathValidatorTest.
- */
-
 namespace Drupal\Tests\Core\Path;
 
 use Drupal\Core\ParamConverter\ParamNotConvertedException;
@@ -137,7 +132,6 @@ class PathValidatorTest extends UnitTestCase {
     $this->pathProcessor->expects($this->once())
       ->method('processInbound')
       ->willReturnArgument(0);
-
 
     $this->assertTrue($this->pathValidator->isValid('test-path'));
   }
@@ -449,4 +443,3 @@ class PathValidatorTest extends UnitTestCase {
   }
 
 }
-

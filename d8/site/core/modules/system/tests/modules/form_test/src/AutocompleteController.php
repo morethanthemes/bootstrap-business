@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\form_test\AutocompleteController.
- */
-
 namespace Drupal\form_test;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -21,7 +16,7 @@ class AutocompleteController {
    *   A JSON response.
    */
   public function autocomplete1() {
-    return new JsonResponse(array('key' => 'value'));
+    return new JsonResponse(['key' => 'value']);
   }
 
 }

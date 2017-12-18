@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\serialization\Normalizer\NullNormalizer.
- */
-
 namespace Drupal\serialization\Normalizer;
 
 /**
@@ -25,7 +20,7 @@ class NullNormalizer extends NormalizerBase {
   /**
    * {@inheritdoc}
    */
-  public function normalize($object, $format = NULL, array $context = array()) {
+  public function normalize($object, $format = NULL, array $context = []) {
     return NULL;
   }
 

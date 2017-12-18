@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\EntityFormBuilder.
- */
-
 namespace Drupal\Core\Entity;
 
 use Drupal\Core\Form\FormBuilderInterface;
@@ -45,7 +40,7 @@ class EntityFormBuilder implements EntityFormBuilderInterface {
   /**
    * {@inheritdoc}
    */
-  public function getForm(EntityInterface $entity, $operation = 'default', array $form_state_additions = array()) {
+  public function getForm(EntityInterface $entity, $operation = 'default', array $form_state_additions = []) {
     $form_object = $this->entityManager->getFormObject($entity->getEntityTypeId(), $operation);
     $form_object->setEntity($entity);
 

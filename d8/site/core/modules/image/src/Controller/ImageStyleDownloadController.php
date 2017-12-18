@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\image\Controller\ImageStyleDownloadController.
- */
-
 namespace Drupal\image\Controller;
 
 use Drupal\Component\Utility\Crypt;
@@ -12,7 +7,6 @@ use Drupal\Core\Image\ImageFactory;
 use Drupal\Core\Lock\LockBackendInterface;
 use Drupal\image\ImageStyleInterface;
 use Drupal\system\FileDownloadController;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -53,13 +47,11 @@ class ImageStyleDownloadController extends FileDownloadController {
    *   The lock backend.
    * @param \Drupal\Core\Image\ImageFactory $image_factory
    *   The image factory.
-   * @param \Psr\Log\LoggerInterface $logger
-   *   A logger instance.
    */
-  public function __construct(LockBackendInterface $lock, ImageFactory $image_factory, LoggerInterface $logger) {
+  public function __construct(LockBackendInterface $lock, ImageFactory $image_factory) {
     $this->lock = $lock;
     $this->imageFactory = $image_factory;
-    $this->logger = $logger;
+    $this->logger = $this->getLogger('image');
   }
 
   /**
@@ -68,8 +60,7 @@ class ImageStyleDownloadController extends FileDownloadController {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('lock'),
-      $container->get('image.factory'),
-      $container->get('logger.factory')->get('image')
+      $container->get('image.factory')
     );
   }
 
@@ -117,19 +108,14 @@ class ImageStyleDownloadController extends FileDownloadController {
     }
 
     $derivative_uri = $image_style->buildUri($image_uri);
-    $headers = array();
+    $headers = [];
 
     // If using the private scheme, let other modules provide headers and
     // control access to the file.
     if ($scheme == 'private') {
-      if (file_exists($derivative_uri)) {
-        return parent::download($request, $scheme);
-      }
-      else {
-        $headers = $this->moduleHandler()->invokeAll('file_download', array($image_uri));
-        if (in_array(-1, $headers) || empty($headers)) {
-          throw new AccessDeniedHttpException();
-        }
+      $headers = $this->moduleHandler()->invokeAll('file_download', [$image_uri]);
+      if (in_array(-1, $headers) || empty($headers)) {
+        throw new AccessDeniedHttpException();
       }
     }
 
@@ -142,7 +128,7 @@ class ImageStyleDownloadController extends FileDownloadController {
       $path_info = pathinfo($image_uri);
       $converted_image_uri = $path_info['dirname'] . DIRECTORY_SEPARATOR . $path_info['filename'];
       if (!file_exists($converted_image_uri)) {
-        $this->logger->notice('Source image at %source_image_path not found while trying to generate derivative image at %derivative_path.', array('%source_image_path' => $image_uri, '%derivative_path' => $derivative_uri));
+        $this->logger->notice('Source image at %source_image_path not found while trying to generate derivative image at %derivative_path.', ['%source_image_path' => $image_uri, '%derivative_path' => $derivative_uri]);
         return new Response($this->t('Error generating image, missing source file.'), 404);
       }
       else {
@@ -153,8 +139,8 @@ class ImageStyleDownloadController extends FileDownloadController {
 
     // Don't start generating the image if the derivative already exists or if
     // generation is in progress in another thread.
-    $lock_name = 'image_style_deliver:' . $image_style->id() . ':' . Crypt::hashBase64($image_uri);
     if (!file_exists($derivative_uri)) {
+      $lock_name = 'image_style_deliver:' . $image_style->id() . ':' . Crypt::hashBase64($image_uri);
       $lock_acquired = $this->lock->acquire($lock_name);
       if (!$lock_acquired) {
         // Tell client to retry again in 3 seconds. Currently no browsers are
@@ -174,10 +160,10 @@ class ImageStyleDownloadController extends FileDownloadController {
     if ($success) {
       $image = $this->imageFactory->get($derivative_uri);
       $uri = $image->getSource();
-      $headers += array(
+      $headers += [
         'Content-Type' => $image->getMimeType(),
         'Content-Length' => $image->getFileSize(),
-      );
+      ];
       // \Drupal\Core\EventSubscriber\FinishResponseSubscriber::onRespond()
       // sets response as not cacheable if the Cache-Control header is not
       // already modified. We pass in FALSE for non-private schemes for the
@@ -185,7 +171,7 @@ class ImageStyleDownloadController extends FileDownloadController {
       return new BinaryFileResponse($uri, 200, $headers, $scheme !== 'private');
     }
     else {
-      $this->logger->notice('Unable to generate the derived image located at %path.', array('%path' => $derivative_uri));
+      $this->logger->notice('Unable to generate the derived image located at %path.', ['%path' => $derivative_uri]);
       return new Response($this->t('Error generating image.'), 500);
     }
   }

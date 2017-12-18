@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\EntityRepositoryInterface.
- */
-
 namespace Drupal\Core\Entity;
 
 /**
@@ -72,6 +67,6 @@ interface EntityRepositoryInterface {
    *
    * @see \Drupal\Core\Language\LanguageManagerInterface::getFallbackCandidates()
    */
-  public function getTranslationFromContext(EntityInterface $entity, $langcode = NULL, $context = array());
+  public function getTranslationFromContext(EntityInterface $entity, $langcode = NULL, $context = []);
 
 }

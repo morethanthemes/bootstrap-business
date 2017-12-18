@@ -147,7 +147,7 @@ function pager_default_initialize($total, $limit, $element = 0) {
 function pager_get_query_parameters() {
   $query = &drupal_static(__FUNCTION__);
   if (!isset($query)) {
-    $query = UrlHelper::filterQueryParameters(\Drupal::request()->query->all(), array('page'));
+    $query = UrlHelper::filterQueryParameters(\Drupal::request()->query->all(), ['page']);
   }
   return $query;
 }
@@ -169,6 +169,7 @@ function pager_get_query_parameters() {
  *       one page.
  *     - #parameters: An associative array of query string parameters to append
  *       to the pager links.
+ *     - #route_parameters: An associative array of the route parameters.
  *     - #quantity: The number of pages in the list.
  */
 function template_preprocess_pager(&$variables) {
@@ -176,6 +177,7 @@ function template_preprocess_pager(&$variables) {
   $parameters = $variables['pager']['#parameters'];
   $quantity = $variables['pager']['#quantity'];
   $route_name = $variables['pager']['#route_name'];
+  $route_parameters = isset($variables['pager']['#route_parameters']) ? $variables['pager']['#route_parameters'] : [];
   global $pager_page_array, $pager_total;
 
   // Nothing to do if there is only one page.
@@ -214,20 +216,20 @@ function template_preprocess_pager(&$variables) {
 
   // Create the "first" and "previous" links if we are not on the first page.
   if ($pager_page_array[$element] > 0) {
-    $items['first'] = array();
-    $options = array(
+    $items['first'] = [];
+    $options = [
       'query' => pager_query_add_page($parameters, $element, 0),
-    );
-    $items['first']['href'] = \Drupal::url($route_name, [], $options);
+    ];
+    $items['first']['href'] = \Drupal::url($route_name, $route_parameters, $options);
     if (isset($tags[0])) {
       $items['first']['text'] = $tags[0];
     }
 
-    $items['previous'] = array();
-    $options = array(
+    $items['previous'] = [];
+    $options = [
       'query' => pager_query_add_page($parameters, $element, $pager_page_array[$element] - 1),
-    );
-    $items['previous']['href'] = \Drupal::url($route_name, [], $options);
+    ];
+    $items['previous']['href'] = \Drupal::url($route_name, $route_parameters, $options);
     if (isset($tags[1])) {
       $items['previous']['text'] = $tags[1];
     }
@@ -240,10 +242,10 @@ function template_preprocess_pager(&$variables) {
     }
     // Now generate the actual pager piece.
     for (; $i <= $pager_last && $i <= $pager_max; $i++) {
-      $options = array(
+      $options = [
         'query' => pager_query_add_page($parameters, $element, $i - 1),
-      );
-      $items['pages'][$i]['href'] = \Drupal::url($route_name, [], $options);
+      ];
+      $items['pages'][$i]['href'] = \Drupal::url($route_name, $route_parameters, $options);
       if ($i == $pager_current) {
         $variables['current'] = $i;
       }
@@ -256,20 +258,20 @@ function template_preprocess_pager(&$variables) {
 
   // Create the "next" and "last" links if we are not on the last page.
   if ($pager_page_array[$element] < ($pager_max - 1)) {
-    $items['next'] = array();
-    $options = array(
+    $items['next'] = [];
+    $options = [
       'query' => pager_query_add_page($parameters, $element, $pager_page_array[$element] + 1),
-    );
-    $items['next']['href'] = \Drupal::url($route_name, [], $options);
+    ];
+    $items['next']['href'] = \Drupal::url($route_name, $route_parameters, $options);
     if (isset($tags[3])) {
       $items['next']['text'] = $tags[3];
     }
 
-    $items['last'] = array();
-    $options = array(
+    $items['last'] = [];
+    $options = [
       'query' => pager_query_add_page($parameters, $element, $pager_max - 1),
-    );
-    $items['last']['href'] = \Drupal::url($route_name, [], $options);
+    ];
+    $items['last']['href'] = \Drupal::url($route_name, $route_parameters, $options);
     if (isset($tags[4])) {
       $items['last']['text'] = $tags[4];
     }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Config\NullStorage.
- */
-
 namespace Drupal\Core\Config;
 
 /**
@@ -34,14 +29,14 @@ class NullStorage implements StorageInterface {
    * {@inheritdoc}
    */
   public function read($name) {
-    return array();
+    return [];
   }
 
   /**
    * {@inheritdoc}
    */
   public function readMultiple(array $names) {
-    return array();
+    return [];
   }
 
   /**
@@ -83,7 +78,7 @@ class NullStorage implements StorageInterface {
    * {@inheritdoc}
    */
   public function listAll($prefix = '') {
-    return array();
+    return [];
   }
 
   /**
@@ -104,7 +99,7 @@ class NullStorage implements StorageInterface {
    * {@inheritdoc}
    */
   public function getAllCollectionNames() {
-    return array();
+    return [];
   }
 
   /**

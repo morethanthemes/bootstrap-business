@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Menu\ContextualLinkManagerInterface.
- */
-
 namespace Drupal\Core\Menu;
 
 /**
@@ -46,6 +41,6 @@ interface ContextualLinkManagerInterface {
    *       to the link generator.
    *     - metadata: The array of additional metadata that was passed in.
    */
-  public function getContextualLinksArrayByGroup($group_name, array $route_parameters, array $metadata = array());
+  public function getContextualLinksArrayByGroup($group_name, array $route_parameters, array $metadata = []);
 
 }

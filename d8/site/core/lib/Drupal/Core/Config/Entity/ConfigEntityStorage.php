@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Config\Entity\ConfigEntityStorage.
- */
-
 namespace Drupal\Core\Config\Entity;
 
 use Drupal\Core\Cache\CacheableMetadata;
@@ -89,7 +84,7 @@ class ConfigEntityStorage extends EntityStorageBase implements ConfigEntityStora
    * @var array
    * @see \Drupal\Core\Config\ConfigFactoryInterface::getCacheKeys().
    */
-  protected $entities = array();
+  protected $entities = [];
 
   /**
    * Determines if the underlying configuration is retrieved override free.
@@ -175,7 +170,7 @@ class ConfigEntityStorage extends EntityStorageBase implements ConfigEntityStora
       $names = $this->configFactory->listAll($prefix);
     }
     else {
-      $names = array();
+      $names = [];
       foreach ($ids as $id) {
         // Add the prefix to the ID to serve as the configuration object name.
         $names[] = $prefix . $id;
@@ -225,7 +220,7 @@ class ConfigEntityStorage extends EntityStorageBase implements ConfigEntityStora
    */
   protected function doCreate(array $values) {
     // Set default language to current language if not provided.
-    $values += array($this->langcodeKey => $this->languageManager->getCurrentLanguage()->getId());
+    $values += [$this->langcodeKey => $this->languageManager->getCurrentLanguage()->getId()];
     $entity = new $this->entityClass($values, $this->entityTypeId);
 
     return $entity;
@@ -287,7 +282,7 @@ class ConfigEntityStorage extends EntityStorageBase implements ConfigEntityStora
     // Update the entity with the values stored in configuration. It is possible
     // that configuration schema has casted some of the values.
     if (!$entity->hasTrustedData()) {
-      $data = $this->mapFromStorageRecords(array($config->get()));
+      $data = $this->mapFromStorageRecords([$config->get()]);
       $updated_entity = current($data);
 
       foreach (array_keys($config->get()) as $property) {
@@ -322,6 +317,13 @@ class ConfigEntityStorage extends EntityStorageBase implements ConfigEntityStora
   }
 
   /**
+   * {@inheritdoc}
+   */
+  public function hasData() {
+    return (bool) $this->configFactory->listAll($this->getPrefix());
+  }
+
+  /**
    * Gets entities from the static cache.
    *
    * @param array $ids
@@ -331,7 +333,7 @@ class ConfigEntityStorage extends EntityStorageBase implements ConfigEntityStora
    *   Array of entities from the entity cache.
    */
   protected function getFromStaticCache(array $ids) {
-    $entities = array();
+    $entities = [];
     // Load any available entities from the internal cache.
     if ($this->entityType->isStaticallyCacheable() && !empty($this->entities)) {
       $config_overrides_key = $this->overrideFree ? '' : implode(':', $this->configFactory->getCacheKeys());
@@ -371,9 +373,9 @@ class ConfigEntityStorage extends EntityStorageBase implements ConfigEntityStora
    */
   protected function invokeHook($hook, EntityInterface $entity) {
     // Invoke the hook.
-    $this->moduleHandler->invokeAll($this->entityTypeId . '_' . $hook, array($entity));
+    $this->moduleHandler->invokeAll($this->entityTypeId . '_' . $hook, [$entity]);
     // Invoke the respective entity-level hook.
-    $this->moduleHandler->invokeAll('entity_' . $hook, array($entity, $this->entityTypeId));
+    $this->moduleHandler->invokeAll('entity_' . $hook, [$entity, $this->entityTypeId]);
   }
 
   /**
@@ -387,8 +389,7 @@ class ConfigEntityStorage extends EntityStorageBase implements ConfigEntityStora
    * {@inheritdoc}
    */
   public function importCreate($name, Config $new_config, Config $old_config) {
-    $entity = $this->createFromStorageRecord($new_config->get());
-    $entity->setSyncing(TRUE);
+    $entity = $this->_doCreateFromStorageRecord($new_config->get(), TRUE);
     $entity->save();
     return TRUE;
   }
@@ -430,13 +431,35 @@ class ConfigEntityStorage extends EntityStorageBase implements ConfigEntityStora
    * {@inheritdoc}
    */
   public function createFromStorageRecord(array $values) {
+    return $this->_doCreateFromStorageRecord($values);
+  }
+
+  /**
+   * Helps create a configuration entity from storage values.
+   *
+   * Allows the configuration entity storage to massage storage values before
+   * creating an entity.
+   *
+   * @param array $values
+   *   The array of values from the configuration storage.
+   * @param bool $is_syncing
+   *   Is the configuration entity being created as part of a config sync.
+   *
+   * @return \Drupal\Core\Config\ConfigEntityInterface
+   *   The configuration entity.
+   *
+   * @see \Drupal\Core\Config\Entity\ConfigEntityStorageInterface::createFromStorageRecord()
+   * @see \Drupal\Core\Config\Entity\ImportableEntityStorageInterface::importCreate()
+   */
+  protected function _doCreateFromStorageRecord(array $values, $is_syncing = FALSE) {
     // Assign a new UUID if there is none yet.
     if ($this->uuidKey && $this->uuidService && !isset($values[$this->uuidKey])) {
       $values[$this->uuidKey] = $this->uuidService->generate();
     }
-    $data = $this->mapFromStorageRecords(array($values));
+    $data = $this->mapFromStorageRecords([$values]);
     $entity = current($data);
     $entity->original = clone $entity;
+    $entity->setSyncing($is_syncing);
     $entity->enforceIsNew();
     $entity->postCreate($this);
 
@@ -444,6 +467,7 @@ class ConfigEntityStorage extends EntityStorageBase implements ConfigEntityStora
     // entity object, for instance to fill-in default values.
     $this->invokeHook('create', $entity);
     return $entity;
+
   }
 
   /**
@@ -452,7 +476,7 @@ class ConfigEntityStorage extends EntityStorageBase implements ConfigEntityStora
   public function updateFromStorageRecord(ConfigEntityInterface $entity, array $values) {
     $entity->original = clone $entity;
 
-    $data = $this->mapFromStorageRecords(array($values));
+    $data = $this->mapFromStorageRecords([$values]);
     $updated_entity = current($data);
 
     foreach (array_keys($values) as $property) {

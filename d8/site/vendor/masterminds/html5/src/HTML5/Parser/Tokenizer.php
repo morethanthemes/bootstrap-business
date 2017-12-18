@@ -43,6 +43,10 @@ class Tokenizer
     protected $textMode = 0; // TEXTMODE_NORMAL;
     protected $untilTag = null;
 
+    const CONFORMANT_XML = 'xml';
+    const CONFORMANT_HTML = 'html';
+    protected $mode = self::CONFORMANT_HTML;
+
     const WHITE = "\t\n\f ";
 
     /**
@@ -57,11 +61,13 @@ class Tokenizer
      * @param \Masterminds\HTML5\Parser\EventHandler $eventHandler
      *            An event handler, initialized and ready to receive
      *            events.
+     * @param string $mode
      */
-    public function __construct($scanner, $eventHandler)
+    public function __construct($scanner, $eventHandler, $mode = self::CONFORMANT_HTML)
     {
         $this->scanner = $scanner;
         $this->events = $eventHandler;
+        $this->mode = $mode;
     }
 
     /**
@@ -77,11 +83,8 @@ class Tokenizer
      */
     public function parse()
     {
-        $p = 0;
         do {
-            $p = $this->scanner->position();
             $this->consumeData();
-
             // FIXME: Add infinite loop protection.
         } while ($this->carryOn);
     }
@@ -139,7 +142,8 @@ class Tokenizer
      */
     protected function characterData()
     {
-        if ($this->scanner->current() === false) {
+        $tok = $this->scanner->current();
+        if ($tok === false) {
             return false;
         }
         switch ($this->textMode) {
@@ -148,7 +152,6 @@ class Tokenizer
             case Elements::TEXT_RCDATA:
                 return $this->rcdata();
             default:
-                $tok = $this->scanner->current();
                 if (strspn($tok, "<&")) {
                     return false;
                 }
@@ -299,7 +302,7 @@ class Tokenizer
         }
 
         elseif ($tok == 'D' || $tok == 'd') { // Doctype
-            return $this->doctype('');
+            return $this->doctype();
         }
 
         elseif ($tok == '[') { // CDATA section
@@ -335,7 +338,8 @@ class Tokenizer
             return $this->bogusComment('</');
         }
 
-        $name = strtolower($this->scanner->charsUntil("\n\f \t>"));
+        $name = $this->scanner->charsUntil("\n\f \t>");
+        $name = $this->mode === self::CONFORMANT_XML ? $name: strtolower($name);
         // Trash whitespace.
         $this->scanner->whitespace();
 
@@ -362,7 +366,8 @@ class Tokenizer
         }
 
         // We know this is at least one char.
-        $name = strtolower($this->scanner->charsWhile(":_-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"));
+        $name = $this->scanner->charsWhile(":_-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
+        $name = $this->mode === self::CONFORMANT_XML ? $name : strtolower($name);
         $attributes = array();
         $selfClose = false;
 
@@ -400,24 +405,26 @@ class Tokenizer
         if ($tok == '/') {
             $this->scanner->next();
             $this->scanner->whitespace();
-            if ($this->scanner->current() == '>') {
+            $tok = $this->scanner->current();
+
+            if ($tok == '>') {
                 $selfClose = true;
                 return true;
             }
-            if ($this->scanner->current() === false) {
+            if ($tok === false) {
                 $this->parseError("Unexpected EOF inside of tag.");
                 return true;
             }
             // Basically, we skip the / token and go on.
             // See 8.2.4.43.
-            $this->parseError("Unexpected '%s' inside of a tag.", $this->scanner->current());
+            $this->parseError("Unexpected '%s' inside of a tag.", $tok);
             return false;
         }
 
-        if ($this->scanner->current() == '>') {
+        if ($tok == '>') {
             return true;
         }
-        if ($this->scanner->current() === false) {
+        if ($tok === false) {
             $this->parseError("Unexpected EOF inside of tag.");
             return true;
         }
@@ -533,15 +540,21 @@ class Tokenizer
     {
         $stoplist = "\f" . $quote;
         $val = '';
-        $tok = $this->scanner->current();
-        while (strspn($tok, $stoplist) == 0 && $tok !== false) {
-            if ($tok == '&') {
-                $val .= $this->decodeCharacterReference(true);
-                $tok = $this->scanner->current();
+
+        while (true) {
+            $tokens = $this->scanner->charsUntil($stoplist.'&');
+            if ($tokens !== false) {
+                $val .= $tokens;
             } else {
-                $val .= $tok;
-                $tok = $this->scanner->next();
+                break;
             }
+
+            $tok = $this->scanner->current();
+            if ($tok == '&') {
+                $val .= $this->decodeCharacterReference(true, $tok);
+                continue;
+            }
+            break;
         }
         $this->scanner->next();
         return $val;
@@ -583,18 +596,18 @@ class Tokenizer
      */
     protected function bogusComment($leading = '')
     {
-
-        // TODO: This can be done more efficiently when the
-        // scanner exposes a readUntil() method.
         $comment = $leading;
+        $tokens = $this->scanner->charsUntil('>');
+        if ($tokens !== false) {
+            $comment .= $tokens;
+        }
         $tok = $this->scanner->current();
-        do {
+        if ($tok !== false) {
             $comment .= $tok;
-            $tok = $this->scanner->next();
-        } while ($tok !== false && $tok != '>');
+        }
 
         $this->flushBuffer();
-        $this->events->comment($comment . $tok);
+        $this->events->comment($comment);
         $this->scanner->next();
 
         return true;
@@ -638,15 +651,17 @@ class Tokenizer
      */
     protected function isCommentEnd()
     {
+        $tok = $this->scanner->current();
+
         // EOF
-        if ($this->scanner->current() === false) {
+        if ($tok === false) {
             // Hit the end.
             $this->parseError("Unexpected EOF in a comment.");
             return true;
         }
 
         // If it doesn't start with -, not the end.
-        if ($this->scanner->current() != '-') {
+        if ($tok != '-') {
             return false;
         }
 
@@ -729,7 +744,6 @@ class Tokenizer
 
         $pub = strtoupper($this->scanner->getAsciiAlpha());
         $white = strlen($this->scanner->whitespace());
-        $tok = $this->scanner->current();
 
         // Get ID, and flag it as pub or system.
         if (($pub == 'PUBLIC' || $pub == 'SYSTEM') && $white > 0) {
@@ -930,10 +944,11 @@ class Tokenizer
         $len = strlen($sequence);
         $buffer = '';
         for ($i = 0; $i < $len; ++ $i) {
-            $buffer .= $this->scanner->current();
+            $tok = $this->scanner->current();
+            $buffer .= $tok;
 
             // EOF. Rewind and let the caller handle it.
-            if ($this->scanner->current() === false) {
+            if ($tok === false) {
                 $this->scanner->unconsume($i);
                 return false;
             }
@@ -1059,18 +1074,22 @@ class Tokenizer
                 }
                 $entity = CharacterReference::lookupDecimal($numeric);
             }
-        }         // String entity.
-        else {
+        } elseif ($tok === '=' && $inAttribute) {
+            return '&';
+        } else { // String entity.
+
             // Attempt to consume a string up to a ';'.
             // [a-zA-Z0-9]+;
-            $cname = $this->scanner->getAsciiAlpha();
+            $cname = $this->scanner->getAsciiAlphaNum();
             $entity = CharacterReference::lookupName($cname);
 
             // When no entity is found provide the name of the unmatched string
             // and continue on as the & is not part of an entity. The & will
             // be converted to &amp; elsewhere.
             if ($entity == null) {
-                $this->parseError("No match in entity table for '%s'", $cname);
+                if (!$inAttribute || strlen($cname) === 0) {
+                    $this->parseError("No match in entity table for '%s'", $cname);
+                }
                 $this->scanner->unconsume($this->scanner->position() - $start);
                 return '&';
             }

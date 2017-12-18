@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Plugin\Menu\ViewsMenuLink.
- */
-
 namespace Drupal\views\Plugin\Menu;
 
 use Drupal\Core\Menu\MenuLinkBase;
@@ -23,7 +18,7 @@ class ViewsMenuLink extends MenuLinkBase implements ContainerFactoryPluginInterf
   /**
    * {@inheritdoc}
    */
-  protected $overrideAllowed = array(
+  protected $overrideAllowed = [
     'menu_name' => 1,
     'parent' => 1,
     'weight' => 1,
@@ -31,8 +26,7 @@ class ViewsMenuLink extends MenuLinkBase implements ContainerFactoryPluginInterf
     'enabled' => 1,
     'title' => 1,
     'description' => 1,
-    'metadata' => 1,
-  );
+  ];
 
   /**
    * The entity manager.
@@ -145,9 +139,9 @@ class ViewsMenuLink extends MenuLinkBase implements ContainerFactoryPluginInterf
       $display = &$view->storage->getDisplay($view->current_display);
       // Just save the title to the original view.
       $changed = FALSE;
-      foreach ($new_definition_values as $key => $new_definition_value) {
-        if (isset($display['display_options']['menu'][$key]) && $display['display_options']['menu'][$key] != $new_definition_values[$key]) {
-          $display['display_options']['menu'][$key] = $new_definition_values[$key];
+      foreach ($overrides as $key => $new_definition_value) {
+        if (empty($display['display_options']['menu'][$key]) || $display['display_options']['menu'][$key] != $new_definition_value) {
+          $display['display_options']['menu'][$key] = $new_definition_value;
           $changed = TRUE;
         }
       }

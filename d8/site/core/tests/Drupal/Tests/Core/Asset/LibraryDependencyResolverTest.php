@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Asset\LibraryDependencyResolverTest.
- */
-
 namespace Drupal\Tests\Core\Asset;
 
 use Drupal\Core\Asset\LibraryDependencyResolver;
@@ -42,7 +37,7 @@ class LibraryDependencyResolverTest extends UnitTestCase {
    *
    * @var array
    */
-  protected $libraryData = array(
+  protected $libraryData = [
     'no_deps_a' => ['js' => [], 'css' => []],
     'no_deps_b' => ['js' => [], 'css' => []],
     'no_deps_c' => ['js' => [], 'css' => []],
@@ -52,7 +47,7 @@ class LibraryDependencyResolverTest extends UnitTestCase {
     'nested_deps_a' => ['js' => [], 'css' => [], 'dependencies' => ['test/deps_a']],
     'nested_deps_b' => ['js' => [], 'css' => [], 'dependencies' => ['test/nested_deps_a']],
     'nested_deps_c' => ['js' => [], 'css' => [], 'dependencies' => ['test/nested_deps_b']],
-  );
+  ];
 
   /**
    * {@inheritdoc}
@@ -66,7 +61,7 @@ class LibraryDependencyResolverTest extends UnitTestCase {
       ->method('getLibrariesByExtension')
       ->with('test')
       ->will($this->returnValue($this->libraryData));
-    $this->libraryDependencyResolver= new LibraryDependencyResolver($this->libraryDiscovery);
+    $this->libraryDependencyResolver = new LibraryDependencyResolver($this->libraryDiscovery);
   }
 
 

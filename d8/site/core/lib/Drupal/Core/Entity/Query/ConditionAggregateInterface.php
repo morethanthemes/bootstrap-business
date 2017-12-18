@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\Query\ConditionAggregateInterface.
- */
-
 namespace Drupal\Core\Entity\Query;
 
 /**
@@ -49,7 +44,7 @@ interface ConditionAggregateInterface extends \Countable {
    * Queries for the nonexistence of a field.
    *
    * @param string $field
-   * @return ConditionInterface;
+   * @return ConditionInterface
    * @see \Drupal\Core\Entity\Query\QueryInterface::notexists()
    */
   public function notExists($field, $function, $langcode = NULL);

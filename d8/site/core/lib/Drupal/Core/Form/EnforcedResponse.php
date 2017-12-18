@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Form\EnforcedResponse.
- */
-
 namespace Drupal\Core\Form;
 
 use Symfony\Component\HttpFoundation\Response;
@@ -42,7 +37,7 @@ class EnforcedResponse extends Response {
    * @param \Exception $e
    *   The exception where the enforced response is to be extracted from.
    *
-   * @return \Drupal\Core\Form\EnforcedResponse|NULL
+   * @return \Drupal\Core\Form\EnforcedResponse|null
    *   The enforced response or NULL if the exception chain does not contain a
    *   \Drupal\Core\Form\EnforcedResponseException exception.
    */

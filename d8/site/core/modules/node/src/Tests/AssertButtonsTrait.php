@@ -1,14 +1,14 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Tests\AssertButtonsTrait.
- */
-
 namespace Drupal\node\Tests;
+
+@trigger_error('\Drupal\Tests\node\Functional\AssertButtonsTrait is deprecated in Drupal 8.4.0 and will be removed before Drupal 9.0.0. Instead, use \Drupal\Tests\node\Functional\AssertButtonsTrait', E_USER_DEPRECATED);
 
 /**
  * Asserts that buttons are present on a page.
+ *
+ * @deprecated Scheduled for removal before Drupal 9.0.0.
+ *   Use \Drupal\Tests\node\Functional\AssertButtonsTrait instead.
  */
 trait AssertButtonsTrait {
 
@@ -49,4 +49,5 @@ trait AssertButtonsTrait {
       $this->assertNoRaw('dropbutton-wrapper');
     }
   }
+
 }

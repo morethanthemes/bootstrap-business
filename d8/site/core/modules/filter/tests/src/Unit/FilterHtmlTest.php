@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\filter\Unit\FilterHtmlTest.
- */
-
 namespace Drupal\Tests\filter\Unit;
 
 use Drupal\Tests\UnitTestCase;
@@ -82,6 +77,20 @@ class FilterHtmlTest extends UnitTestCase {
       // Both wildcard names and values.
       ['<ul style="display: none;" alpaca-wool="wooly-warm strong majestic"></ul>', '<ul alpaca-wool="wooly-warm strong"></ul>'],
     ];
+  }
+
+  /**
+   * @covers ::setConfiguration
+   */
+  public function testSetConfiguration() {
+    $configuration['settings'] = [
+      // New lines and spaces are replaced with a single space.
+      'allowed_html' => "<a>  <br>\r\n  <p>",
+      'filter_html_help' => 1,
+      'filter_html_nofollow' => 0,
+    ];
+    $filter = new FilterHtml($configuration, 'filter_html', ['provider' => 'test']);
+    $this->assertSame('<a> <br> <p>', $filter->getConfiguration()['settings']['allowed_html']);
   }
 
 }

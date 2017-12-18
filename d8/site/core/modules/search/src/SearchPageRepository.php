@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\search\SearchPageRepository.
- */
-
 namespace Drupal\search;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -110,7 +105,7 @@ class SearchPageRepository implements SearchPageRepositoryInterface {
    */
   public function sortSearchPages($search_pages) {
     $entity_type = $this->storage->getEntityType();
-    uasort($search_pages, array($entity_type->getClass(), 'sort'));
+    uasort($search_pages, [$entity_type->getClass(), 'sort']);
     return $search_pages;
   }
 

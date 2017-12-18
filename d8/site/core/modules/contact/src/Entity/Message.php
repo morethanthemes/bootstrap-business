@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\contact\Entity\Message.
- */
-
 namespace Drupal\contact\Entity;
 
 use Drupal\Core\Entity\ContentEntityBase;
@@ -18,6 +13,7 @@ use Drupal\Core\Field\BaseFieldDefinition;
  * @ContentEntityType(
  *   id = "contact_message",
  *   label = @Translation("Contact message"),
+ *   bundle_label = @Translation("Contact form"),
  *   handlers = {
  *     "access" = "Drupal\contact\ContactMessageAccessControlHandler",
  *     "storage" = "Drupal\Core\Entity\ContentEntityNullStorage",
@@ -112,7 +108,7 @@ class Message extends ContentEntityBase implements MessageInterface {
    * {@inheritdoc}
    */
   public function copySender() {
-    return (bool)$this->get('copy')->value;
+    return (bool) $this->get('copy')->value;
   }
 
   /**
@@ -135,24 +131,15 @@ class Message extends ContentEntityBase implements MessageInterface {
    * {@inheritdoc}
    */
   public static function baseFieldDefinitions(EntityTypeInterface $entity_type) {
-    $fields['contact_form'] = BaseFieldDefinition::create('entity_reference')
-      ->setLabel(t('Form ID'))
-      ->setDescription(t('The ID of the associated form.'))
-      ->setSetting('target_type', 'contact_form')
-      ->setRequired(TRUE);
+    /** @var \Drupal\Core\Field\BaseFieldDefinition[] $fields */
+    $fields = parent::baseFieldDefinitions($entity_type);
 
-    $fields['uuid'] = BaseFieldDefinition::create('uuid')
-      ->setLabel(t('UUID'))
-      ->setDescription(t('The message UUID.'))
-      ->setReadOnly(TRUE);
+    $fields['contact_form']->setLabel(t('Form ID'))
+      ->setDescription(t('The ID of the associated form.'));
 
-    $fields['langcode'] = BaseFieldDefinition::create('language')
-      ->setLabel(t('Language'))
-      ->setDescription(t('The message language code.'))
-      ->setDisplayOptions('form', array(
-        'type' => 'language_select',
-        'weight' => 2,
-      ));
+    $fields['uuid']->setDescription(t('The message UUID.'));
+
+    $fields['langcode']->setDescription(t('The message language code.'));
 
     $fields['name'] = BaseFieldDefinition::create('string')
       ->setLabel(t("The sender's name"))
@@ -167,29 +154,29 @@ class Message extends ContentEntityBase implements MessageInterface {
       ->setLabel(t('Subject'))
       ->setRequired(TRUE)
       ->setSetting('max_length', 100)
-      ->setDisplayOptions('form', array(
+      ->setDisplayOptions('form', [
         'type' => 'string_textfield',
         'weight' => -10,
-      ))
+      ])
       ->setDisplayConfigurable('form', TRUE);
 
     // The text of the contact message.
     $fields['message'] = BaseFieldDefinition::create('string_long')
       ->setLabel(t('Message'))
       ->setRequired(TRUE)
-      ->setDisplayOptions('form', array(
+      ->setDisplayOptions('form', [
         'type' => 'string_textarea',
         'weight' => 0,
-        'settings' => array(
+        'settings' => [
           'rows' => 12,
-        ),
-      ))
+        ],
+      ])
       ->setDisplayConfigurable('form', TRUE)
-      ->setDisplayOptions('view', array(
+      ->setDisplayOptions('view', [
         'type' => 'string',
         'weight' => 0,
         'label' => 'above',
-      ))
+      ])
       ->setDisplayConfigurable('view', TRUE);
 
     $fields['copy'] = BaseFieldDefinition::create('boolean')

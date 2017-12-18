@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Config\Entity\ConfigEntityType.
- */
-
 namespace Drupal\Core\Config\Entity;
 
 use Drupal\Core\Config\Entity\Exception\ConfigEntityStorageClassException;
@@ -69,9 +64,9 @@ class ConfigEntityType extends EntityType implements ConfigEntityTypeInterface {
     // Always add a default 'uuid' key.
     $this->entity_keys['uuid'] = 'uuid';
     $this->entity_keys['langcode'] = 'langcode';
-    $this->handlers += array(
+    $this->handlers += [
       'storage' => 'Drupal\Core\Config\Entity\ConfigEntityStorage',
-    );
+    ];
     $this->lookup_keys[] = 'uuid';
   }
 
@@ -132,11 +127,11 @@ class ConfigEntityType extends EntityType implements ConfigEntityTypeInterface {
   /**
    * {@inheritdoc}
    *
-   * @see \Drupal\Core\Config\Entity\ConfigEntityStorage.
-   *
    * @throws \Drupal\Core\Config\Entity\Exception\ConfigEntityStorageClassException
    *   Exception thrown when the provided class is not an instance of
    *   \Drupal\Core\Config\Entity\ConfigEntityStorage.
+   *
+   * @see \Drupal\Core\Config\Entity\ConfigEntityStorage
    */
   protected function checkStorageClass($class) {
     if (!is_a($class, 'Drupal\Core\Config\Entity\ConfigEntityStorage', TRUE)) {

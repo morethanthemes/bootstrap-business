@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Config\TypedConfigManagerInterface.
- */
-
 namespace Drupal\Core\Config;
 
 use Drupal\Core\TypedData\TypedDataManagerInterface;
@@ -17,7 +12,7 @@ use Drupal\Core\TypedData\TypedDataManagerInterface;
  * @see hook_config_schema_info_alter()
  * @see https://www.drupal.org/node/1905070
  */
-Interface TypedConfigManagerInterface extends TypedDataManagerInterface {
+interface TypedConfigManagerInterface extends TypedDataManagerInterface {
 
   /**
    * Gets typed configuration data.
@@ -76,5 +71,19 @@ Interface TypedConfigManagerInterface extends TypedDataManagerInterface {
    *   element type is returned.
    */
   public function getDefinition($plugin_id, $exception_on_invalid = TRUE);
+
+  /**
+   * Gets typed data for a given configuration name and its values.
+   *
+   * @param string $config_name
+   *   The machine name of the configuration.
+   * @param array $config_data
+   *   The data associated with the configuration. Note: This configuration
+   *   doesn't yet have to be stored.
+   *
+   * @return \Drupal\Core\TypedData\TraversableTypedDataInterface
+   *   The typed configuration element.
+   */
+  public function createFromNameAndData($config_name, array $config_data);
 
 }

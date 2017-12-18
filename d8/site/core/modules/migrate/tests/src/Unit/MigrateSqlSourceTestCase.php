@@ -1,16 +1,18 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\migrate\Unit\MigrateSqlSourceTestCase.
- */
-
 namespace Drupal\Tests\migrate\Unit;
 
 use Drupal\Core\Database\Query\SelectInterface;
+use Drupal\Core\DependencyInjection\ContainerBuilder;
+use Drupal\Core\DependencyInjection\ContainerNotInitializedException;
+use Drupal\Core\KeyValueStore\KeyValueFactoryInterface;
+use Drupal\Core\KeyValueStore\KeyValueStoreInterface;
 
 /**
  * Base class for Migrate module source unit tests.
+ *
+ * @deprecated in Drupal 8.2.0, will be removed before Drupal 9.0.0. Use
+ * \Drupal\Tests\migrate\Kernel\MigrateSqlSourceTestBase instead.
  */
 abstract class MigrateSqlSourceTestCase extends MigrateTestCase {
 
@@ -31,7 +33,7 @@ abstract class MigrateSqlSourceTestCase extends MigrateTestCase {
    *
    * @var array
    */
-  protected $databaseContents = array();
+  protected $databaseContents = [];
 
   /**
    * The plugin class under test.
@@ -49,16 +51,16 @@ abstract class MigrateSqlSourceTestCase extends MigrateTestCase {
    * Once the migration is run, we save a mark of the migrated sources, so the
    * migration can run again and update only new sources or changed sources.
    *
-   * @var string
+   * @var mixed
    */
-  const ORIGINAL_HIGH_WATER = '';
+  const ORIGINAL_HIGH_WATER = NULL;
 
   /**
    * Expected results after the source parsing.
    *
    * @var array
    */
-  protected $expectedResults = array();
+  protected $expectedResults = [];
 
   /**
    * Expected count of source rows.
@@ -82,14 +84,38 @@ abstract class MigrateSqlSourceTestCase extends MigrateTestCase {
     $state = $this->getMock('Drupal\Core\State\StateInterface');
     $entity_manager = $this->getMock('Drupal\Core\Entity\EntityManagerInterface');
 
+    // Mock a key-value store to return high-water values.
+    $key_value = $this->getMock(KeyValueStoreInterface::class);
+
+    // SourcePluginBase does not yet support full dependency injection so we
+    // need to make sure that \Drupal::keyValue() works as expected by mocking
+    // the keyvalue service.
+    $key_value_factory = $this->getMock(KeyValueFactoryInterface::class);
+    $key_value_factory
+      ->method('get')
+      ->with('migrate:high_water')
+      ->willReturn($key_value);
+
+    try {
+      $container = \Drupal::getContainer();
+    }
+    catch (ContainerNotInitializedException $e) {
+      $container = new ContainerBuilder();
+    }
+    $container->set('keyvalue', $key_value_factory);
+    \Drupal::setContainer($container);
+
     $migration = $this->getMigration();
-    $migration->expects($this->any())
-      ->method('getHighWater')
-      ->will($this->returnValue(static::ORIGINAL_HIGH_WATER));
+
+    // Set the high water value.
+    \Drupal::keyValue('migrate:high_water')
+      ->expects($this->any())
+      ->method('get')
+      ->willReturn(static::ORIGINAL_HIGH_WATER);
 
     // Setup the plugin.
     $plugin_class = static::PLUGIN_CLASS;
-    $plugin = new $plugin_class($this->migrationConfiguration['source'], $this->migrationConfiguration['source']['plugin'], array(), $migration, $state, $entity_manager);
+    $plugin = new $plugin_class($this->migrationConfiguration['source'], $this->migrationConfiguration['source']['plugin'], [], $migration, $state, $entity_manager);
 
     // Do some reflection to set the database and moduleHandler.
     $plugin_reflection = new \ReflectionClass($plugin);
@@ -99,7 +125,7 @@ abstract class MigrateSqlSourceTestCase extends MigrateTestCase {
     $module_handler_property->setAccessible(TRUE);
 
     // Set the database and the module handler onto our plugin.
-    $database_property->setValue($plugin, $this->getDatabase($this->databaseContents + array('test_map' => array())));
+    $database_property->setValue($plugin, $this->getDatabase($this->databaseContents + ['test_map' => []]));
     $module_handler_property->setValue($plugin, $module_handler);
 
     $plugin->setStringTranslation($this->getStringTranslationStub());
@@ -124,7 +150,7 @@ abstract class MigrateSqlSourceTestCase extends MigrateTestCase {
   public function testSourceCount() {
     $count = $this->source->count();
     $this->assertTrue(is_numeric($count));
-    $this->assertEquals($count, $this->expectedCount);
+    $this->assertEquals($this->expectedCount, $count);
   }
 
   /**

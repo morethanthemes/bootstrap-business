@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\locale\Controller\LocaleController.
- */
 
 namespace Drupal\locale\Controller;
 
@@ -46,10 +42,10 @@ class LocaleController extends ControllerBase {
    *   The render array for the string search screen.
    */
   public function translatePage() {
-    return array(
+    return [
       'filter' => $this->formBuilder()->getForm('Drupal\locale\Form\TranslateFilterForm'),
       'form' => $this->formBuilder()->getForm('Drupal\locale\Form\TranslateEditForm'),
-    );
+    ];
   }
 
 }

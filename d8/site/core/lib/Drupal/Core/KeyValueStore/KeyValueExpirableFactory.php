@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\KeyValueStore\KeyValueExpirableFactory.
- */
-
 namespace Drupal\Core\KeyValueStore;
 
 /**
@@ -19,4 +14,3 @@ class KeyValueExpirableFactory extends KeyValueFactory implements KeyValueExpira
   const DEFAULT_SETTING = 'keyvalue_expirable_default';
 
 }
-

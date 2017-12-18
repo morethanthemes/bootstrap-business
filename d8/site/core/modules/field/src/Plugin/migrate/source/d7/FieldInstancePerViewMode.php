@@ -1,36 +1,31 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\field\Plugin\migrate\source\d7\FieldInstancePerViewMode.
- */
-
 namespace Drupal\field\Plugin\migrate\source\d7;
-
-use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
 
 /**
  * The field instance per view mode source class.
  *
  * @MigrateSource(
  *   id = "d7_field_instance_per_view_mode",
- *   source_provider = "field"
+ *   source_module = "field"
  * )
  */
-class FieldInstancePerViewMode extends DrupalSqlBase {
+class FieldInstancePerViewMode extends FieldInstance {
 
   /**
    * {@inheritdoc}
    */
   protected function initializeIterator() {
-    $rows = array();
-    $result = $this->prepareQuery()->execute();
-    foreach ($result as $field_instance) {
-      $data = unserialize($field_instance['data']);
-      // We don't need to include the serialized data in the returned rows.
-      unset($field_instance['data']);
-      foreach ($data['display'] as $view_mode => $info) {
-        $rows[] = array_merge($field_instance, $info, array('view_mode' => $view_mode));
+    $instances = parent::initializeIterator();
+
+    $rows = [];
+    foreach ($instances->getArrayCopy() as $instance) {
+      $data = unserialize($instance['data']);
+      foreach ($data['display'] as $view_mode => $formatter) {
+        $rows[] = array_merge($instance, [
+          'view_mode' => $view_mode,
+          'formatter' => $formatter,
+        ]);
       }
     }
     return new \ArrayIterator($rows);
@@ -39,53 +34,31 @@ class FieldInstancePerViewMode extends DrupalSqlBase {
   /**
    * {@inheritdoc}
    */
-  public function query() {
-    return $this->select('field_config_instance', 'fci')
-      ->fields('fci', array('entity_type', 'bundle', 'field_name', 'data'));
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function fields() {
-    return array(
-      'entity_type' => $this->t('The entity type ID.'),
-      'bundle' => $this->t('The bundle ID.'),
-      'field_name' => $this->t('Machine name of the field.'),
+    return array_merge(parent::fields(), [
       'view_mode' => $this->t('The original machine name of the view mode.'),
-      'label' => $this->t('The display label of the field.'),
-      'type' => $this->t('The formatter ID.'),
-      'settings' => $this->t('Array of formatter-specific settings.'),
-      'module' => $this->t('The module providing the formatter.'),
-      'weight' => $this->t('Display weight of the field.'),
-    );
+      'formatter' => $this->t('The formatter settings.'),
+    ]);
   }
 
   /**
    * {@inheritdoc}
    */
   public function getIds() {
-    return array(
-      'entity_type' => array(
+    return [
+      'entity_type' => [
         'type' => 'string',
-      ),
-      'bundle' => array(
+      ],
+      'bundle' => [
         'type' => 'string',
-      ),
-      'view_mode' => array(
+      ],
+      'view_mode' => [
         'type' => 'string',
-      ),
-      'field_name' => array(
+      ],
+      'field_name' => [
         'type' => 'string',
-      ),
-    );
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function count() {
-    return $this->initializeIterator()->count();
+      ],
+    ];
   }
 
 }

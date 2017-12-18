@@ -19,6 +19,7 @@ source:
       type: string
     field_name:
       type: string
+  source_module: block
 process:
   entity_type: entity_type
   bundle: bundle
@@ -30,3 +31,6 @@ destination:
 migration_dependencies:
   required:
     - block_content_type
+provider:
+  - block_content
+  - migrate_drupal

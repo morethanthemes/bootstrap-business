@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\NodeViewBuilder.
- */
-
 namespace Drupal\node;
 
 use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
@@ -13,7 +8,7 @@ use Drupal\Core\Entity\EntityViewBuilder;
 use Drupal\node\Entity\Node;
 
 /**
- * Render controller for nodes.
+ * View builder handler for nodes.
  */
 class NodeViewBuilder extends EntityViewBuilder {
 
@@ -33,25 +28,27 @@ class NodeViewBuilder extends EntityViewBuilder {
       $display = $displays[$bundle];
 
       if ($display->getComponent('links')) {
-        $build[$id]['links'] = array(
-          '#lazy_builder' => [get_called_class() . '::renderLinks', [
-            $entity->id(),
-            $view_mode,
-            $entity->language()->getId(),
-            !empty($entity->in_preview),
-          ]],
-        );
+        $build[$id]['links'] = [
+          '#lazy_builder' => [
+            get_called_class() . '::renderLinks', [
+              $entity->id(),
+              $view_mode,
+              $entity->language()->getId(),
+              !empty($entity->in_preview),
+            ],
+          ],
+        ];
       }
 
       // Add Language field text element to node render array.
       if ($display->getComponent('langcode')) {
-        $build[$id]['langcode'] = array(
+        $build[$id]['langcode'] = [
           '#type' => 'item',
           '#title' => t('Language'),
           '#markup' => $entity->language()->getName(),
           '#prefix' => '<div id="field-language-display">',
           '#suffix' => '</div>'
-        );
+        ];
       }
     }
   }
@@ -86,21 +83,21 @@ class NodeViewBuilder extends EntityViewBuilder {
    *   A renderable array representing the node links.
    */
   public static function renderLinks($node_entity_id, $view_mode, $langcode, $is_in_preview) {
-    $links = array(
+    $links = [
       '#theme' => 'links__node',
-      '#pre_render' => array('drupal_pre_render_links'),
-      '#attributes' => array('class' => array('links', 'inline')),
-    );
+      '#pre_render' => ['drupal_pre_render_links'],
+      '#attributes' => ['class' => ['links', 'inline']],
+    ];
 
     if (!$is_in_preview) {
       $entity = Node::load($node_entity_id)->getTranslation($langcode);
       $links['node'] = static::buildLinks($entity, $view_mode);
 
       // Allow other modules to alter the node links.
-      $hook_context = array(
+      $hook_context = [
         'view_mode' => $view_mode,
         'langcode' => $langcode,
-      );
+      ];
       \Drupal::moduleHandler()->alter('node_links', $links, $entity, $hook_context);
     }
     return $links;
@@ -118,30 +115,30 @@ class NodeViewBuilder extends EntityViewBuilder {
    *   An array that can be processed by drupal_pre_render_links().
    */
   protected static function buildLinks(NodeInterface $entity, $view_mode) {
-    $links = array();
+    $links = [];
 
     // Always display a read more link on teasers because we have no way
     // to know when a teaser view is different than a full view.
     if ($view_mode == 'teaser') {
       $node_title_stripped = strip_tags($entity->label());
-      $links['node-readmore'] = array(
-        'title' => t('Read more<span class="visually-hidden"> about @title</span>', array(
+      $links['node-readmore'] = [
+        'title' => t('Read more<span class="visually-hidden"> about @title</span>', [
           '@title' => $node_title_stripped,
-        )),
+        ]),
         'url' => $entity->urlInfo(),
         'language' => $entity->language(),
-        'attributes' => array(
+        'attributes' => [
           'rel' => 'tag',
           'title' => $node_title_stripped,
-        ),
-      );
+        ],
+      ];
     }
 
-    return array(
+    return [
       '#theme' => 'links__node__node',
       '#links' => $links,
-      '#attributes' => array('class' => array('links', 'inline')),
-    );
+      '#attributes' => ['class' => ['links', 'inline']],
+    ];
   }
 
   /**
@@ -151,10 +148,21 @@ class NodeViewBuilder extends EntityViewBuilder {
     /** @var \Drupal\node\NodeInterface $entity */
     parent::alterBuild($build, $entity, $display, $view_mode);
     if ($entity->id()) {
-      $build['#contextual_links']['node'] = array(
-        'route_parameters' =>array('node' => $entity->id()),
-        'metadata' => array('changed' => $entity->getChangedTime()),
-      );
+      if ($entity->isDefaultRevision()) {
+        $build['#contextual_links']['node'] = [
+          'route_parameters' => ['node' => $entity->id()],
+          'metadata' => ['changed' => $entity->getChangedTime()],
+        ];
+      }
+      else {
+        $build['#contextual_links']['node_revision'] = [
+          'route_parameters' => [
+            'node' => $entity->id(),
+            'node_revision' => $entity->getRevisionId(),
+          ],
+          'metadata' => ['changed' => $entity->getChangedTime()],
+        ];
+      }
     }
   }
 

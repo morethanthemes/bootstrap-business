@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\PathProcessor\PathProcessorManager.
- */
-
 namespace Drupal\Core\PathProcessor;
 
 use Drupal\Core\Render\BubbleableMetadata;
@@ -25,7 +20,7 @@ class PathProcessorManager implements InboundPathProcessorInterface, OutboundPat
    *   An array whose keys are priorities and whose values are arrays of path
    *   processor objects.
    */
-  protected $inboundProcessors = array();
+  protected $inboundProcessors = [];
 
   /**
    * Holds the array of inbound processors, sorted by priority.
@@ -33,7 +28,7 @@ class PathProcessorManager implements InboundPathProcessorInterface, OutboundPat
    * @var array
    *   An array of path processor objects.
    */
-  protected $sortedInbound = array();
+  protected $sortedInbound = [];
 
 
   /**
@@ -43,7 +38,7 @@ class PathProcessorManager implements InboundPathProcessorInterface, OutboundPat
    *   An array whose keys are priorities and whose values are arrays of path
    *   processor objects.
    */
-  protected $outboundProcessors = array();
+  protected $outboundProcessors = [];
 
   /**
    * Holds the array of outbound processors, sorted by priority.
@@ -51,7 +46,7 @@ class PathProcessorManager implements InboundPathProcessorInterface, OutboundPat
    * @var array
    *   An array of path processor objects.
    */
-  protected $sortedOutbound = array();
+  protected $sortedOutbound = [];
 
   /**
    * Adds an inbound processor object to the $inboundProcessors property.
@@ -63,7 +58,7 @@ class PathProcessorManager implements InboundPathProcessorInterface, OutboundPat
    */
   public function addInbound(InboundPathProcessorInterface $processor, $priority = 0) {
     $this->inboundProcessors[$priority][] = $processor;
-    $this->sortedInbound = array();
+    $this->sortedInbound = [];
   }
 
   /**
@@ -102,13 +97,13 @@ class PathProcessorManager implements InboundPathProcessorInterface, OutboundPat
    */
   public function addOutbound(OutboundPathProcessorInterface $processor, $priority = 0) {
     $this->outboundProcessors[$priority][] = $processor;
-    $this->sortedOutbound = array();
+    $this->sortedOutbound = [];
   }
 
   /**
    * {@inheritdoc}
    */
-  public function processOutbound($path, &$options = array(), Request $request = NULL, BubbleableMetadata $bubbleable_metadata = NULL) {
+  public function processOutbound($path, &$options = [], Request $request = NULL, BubbleableMetadata $bubbleable_metadata = NULL) {
     $processors = $this->getOutbound();
     foreach ($processors as $processor) {
       $path = $processor->processOutbound($path, $options, $request, $bubbleable_metadata);
@@ -137,7 +132,7 @@ class PathProcessorManager implements InboundPathProcessorInterface, OutboundPat
    *   The processor type to sort, e.g. 'inboundProcessors'.
    */
   protected function sortProcessors($type) {
-    $sorted = array();
+    $sorted = [];
     krsort($this->{$type});
 
     foreach ($this->{$type} as $processors) {
@@ -145,4 +140,5 @@ class PathProcessorManager implements InboundPathProcessorInterface, OutboundPat
     }
     return $sorted;
   }
+
 }

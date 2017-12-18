@@ -1,16 +1,17 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\views\Unit\ViewExecutableTest.
- */
-
 namespace Drupal\Tests\views\Unit;
 
+use Drupal\Component\Plugin\PluginManagerInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
+use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Url;
 use Drupal\Tests\UnitTestCase;
 use Drupal\views\Entity\View;
+use Drupal\views\Plugin\views\cache\CachePluginBase;
+use Drupal\views\Plugin\views\cache\None as NoneCache;
+use Drupal\views\Plugin\views\pager\None as NonePager;
+use Drupal\views\Plugin\views\query\QueryPluginBase;
 use Drupal\views\ViewExecutable;
 use Symfony\Component\Routing\Route;
 
@@ -19,6 +20,16 @@ use Symfony\Component\Routing\Route;
  * @group views
  */
 class ViewExecutableTest extends UnitTestCase {
+
+  /**
+   * Indicates that a display is enabled.
+   */
+  const DISPLAY_ENABLED = TRUE;
+
+  /**
+   * Indicates that a display is disabled.
+   */
+  const DISPLAY_DISABLED = FALSE;
 
   /**
    * A mocked display collection.
@@ -77,6 +88,20 @@ class ViewExecutableTest extends UnitTestCase {
   protected $routeProvider;
 
   /**
+   * The mocked none cache plugin.
+   *
+   * @var \Drupal\views\Plugin\views\cache\None|\PHPUnit_Framework_MockObject_MockObject
+   */
+  protected $noneCache;
+
+  /**
+   * The mocked cache plugin that returns a successful result.
+   *
+   * @var \Drupal\views\Plugin\views\cache\None|\PHPUnit_Framework_MockObject_MockObject
+   */
+  protected $successCache;
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp() {
@@ -103,10 +128,26 @@ class ViewExecutableTest extends UnitTestCase {
       ->disableOriginalConstructor()
       ->getMock();
 
+    $module_handler = $this->getMockBuilder(ModuleHandlerInterface::class)
+      ->getMock();
+
+    $this->noneCache = $this->getMockBuilder(NoneCache::class)
+      ->disableOriginalConstructor()
+      ->getMock();
+
+    $success_cache = $this->prophesize(CachePluginBase::class);
+    $success_cache->cacheGet('results')->willReturn(TRUE);
+    $this->successCache = $success_cache->reveal();
+
+    $cache_manager = $this->prophesize(PluginManagerInterface::class);
+    $cache_manager->createInstance('none')->willReturn($this->noneCache);
+
     $translation = $this->getStringTranslationStub();
     $container = new ContainerBuilder();
     $container->set('string_translation', $translation);
     $container->set('views.executable', $this->viewExecutableFactory);
+    $container->set('module_handler', $module_handler);
+    $container->set('plugin.manager.views.cache', $cache_manager->reveal());
     \Drupal::setContainer($container);
   }
 
@@ -141,8 +182,6 @@ class ViewExecutableTest extends UnitTestCase {
   }
 
   /**
-   * @expectedException \InvalidArgumentException
-   *
    * @covers ::getUrl
    */
   public function testGetUrlWithoutRouterDisplay() {
@@ -152,6 +191,7 @@ class ViewExecutableTest extends UnitTestCase {
       ->willReturn($this->displayHandler);
     $this->executable->display_handler = $this->displayHandler;
 
+    $this->setExpectedException(\InvalidArgumentException::class);
     $this->executable->getUrl();
   }
 
@@ -271,7 +311,7 @@ class ViewExecutableTest extends UnitTestCase {
     ];
     $this->assertEquals($expected, $view->buildThemeFunctions('test_hook'));
 
-    //Change the name of the display plugin and make sure that is in the array.
+    // Change the name of the display plugin and make sure that is in the array.
     $view->display_handler->display['display_plugin'] = 'default2';
 
     $expected = [
@@ -322,14 +362,16 @@ class ViewExecutableTest extends UnitTestCase {
     foreach (['field', 'filter', 'argument', 'sort'] as $handler_type) {
       $display->expects($this->atLeastOnce())
         ->method('setOption')
-        ->with($this->callback(function($argument) {
+        ->with($this->callback(function ($argument) {
           return $argument;
-        }), ['test_field' => [
-          'id' => 'test_field',
-          'table' => 'test_entity',
-          'field' => 'test_field',
-          'plugin_id' => 'standard',
-        ]]);
+        }), [
+          'test_field' => [
+            'id' => 'test_field',
+            'table' => 'test_entity',
+            'field' => 'test_field',
+            'plugin_id' => 'standard',
+          ],
+        ]);
     }
 
     foreach (['field', 'filter', 'argument', 'sort'] as $handler_type) {
@@ -363,16 +405,18 @@ class ViewExecutableTest extends UnitTestCase {
     foreach (['field', 'filter', 'argument', 'sort'] as $handler_type) {
       $display->expects($this->atLeastOnce())
         ->method('setOption')
-        ->with($this->callback(function($argument) {
+        ->with($this->callback(function ($argument) {
           return $argument;
-        }), ['test_field' => [
-          'id' => 'test_field',
-          'table' => 'test_entity',
-          'field' => 'test_field',
-          'entity_type' => 'test_entity_type',
-          'entity_field' => 'test_field',
-          'plugin_id' => 'standard',
-        ]]);
+        }), [
+          'test_field' => [
+            'id' => 'test_field',
+            'table' => 'test_entity',
+            'field' => 'test_field',
+            'entity_type' => 'test_entity_type',
+            'entity_field' => 'test_field',
+            'plugin_id' => 'standard',
+          ],
+        ]);
     }
 
     foreach (['field', 'filter', 'argument', 'sort'] as $handler_type) {
@@ -435,7 +479,7 @@ class ViewExecutableTest extends UnitTestCase {
    *   Returns the view executable and default display.
    */
   protected function setupBaseViewAndDisplay() {
-    $config = array(
+    $config = [
       'id' => 'test_view',
       'tag' => 'OnE, TWO, and three',
       'display' => [
@@ -445,13 +489,18 @@ class ViewExecutableTest extends UnitTestCase {
           'display_title' => 'Default',
         ],
       ],
-    );
+    ];
 
     $storage = new View($config, 'view');
     $view = new ViewExecutable($storage, $this->user, $this->viewsData, $this->routeProvider);
     $display = $this->getMockBuilder('Drupal\views\Plugin\views\display\DisplayPluginBase')
       ->disableOriginalConstructor()
       ->getMock();
+    $display->expects($this->any())
+      ->method('getPlugin')
+      ->with($this->equalTo('cache'))
+      ->willReturn($this->successCache);
+
     $display->display = $config['display']['default'];
 
     $view->current_display = 'default';
@@ -466,7 +515,11 @@ class ViewExecutableTest extends UnitTestCase {
       ->with('default')
       ->willReturn(TRUE);
 
-    return array($view, $display);
+    foreach (array_keys($view->getHandlerTypes()) as $type) {
+      $view->$type = [];
+    }
+
+    return [$view, $display];
   }
 
   /**
@@ -563,6 +616,81 @@ class ViewExecutableTest extends UnitTestCase {
     $view->setCurrentPage(12);
     $this->assertEquals(12, $view->getCurrentPage());
     $this->assertNotContains('page:12', $view->element['#cache']['keys']);
+  }
+
+  /**
+   * @covers ::execute
+   */
+  public function testCacheIsIgnoredDuringPreview() {
+    /** @var \Drupal\views\ViewExecutable|\PHPUnit_Framework_MockObject_MockObject $view */
+    /** @var \Drupal\views\Plugin\views\display\DisplayPluginBase|\PHPUnit_Framework_MockObject_MockObject $display */
+    list($view, $display) = $this->setupBaseViewAndDisplay();
+
+    // Pager needs to be set to avoid false test failures.
+    $view->pager = $this->getMockBuilder(NonePager::class)
+      ->disableOriginalConstructor()
+      ->getMock();
+
+    $query = $this->getMockBuilder(QueryPluginBase::class)
+      ->disableOriginalConstructor()
+      ->getMock();
+
+    $view->query = $query;
+    $view->built = TRUE;
+    $view->live_preview = TRUE;
+
+    $this->noneCache->expects($this->once())->method('cacheGet');
+    $query->expects($this->once())->method('execute');
+
+    $view->execute();
+  }
+
+  /**
+   * Tests the return values for the execute() method.
+   *
+   * @param bool $display_enabled
+   *   Whether the display to test should be enabled.
+   * @param bool $expected_result
+   *   The expected result when calling execute().
+   *
+   * @covers ::execute
+   * @dataProvider providerExecuteReturn
+   */
+  public function testExecuteReturn($display_enabled, $expected_result) {
+    /** @var \Drupal\views\ViewExecutable|\PHPUnit_Framework_MockObject_MockObject $view */
+    /** @var \Drupal\views\Plugin\views\display\DisplayPluginBase|\PHPUnit_Framework_MockObject_MockObject $display */
+    list($view, $display) = $this->setupBaseViewAndDisplay();
+
+    $display->expects($this->any())
+      ->method('isEnabled')
+      ->willReturn($display_enabled);
+
+    // Pager needs to be set to avoid false test failures.
+    $view->pager = $this->getMockBuilder(NonePager::class)
+      ->disableOriginalConstructor()
+      ->getMock();
+
+    $query = $this->getMockBuilder(QueryPluginBase::class)
+      ->disableOriginalConstructor()
+      ->getMock();
+
+    $view->query = $query;
+    $view->built = TRUE;
+
+    $this->assertEquals($expected_result, $view->execute());
+  }
+
+  /**
+   * Provider for testExecuteReturn().
+   *
+   * @return array[]
+   *   An array of arrays containing the display state and expected value.
+   */
+  public function providerExecuteReturn() {
+    return [
+      'enabled' => [static::DISPLAY_ENABLED, TRUE],
+      'disabled' => [static::DISPLAY_DISABLED, FALSE],
+    ];
   }
 
 }

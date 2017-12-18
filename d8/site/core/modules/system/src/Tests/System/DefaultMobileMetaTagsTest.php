@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\System\DefaultMobileMetaTagsTest.
- */
-
 namespace Drupal\system\Tests\System;
 
 use Drupal\Component\Utility\SafeMarkup;
@@ -25,9 +20,9 @@ class DefaultMobileMetaTagsTest extends WebTestBase {
 
   protected function setUp() {
     parent::setUp();
-    $this->defaultMetaTags = array(
+    $this->defaultMetaTags = [
       'viewport' => '<meta name="viewport" content="width=device-width, initial-scale=1.0" />',
-    );
+    ];
   }
 
   /**
@@ -36,7 +31,7 @@ class DefaultMobileMetaTagsTest extends WebTestBase {
   public function testDefaultMetaTagsExist() {
     $this->drupalGet('');
     foreach ($this->defaultMetaTags as $name => $metatag) {
-      $this->assertRaw($metatag, SafeMarkup::format('Default Mobile meta tag "@name" displayed properly.', array('@name' => $name)), 'System');
+      $this->assertRaw($metatag, SafeMarkup::format('Default Mobile meta tag "@name" displayed properly.', ['@name' => $name]), 'System');
     }
   }
 
@@ -44,10 +39,11 @@ class DefaultMobileMetaTagsTest extends WebTestBase {
    * Verifies that the default mobile meta tags can be removed.
    */
   public function testRemovingDefaultMetaTags() {
-    \Drupal::service('module_installer')->install(array('system_module_test'));
+    \Drupal::service('module_installer')->install(['system_module_test']);
     $this->drupalGet('');
     foreach ($this->defaultMetaTags as $name => $metatag) {
-      $this->assertNoRaw($metatag, SafeMarkup::format('Default Mobile meta tag "@name" removed properly.', array('@name' => $name)), 'System');
+      $this->assertNoRaw($metatag, SafeMarkup::format('Default Mobile meta tag "@name" removed properly.', ['@name' => $name]), 'System');
     }
   }
+
 }

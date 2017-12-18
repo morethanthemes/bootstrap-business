@@ -15,10 +15,10 @@
  *
  * Callback for batch_set().
  *
- * @param $MULTIPLE_PARAMS
+ * @param $multiple_params
  *   Additional parameters specific to the batch. These are specified in the
  *   array passed to batch_set().
- * @param $context
+ * @param array|\ArrayAccess $context
  *   The batch context array, passed by reference. This contains the following
  *   properties:
  *   - 'finished': A float number between 0 and 1 informing the processing
@@ -51,14 +51,17 @@
  *     all operations have finished, this is passed to callback_batch_finished()
  *     where results may be referenced to display information to the end-user,
  *     such as how many total items were processed.
+ *   It is discouraged to typehint this parameter as an array, to allow an
+ *   object implement \ArrayAccess to be passed.
  */
-function callback_batch_operation($MULTIPLE_PARAMS, &$context) {
+function callback_batch_operation($multiple_params, &$context) {
   $node_storage = \Drupal::entityTypeManager()->getStorage('node');
+  $database = \Drupal::database();
 
   if (!isset($context['sandbox']['progress'])) {
     $context['sandbox']['progress'] = 0;
     $context['sandbox']['current_node'] = 0;
-    $context['sandbox']['max'] = db_query('SELECT COUNT(DISTINCT nid) FROM {node}')->fetchField();
+    $context['sandbox']['max'] = $database->query('SELECT COUNT(DISTINCT nid) FROM {node}')->fetchField();
   }
 
   // For this example, we decide that we can safely process
@@ -66,11 +69,11 @@ function callback_batch_operation($MULTIPLE_PARAMS, &$context) {
   $limit = 5;
 
   // With each pass through the callback, retrieve the next group of nids.
-  $result = db_query_range("SELECT nid FROM {node} WHERE nid > %d ORDER BY nid ASC", $context['sandbox']['current_node'], 0, $limit);
-  while ($row = db_fetch_array($result)) {
+  $result = $database->queryRange("SELECT nid FROM {node} WHERE nid > :nid ORDER BY nid ASC", 0, $limit, [':nid' => $context['sandbox']['current_node']]);
+  foreach ($result as $row) {
 
     // Here we actually perform our processing on the current node.
-    $node_storage->resetCache(array($row['nid']));
+    $node_storage->resetCache([$row['nid']]);
     $node = $node_storage->load($row['nid']);
     $node->value1 = $options1;
     $node->value2 = $options2;
@@ -82,7 +85,7 @@ function callback_batch_operation($MULTIPLE_PARAMS, &$context) {
     // Update our progress information.
     $context['sandbox']['progress']++;
     $context['sandbox']['current_node'] = $node->nid;
-    $context['message'] = t('Now processing %node', array('%node' => $node->title));
+    $context['message'] = t('Now processing %node', ['%node' => $node->title]);
   }
 
   // Inform the batch engine that we are not finished,
@@ -110,13 +113,13 @@ function callback_batch_operation($MULTIPLE_PARAMS, &$context) {
 function callback_batch_finished($success, $results, $operations) {
   if ($success) {
     // Here we do something meaningful with the results.
-    $message = t("@count items were processed.", array(
+    $message = t("@count items were processed.", [
       '@count' => count($results),
-      ));
-    $list = array(
+      ]);
+    $list = [
       '#theme' => 'item_list',
       '#items' => $results,
-    );
+    ];
     $message .= drupal_render($list);
     drupal_set_message($message);
   }
@@ -124,10 +127,10 @@ function callback_batch_finished($success, $results, $operations) {
     // An error occurred.
     // $operations contains the operations that remained unprocessed.
     $error_operation = reset($operations);
-    $message = t('An error occurred while processing %error_operation with arguments: @arguments', array(
+    $message = t('An error occurred while processing %error_operation with arguments: @arguments', [
       '%error_operation' => $error_operation[0],
       '@arguments' => print_r($error_operation[1], TRUE)
-    ));
+    ]);
     drupal_set_message($message, 'error');
   }
 }
@@ -149,7 +152,7 @@ function callback_batch_finished($success, $results, $operations) {
  */
 function hook_ajax_render_alter(array &$data) {
   // Inject any new status messages into the content area.
-  $status_messages = array('#type' => 'status_messages');
+  $status_messages = ['#type' => 'status_messages'];
   $command = new \Drupal\Core\Ajax\PrependCommand('#block-system-main .content', \Drupal::service('renderer')->renderRoot($status_messages));
   $data[] = $command->render();
 }
@@ -198,12 +201,12 @@ function hook_ajax_render_alter(array &$data) {
 function hook_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
   if (isset($form['type']) && $form['type']['#value'] . '_node_settings' == $form_id) {
     $upload_enabled_types = \Drupal::config('mymodule.settings')->get('upload_enabled_types');
-    $form['workflow']['upload_' . $form['type']['#value']] = array(
+    $form['workflow']['upload_' . $form['type']['#value']] = [
       '#type' => 'radios',
       '#title' => t('Attachments'),
       '#default_value' => in_array($form['type']['#value'], $upload_enabled_types) ? 1 : 0,
-      '#options' => array(t('Disabled'), t('Enabled')),
-    );
+      '#options' => [t('Disabled'), t('Enabled')],
+    ];
     // Add a custom submit handler to save the array of types back to the config file.
     $form['actions']['submit']['#submit'][] = 'mymodule_upload_enabled_types_submit';
   }
@@ -245,11 +248,11 @@ function hook_form_FORM_ID_alter(&$form, \Drupal\Core\Form\FormStateInterface $f
   // registration form.
 
   // Add a checkbox to registration form about agreeing to terms of use.
-  $form['terms_of_use'] = array(
+  $form['terms_of_use'] = [
     '#type' => 'checkbox',
     '#title' => t("I agree with the website's terms and conditions."),
     '#required' => TRUE,
-  );
+  ];
 }
 
 /**
@@ -295,11 +298,11 @@ function hook_form_BASE_FORM_ID_alter(&$form, \Drupal\Core\Form\FormStateInterfa
   // node form, regardless of node type.
 
   // Add a checkbox to the node form about agreeing to terms of use.
-  $form['terms_of_use'] = array(
+  $form['terms_of_use'] = [
     '#type' => 'checkbox',
     '#title' => t("I agree with the website's terms and conditions."),
     '#required' => TRUE,
-  );
+  ];
 }
 
 /**

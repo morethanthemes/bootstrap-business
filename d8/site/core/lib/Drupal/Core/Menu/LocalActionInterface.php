@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Menu\LocalActionInterface.
- */
-
 namespace Drupal\Core\Menu;
 
 use Drupal\Core\Routing\RouteMatchInterface;
@@ -63,7 +58,5 @@ interface LocalActionInterface {
    * @see \Drupal\Core\Menu\LocalActionManager::getTitle()
    */
   public function getTitle();
-
-
 
 }

@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\Tests\Core\PathProcess\PathProcessorFrontTest
- */
 
 namespace Drupal\Tests\Core\PathProcessor;
 
@@ -11,6 +7,7 @@ use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\PathProcessor\PathProcessorFront;
 use Drupal\Tests\UnitTestCase;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * Test front page path processing.
@@ -51,7 +48,6 @@ class PathProcessorFrontTest extends UnitTestCase {
    * Test inbound failure with broken config.
    *
    * @covers ::processInbound
-   * @expectedException \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
    */
   public function testProcessInboundBadConfig() {
     $config_factory = $this->prophesize(ConfigFactoryInterface::class);
@@ -61,6 +57,7 @@ class PathProcessorFrontTest extends UnitTestCase {
     $config->get('page.front')
       ->willReturn('');
     $processor = new PathProcessorFront($config_factory->reveal());
+    $this->setExpectedException(NotFoundHttpException::class);
     $processor->processInbound('/', new Request());
   }
 
@@ -86,4 +83,5 @@ class PathProcessorFrontTest extends UnitTestCase {
       ['/user', '/user'],
     ];
   }
+
 }

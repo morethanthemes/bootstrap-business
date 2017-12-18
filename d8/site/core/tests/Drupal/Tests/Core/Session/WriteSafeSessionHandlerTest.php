@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Session\WriteSafeSessionHandlerTest.
- */
-
 namespace Drupal\Tests\Core\Session;
 
 use Drupal\Tests\UnitTestCase;
@@ -179,4 +174,5 @@ class WriteSafeSessionHandlerTest extends UnitTestCase {
       ['gc', TRUE, [42]],
     ];
   }
+
 }

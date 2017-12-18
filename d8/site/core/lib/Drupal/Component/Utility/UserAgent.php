@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\Utility\UserAgent.
- */
-
 namespace Drupal\Component\Utility;
 
 /**
@@ -41,7 +36,7 @@ class UserAgent {
    *   The selected language code or FALSE if no valid language can be
    *   identified.
    */
-  public static function getBestMatchingLangcode($http_accept_language, $langcodes, $mappings = array()) {
+  public static function getBestMatchingLangcode($http_accept_language, $langcodes, $mappings = []) {
     // The Accept-Language header contains information about the language
     // preferences configured in the user's user agent / operating system.
     // RFC 2616 (section 14.4) defines the Accept-Language header as follows:
@@ -49,7 +44,7 @@ class UserAgent {
     //                  1#( language-range [ ";" "q" "=" qvalue ] )
     //   language-range  = ( ( 1*8ALPHA *( "-" 1*8ALPHA ) ) | "*" )
     // Samples: "hu, en-us;q=0.66, en;q=0.33", "hu,en-us;q=0.5"
-    $ua_langcodes = array();
+    $ua_langcodes = [];
     if (preg_match_all('@(?<=[, ]|^)([a-zA-Z-]+|\*)(?:;q=([0-9.]+))?(?:$|\s*,\s*)@', trim($http_accept_language), $matches, PREG_SET_ORDER)) {
       foreach ($matches as $match) {
         if ($mappings) {
@@ -127,8 +122,7 @@ class UserAgent {
           $qvalue = $ua_langcodes[$prefix];
           break;
         }
-      }
-      while ($prefix = substr($prefix, 0, strrpos($prefix, '-')));
+      } while ($prefix = substr($prefix, 0, strrpos($prefix, '-')));
 
       // Find the best match.
       if ($qvalue > $max_qvalue) {

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\plugin_test\Plugin\DefaultsTestPluginManager.
- */
-
 namespace Drupal\plugin_test\Plugin;
 
 use Drupal\Component\Plugin\Discovery\StaticDiscovery;
@@ -17,12 +12,12 @@ use Drupal\Core\Plugin\DefaultPluginManager;
  */
 class DefaultsTestPluginManager extends DefaultPluginManager {
 
- /**
-  * Constructs a new DefaultsTestPluginManager instance.
-  *
-  * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
-  *   The module handler.
-  */
+  /**
+   * Constructs a new DefaultsTestPluginManager instance.
+   *
+   * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
+   *   The module handler.
+   */
   public function __construct(ModuleHandlerInterface $module_handler) {
     // Create the object that can be used to return definitions for all the
     // plugins available for this type. Most real plugin managers use a richer
@@ -33,27 +28,27 @@ class DefaultsTestPluginManager extends DefaultPluginManager {
     $this->moduleHandler = $module_handler;
 
     // Specify default values.
-    $this->defaults = array(
-      'metadata' => array(
+    $this->defaults = [
+      'metadata' => [
         'default' => TRUE,
-      ),
-    );
+      ],
+    ];
 
     // Add a plugin with a custom value.
-    $this->discovery->setDefinition('test_block1', array(
+    $this->discovery->setDefinition('test_block1', [
       'class' => 'Drupal\plugin_test\Plugin\plugin_test\mock_block\MockTestBlock',
-      'metadata' => array(
+      'metadata' => [
         'custom' => TRUE,
-      ),
-    ));
+      ],
+    ]);
     // Add a plugin that overrides the default value.
-    $this->discovery->setDefinition('test_block2', array(
+    $this->discovery->setDefinition('test_block2', [
       'class' => 'Drupal\plugin_test\Plugin\plugin_test\mock_block\MockTestBlock',
-      'metadata' => array(
+      'metadata' => [
         'custom' => TRUE,
         'default' => FALSE,
-      ),
-    ));
+      ],
+    ]);
   }
 
 }

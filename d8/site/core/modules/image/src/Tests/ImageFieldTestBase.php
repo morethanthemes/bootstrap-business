@@ -1,12 +1,8 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\image\Tests\ImageFieldTestBase.
- */
-
 namespace Drupal\image\Tests;
 
+use Drupal\Tests\image\Kernel\ImageFieldCreationTrait;
 use Drupal\simpletest\WebTestBase;
 
 /**
@@ -24,15 +20,20 @@ use Drupal\simpletest\WebTestBase;
 
 /**
  * This class provides methods specifically for testing Image's field handling.
+ *
+ * @deprecated Scheduled for removal in Drupal 9.0.0.
+ *   Use \Drupal\Tests\image\Functional\ImageFieldTestBase instead.
  */
 abstract class ImageFieldTestBase extends WebTestBase {
+
+  use ImageFieldCreationTrait;
 
   /**
    * Modules to enable.
    *
    * @var array
    */
-  public static $modules = array('node', 'image', 'field_ui', 'image_module_test');
+  public static $modules = ['node', 'image', 'field_ui', 'image_module_test'];
 
   /**
    * An user with permissions to administer content types and image styles.
@@ -46,65 +47,12 @@ abstract class ImageFieldTestBase extends WebTestBase {
 
     // Create Basic page and Article node types.
     if ($this->profile != 'standard') {
-      $this->drupalCreateContentType(array('type' => 'page', 'name' => 'Basic page'));
-      $this->drupalCreateContentType(array('type' => 'article', 'name' => 'Article'));
+      $this->drupalCreateContentType(['type' => 'page', 'name' => 'Basic page']);
+      $this->drupalCreateContentType(['type' => 'article', 'name' => 'Article']);
     }
 
-    $this->adminUser = $this->drupalCreateUser(array('access content', 'access administration pages', 'administer site configuration', 'administer content types', 'administer node fields', 'administer nodes', 'create article content', 'edit any article content', 'delete any article content', 'administer image styles', 'administer node display'));
+    $this->adminUser = $this->drupalCreateUser(['access content', 'access administration pages', 'administer site configuration', 'administer content types', 'administer node fields', 'administer nodes', 'create article content', 'edit any article content', 'delete any article content', 'administer image styles', 'administer node display']);
     $this->drupalLogin($this->adminUser);
-  }
-
-  /**
-   * Create a new image field.
-   *
-   * @param string $name
-   *   The name of the new field (all lowercase), exclude the "field_" prefix.
-   * @param string $type_name
-   *   The node type that this field will be added to.
-   * @param array $storage_settings
-   *   A list of field storage settings that will be added to the defaults.
-   * @param array $field_settings
-   *   A list of instance settings that will be added to the instance defaults.
-   * @param array $widget_settings
-   *   Widget settings to be added to the widget defaults.
-   * @param array $formatter_settings
-   *   Formatter settings to be added to the formatter defaults.
-   */
-  function createImageField($name, $type_name, $storage_settings = array(), $field_settings = array(), $widget_settings = array(), $formatter_settings = array()) {
-    entity_create('field_storage_config', array(
-      'field_name' => $name,
-      'entity_type' => 'node',
-      'type' => 'image',
-      'settings' => $storage_settings,
-      'cardinality' => !empty($storage_settings['cardinality']) ? $storage_settings['cardinality'] : 1,
-    ))->save();
-
-    $field_config = entity_create('field_config', array(
-      'field_name' => $name,
-      'label' => $name,
-      'entity_type' => 'node',
-      'bundle' => $type_name,
-      'required' => !empty($field_settings['required']),
-      'settings' => $field_settings,
-    ));
-    $field_config->save();
-
-    entity_get_form_display('node', $type_name, 'default')
-      ->setComponent($name, array(
-        'type' => 'image_image',
-        'settings' => $widget_settings,
-      ))
-      ->save();
-
-    entity_get_display('node', $type_name, 'default')
-      ->setComponent($name, array(
-        'type' => 'image',
-        'settings' => $formatter_settings,
-      ))
-      ->save();
-
-    return $field_config;
-
   }
 
   /**
@@ -117,10 +65,10 @@ abstract class ImageFieldTestBase extends WebTestBase {
    * @param string $type
    *   The type of node to create.
    */
-  function previewNodeImage($image, $field_name, $type) {
-    $edit = array(
+  public function previewNodeImage($image, $field_name, $type) {
+    $edit = [
       'title[0][value]' => $this->randomMachineName(),
-    );
+    ];
     $edit['files[' . $field_name . '_0]'] = drupal_realpath($image->uri);
     $this->drupalPostForm('node/add/' . $type, $edit, t('Preview'));
   }
@@ -135,23 +83,30 @@ abstract class ImageFieldTestBase extends WebTestBase {
    * @param $type
    *   The type of node to create.
    * @param $alt
-   *  The alt text for the image. Use if the field settings require alt text.
+   *   The alt text for the image. Use if the field settings require alt text.
    */
-  function uploadNodeImage($image, $field_name, $type, $alt = '') {
-    $edit = array(
+  public function uploadNodeImage($image, $field_name, $type, $alt = '') {
+    $edit = [
       'title[0][value]' => $this->randomMachineName(),
-    );
+    ];
     $edit['files[' . $field_name . '_0]'] = drupal_realpath($image->uri);
-    $this->drupalPostForm('node/add/' . $type, $edit, t('Save and publish'));
+    $this->drupalPostForm('node/add/' . $type, $edit, t('Save'));
     if ($alt) {
       // Add alt text.
-      $this->drupalPostForm(NULL, [$field_name . '[0][alt]' => $alt], t('Save and publish'));
+      $this->drupalPostForm(NULL, [$field_name . '[0][alt]' => $alt], t('Save'));
     }
 
     // Retrieve ID of the newly created node from the current URL.
-    $matches = array();
+    $matches = [];
     preg_match('/node\/([0-9]+)/', $this->getUrl(), $matches);
     return isset($matches[1]) ? $matches[1] : FALSE;
+  }
+
+  /**
+   * Retrieves the fid of the last inserted file.
+   */
+  protected function getLastFileId() {
+    return (int) db_query('SELECT MAX(fid) FROM {file_managed}')->fetchField();
   }
 
 }

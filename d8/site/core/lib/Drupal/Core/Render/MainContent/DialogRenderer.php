@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\MainContent\DialogRenderer.
- */
-
 namespace Drupal\Core\Render\MainContent;
 
 use Drupal\Component\Utility\Html;
@@ -55,7 +50,7 @@ class DialogRenderer implements MainContentRendererInterface {
     $title = isset($main_content['#title']) ? $main_content['#title'] : $this->titleResolver->getTitle($request, $route_match->getRouteObject());
 
     // Determine the dialog options and the target for the OpenDialogCommand.
-    $options = $request->request->get('dialogOptions', array());
+    $options = $request->request->get('dialogOptions', []);
     $target = $this->determineTargetSelector($options, $route_match);
 
     $response->addCommand(new OpenDialogCommand($target, $title, $content, $options));
@@ -67,7 +62,7 @@ class DialogRenderer implements MainContentRendererInterface {
    *
    * @param array &$options
    *   The 'target' option, if set, is used, and then removed from $options.
-   * @param RouteMatchInterface $route_match
+   * @param \Drupal\Core\Routing\RouteMatchInterface $route_match
    *   When no 'target' option is set in $options, $route_match is used instead
    *   to determine the target.
    *

@@ -1,11 +1,7 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Theme\ThemeInitializationInterface.
- */
-
 namespace Drupal\Core\Theme;
+
 use Drupal\Core\Extension\Extension;
 
 /**

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\EntityTypeEventSubscriberTrait.
- */
-
 namespace Drupal\Core\Entity;
 
 /**
@@ -27,7 +22,7 @@ trait EntityTypeEventSubscriberTrait {
    * @see \Symfony\Component\EventDispatcher\EventSubscriberInterface::getSubscribedEvents()
    */
   public static function getEntityTypeEvents() {
-    $event = array('onEntityTypeEvent', 100);
+    $event = ['onEntityTypeEvent', 100];
     $events[EntityTypeEvents::CREATE][] = $event;
     $events[EntityTypeEvents::UPDATE][] = $event;
     $events[EntityTypeEvents::DELETE][] = $event;

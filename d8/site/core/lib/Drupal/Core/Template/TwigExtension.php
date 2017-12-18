@@ -1,21 +1,14 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Template\TwigExtension.
- *
- * This provides a Twig extension that registers various Drupal specific
- * extensions to Twig.
- *
- * @see \Drupal\Core\CoreServiceProvider
- */
-
 namespace Drupal\Core\Template;
 
 use Drupal\Component\Utility\Html;
-use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Component\Render\MarkupInterface;
-use Drupal\Core\Datetime\DateFormatter;
+use Drupal\Core\Cache\CacheableDependencyInterface;
+use Drupal\Core\Datetime\DateFormatterInterface;
+use Drupal\Core\Render\AttachmentsInterface;
+use Drupal\Core\Render\BubbleableMetadata;
+use Drupal\Core\Render\Markup;
 use Drupal\Core\Render\RenderableInterface;
 use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\Routing\UrlGeneratorInterface;
@@ -25,7 +18,8 @@ use Drupal\Core\Url;
 /**
  * A class providing Drupal Twig extensions.
  *
- * Specifically Twig functions, filter and node visitors.
+ * This provides a Twig extension that registers various Drupal-specific
+ * extensions to Twig, specifically Twig functions, filter, and node visitors.
  *
  * @see \Drupal\Core\CoreServiceProvider
  */
@@ -55,7 +49,7 @@ class TwigExtension extends \Twig_Extension {
   /**
    * The date formatter.
    *
-   * @var \Drupal\Core\Datetime\DateFormatter
+   * @var \Drupal\Core\Datetime\DateFormatterInterface
    */
   protected $dateFormatter;
 
@@ -64,9 +58,18 @@ class TwigExtension extends \Twig_Extension {
    *
    * @param \Drupal\Core\Render\RendererInterface $renderer
    *   The renderer.
+   * @param \Drupal\Core\Routing\UrlGeneratorInterface $url_generator
+   *   The URL generator.
+   * @param \Drupal\Core\Theme\ThemeManagerInterface $theme_manager
+   *   The theme manager.
+   * @param \Drupal\Core\Datetime\DateFormatterInterface $date_formatter
+   *   The date formatter.
    */
-  public function __construct(RendererInterface $renderer) {
+  public function __construct(RendererInterface $renderer, UrlGeneratorInterface $url_generator, ThemeManagerInterface $theme_manager, DateFormatterInterface $date_formatter) {
     $this->renderer = $renderer;
+    $this->urlGenerator = $url_generator;
+    $this->themeManager = $theme_manager;
+    $this->dateFormatter = $date_formatter;
   }
 
   /**
@@ -78,7 +81,6 @@ class TwigExtension extends \Twig_Extension {
    * @return $this
    *
    * @deprecated in Drupal 8.0.x-dev, will be removed before Drupal 9.0.0.
-   *   Use \Drupal\Core\Template\TwigExtension::setUrlGenerator().
    */
   public function setGenerators(UrlGeneratorInterface $url_generator) {
     return $this->setUrlGenerator($url_generator);
@@ -91,6 +93,8 @@ class TwigExtension extends \Twig_Extension {
    *   The URL generator.
    *
    * @return $this
+   *
+   * @deprecated in Drupal 8.3.x-dev, will be removed before Drupal 9.0.0.
    */
   public function setUrlGenerator(UrlGeneratorInterface $url_generator) {
     $this->urlGenerator = $url_generator;
@@ -104,6 +108,8 @@ class TwigExtension extends \Twig_Extension {
    *   The theme manager.
    *
    * @return $this
+   *
+   * @deprecated in Drupal 8.3.x-dev, will be removed before Drupal 9.0.0.
    */
   public function setThemeManager(ThemeManagerInterface $theme_manager) {
     $this->themeManager = $theme_manager;
@@ -117,8 +123,10 @@ class TwigExtension extends \Twig_Extension {
    *   The date formatter.
    *
    * @return $this
+   *
+   * @deprecated in Drupal 8.3.x-dev, will be removed before Drupal 9.0.0.
    */
-  public function setDateFormatter(DateFormatter $date_formatter) {
+  public function setDateFormatter(DateFormatterInterface $date_formatter) {
     $this->dateFormatter = $date_formatter;
     return $this;
   }
@@ -129,18 +137,19 @@ class TwigExtension extends \Twig_Extension {
   public function getFunctions() {
     return [
       // This function will receive a renderable array, if an array is detected.
-      new \Twig_SimpleFunction('render_var', array($this, 'renderVar')),
+      new \Twig_SimpleFunction('render_var', [$this, 'renderVar']),
       // The url and path function are defined in close parallel to those found
       // in \Symfony\Bridge\Twig\Extension\RoutingExtension
-      new \Twig_SimpleFunction('url', array($this, 'getUrl'), array('is_safe_callback' => array($this, 'isUrlGenerationSafe'))),
-      new \Twig_SimpleFunction('path', array($this, 'getPath'), array('is_safe_callback' => array($this, 'isUrlGenerationSafe'))),
-      new \Twig_SimpleFunction('link', array($this, 'getLink')),
+      new \Twig_SimpleFunction('url', [$this, 'getUrl'], ['is_safe_callback' => [$this, 'isUrlGenerationSafe']]),
+      new \Twig_SimpleFunction('path', [$this, 'getPath'], ['is_safe_callback' => [$this, 'isUrlGenerationSafe']]),
+      new \Twig_SimpleFunction('link', [$this, 'getLink']),
       new \Twig_SimpleFunction('file_url', function ($uri) {
         return file_url_transform_relative(file_create_url($uri));
       }),
       new \Twig_SimpleFunction('attach_library', [$this, 'attachLibrary']),
       new \Twig_SimpleFunction('active_theme_path', [$this, 'getActiveThemePath']),
       new \Twig_SimpleFunction('active_theme', [$this, 'getActiveTheme']),
+      new \Twig_SimpleFunction('create_attribute', [$this, 'createAttribute']),
     ];
   }
 
@@ -148,24 +157,24 @@ class TwigExtension extends \Twig_Extension {
    * {@inheritdoc}
    */
   public function getFilters() {
-    return array(
+    return [
       // Translation filters.
-      new \Twig_SimpleFilter('t', 't', array('is_safe' => array('html'))),
-      new \Twig_SimpleFilter('trans', 't', array('is_safe' => array('html'))),
+      new \Twig_SimpleFilter('t', 't', ['is_safe' => ['html']]),
+      new \Twig_SimpleFilter('trans', 't', ['is_safe' => ['html']]),
       // The "raw" filter is not detectable when parsing "trans" tags. To detect
       // which prefix must be used for translation (@, !, %), we must clone the
       // "raw" filter and give it identifiable names. These filters should only
       // be used in "trans" tags.
       // @see TwigNodeTrans::compileString()
-      new \Twig_SimpleFilter('placeholder', [$this, 'escapePlaceholder'], array('is_safe' => array('html'), 'needs_environment' => TRUE)),
+      new \Twig_SimpleFilter('placeholder', [$this, 'escapePlaceholder'], ['is_safe' => ['html'], 'needs_environment' => TRUE]),
 
       // Replace twig's escape filter with our own.
-      new \Twig_SimpleFilter('drupal_escape', [$this, 'escapeFilter'], array('needs_environment' => true, 'is_safe_callback' => 'twig_escape_filter_is_safe')),
+      new \Twig_SimpleFilter('drupal_escape', [$this, 'escapeFilter'], ['needs_environment' => TRUE, 'is_safe_callback' => 'twig_escape_filter_is_safe']),
 
       // Implements safe joining.
       // @todo Make that the default for |join? Upstream issue:
       //   https://github.com/fabpot/Twig/issues/1420
-      new \Twig_SimpleFilter('safe_join', [$this, 'safeJoin'], ['needs_environment' => true, 'is_safe' => ['html']]),
+      new \Twig_SimpleFilter('safe_join', [$this, 'safeJoin'], ['needs_environment' => TRUE, 'is_safe' => ['html']]),
 
       // Array filters.
       new \Twig_SimpleFilter('without', 'twig_without'),
@@ -174,9 +183,9 @@ class TwigExtension extends \Twig_Extension {
       new \Twig_SimpleFilter('clean_class', '\Drupal\Component\Utility\Html::getClass'),
       new \Twig_SimpleFilter('clean_id', '\Drupal\Component\Utility\Html::getId'),
       // This filter will render a renderable array to use the string results.
-      new \Twig_SimpleFilter('render', array($this, 'renderVar')),
-      new \Twig_SimpleFilter('format_date', array($this->dateFormatter, 'format')),
-    );
+      new \Twig_SimpleFilter('render', [$this, 'renderVar']),
+      new \Twig_SimpleFilter('format_date', [$this->dateFormatter, 'format']),
+    ];
   }
 
   /**
@@ -185,18 +194,18 @@ class TwigExtension extends \Twig_Extension {
   public function getNodeVisitors() {
     // The node visitor is needed to wrap all variables with
     // render_var -> TwigExtension->renderVar() function.
-    return array(
+    return [
       new TwigNodeVisitor(),
-    );
+    ];
   }
 
   /**
    * {@inheritdoc}
    */
   public function getTokenParsers() {
-    return array(
+    return [
       new TwigTransTokenParser(),
-    );
+    ];
   }
 
   /**
@@ -216,12 +225,13 @@ class TwigExtension extends \Twig_Extension {
    * @param array $options
    *   (optional) An associative array of additional options. The 'absolute'
    *   option is forced to be FALSE.
-   *   @see \Drupal\Core\Routing\UrlGeneratorInterface::generateFromRoute().
    *
    * @return string
    *   The generated URL path (relative URL) for the given route.
+   *
+   * @see \Drupal\Core\Routing\UrlGeneratorInterface::generateFromRoute()
    */
-  public function getPath($name, $parameters = array(), $options = array()) {
+  public function getPath($name, $parameters = [], $options = []) {
     $options['absolute'] = FALSE;
     return $this->urlGenerator->generateFromRoute($name, $parameters, $options);
   }
@@ -242,7 +252,7 @@ class TwigExtension extends \Twig_Extension {
    *
    * @todo Add an option for scheme-relative URLs.
    */
-  public function getUrl($name, $parameters = array(), $options = array()) {
+  public function getUrl($name, $parameters = [], $options = []) {
     // Generate URL.
     $options['absolute'] = TRUE;
     $generated_url = $this->urlGenerator->generateFromRoute($name, $parameters, $options, TRUE);
@@ -254,7 +264,7 @@ class TwigExtension extends \Twig_Extension {
   }
 
   /**
-   * Gets a rendered link from an url object.
+   * Gets a rendered link from a url object.
    *
    * @param string $text
    *   The link text for the anchor tag as a translated string.
@@ -270,14 +280,20 @@ class TwigExtension extends \Twig_Extension {
     if (!$url instanceof Url) {
       $url = Url::fromUri($url);
     }
+    // The twig extension should not modify the original URL object, this
+    // ensures consistent rendering.
+    // @see https://www.drupal.org/node/2842399
+    $url = clone $url;
     if ($attributes) {
       if ($attributes instanceof Attribute) {
         $attributes = $attributes->toArray();
       }
-      if ($existing_attributes = $url->getOption('attributes')) {
-        $attributes = array_merge($existing_attributes, $attributes);
-      }
-      $url->setOption('attributes', $attributes);
+      $url->mergeOptions(['attributes' => $attributes]);
+    }
+    // The text has been processed by twig already, convert it to a safe object
+    // for the render system.
+    if ($text instanceof \Twig_Markup) {
+      $text = Markup::create($text);
     }
     $build = [
       '#type' => 'link',
@@ -313,7 +329,7 @@ class TwigExtension extends \Twig_Extension {
    * Saves the unneeded automatic escaping for performance reasons.
    *
    * The URL generation process percent encodes non-alphanumeric characters.
-   * Thus, the only character within an URL that must be escaped in HTML is the
+   * Thus, the only character within a URL that must be escaped in HTML is the
    * ampersand ("&") which separates query params. Thus we cannot mark
    * the generated URL as always safe, but only when we are sure there won't be
    * multiple query params. This is the case when there are none or only one
@@ -340,10 +356,10 @@ class TwigExtension extends \Twig_Extension {
 
     if (!isset($parameter_node) || $parameter_node instanceof \Twig_Node_Expression_Array && count($parameter_node) <= 2 &&
         (!$parameter_node->hasNode(1) || $parameter_node->getNode(1) instanceof \Twig_Node_Expression_Constant)) {
-      return array('html');
+      return ['html'];
     }
 
-    return array();
+    return [];
   }
 
   /**
@@ -402,6 +418,10 @@ class TwigExtension extends \Twig_Extension {
    * @return string|null
    *   The escaped, rendered output, or NULL if there is no valid output.
    *
+   * @throws \Exception
+   *   When $arg is passed as an object which does not implement __toString(),
+   *   RenderableInterface or toString().
+   *
    * @todo Refactor this to keep it in sync with theme_render_and_autoescape()
    *   in https://www.drupal.org/node/2575065
    */
@@ -415,6 +435,8 @@ class TwigExtension extends \Twig_Extension {
     if ($arg == NULL) {
       return NULL;
     }
+
+    $this->bubbleArgMetadata($arg);
 
     // Keep Twig_Markup objects intact to support autoescaping.
     if ($autoescape && ($arg instanceof \Twig_Markup || $arg instanceof MarkupInterface)) {
@@ -433,8 +455,8 @@ class TwigExtension extends \Twig_Extension {
       elseif (method_exists($arg, '__toString')) {
         $return = (string) $arg;
       }
-      // You can't throw exceptions in the magic PHP __toString methods, see
-      // http://php.net/manual/en/language.oop5.magic.php#object.tostring so
+      // You can't throw exceptions in the magic PHP __toString() methods, see
+      // http://php.net/manual/language.oop5.magic.php#object.tostring so
       // we also support a toString method.
       elseif (method_exists($arg, 'toString')) {
         $return = $arg->toString();
@@ -446,7 +468,7 @@ class TwigExtension extends \Twig_Extension {
 
     // We have a string or an object converted to a string: Autoescape it!
     if (isset($return)) {
-      if ($autoescape && SafeMarkup::isSafe($return, $strategy)) {
+      if ($autoescape && $return instanceof MarkupInterface) {
         return $return;
       }
       // Drupal only supports the HTML escaping strategy, so provide a
@@ -469,18 +491,54 @@ class TwigExtension extends \Twig_Extension {
   }
 
   /**
+   * Bubbles Twig template argument's cacheability & attachment metadata.
+   *
+   * For example: a generated link or generated URL object is passed as a Twig
+   * template argument, and its bubbleable metadata must be bubbled.
+   *
+   * @see \Drupal\Core\GeneratedLink
+   * @see \Drupal\Core\GeneratedUrl
+   *
+   * @param mixed $arg
+   *   A Twig template argument that is about to be printed.
+   *
+   * @see \Drupal\Core\Theme\ThemeManager::render()
+   * @see \Drupal\Core\Render\RendererInterface::render()
+   */
+  protected function bubbleArgMetadata($arg) {
+    // If it's a renderable, then it'll be up to the generated render array it
+    // returns to contain the necessary cacheability & attachment metadata. If
+    // it doesn't implement CacheableDependencyInterface or AttachmentsInterface
+    // then there is nothing to do here.
+    if ($arg instanceof RenderableInterface || !($arg instanceof CacheableDependencyInterface || $arg instanceof AttachmentsInterface)) {
+      return;
+    }
+
+    $arg_bubbleable = [];
+    BubbleableMetadata::createFromObject($arg)
+      ->applyTo($arg_bubbleable);
+
+    $this->renderer->render($arg_bubbleable);
+  }
+
+  /**
    * Wrapper around render() for twig printed output.
    *
-   * If an object is passed that has no __toString method an exception is thrown;
-   * other objects are casted to string. However in the case that the object is an
-   * instance of a Twig_Markup object it is returned directly to support auto
-   * escaping.
+   * If an object is passed which does not implement __toString(),
+   * RenderableInterface or toString() then an exception is thrown;
+   * Other objects are casted to string. However in the case that the
+   * object is an instance of a Twig_Markup object it is returned directly
+   * to support auto escaping.
    *
    * If an array is passed it is rendered via render() and scalar values are
    * returned directly.
    *
    * @param mixed $arg
    *   String, Object or Render Array.
+   *
+   * @throws \Exception
+   *   When $arg is passed as an object which does not implement __toString(),
+   *   RenderableInterface or toString().
    *
    * @return mixed
    *   The rendered output or an Twig_Markup object.
@@ -505,14 +563,15 @@ class TwigExtension extends \Twig_Extension {
     }
 
     if (is_object($arg)) {
+      $this->bubbleArgMetadata($arg);
       if ($arg instanceof RenderableInterface) {
         $arg = $arg->toRenderable();
       }
       elseif (method_exists($arg, '__toString')) {
         return (string) $arg;
       }
-      // You can't throw exceptions in the magic PHP __toString methods, see
-      // http://php.net/manual/en/language.oop5.magic.php#object.tostring so
+      // You can't throw exceptions in the magic PHP __toString() methods, see
+      // http://php.net/manual/language.oop5.magic.php#object.tostring so
       // we also support a toString method.
       elseif (method_exists($arg, 'toString')) {
         return $arg->toString();
@@ -536,7 +595,7 @@ class TwigExtension extends \Twig_Extension {
    *
    * @param \Twig_Environment $env
    *   A Twig_Environment instance.
-   * @param mixed[]|\Traversable|NULL $value
+   * @param mixed[]|\Traversable|null $value
    *   The pieces to join.
    * @param string $glue
    *   The delimiter with which to join the string. Defaults to an empty string.
@@ -548,13 +607,27 @@ class TwigExtension extends \Twig_Extension {
    */
   public function safeJoin(\Twig_Environment $env, $value, $glue = '') {
     if ($value instanceof \Traversable) {
-      $value = iterator_to_array($value, false);
+      $value = iterator_to_array($value, FALSE);
     }
 
-    return implode($glue, array_map(function($item) use ($env) {
+    return implode($glue, array_map(function ($item) use ($env) {
       // If $item is not marked safe then it will be escaped.
       return $this->escapeFilter($env, $item, 'html', NULL, TRUE);
     }, (array) $value));
+  }
+
+  /**
+   * Creates an Attribute object.
+   *
+   * @param array $attributes
+   *   (optional) An associative array of key-value pairs to be converted to
+   *   HTML attributes.
+   *
+   * @return \Drupal\Core\Template\Attribute
+   *   An attributes object that has the given attributes.
+   */
+  public function createAttribute(array $attributes = []) {
+    return new Attribute($attributes);
   }
 
 }

@@ -1,13 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\StringTranslation\Translator\CustomStrings.
- */
-
 namespace Drupal\Core\StringTranslation\Translator;
 
 use Drupal\Core\Site\Settings;
+use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 
 /**
  * String translator using overrides from variables.
@@ -16,6 +12,8 @@ use Drupal\Core\Site\Settings;
  * See settings.php for examples.
  */
 class CustomStrings extends StaticTranslation {
+
+  use DependencySerializationTrait;
 
   /**
    * The settings read only object.
@@ -39,7 +37,7 @@ class CustomStrings extends StaticTranslation {
    * {@inheritdoc}
    */
   protected function getLanguage($langcode) {
-    return $this->settings->get('locale_custom_strings_' . $langcode, array());
+    return $this->settings->get('locale_custom_strings_' . $langcode, []);
   }
 
 }

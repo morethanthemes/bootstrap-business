@@ -46,7 +46,7 @@ class YamlDumper extends Dumper
             $this->dumper = new YmlDumper();
         }
 
-        return $this->addParameters()."\n".$this->addServices();
+        return $this->container->resolveEnvPlaceholders($this->addParameters()."\n".$this->addServices());
     }
 
     /**
@@ -65,7 +65,7 @@ class YamlDumper extends Dumper
                 $class = substr($class, 1);
             }
 
-            $code .= sprintf("        class: %s\n", $class);
+            $code .= sprintf("        class: %s\n", $this->dumper->dump($class));
         }
 
         if (!$definition->isPublic()) {
@@ -89,31 +89,31 @@ class YamlDumper extends Dumper
         }
 
         if ($definition->getFile()) {
-            $code .= sprintf("        file: %s\n", $definition->getFile());
+            $code .= sprintf("        file: %s\n", $this->dumper->dump($definition->getFile()));
         }
 
         if ($definition->isSynthetic()) {
-            $code .= sprintf("        synthetic: true\n");
+            $code .= "        synthetic: true\n";
         }
 
-        if ($definition->isSynchronized(false)) {
-            $code .= sprintf("        synchronized: true\n");
+        if ($definition->isDeprecated()) {
+            $code .= sprintf("        deprecated: %s\n", $definition->getDeprecationMessage('%service_id%'));
         }
 
-        if ($definition->getFactoryClass(false)) {
-            $code .= sprintf("        factory_class: %s\n", $definition->getFactoryClass(false));
+        if ($definition->isAutowired()) {
+            $code .= "        autowire: true\n";
+        }
+
+        $autowiringTypesCode = '';
+        foreach ($definition->getAutowiringTypes() as $autowiringType) {
+            $autowiringTypesCode .= sprintf("            - %s\n", $this->dumper->dump($autowiringType));
+        }
+        if ($autowiringTypesCode) {
+            $code .= sprintf("        autowiring_types:\n%s", $autowiringTypesCode);
         }
 
         if ($definition->isLazy()) {
-            $code .= sprintf("        lazy: true\n");
-        }
-
-        if ($definition->getFactoryMethod(false)) {
-            $code .= sprintf("        factory_method: %s\n", $definition->getFactoryMethod(false));
-        }
-
-        if ($definition->getFactoryService(false)) {
-            $code .= sprintf("        factory_service: %s\n", $definition->getFactoryService(false));
+            $code .= "        lazy: true\n";
         }
 
         if ($definition->getArguments()) {
@@ -128,15 +128,18 @@ class YamlDumper extends Dumper
             $code .= sprintf("        calls:\n%s\n", $this->dumper->dump($this->dumpValue($definition->getMethodCalls()), 1, 12));
         }
 
-        if (ContainerInterface::SCOPE_CONTAINER !== $scope = $definition->getScope()) {
-            $code .= sprintf("        scope: %s\n", $scope);
+        if (!$definition->isShared()) {
+            $code .= "        shared: false\n";
         }
 
         if (null !== $decorated = $definition->getDecoratedService()) {
-            list($decorated, $renamedId) = $decorated;
+            list($decorated, $renamedId, $priority) = $decorated;
             $code .= sprintf("        decorates: %s\n", $decorated);
             if (null !== $renamedId) {
                 $code .= sprintf("        decoration_inner_name: %s\n", $renamedId);
+            }
+            if (0 !== $priority) {
+                $code .= sprintf("        decoration_priority: %s\n", $priority);
             }
         }
 
@@ -165,7 +168,7 @@ class YamlDumper extends Dumper
             return sprintf("    %s: '@%s'\n", $alias, $id);
         }
 
-        return sprintf("    %s:\n        alias: %s\n        public: false", $alias, $id);
+        return sprintf("    %s:\n        alias: %s\n        public: false\n", $alias, $id);
     }
 
     /**
@@ -304,7 +307,7 @@ class YamlDumper extends Dumper
      *
      * @return array
      */
-    private function prepareParameters($parameters, $escape = true)
+    private function prepareParameters(array $parameters, $escape = true)
     {
         $filtered = array();
         foreach ($parameters as $key => $value) {
@@ -327,7 +330,7 @@ class YamlDumper extends Dumper
      *
      * @return array
      */
-    private function escape($arguments)
+    private function escape(array $arguments)
     {
         $args = array();
         foreach ($arguments as $k => $v) {

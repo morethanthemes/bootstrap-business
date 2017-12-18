@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Field\Plugin\DataType\Deriver\FieldItemDeriver.
- */
-
 namespace Drupal\Core\Field\Plugin\DataType\Deriver;
 
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
@@ -21,7 +16,7 @@ class FieldItemDeriver implements ContainerDeriverInterface {
    *
    * @var array
    */
-  protected $derivatives = array();
+  protected $derivatives = [];
 
   /**
    * The base plugin ID this derivative is for.

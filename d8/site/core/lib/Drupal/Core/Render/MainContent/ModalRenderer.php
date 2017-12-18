@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\MainContent\ModalRenderer.
- */
-
 namespace Drupal\Core\Render\MainContent;
 
 use Drupal\Core\Ajax\AjaxResponse;
@@ -36,7 +31,7 @@ class ModalRenderer extends DialogRenderer {
 
     // Determine the title: use the title provided by the main content if any,
     // otherwise get it from the routing information.
-    $options = $request->request->get('dialogOptions', array());
+    $options = $request->request->get('dialogOptions', []);
 
     $response->addCommand(new OpenModalDialogCommand($title, $content, $options));
     return $response;

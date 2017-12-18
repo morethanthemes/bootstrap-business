@@ -1,16 +1,13 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Config\Schema\ArrayElement.
- */
-
 namespace Drupal\Core\Config\Schema;
+
+use Drupal\Core\TypedData\ComplexDataInterface;
 
 /**
  * Defines a generic configuration element that contains multiple properties.
  */
-abstract class ArrayElement extends Element implements \IteratorAggregate, TypedConfigInterface {
+abstract class ArrayElement extends Element implements \IteratorAggregate, TypedConfigInterface, ComplexDataInterface {
 
   /**
    * Parsed elements.
@@ -24,7 +21,7 @@ abstract class ArrayElement extends Element implements \IteratorAggregate, Typed
    *   Array of valid configuration data keys.
    */
   protected function getAllKeys() {
-    return is_array($this->value) ? array_keys($this->value) : array();
+    return is_array($this->value) ? array_keys($this->value) : [];
   }
 
   /**
@@ -34,7 +31,7 @@ abstract class ArrayElement extends Element implements \IteratorAggregate, Typed
    *   An array of elements contained in this element.
    */
   protected function parse() {
-    $elements = array();
+    $elements = [];
     foreach ($this->getAllKeys() as $key) {
       $value = isset($this->value[$key]) ? $this->value[$key] : NULL;
       $definition = $this->getElementDefinition($key);
@@ -51,7 +48,7 @@ abstract class ArrayElement extends Element implements \IteratorAggregate, Typed
    *
    * @return \Drupal\Core\TypedData\DataDefinitionInterface
    */
-  protected abstract function getElementDefinition($key);
+  abstract protected function getElementDefinition($key);
 
   /**
    * {@inheritdoc}
@@ -101,7 +98,7 @@ abstract class ArrayElement extends Element implements \IteratorAggregate, Typed
    * {@inheritdoc}
    */
   public function toArray() {
-    return isset($this->value) ? $this->value : array();
+    return isset($this->value) ? $this->value : [];
   }
 
   /**
@@ -164,6 +161,27 @@ abstract class ArrayElement extends Element implements \IteratorAggregate, Typed
    */
   public function isNullable() {
     return isset($this->definition['nullable']) && $this->definition['nullable'] == TRUE;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function set($property_name, $value, $notify = TRUE) {
+    $this->value[$property_name] = $value;
+    // Config schema elements do not make use of notifications. Thus, we skip
+    // notifying parents.
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getProperties($include_computed = FALSE) {
+    $properties = [];
+    foreach (array_keys($this->value) as $name) {
+      $properties[$name] = $this->get($name);
+    }
+    return $properties;
   }
 
 }

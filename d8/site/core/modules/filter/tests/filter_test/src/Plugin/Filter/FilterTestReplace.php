@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\filter_test\Plugin\Filter\FilterTestReplace.
- */
-
 namespace Drupal\filter_test\Plugin\Filter;
 
 use Drupal\filter\FilterProcessResult;
@@ -26,7 +21,7 @@ class FilterTestReplace extends FilterBase {
    * {@inheritdoc}
    */
   public function process($text, $langcode) {
-    $text = array();
+    $text = [];
     $text[] = 'Filter: ' . $this->getLabel() . ' (' . $this->getPluginId() . ')';
     $text[] = 'Language: ' . $langcode;
     return new FilterProcessResult(implode("<br />\n", $text));

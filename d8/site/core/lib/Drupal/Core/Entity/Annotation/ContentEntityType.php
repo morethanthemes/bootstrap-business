@@ -1,11 +1,7 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\Annotation\ContentEntityType.
- */
-
 namespace Drupal\Core\Entity\Annotation;
+
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 
 /**
@@ -37,7 +33,7 @@ class ContentEntityType extends EntityType {
    * {@inheritdoc}
    */
   public function get() {
-    $this->definition['group_label'] = new TranslatableMarkup('Content', array(), array('context' => 'Entity type group'));
+    $this->definition['group_label'] = new TranslatableMarkup('Content', [], ['context' => 'Entity type group']);
 
     return parent::get();
   }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\RouteProcessor\RouteProcessorManager.
- */
-
 namespace Drupal\Core\RouteProcessor;
 
 use Drupal\Core\Render\BubbleableMetadata;
@@ -25,7 +20,7 @@ class RouteProcessorManager implements OutboundRouteProcessorInterface {
    *   An array whose keys are priorities and whose values are arrays of path
    *   processor objects.
    */
-  protected $outboundProcessors = array();
+  protected $outboundProcessors = [];
 
   /**
    * Holds the array of outbound processors, sorted by priority.
@@ -33,7 +28,7 @@ class RouteProcessorManager implements OutboundRouteProcessorInterface {
    * @var array
    *   An array of path processor objects.
    */
-  protected $sortedOutbound = array();
+  protected $sortedOutbound = [];
 
   /**
    * Adds an outbound processor object to the $outboundProcessors property.
@@ -45,7 +40,7 @@ class RouteProcessorManager implements OutboundRouteProcessorInterface {
    */
   public function addOutbound(OutboundRouteProcessorInterface $processor, $priority = 0) {
     $this->outboundProcessors[$priority][] = $processor;
-    $this->sortedOutbound = array();
+    $this->sortedOutbound = [];
   }
 
   /**
@@ -76,7 +71,7 @@ class RouteProcessorManager implements OutboundRouteProcessorInterface {
    * Sorts the processors according to priority.
    */
   protected function sortProcessors() {
-    $sorted = array();
+    $sorted = [];
     krsort($this->outboundProcessors);
 
     foreach ($this->outboundProcessors as $processors) {

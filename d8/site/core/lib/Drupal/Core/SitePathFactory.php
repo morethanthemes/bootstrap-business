@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\SitePathFactory.
- */
-
 namespace Drupal\Core;
 
 /**
@@ -40,4 +35,3 @@ class SitePathFactory {
   }
 
 }
-

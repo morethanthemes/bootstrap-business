@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\page_cache_form_test\Form\TestForm.
- */
-
 namespace Drupal\page_cache_form_test\Form;
 
 use Drupal\Core\Form\FormBase;
@@ -30,6 +25,6 @@ class TestForm extends FormBase {
   /**
    * {@inheritdoc}
    */
-  public function submitForm(array &$form, FormStateInterface $form_state) { }
+  public function submitForm(array &$form, FormStateInterface $form_state) {}
 
 }

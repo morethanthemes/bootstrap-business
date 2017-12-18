@@ -1,8 +1,9 @@
 <?php
 
+namespace Drupal\Core\Template;
+
 /**
- * @file
- * Contains \Drupal\Core\Template\TwigNodeTrans.
+ * A class that defines the Twig 'trans' tag for Drupal.
  *
  * This Twig extension was originally based on Twig i18n extension. It has been
  * severely modified to work properly with the complexities of the Drupal
@@ -11,24 +12,18 @@
  * @see http://twig.sensiolabs.org/doc/extensions/i18n.html
  * @see https://github.com/fabpot/Twig-extensions
  */
-
-namespace Drupal\Core\Template;
-
-/**
- * A class that defines the Twig 'trans' tag for Drupal.
- */
 class TwigNodeTrans extends \Twig_Node {
 
   /**
    * {@inheritdoc}
    */
   public function __construct(\Twig_Node $body, \Twig_Node $plural = NULL, \Twig_Node_Expression $count = NULL, \Twig_Node_Expression $options = NULL, $lineno, $tag = NULL) {
-    parent::__construct(array(
+    parent::__construct([
       'count' => $count,
       'body' => $body,
       'plural' => $plural,
       'options' => $options,
-    ), array(), $lineno, $tag);
+    ], [], $lineno, $tag);
   }
 
   /**
@@ -100,10 +95,10 @@ class TwigNodeTrans extends \Twig_Node {
    */
   protected function compileString(\Twig_Node $body) {
     if ($body instanceof \Twig_Node_Expression_Name || $body instanceof \Twig_Node_Expression_Constant || $body instanceof \Twig_Node_Expression_TempName) {
-      return array($body, array());
+      return [$body, []];
     }
 
-    $tokens = array();
+    $tokens = [];
     if (count($body)) {
       $text = '';
 
@@ -140,7 +135,7 @@ class TwigNodeTrans extends \Twig_Node {
             $args = $args->getNode('node');
           }
           if ($args instanceof \Twig_Node_Expression_GetAttr) {
-            $argName = array();
+            $argName = [];
             // Reuse the incoming expression.
             $expr = $args;
             // Assemble a valid argument name by walking through the expression.
@@ -174,11 +169,14 @@ class TwigNodeTrans extends \Twig_Node {
         }
       }
     }
+    elseif (!$body->hasAttribute('data')) {
+      throw new \Twig_Error_Syntax('{% trans %} tag cannot be empty');
+    }
     else {
       $text = $body->getAttribute('data');
     }
 
-    return array(new \Twig_Node(array(new \Twig_Node_Expression_Constant(trim($text), $body->getLine()))), $tokens);
+    return [new \Twig_Node([new \Twig_Node_Expression_Constant(trim($text), $body->getLine())]), $tokens];
   }
 
 }

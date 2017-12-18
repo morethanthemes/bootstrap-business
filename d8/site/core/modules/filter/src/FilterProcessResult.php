@@ -1,16 +1,11 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\filter\FilterProcessResult.
- */
-
 namespace Drupal\filter;
 
+use Drupal\Component\Utility\Crypt;
 use Drupal\Component\Utility\Html;
 use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Render\BubbleableMetadata;
-use Drupal\Core\Template\Attribute;
 
 /**
  * Used to return values from a text filter plugin's processing method.
@@ -35,7 +30,7 @@ use Drupal\Core\Template\Attribute;
  * public function process($text, $langcode) {
  *   // Modify $text.
  *
- *   return new FilterProcess($text);
+ *   return new FilterProcessResult($text);
  * }
  * @endcode
  *
@@ -44,7 +39,7 @@ use Drupal\Core\Template\Attribute;
  * public function process($text, $langcode) {
  *   // Modify $text.
  *
- *   $result = new FilterProcess($text);
+ *   $result = new FilterProcessResult($text);
  *
  *   // Associate assets to be attached.
  *   $result->setAttachments(array(
@@ -140,7 +135,7 @@ class FilterProcessResult extends BubbleableMetadata {
     // Generate placeholder markup.
     // @see \Drupal\Core\Render\PlaceholderGenerator::createPlaceholder()
     $arguments = UrlHelper::buildQuery($args);
-    $token = hash('crc32b', serialize([$callback, $args]));
+    $token = Crypt::hashBase64(serialize([$callback, $args]));
     $placeholder_markup = '<drupal-filter-placeholder callback="' . Html::escape($callback) . '" arguments="' . Html::escape($arguments) . '" token="' . Html::escape($token) . '"></drupal-filter-placeholder>';
 
     // Add the placeholder attachment.

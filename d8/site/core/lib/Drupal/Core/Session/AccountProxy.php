@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Session\AccountProxy.
- */
-
 namespace Drupal\Core\Session;
 
 /**
@@ -28,9 +23,18 @@ class AccountProxy implements AccountProxyInterface {
   protected $account;
 
   /**
+   * Account id.
+   *
+   * @var int
+   */
+  protected $id = 0;
+
+  /**
    * Initial account id.
    *
    * @var int
+   *
+   * @deprecated Scheduled for removal in Drupal 8.4.x. Use $this->id instead.
    */
   protected $initialAccountId;
 
@@ -44,6 +48,7 @@ class AccountProxy implements AccountProxyInterface {
       $account = $account->getAccount();
     }
     $this->account = $account;
+    $this->id = $account->id();
     date_default_timezone_set(drupal_get_user_timezone());
   }
 
@@ -52,11 +57,11 @@ class AccountProxy implements AccountProxyInterface {
    */
   public function getAccount() {
     if (!isset($this->account)) {
-      if ($this->initialAccountId) {
+      if ($this->id) {
         // After the container is rebuilt, DrupalKernel sets the initial
         // account to the id of the logged in user. This is necessary in order
         // to refresh the user account reference here.
-        $this->setAccount($this->loadUserEntity($this->initialAccountId));
+        $this->setAccount($this->loadUserEntity($this->id));
       }
       else {
         $this->account = new AnonymousUserSession();
@@ -70,7 +75,7 @@ class AccountProxy implements AccountProxyInterface {
    * {@inheritdoc}
    */
   public function id() {
-    return $this->getAccount()->id();
+    return $this->id;
   }
 
   /**
@@ -165,7 +170,7 @@ class AccountProxy implements AccountProxyInterface {
       throw new \LogicException('AccountProxyInterface::setInitialAccountId() cannot be called after an account was set on the AccountProxy');
     }
 
-    $this->initialAccountId = $account_id;
+    $this->id = $this->initialAccountId = $account_id;
   }
 
   /**
@@ -184,7 +189,7 @@ class AccountProxy implements AccountProxyInterface {
    * @param int $account_id
    *   The id of an account to load.
    *
-   * @return \Drupal\Core\Session\AccountInterface|NULL
+   * @return \Drupal\Core\Session\AccountInterface|null
    *   An account or NULL if none is found.
    */
   protected function loadUserEntity($account_id) {

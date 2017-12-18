@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system_test\Controller\PageCacheAcceptHeaderController.
- */
-
 namespace Drupal\system_test\Controller;
 
 use Drupal\Core\Cache\CacheableJsonResponse;
@@ -32,5 +27,5 @@ class PageCacheAcceptHeaderController {
       return new CacheableResponse("<p>oh hai this is html.</p>");
     }
   }
-}
 
+}

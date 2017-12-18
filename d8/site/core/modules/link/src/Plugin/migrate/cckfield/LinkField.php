@@ -1,19 +1,25 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\link\Plugin\migrate\cckfield\LinkField.
- */
-
 namespace Drupal\link\Plugin\migrate\cckfield;
 
-use Drupal\migrate\Entity\MigrationInterface;
+@trigger_error('LinkField is deprecated in Drupal 8.3.x and will be be removed before Drupal 9.0.x. Use \Drupal\link\Plugin\migrate\field\d6\LinkField instead.', E_USER_DEPRECATED);
+
+use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate_drupal\Plugin\migrate\cckfield\CckFieldPluginBase;
 
 /**
  * @MigrateCckField(
- *   id = "link"
+ *   id = "link",
+ *   core = {6},
+ *   type_map = {
+ *     "link_field" = "link"
+ *   }
  * )
+ *
+ * @deprecated in Drupal 8.3.x and will be removed in Drupal 9.0.x. Use
+ * \Drupal\link\Plugin\migrate\field\d6\LinkField instead.
+ *
+ * @see https://www.drupal.org/node/2751897
  */
 class LinkField extends CckFieldPluginBase {
 
@@ -39,11 +45,11 @@ class LinkField extends CckFieldPluginBase {
    * {@inheritdoc}
    */
   public function processCckFieldValues(MigrationInterface $migration, $field_name, $data) {
-      $process = [
-        'plugin' => 'd6_cck_link',
-        'source' => $field_name,
-      ];
-      $migration->mergeProcessOfProperty($field_name, $process);
+    $process = [
+      'plugin' => 'd6_cck_link',
+      'source' => $field_name,
+    ];
+    $migration->mergeProcessOfProperty($field_name, $process);
   }
 
 }

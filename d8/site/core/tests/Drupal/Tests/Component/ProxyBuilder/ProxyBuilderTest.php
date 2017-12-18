@@ -8,13 +8,13 @@
 namespace Drupal\Tests\Component\ProxyBuilder;
 
 use Drupal\Component\ProxyBuilder\ProxyBuilder;
-use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @coversDefaultClass \Drupal\Component\ProxyBuilder\ProxyBuilder
  * @group proxy_builder
  */
-class ProxyBuilderTest extends UnitTestCase {
+class ProxyBuilderTest extends TestCase {
 
   /**
    * The tested proxy builder.
@@ -230,7 +230,7 @@ public function testMethod($parameter)
 
 EOS;
 
-$this->assertEquals($this->buildExpectedClass($class, $method_body), $result);
+    $this->assertEquals($this->buildExpectedClass($class, $method_body), $result);
   }
 
   /**
@@ -381,7 +381,7 @@ class TestServiceMethodWithParameter {
 
 class TestServiceComplexMethod {
 
-  public function complexMethod($parameter, callable $function, TestServiceNoMethod $test_service = NULL, array &$elements = array()) {
+  public function complexMethod($parameter, callable $function, TestServiceNoMethod $test_service = NULL, array &$elements = []) {
 
   }
 

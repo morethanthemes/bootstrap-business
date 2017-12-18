@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\language\HttpKernel\PathProcessorLanguage.
- */
-
 namespace Drupal\language\HttpKernel;
 
 use Drupal\Component\Utility\Unicode;
@@ -73,7 +68,7 @@ class PathProcessorLanguage implements InboundPathProcessorInterface, OutboundPa
    *   A config factory object for retrieving configuration settings.
    * @param \Drupal\language\ConfigurableLanguageManagerInterface $language_manager
    *   The configurable language manager.
-   * @param \Drupal\language\LanguageNegotiatorInterface
+   * @param \Drupal\language\LanguageNegotiatorInterface $negotiator
    *   The language negotiator.
    * @param \Drupal\Core\Session\AccountInterface $current_user
    *   The current active user.
@@ -107,7 +102,7 @@ class PathProcessorLanguage implements InboundPathProcessorInterface, OutboundPa
   /**
    * {@inheritdoc}
    */
-  public function processOutbound($path, &$options = array(), Request $request = NULL, BubbleableMetadata $bubbleable_metadata = NULL) {
+  public function processOutbound($path, &$options = [], Request $request = NULL, BubbleableMetadata $bubbleable_metadata = NULL) {
     if (!isset($this->multilingual)) {
       $this->multilingual = $this->languageManager->isMultilingual();
     }
@@ -136,7 +131,7 @@ class PathProcessorLanguage implements InboundPathProcessorInterface, OutboundPa
    */
   protected function initProcessors($scope) {
     $interface = '\Drupal\Core\PathProcessor\\' . Unicode::ucfirst($scope) . 'PathProcessorInterface';
-    $this->processors[$scope] = array();
+    $this->processors[$scope] = [];
     $weights = [];
     foreach ($this->languageManager->getLanguageTypes() as $type) {
       foreach ($this->negotiator->getNegotiationMethods($type) as $method_id => $method) {
@@ -152,7 +147,7 @@ class PathProcessorLanguage implements InboundPathProcessorInterface, OutboundPa
 
     // Sort the processors list, so that their functions are called in the
     // order specified by the weight of the methods.
-    uksort($this->processors[$scope], function ($method_id_a, $method_id_b) use($weights) {
+    uksort($this->processors[$scope], function ($method_id_a, $method_id_b) use ($weights) {
       $a_weight = $weights[$method_id_a];
       $b_weight = $weights[$method_id_b];
 
@@ -179,7 +174,7 @@ class PathProcessorLanguage implements InboundPathProcessorInterface, OutboundPa
    * Resets the collected processors instances.
    */
   public function reset() {
-    $this->processors = array();
+    $this->processors = [];
   }
 
 }

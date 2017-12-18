@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Plugin\Context\ContextAwarePluginManagerInterface.
- */
-
 namespace Drupal\Core\Plugin\Context;
 
 use Drupal\Component\Plugin\PluginManagerInterface;
@@ -26,6 +21,6 @@ interface ContextAwarePluginManagerInterface extends PluginManagerInterface {
    * @return array
    *   An array of plugin definitions.
    */
-  public function getDefinitionsForContexts(array $contexts = array());
+  public function getDefinitionsForContexts(array $contexts = []);
 
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\file\FileAccessFormatterControlHandlerInterface.
- */
-
 namespace Drupal\file;
 
 use Drupal\Core\Entity\EntityAccessControlHandlerInterface;
@@ -27,4 +22,4 @@ use Drupal\Core\Entity\EntityAccessControlHandlerInterface;
  *
  * @see \Drupal\file\Plugin\Field\FieldFormatter\FileFormatterBase::needsAccessCheck()
  */
-interface FileAccessFormatterControlHandlerInterface extends EntityAccessControlHandlerInterface { }
+interface FileAccessFormatterControlHandlerInterface extends EntityAccessControlHandlerInterface {}

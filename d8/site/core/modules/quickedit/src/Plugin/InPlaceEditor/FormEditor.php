@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\quickedit\Plugin\InPlaceEditor\FormEditor.
- */
-
 namespace Drupal\quickedit\Plugin\InPlaceEditor;
 
 use Drupal\Core\Field\FieldItemListInterface;
@@ -30,11 +25,11 @@ class FormEditor extends InPlaceEditorBase {
    * {@inheritdoc}
    */
   public function getAttachments() {
-    return array(
-      'library' => array(
+    return [
+      'library' => [
         'quickedit/quickedit.inPlaceEditor.form',
-      ),
-    );
+      ],
+    ];
   }
 
 }

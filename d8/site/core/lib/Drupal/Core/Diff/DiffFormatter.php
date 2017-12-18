@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Diff\DiffFormatter.
- */
-
 namespace Drupal\Core\Diff;
 
 use Drupal\Component\Diff\DiffFormatter as DiffFormatterBase;
@@ -22,17 +17,7 @@ class DiffFormatter extends DiffFormatterBase {
    *
    * @var array
    */
-  protected $rows = array();
-
-  /**
-   * The line stats.
-   *
-   * @var array
-   */
-  protected $line_stats = array(
-    'counter' => array('x' => 0, 'y' => 0),
-    'offset' => array('x' => 0, 'y' => 0),
-  );
+  protected $rows = [];
 
   /**
    * Creates a DiffFormatter to render diffs in a table.
@@ -50,7 +35,7 @@ class DiffFormatter extends DiffFormatterBase {
    * {@inheritdoc}
    */
   protected function _start_diff() {
-    $this->rows = array();
+    $this->rows = [];
   }
 
   /**
@@ -64,16 +49,16 @@ class DiffFormatter extends DiffFormatterBase {
    * {@inheritdoc}
    */
   protected function _block_header($xbeg, $xlen, $ybeg, $ylen) {
-    return array(
-      array(
+    return [
+      [
         'data' => $xbeg + $this->line_stats['offset']['x'],
         'colspan' => 2,
-      ),
-      array(
+      ],
+      [
         'data' => $ybeg + $this->line_stats['offset']['y'],
         'colspan' => 2,
-      )
-    );
+      ]
+    ];
   }
 
   /**
@@ -88,7 +73,7 @@ class DiffFormatter extends DiffFormatterBase {
   /**
    * {@inheritdoc}
    */
-  protected function _lines($lines, $prefix=' ', $color='white') {
+  protected function _lines($lines, $prefix = ' ', $color = 'white') {
   }
 
   /**
@@ -101,16 +86,16 @@ class DiffFormatter extends DiffFormatterBase {
    *   An array representing a table row.
    */
   protected function addedLine($line) {
-    return array(
-      array(
+    return [
+      [
         'data' => '+',
         'class' => 'diff-marker',
-      ),
-      array(
+      ],
+      [
         'data' => ['#markup' => $line],
         'class' => 'diff-context diff-addedline',
-      )
-    );
+      ]
+    ];
   }
 
   /**
@@ -123,16 +108,16 @@ class DiffFormatter extends DiffFormatterBase {
    *   An array representing a table row.
    */
   protected function deletedLine($line) {
-    return array(
-      array(
+    return [
+      [
         'data' => '-',
         'class' => 'diff-marker',
-      ),
-      array(
+      ],
+      [
         'data' => ['#markup' => $line],
         'class' => 'diff-context diff-deletedline',
-      )
-    );
+      ]
+    ];
   }
 
   /**
@@ -145,13 +130,13 @@ class DiffFormatter extends DiffFormatterBase {
    *   An array representing a table row.
    */
   protected function contextLine($line) {
-    return array(
+    return [
       ' ',
-      array(
+      [
         'data' => ['#markup' => $line],
         'class' => 'diff-context',
-      )
-    );
+      ]
+    ];
   }
 
   /**
@@ -161,10 +146,10 @@ class DiffFormatter extends DiffFormatterBase {
    *   An array representing a table row.
    */
   protected function emptyLine() {
-    return array(
+    return [
       ' ',
       ' ',
-    );
+    ];
   }
 
   /**
@@ -207,7 +192,7 @@ class DiffFormatter extends DiffFormatterBase {
     // Notice that WordLevelDiff returns HTML-escaped output. Hence, we will be
     // calling addedLine/deletedLine without HTML-escaping.
     while ($line = array_shift($del)) {
-      $aline = array_shift( $add );
+      $aline = array_shift($add);
       $this->rows[] = array_merge($this->deletedLine($line), isset($aline) ? $this->addedLine($aline) : $this->emptyLine());
     }
 
@@ -216,4 +201,5 @@ class DiffFormatter extends DiffFormatterBase {
       $this->rows[] = array_merge($this->emptyLine(), $this->addedLine($line));
     }
   }
+
 }

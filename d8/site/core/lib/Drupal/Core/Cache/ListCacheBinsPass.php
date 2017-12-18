@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Cache\ListCacheBinsPass.
- */
-
 namespace Drupal\Core\Cache;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -21,8 +16,8 @@ class ListCacheBinsPass implements CompilerPassInterface {
    * Collects the cache bins into the cache_bins parameter.
    */
   public function process(ContainerBuilder $container) {
-    $cache_bins = array();
-    $cache_default_bin_backends = array();
+    $cache_bins = [];
+    $cache_default_bin_backends = [];
     foreach ($container->findTaggedServiceIds('cache.bin') as $id => $attributes) {
       $bin = substr($id, strpos($id, '.') + 1);
       $cache_bins[$id] = $bin;
@@ -33,4 +28,5 @@ class ListCacheBinsPass implements CompilerPassInterface {
     $container->setParameter('cache_bins', $cache_bins);
     $container->setParameter('cache_default_bin_backends', $cache_default_bin_backends);
   }
+
 }

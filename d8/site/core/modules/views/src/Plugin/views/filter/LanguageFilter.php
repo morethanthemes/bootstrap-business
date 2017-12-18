@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Plugin\views\filter\LanguageFilter.
- */
-
 namespace Drupal\views\Plugin\views\filter;
 
 use Drupal\Core\Language\LanguageInterface;
@@ -84,4 +79,5 @@ class LanguageFilter extends InOperator implements ContainerFactoryPluginInterfa
 
     parent::query();
   }
+
 }

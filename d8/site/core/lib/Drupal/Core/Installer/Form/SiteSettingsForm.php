@@ -1,16 +1,12 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Installer\Form\SiteSettingsForm.
- */
-
 namespace Drupal\Core\Installer\Form;
 
 use Drupal\Component\Utility\Crypt;
 use Drupal\Core\Database\Database;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\RendererInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -26,21 +22,30 @@ class SiteSettingsForm extends FormBase {
   protected $sitePath;
 
   /**
+   * The renderer.
+   *
+   * @var \Drupal\Core\Render\RendererInterface
+   */
+  protected $renderer;
+
+  /**
    * Constructs a new SiteSettingsForm.
    *
    * @param string $site_path
    *   The site path.
    */
-  public function __construct($site_path) {
+  public function __construct($site_path, RendererInterface $renderer) {
     $this->sitePath = $site_path;
-}
+    $this->renderer = $renderer;
+  }
 
   /**
     * {@inheritdoc}
     */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('site.path')
+      $container->get('site.path'),
+      $container->get('renderer')
     );
   }
 
@@ -92,15 +97,15 @@ class SiteSettingsForm extends FormBase {
     // when JavaScript is enabled (see below).
     else {
       $default_driver = current($drivers_keys);
-      $default_options = array();
+      $default_options = [];
     }
 
-    $form['driver'] = array(
+    $form['driver'] = [
       '#type' => 'radios',
       '#title' => $this->t('Database type'),
       '#required' => TRUE,
       '#default_value' => $default_driver,
-    );
+    ];
     if (count($drivers) == 1) {
       $form['driver']['#disabled'] = TRUE;
     }
@@ -110,31 +115,31 @@ class SiteSettingsForm extends FormBase {
       $form['driver']['#options'][$key] = $driver->name();
 
       $form['settings'][$key] = $driver->getFormOptions($default_options);
-      $form['settings'][$key]['#prefix'] = '<h2 class="js-hide">' . $this->t('@driver_name settings', array('@driver_name' => $driver->name())) . '</h2>';
+      $form['settings'][$key]['#prefix'] = '<h2 class="js-hide">' . $this->t('@driver_name settings', ['@driver_name' => $driver->name()]) . '</h2>';
       $form['settings'][$key]['#type'] = 'container';
       $form['settings'][$key]['#tree'] = TRUE;
-      $form['settings'][$key]['advanced_options']['#parents'] = array($key);
-      $form['settings'][$key]['#states'] = array(
-        'visible' => array(
-          ':input[name=driver]' => array('value' => $key),
-        )
-      );
+      $form['settings'][$key]['advanced_options']['#parents'] = [$key];
+      $form['settings'][$key]['#states'] = [
+        'visible' => [
+          ':input[name=driver]' => ['value' => $key],
+        ]
+      ];
     }
 
-    $form['actions'] = array('#type' => 'actions');
-    $form['actions']['save'] = array(
+    $form['actions'] = ['#type' => 'actions'];
+    $form['actions']['save'] = [
       '#type' => 'submit',
       '#value' => $this->t('Save and continue'),
       '#button_type' => 'primary',
-      '#limit_validation_errors' => array(
-        array('driver'),
-        array($default_driver),
-      ),
-      '#submit' => array('::submitForm'),
-    );
+      '#limit_validation_errors' => [
+        ['driver'],
+        [$default_driver],
+      ],
+      '#submit' => ['::submitForm'],
+    ];
 
-    $form['errors'] = array();
-    $form['settings_file'] = array('#type' => 'value', '#value' => $settings_file);
+    $form['errors'] = [];
+    $form['settings_file'] = ['#type' => 'value', '#value' => $settings_file];
 
     return $form;
   }
@@ -153,10 +158,52 @@ class SiteSettingsForm extends FormBase {
     $database['driver'] = $driver;
 
     $form_state->set('database', $database);
-    $errors = install_database_errors($database, $form_state->getValue('settings_file'));
-    foreach ($errors as $name => $message) {
+    foreach ($this->getDatabaseErrors($database, $form_state->getValue('settings_file')) as $name => $message) {
       $form_state->setErrorByName($name, $message);
     }
+  }
+
+  /**
+   * Get any database errors and links them to a form element.
+   *
+   * @param array $database
+   *   An array of database settings.
+   * @param string $settings_file
+   *   The settings file that contains the database settings.
+   *
+   * @return array
+   *   An array of form errors keyed by the element name and parents.
+   */
+  protected function getDatabaseErrors(array $database, $settings_file) {
+    $errors = install_database_errors($database, $settings_file);
+    $form_errors = array_filter($errors, function ($value) {
+      // Errors keyed by something other than an integer already are linked to
+      // form elements.
+      return is_int($value);
+    });
+
+    // Find the generic errors.
+    $errors = array_diff_key($errors, $form_errors);
+
+    if (count($errors)) {
+      $error_message = [
+        '#type' => 'inline_template',
+        '#template' => '{% trans %}Resolve all issues below to continue the installation. For help configuring your database server, see the <a href="https://www.drupal.org/getting-started/install">installation handbook</a>, or contact your hosting provider.{% endtrans%}{{ errors }}',
+        '#context' => [
+          'errors' => [
+            '#theme' => 'item_list',
+            '#items' => $errors,
+          ],
+        ],
+      ];
+
+      // These are generic errors, so we do not have any specific key of the
+      // database connection array to attach them to; therefore, we just put
+      // them in the error array with standard numeric keys.
+      $form_errors[$database['driver'] . '][0'] = $this->renderer->renderPlain($error_message);
+    }
+
+    return $form_errors;
   }
 
   /**
@@ -166,21 +213,21 @@ class SiteSettingsForm extends FormBase {
     global $install_state;
 
     // Update global settings array and save.
-    $settings = array();
+    $settings = [];
     $database = $form_state->get('database');
-    $settings['databases']['default']['default'] = (object) array(
+    $settings['databases']['default']['default'] = (object) [
       'value'    => $database,
       'required' => TRUE,
-    );
-    $settings['settings']['hash_salt'] = (object) array(
+    ];
+    $settings['settings']['hash_salt'] = (object) [
       'value'    => Crypt::randomBytesBase64(55),
       'required' => TRUE,
-    );
+    ];
     // Remember the profile which was used.
-    $settings['settings']['install_profile'] = (object) array(
+    $settings['settings']['install_profile'] = (object) [
       'value' => $install_state['parameters']['profile'],
       'required' => TRUE,
-    );
+    ];
 
     drupal_rewrite_settings($settings);
 

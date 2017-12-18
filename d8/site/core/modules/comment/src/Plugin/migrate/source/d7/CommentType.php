@@ -1,11 +1,8 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\comment\Plugin\migrate\source\d7\CommentType.
- */
-
 namespace Drupal\comment\Plugin\migrate\source\d7;
+
+@trigger_error('CommentType is deprecated in Drupal 8.4.x and will be removed before Drupal 9.0.x. Use \Drupal\node\Plugin\migrate\source\d7\NodeType instead.', E_USER_DEPRECATED);
 
 use Drupal\comment\Plugin\Field\FieldType\CommentItemInterface;
 use Drupal\migrate\Row;
@@ -16,8 +13,11 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
  *
  * @MigrateSource(
  *   id = "d7_comment_type",
- *   source_provider = "comment"
+ *   source_module = "comment"
  * )
+ *
+ * @deprecated in Drupal 8.4.x, to be removed before Drupal 9.0.x. Use
+ * \Drupal\node\Plugin\migrate\source\d7\NodeType instead.
  */
 class CommentType extends DrupalSqlBase {
 
@@ -26,7 +26,7 @@ class CommentType extends DrupalSqlBase {
    *
    * @var string[]
    */
-  protected $nodeTypes = array();
+  protected $nodeTypes = [];
 
   /**
    * {@inheritdoc}
@@ -34,8 +34,8 @@ class CommentType extends DrupalSqlBase {
   public function query() {
     return $this->select('field_config_instance', 'fci')
       ->distinct()
-      ->fields('fci', array('bundle'))
-      ->condition('entity_type', 'comment');
+      ->fields('fci', ['bundle'])
+      ->condition('fci.entity_type', 'comment');
   }
 
   /**
@@ -43,7 +43,7 @@ class CommentType extends DrupalSqlBase {
    */
   protected function initializeIterator() {
     $this->nodeTypes = $this->select('node_type', 'nt')
-      ->fields('nt', array('type', 'name'))
+      ->fields('nt', ['type', 'name'])
       ->execute()
       ->fetchAllKeyed();
 
@@ -76,7 +76,7 @@ class CommentType extends DrupalSqlBase {
    * {@inheritdoc}
    */
   public function fields() {
-    return array(
+    return [
       'label' => $this->t('The label of the comment type.'),
       'bundle' => $this->t('Bundle ID of the comment type.'),
       'node_type' => $this->t('The node type to which this comment type is attached.'),
@@ -86,18 +86,18 @@ class CommentType extends DrupalSqlBase {
       'form_location' => $this->t('Location of the comment form.'),
       'preview' => $this->t('Whether previews are enabled for the comment type.'),
       'subject' => $this->t('Whether a subject field is enabled for the comment type.'),
-    );
+    ];
   }
 
   /**
    * {@inheritdoc}
    */
   public function getIds() {
-    return array(
-      'bundle' => array(
+    return [
+      'bundle' => [
         'type' => 'string',
-      ),
-    );
+      ],
+    ];
   }
 
 }

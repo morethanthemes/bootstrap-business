@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Archiver\ArchiverInterface.
- */
-
 namespace Drupal\Core\Archiver;
 
 /**
@@ -52,7 +47,7 @@ interface ArchiverInterface {
    * @return \Drupal\Core\Archiver\ArchiverInterface
    *   The called object.
    */
-  public function extract($path, array $files = array());
+  public function extract($path, array $files = []);
 
   /**
    * Lists all files in the archive.
@@ -61,4 +56,5 @@ interface ArchiverInterface {
    *   An array of file names relative to the root of the archive.
    */
   public function listContents();
+
 }

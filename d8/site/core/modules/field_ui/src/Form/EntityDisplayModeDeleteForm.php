@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\field_ui\Form\EntityDisplayModeDeleteForm.
- */
-
 namespace Drupal\field_ui\Form;
 
 use Drupal\Core\Entity\EntityDeleteForm;
@@ -19,7 +14,7 @@ class EntityDisplayModeDeleteForm extends EntityDeleteForm {
    */
   public function getDescription() {
     $entity_type = $this->entity->getEntityType();
-    return $this->t('Deleting a @entity-type will cause any output still requesting to use that @entity-type to use the default display settings.', array('@entity-type' => $entity_type->getLowercaseLabel()));
+    return $this->t('Deleting a @entity-type will cause any output still requesting to use that @entity-type to use the default display settings.', ['@entity-type' => $entity_type->getLowercaseLabel()]);
   }
 
 }

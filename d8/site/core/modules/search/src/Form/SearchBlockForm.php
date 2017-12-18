@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\search\Form\SearchBlockForm.
- */
-
 namespace Drupal\search\Form;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -47,7 +42,7 @@ class SearchBlockForm extends FormBase {
    *   The search page repository.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The config factory.
-   * @param \Drupal\Core\Render\RendererInterface
+   * @param \Drupal\Core\Render\RendererInterface $renderer
    *   The renderer.
    */
   public function __construct(SearchPageRepositoryInterface $search_page_repository, ConfigFactoryInterface $config_factory, RendererInterface $renderer) {
@@ -80,10 +75,18 @@ class SearchBlockForm extends FormBase {
   public function buildForm(array $form, FormStateInterface $form_state) {
     // Set up the form to submit using GET to the correct search page.
     $entity_id = $this->searchPageRepository->getDefaultSearchPage();
+
+    // SearchPageRepository::getDefaultSearchPage() depends on search.settings.
+    // The dependency needs to be added before the conditional return, otherwise
+    // the block would get cached without the necessary cacheablity metadata in
+    // case there is no default search page and would not be invalidated if that
+    // changes.
+    $this->renderer->addCacheableDependency($form, $this->configFactory->get('search.settings'));
+
     if (!$entity_id) {
-      $form['message'] = array(
+      $form['message'] = [
         '#markup' => $this->t('Search is currently disabled'),
-      );
+      ];
       return $form;
     }
 
@@ -91,25 +94,22 @@ class SearchBlockForm extends FormBase {
     $form['#action'] = $this->url($route);
     $form['#method'] = 'get';
 
-    $form['keys'] = array(
+    $form['keys'] = [
       '#type' => 'search',
       '#title' => $this->t('Search'),
       '#title_display' => 'invisible',
       '#size' => 15,
       '#default_value' => '',
-      '#attributes' => array('title' => $this->t('Enter the terms you wish to search for.')),
-    );
+      '#attributes' => ['title' => $this->t('Enter the terms you wish to search for.')],
+    ];
 
-    $form['actions'] = array('#type' => 'actions');
-    $form['actions']['submit'] = array(
+    $form['actions'] = ['#type' => 'actions'];
+    $form['actions']['submit'] = [
       '#type' => 'submit',
       '#value' => $this->t('Search'),
       // Prevent op from showing up in the query string.
       '#name' => '',
-    );
-
-    // SearchPageRepository::getDefaultSearchPage() depends on search.settings.
-    $this->renderer->addCacheableDependency($form, $this->configFactory->get('search.settings'));
+    ];
 
     return $form;
   }
@@ -120,4 +120,5 @@ class SearchBlockForm extends FormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     // This form submits to the search page, so processing happens there.
   }
+
 }

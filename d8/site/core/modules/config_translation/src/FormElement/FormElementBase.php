@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\config_translation\FormElement\FormElementBase.
- */
-
 namespace Drupal\config_translation\FormElement;
 
 use Drupal\Core\Config\Config;
@@ -69,8 +64,8 @@ abstract class FormElementBase implements ElementInterface {
     $build['source'] = $this->getSourceElement($source_language, $source_config);
     $build['translation'] = $this->getTranslationElement($translation_language, $source_config, $translation_config);
 
-    $build['source']['#parents'] = array_merge(array('source'), $parents);
-    $build['translation']['#parents'] = array_merge(array('translation'), $parents);
+    $build['source']['#parents'] = array_merge(['source'], $parents);
+    $build['translation']['#parents'] = array_merge(['translation'], $parents);
     return $build;
   }
 
@@ -98,14 +93,15 @@ abstract class FormElementBase implements ElementInterface {
       $value = $this->t('(Empty)');
     }
 
-    return array(
+    return [
       '#type' => 'item',
-      '#title' => $this->t('@label <span class="visually-hidden">(@source_language)</span>', array(
-        '@label' => $this->definition->getLabel(),
+      '#title' => $this->t('@label <span class="visually-hidden">(@source_language)</span>', [
+        // Labels originate from configuration schema and are translatable.
+        '@label' => $this->t($this->definition->getLabel()),
         '@source_language' => $source_language->getName(),
-      )),
+      ]),
       '#markup' => $value,
-    );
+    ];
   }
 
   /**
@@ -161,14 +157,15 @@ abstract class FormElementBase implements ElementInterface {
    */
   protected function getTranslationElement(LanguageInterface $translation_language, $source_config, $translation_config) {
     // Add basic properties that apply to all form elements.
-    return array(
-      '#title' => $this->t('@label <span class="visually-hidden">(@source_language)</span>', array(
-        '@label' => $this->definition['label'],
+    return [
+      '#title' => $this->t('@label <span class="visually-hidden">(@source_language)</span>', [
+        // Labels originate from configuration schema and are translatable.
+        '@label' => $this->t($this->definition->getLabel()),
         '@source_language' => $translation_language->getName(),
-      )),
+      ]),
       '#default_value' => $translation_config,
-      '#attributes' => array('lang' => $translation_language->getId()),
-    );
+      '#attributes' => ['lang' => $translation_language->getId()],
+    ];
   }
 
   /**

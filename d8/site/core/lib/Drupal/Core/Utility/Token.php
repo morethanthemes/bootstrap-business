@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Utility\Token.
- */
-
 namespace Drupal\Core\Utility;
 
 use Drupal\Component\Render\HtmlEscapedText;
@@ -160,7 +155,7 @@ class Token {
    *     array of token replacements after they are generated.
    *   - clear: A boolean flag indicating that tokens should be removed from the
    *     final text if no replacement value can be generated.
-   * @param \Drupal\Core\Render\BubbleableMetadata $bubbleable_metadata|null
+   * @param \Drupal\Core\Render\BubbleableMetadata|null $bubbleable_metadata
    *   (optional) An object to which static::generate() and the hooks and
    *   functions that it invokes will add their required bubbleable metadata.
    *
@@ -187,7 +182,7 @@ class Token {
    *   otherwise for example the result can be put into #markup, in which case
    *   it would be sanitized by Xss::filterAdmin().
    */
-  public function replace($text, array $data = array(), array $options = array(), BubbleableMetadata $bubbleable_metadata = NULL) {
+  public function replace($text, array $data = [], array $options = [], BubbleableMetadata $bubbleable_metadata = NULL) {
     $text_tokens = $this->scan($text);
     if (empty($text_tokens)) {
       return $text;
@@ -196,7 +191,7 @@ class Token {
     $bubbleable_metadata_is_passed_in = (bool) $bubbleable_metadata;
     $bubbleable_metadata = $bubbleable_metadata ?: new BubbleableMetadata();
 
-    $replacements = array();
+    $replacements = [];
     foreach ($text_tokens as $type => $tokens) {
       $replacements += $this->generate($type, $tokens, $data, $options, $bubbleable_metadata);
       if (!empty($options['clear'])) {
@@ -256,7 +251,7 @@ class Token {
     // Iterate through the matches, building an associative array containing
     // $tokens grouped by $types, pointing to the version of the token found in
     // the source text. For example, $results['node']['title'] = '[node:title]';
-    $results = array();
+    $results = [];
     for ($i = 0; $i < count($tokens); $i++) {
       $results[$types[$i]][$tokens[$i]] = $matches[0][$i];
     }
@@ -288,8 +283,8 @@ class Token {
    *     modules require special formatting of token text, for example URL
    *     encoding or truncation to a specific length.
    * @param \Drupal\Core\Render\BubbleableMetadata $bubbleable_metadata
-   *    The bubbleable metadata. This is passed to the token replacement
-   *    implementations so that they can attach their metadata.
+   *   The bubbleable metadata. This is passed to the token replacement
+   *   implementations so that they can attach their metadata.
    *
    * @return array
    *   An associative array of replacement values, keyed by the original 'raw'
@@ -309,12 +304,12 @@ class Token {
     $replacements = $this->moduleHandler->invokeAll('tokens', [$type, $tokens, $data, $options, $bubbleable_metadata]);
 
     // Allow other modules to alter the replacements.
-    $context = array(
+    $context = [
       'type' => $type,
       'tokens' => $tokens,
       'data' => $data,
       'options' => $options,
-    );
+    ];
     $this->moduleHandler->alter('tokens', $replacements, $context, $bubbleable_metadata);
 
     return $replacements;
@@ -348,7 +343,7 @@ class Token {
    *   stripped from the key.
    */
   public function findWithPrefix(array $tokens, $prefix, $delimiter = ':') {
-    $results = array();
+    $results = [];
     foreach ($tokens as $token => $raw) {
       $parts = explode($delimiter, $token, 2);
       if (count($parts) == 2 && $parts[0] == $prefix) {
@@ -381,9 +376,9 @@ class Token {
       else {
         $this->tokenInfo = $this->moduleHandler->invokeAll('token_info');
         $this->moduleHandler->alter('token_info', $this->tokenInfo);
-        $this->cache->set($cache_id, $this->tokenInfo, CacheBackendInterface::CACHE_PERMANENT, array(
+        $this->cache->set($cache_id, $this->tokenInfo, CacheBackendInterface::CACHE_PERMANENT, [
           static::TOKEN_INFO_CACHE_TAG,
-        ));
+        ]);
       }
     }
 
@@ -410,4 +405,5 @@ class Token {
     $this->tokenInfo = NULL;
     $this->cacheTagsInvalidator->invalidateTags([static::TOKEN_INFO_CACHE_TAG]);
   }
+
 }

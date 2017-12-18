@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Plugin\Discovery\InfoHookDecorator.
- */
-
 namespace Drupal\Core\Plugin\Discovery;
 
 use Drupal\Component\Plugin\Discovery\DiscoveryInterface;
@@ -60,7 +55,7 @@ class InfoHookDecorator implements DiscoveryInterface {
    * Passes through all unknown calls onto the decorated object.
    */
   public function __call($method, $args) {
-    return call_user_func_array(array($this->decorated, $method), $args);
+    return call_user_func_array([$this->decorated, $method], $args);
   }
 
 }

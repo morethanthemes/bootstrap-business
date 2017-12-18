@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\EntityRepository.
- */
-
 namespace Drupal\Core\Entity;
 
 use Drupal\Core\Config\Entity\ConfigEntityTypeInterface;
@@ -56,7 +51,7 @@ class EntityRepository implements EntityRepositoryInterface {
 
     $entities = $this->entityTypeManager->getStorage($entity_type_id)->loadByProperties([$uuid_key => $uuid]);
 
-    return reset($entities);
+    return ($entities) ? reset($entities) : NULL;
   }
 
   /**
@@ -84,7 +79,7 @@ class EntityRepository implements EntityRepositoryInterface {
   /**
    * {@inheritdoc}
    */
-  public function getTranslationFromContext(EntityInterface $entity, $langcode = NULL, $context = array()) {
+  public function getTranslationFromContext(EntityInterface $entity, $langcode = NULL, $context = []) {
     $translation = $entity;
 
     if ($entity instanceof TranslatableInterface && count($entity->getTranslationLanguages()) > 1) {
@@ -97,7 +92,7 @@ class EntityRepository implements EntityRepositoryInterface {
       // negotiation, unless the current translation is already the desired one.
       if ($entity->language()->getId() != $langcode) {
         $context['data'] = $entity;
-        $context += array('operation' => 'entity_view', 'langcode' => $langcode);
+        $context += ['operation' => 'entity_view', 'langcode' => $langcode];
         $candidates = $this->languageManager->getFallbackCandidates($context);
 
         // Ensure the default language has the proper language code.

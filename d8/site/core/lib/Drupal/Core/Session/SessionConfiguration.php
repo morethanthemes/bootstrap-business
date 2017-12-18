@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Session\SessionConfiguration.
- */
-
 namespace Drupal\Core\Session;
 
 use Symfony\Component\HttpFoundation\Request;
@@ -146,7 +141,7 @@ class SessionConfiguration implements SessionConfigurationInterface {
   /**
    * Wraps drupal_valid_test_ua().
    *
-   * @return string|FALSE
+   * @return string|false
    *   Either the simpletest prefix (the string "simpletest" followed by any
    *   number of digits) or FALSE if the user agent does not contain a valid
    *   HMAC and timestamp.

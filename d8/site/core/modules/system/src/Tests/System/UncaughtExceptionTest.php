@@ -1,11 +1,6 @@
 <?php
-/**
- * @file
- * Contains \Drupal\system\Tests\System\UncaughtExceptionTest.
- */
 
 namespace Drupal\system\Tests\System;
-
 
 use Drupal\simpletest\WebTestBase;
 
@@ -28,7 +23,7 @@ class UncaughtExceptionTest extends WebTestBase {
    *
    * @var array
    */
-  public static $modules = array('error_service_test');
+  public static $modules = ['error_service_test'];
 
   /**
    * {@inheritdoc}
@@ -117,7 +112,12 @@ class UncaughtExceptionTest extends WebTestBase {
    * Tests a missing dependency on a service.
    */
   public function testMissingDependency() {
-    $this->expectedExceptionMessage = 'Argument 1 passed to Drupal\error_service_test\LonelyMonkeyClass::__construct() must be an instance of Drupal\Core\Database\Connection, non';
+    if (version_compare(PHP_VERSION, '7.1') < 0) {
+      $this->expectedExceptionMessage = 'Argument 1 passed to Drupal\error_service_test\LonelyMonkeyClass::__construct() must be an instance of Drupal\Core\Database\Connection, non';
+    }
+    else {
+      $this->expectedExceptionMessage = 'Too few arguments to function Drupal\error_service_test\LonelyMonkeyClass::__construct(), 0 passed';
+    }
     $this->drupalGet('broken-service-class');
     $this->assertResponse(500);
 
@@ -199,7 +199,6 @@ class UncaughtExceptionTest extends WebTestBase {
     $this->drupalGet('');
     $this->assertResponse(500);
 
-
     $this->assertRaw('The website encountered an unexpected error');
     $this->assertRaw($this->expectedExceptionMessage);
     $this->assertErrorLogged($this->expectedExceptionMessage);
@@ -223,20 +222,20 @@ class UncaughtExceptionTest extends WebTestBase {
 
     // We simulate a broken database connection by rewrite settings.php to no
     // longer have the proper data.
-    $settings['databases']['default']['default']['username'] = (object) array(
+    $settings['databases']['default']['default']['username'] = (object) [
       'value' => $incorrect_username,
       'required' => TRUE,
-    );
-    $settings['databases']['default']['default']['passowrd'] = (object) array(
+    ];
+    $settings['databases']['default']['default']['password'] = (object) [
       'value' => $this->randomMachineName(16),
       'required' => TRUE,
-    );
+    ];
 
     $this->writeSettings($settings);
 
     $this->drupalGet('');
     $this->assertResponse(500);
-    $this->assertRaw('PDOException');
+    $this->assertRaw('DatabaseAccessDeniedException');
     $this->assertErrorLogged($this->expectedExceptionMessage);
   }
 
@@ -257,11 +256,11 @@ class UncaughtExceptionTest extends WebTestBase {
 
     // Find fatal error logged to the simpletest error.log
     $errors = file(\Drupal::root() . '/' . $this->siteDirectory . '/error.log');
-    $this->assertIdentical(count($errors), 2, 'The error + the error that the logging service is broken has been written to the error log.');
+    $this->assertIdentical(count($errors), 8, 'The error + the error that the logging service is broken has been written to the error log.');
     $this->assertTrue(strpos($errors[0], 'Failed to log error') !== FALSE, 'The error handling logs when an error could not be logged to the logger.');
 
     $expected_path = \Drupal::root() . '/core/modules/system/tests/modules/error_service_test/src/MonkeysInTheControlRoom.php';
-    $expected_line = 63;
+    $expected_line = 59;
     $expected_entry = "Failed to log error: Exception: Deforestation in Drupal\\error_service_test\\MonkeysInTheControlRoom->handle() (line ${expected_line} of ${expected_path})";
     $this->assert(strpos($errors[0], $expected_entry) !== FALSE, 'Original error logged to the PHP error log when an exception is thrown by a logger');
 

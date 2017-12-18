@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\Query\QueryFactory.
- */
-
 namespace Drupal\Core\Entity\Query;
 
 use Drupal\Core\Entity\EntityManagerInterface;
@@ -19,8 +14,9 @@ use Symfony\Component\DependencyInjection\ContainerAwareTrait;
  *
  * @see \Drupal\Core\Entity\EntityStorageBase::getQuery()
  *
- * @todo https://www.drupal.org/node/2389335 remove entity.query service and
- *   replace with using the entity storage's getQuery() method.
+ * @deprecated in Drupal 8.3.0, will be removed before Drupal 9.0.0. Use
+ *   \Drupal\Core\Entity\EntityStorageInterface::getQuery() or
+ *   \Drupal\Core\Entity\EntityStorageInterface::getAggregateQuery() instead.
  */
 class QueryFactory implements ContainerAwareInterface {
 

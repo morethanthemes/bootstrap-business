@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\Plugin\migrate\source\d6\UserPictureFile.
- */
-
 namespace Drupal\user\Plugin\migrate\source\d6;
 
 use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
@@ -14,7 +9,8 @@ use Drupal\migrate\Row;
  * Drupal 6 user picture source from database.
  *
  * @MigrateSource(
- *   id = "d6_user_picture_file"
+ *   id = "d6_user_picture_file",
+ *   source_module = "user"
  * )
  */
 class UserPictureFile extends DrupalSqlBase {
@@ -38,8 +34,8 @@ class UserPictureFile extends DrupalSqlBase {
    */
   public function query() {
     $query = $this->select('users', 'u')
-      ->condition('picture', '', '<>')
-      ->fields('u', array('uid', 'picture'));
+      ->condition('u.picture', '', '<>')
+      ->fields('u', ['uid', 'picture']);
     return $query;
   }
 
@@ -67,10 +63,10 @@ class UserPictureFile extends DrupalSqlBase {
    * {@inheritdoc}
    */
   public function fields() {
-    return array(
+    return [
       'picture' => "Path to the user's uploaded picture.",
       'filename' => 'The picture filename.',
-    );
+    ];
   }
   /**
    * {@inheritdoc}

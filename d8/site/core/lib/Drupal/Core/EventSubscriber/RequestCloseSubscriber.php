@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\EventSubscriber\RequestCloseSubscriber.
- */
-
 namespace Drupal\Core\EventSubscriber;
 
 use Drupal\Core\Extension\ModuleHandlerInterface;
@@ -28,7 +23,7 @@ class RequestCloseSubscriber implements EventSubscriberInterface {
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
    *   The module handler.
    */
-  function __construct(ModuleHandlerInterface $module_handler) {
+  public function __construct(ModuleHandlerInterface $module_handler) {
     $this->moduleHandler = $module_handler;
   }
 
@@ -53,9 +48,10 @@ class RequestCloseSubscriber implements EventSubscriberInterface {
    * @return array
    *   An array of event listener definitions.
    */
-  static function getSubscribedEvents() {
-    $events[KernelEvents::TERMINATE][] = array('onTerminate', 100);
+  public static function getSubscribedEvents() {
+    $events[KernelEvents::TERMINATE][] = ['onTerminate', 100];
 
     return $events;
   }
+
 }

@@ -1,14 +1,10 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Entity\Query\Sql\QueryTest.
- */
-
 namespace Drupal\Tests\Core\Entity\Query\Sql;
 
 use Drupal\Core\Entity\EntityType;
 use Drupal\Tests\UnitTestCase;
+use Drupal\Core\Entity\Query\QueryException;
 use Drupal\Core\Entity\Query\Sql\Query;
 
 /**
@@ -41,11 +37,9 @@ class QueryTest extends UnitTestCase {
    * Tests entity query for entity type without base table.
    *
    * @covers ::prepare
-   *
-   * @expectedException \Drupal\Core\Entity\Query\QueryException
-   * @expectedExceptionMessage No base table for example_entity_query, invalid query.
    */
   public function testNoBaseTable() {
+    $this->setExpectedException(QueryException::class, 'No base table for example_entity_query, invalid query.');
     $this->query->execute();
   }
 
@@ -53,11 +47,9 @@ class QueryTest extends UnitTestCase {
    * Tests revision entity query for entity type without revision table.
    *
    * @covers ::prepare
-   *
-   * @expectedException \Drupal\Core\Entity\Query\QueryException
-   * @expectedExceptionMessage No revision table for example_entity_query, invalid query.
    */
   public function testNoRevisionTable() {
+    $this->setExpectedException(QueryException::class, 'No revision table for example_entity_query, invalid query.');
     $this->query->allRevisions()->execute();
   }
 

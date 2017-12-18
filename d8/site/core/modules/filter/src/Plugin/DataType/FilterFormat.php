@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\filter\Plugin\DataType\FilterFormat.
- */
-
 namespace Drupal\filter\Plugin\DataType;
 
 use Drupal\Core\Session\AccountInterface;
@@ -32,7 +27,9 @@ class FilterFormat extends StringData implements OptionsProviderInterface {
    * {@inheritdoc}
    */
   public function getPossibleOptions(AccountInterface $account = NULL) {
-    return array_map(function ($format) { return $format->label(); }, filter_formats());
+    return array_map(function ($format) {
+      return $format->label();
+    }, filter_formats());
   }
 
   /**
@@ -47,6 +44,9 @@ class FilterFormat extends StringData implements OptionsProviderInterface {
    */
   public function getSettableOptions(AccountInterface $account = NULL) {
     // @todo: Avoid calling functions but move to injected dependencies.
-    return array_map(function ($format) { return $format->label(); }, filter_formats($account));
+    return array_map(function ($format) {
+      return $format->label();
+    }, filter_formats($account));
   }
+
 }

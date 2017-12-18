@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\Element\ElementInterface.
- */
-
 namespace Drupal\Core\Render\Element;
 
 use Drupal\Component\Plugin\PluginInspectionInterface;
@@ -52,6 +47,6 @@ interface ElementInterface extends PluginInspectionInterface {
    * @param array $class
    *   Array of new class names to be added.
    */
-  public static function setAttributes(&$element, $class = array());
+  public static function setAttributes(&$element, $class = []);
 
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\EntityTypeBundleInfo.
- */
-
 namespace Drupal\Core\Entity;
 
 use Drupal\Core\Cache\Cache;
@@ -81,9 +76,9 @@ class EntityTypeBundleInfo implements EntityTypeBundleInfoInterface {
   /**
    * {@inheritdoc}
    */
-  public function getBundleInfo($entity_type) {
+  public function getBundleInfo($entity_type_id) {
     $bundle_info = $this->getAllBundleInfo();
-    return isset($bundle_info[$entity_type]) ? $bundle_info[$entity_type] : [];
+    return isset($bundle_info[$entity_type_id]) ? $bundle_info[$entity_type_id] : [];
   }
 
   /**

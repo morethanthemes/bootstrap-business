@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\rdf\Tests\Field\TestDataConverter.
- */
 
 namespace Drupal\rdf\Tests\Field;
 
@@ -20,7 +16,7 @@ class TestDataConverter {
    * @return string
    *   Returns the data.
    */
-  static function convertFoo($data) {
+  public static function convertFoo($data) {
     return 'foo' . $data['value'];
   }
 

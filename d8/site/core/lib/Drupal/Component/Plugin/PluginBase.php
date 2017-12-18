@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\Component\Plugin\PluginBase.
- */
 
 namespace Drupal\Component\Plugin;
 
@@ -96,4 +92,5 @@ abstract class PluginBase implements PluginInspectionInterface, DerivativeInspec
   public function getPluginDefinition() {
     return $this->pluginDefinition;
   }
+
 }

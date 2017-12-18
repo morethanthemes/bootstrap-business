@@ -1,11 +1,8 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\module_test\Controller\ModuleTestController.
- */
-
 namespace Drupal\module_test\Controller;
+
+use Drupal\module_autoload_test\SomeClass;
 
 /**
  * Controller routines for module_test routes.
@@ -43,7 +40,7 @@ class ModuleTestController {
   public function testClassLoading() {
     $markup = NULL;
     if (class_exists('Drupal\module_autoload_test\SomeClass')) {
-      $obj = new \Drupal\module_autoload_test\SomeClass();
+      $obj = new SomeClass();
       $markup = $obj->testMethod();
     }
     return ['#markup' => $markup];

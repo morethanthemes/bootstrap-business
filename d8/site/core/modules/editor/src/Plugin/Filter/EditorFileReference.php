@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\editor\Plugin\Filter\EditorFileReference.
- */
-
 namespace Drupal\editor\Plugin\Filter;
 
 use Drupal\Component\Utility\Html;
@@ -17,7 +12,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * Provides a filter to track images uploaded via a Text Editor.
  *
- * Passes the text unchanged, but associates the cache tags of referenced files.
+ * Generates file URLs and associates the cache tags of referenced files.
  *
  * @Filter(
  *   id = "editor_file_reference",
@@ -55,7 +50,7 @@ class EditorFileReference extends FilterBase implements ContainerFactoryPluginIn
   /**
    * {@inheritdoc}
    */
-  static public function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     return new static(
       $configuration,
       $plugin_id,
@@ -73,9 +68,19 @@ class EditorFileReference extends FilterBase implements ContainerFactoryPluginIn
     if (stristr($text, 'data-entity-type="file"') !== FALSE) {
       $dom = Html::load($text);
       $xpath = new \DOMXPath($dom);
-      $processed_uuids = array();
+      $processed_uuids = [];
       foreach ($xpath->query('//*[@data-entity-type="file" and @data-entity-uuid]') as $node) {
         $uuid = $node->getAttribute('data-entity-uuid');
+
+        // If there is a 'src' attribute, set it to the file entity's current
+        // URL. This ensures the URL works even after the file location changes.
+        if ($node->hasAttribute('src')) {
+          $file = $this->entityManager->loadEntityByUuid('file', $uuid);
+          if ($file) {
+            $node->setAttribute('src', file_url_transform_relative(file_create_url($file->getFileUri())));
+          }
+        }
+
         // Only process the first occurrence of each file UUID.
         if (!isset($processed_uuids[$uuid])) {
           $processed_uuids[$uuid] = TRUE;
@@ -86,6 +91,7 @@ class EditorFileReference extends FilterBase implements ContainerFactoryPluginIn
           }
         }
       }
+      $result->setProcessedText(Html::serialize($dom));
     }
 
     return $result;

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Queue\BatchMemory.
- */
-
 namespace Drupal\Core\Queue;
 
 /**
@@ -45,10 +40,11 @@ class BatchMemory extends Memory {
    *   An array of queue items.
    */
   public function getAllItems() {
-    $result = array();
+    $result = [];
     foreach ($this->queue as $item) {
       $result[] = $item->data;
     }
     return $result;
   }
+
 }

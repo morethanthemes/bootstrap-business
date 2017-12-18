@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\book\Plugin\migrate\source\d6\Book.
- */
-
 namespace Drupal\book\Plugin\migrate\source\d6;
 
 use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
@@ -13,7 +8,8 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
  * Drupal 6 book source.
  *
  * @MigrateSource(
- *   id = "d6_book"
+ *   id = "d6_book",
+ *   source_module = "book"
  * )
  */
 class Book extends DrupalSqlBase {
@@ -22,13 +18,13 @@ class Book extends DrupalSqlBase {
    * {@inheritdoc}
    */
   public function query() {
-    $query = $this->select('book', 'b')->fields('b', array('nid', 'bid'));
+    $query = $this->select('book', 'b')->fields('b', ['nid', 'bid']);
     $query->join('menu_links', 'ml', 'b.mlid = ml.mlid');
-    $ml_fields = array('mlid', 'plid', 'weight', 'has_children', 'depth');
+    $ml_fields = ['mlid', 'plid', 'weight', 'has_children', 'depth'];
     for ($i = 1; $i <= 9; $i++) {
       $field = "p$i";
       $ml_fields[] = $field;
-      $query->orderBy($field);
+      $query->orderBy('ml.' . $field);
     }
     $query->fields('ml', $ml_fields);
     return $query;
@@ -47,7 +43,7 @@ class Book extends DrupalSqlBase {
    * {@inheritdoc}
    */
   public function fields() {
-    return array(
+    return [
       'nid' => $this->t('Node ID'),
       'bid' => $this->t('Book ID'),
       'mlid' => $this->t('Menu link ID'),
@@ -62,7 +58,7 @@ class Book extends DrupalSqlBase {
       'p7' => $this->t('The seventh mlid in the materialized path. See p1.'),
       'p8' => $this->t('The eighth mlid in the materialized path. See p1.'),
       'p9' => $this->t('The ninth mlid in the materialized path. See p1.'),
-    );
+    ];
   }
 
 }

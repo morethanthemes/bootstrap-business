@@ -1,16 +1,14 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\book\Form\BookOutlineForm.
- */
-
 namespace Drupal\book\Form;
 
 use Drupal\book\BookManagerInterface;
+use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Core\Entity\ContentEntityForm;
 use Drupal\Core\Entity\EntityManagerInterface;
+use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -39,9 +37,13 @@ class BookOutlineForm extends ContentEntityForm {
    *   The entity manager.
    * @param \Drupal\book\BookManagerInterface $book_manager
    *   The BookManager service.
+   * @param \Drupal\Core\Entity\EntityTypeBundleInfoInterface $entity_type_bundle_info
+   *   The entity type bundle service.
+   * @param \Drupal\Component\Datetime\TimeInterface $time
+   *   The time service.
    */
-  public function __construct(EntityManagerInterface $entity_manager, BookManagerInterface $book_manager) {
-    parent::__construct($entity_manager);
+  public function __construct(EntityManagerInterface $entity_manager, BookManagerInterface $book_manager, EntityTypeBundleInfoInterface $entity_type_bundle_info = NULL, TimeInterface $time = NULL) {
+    parent::__construct($entity_manager, $entity_type_bundle_info, $time);
     $this->bookManager = $book_manager;
   }
 
@@ -51,7 +53,9 @@ class BookOutlineForm extends ContentEntityForm {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('entity.manager'),
-      $container->get('book.manager')
+      $container->get('book.manager'),
+      $container->get('entity_type.bundle.info'),
+      $container->get('datetime.time')
     );
   }
 
@@ -91,7 +95,8 @@ class BookOutlineForm extends ContentEntityForm {
   protected function actions(array $form, FormStateInterface $form_state) {
     $actions = parent::actions($form, $form_state);
     $actions['submit']['#value'] = $this->entity->book['original_bid'] ? $this->t('Update book outline') : $this->t('Add to book outline');
-    $actions['delete']['#value'] = $this->t('Remove from book outline');
+    $actions['delete']['#title'] = $this->t('Remove from book outline');
+    $actions['delete']['#url'] = new Url('entity.node.book_remove_form', ['node' => $this->entity->book['nid']]);
     $actions['delete']['#access'] = $this->bookManager->checkNodeIsRemovable($this->entity);
     return $actions;
   }
@@ -102,7 +107,7 @@ class BookOutlineForm extends ContentEntityForm {
   public function save(array $form, FormStateInterface $form_state) {
     $form_state->setRedirect(
       'entity.node.canonical',
-      array('node' => $this->entity->id())
+      ['node' => $this->entity->id()]
     );
     $book_link = $form_state->getValue('book');
     if (!$book_link['bid']) {
@@ -124,13 +129,6 @@ class BookOutlineForm extends ContentEntityForm {
     else {
       drupal_set_message($this->t('There was an error adding the post to the book.'), 'error');
     }
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function delete(array $form, FormStateInterface $form_state) {
-    $form_state->setRedirectUrl($this->entity->urlInfo('book-remove-form'));
   }
 
 }

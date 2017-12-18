@@ -1,15 +1,12 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Plugin\views\query\Sql.
- */
-
 namespace Drupal\views\Plugin\views\query;
 
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Database\Database;
+use Drupal\Core\Database\Query\Condition;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\views\Plugin\views\display\DisplayPluginBase;
 use Drupal\Core\Database\DatabaseExceptionWrapper;
@@ -18,6 +15,7 @@ use Drupal\views\Plugin\views\HandlerBase;
 use Drupal\views\ResultRow;
 use Drupal\views\ViewExecutable;
 use Drupal\views\Views;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Views query plugin for an SQL query.
@@ -35,58 +33,65 @@ class Sql extends QueryPluginBase {
   /**
    * A list of tables in the order they should be added, keyed by alias.
    */
-  protected $tableQueue = array();
+  protected $tableQueue = [];
 
   /**
    * Holds an array of tables and counts added so that we can create aliases
    */
-  var $tables = array();
+  public $tables = [];
 
   /**
    * Holds an array of relationships, which are aliases of the primary
    * table that represent different ways to join the same table in.
    */
-  var $relationships = array();
+  public $relationships = [];
 
   /**
    * An array of sections of the WHERE query. Each section is in itself
    * an array of pieces and a flag as to whether or not it should be AND
    * or OR.
    */
-  var $where = array();
+  public $where = [];
   /**
    * An array of sections of the HAVING query. Each section is in itself
    * an array of pieces and a flag as to whether or not it should be AND
    * or OR.
    */
-  var $having = array();
+  public $having = [];
   /**
    * The default operator to use when connecting the WHERE groups. May be
    * AND or OR.
+   *
+   * @var string
    */
   protected $groupOperator = 'AND';
 
   /**
    * A simple array of order by clauses.
    */
-  var $orderby = array();
+  public $orderby = [];
 
   /**
    * A simple array of group by clauses.
    */
-  var $groupby = array();
+  public $groupby = [];
 
 
   /**
    * An array of fields.
    */
-  var $fields = array();
+  public $fields = [];
 
   /**
    * A flag as to whether or not to make the primary field distinct.
+   *
+   * @var bool
    */
-  var $distinct = FALSE;
+  public $distinct = FALSE;
 
+  /**
+   * @var bool
+   */
   protected $hasAggregate = FALSE;
 
   /**
@@ -97,12 +102,12 @@ class Sql extends QueryPluginBase {
   /**
    * An array mapping table aliases and field names to field aliases.
    */
-  protected $fieldAliases = array();
+  protected $fieldAliases = [];
 
   /**
    * Query tags which will be passed over to the dbtng query object.
    */
-  var $tags = array();
+  public $tags = [];
 
   /**
    * Is the view marked as not distinct.
@@ -112,6 +117,40 @@ class Sql extends QueryPluginBase {
   protected $noDistinct;
 
   /**
+   * The entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
+   * Constructs a Sql object.
+   *
+   * @param array $configuration
+   *   A configuration array containing information about the plugin instance.
+   * @param string $plugin_id
+   *   The plugin_id for the plugin instance.
+   * @param mixed $plugin_definition
+   *   The plugin implementation definition.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager.
+   */
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition);
+
+    $this->entityTypeManager = $entity_type_manager;
+  }
+
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    return new static(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
+      $container->get('entity_type.manager')
+    );
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function init(ViewExecutable $view, DisplayPluginBase $display, array &$options = NULL) {
@@ -119,33 +158,33 @@ class Sql extends QueryPluginBase {
 
     $base_table = $this->view->storage->get('base_table');
     $base_field = $this->view->storage->get('base_field');
-    $this->relationships[$base_table] = array(
+    $this->relationships[$base_table] = [
       'link' => NULL,
       'table' => $base_table,
       'alias' => $base_table,
       'base' => $base_table
-    );
+    ];
 
     // init the table queue with our primary table.
-    $this->tableQueue[$base_table] = array(
+    $this->tableQueue[$base_table] = [
       'alias' => $base_table,
       'table' => $base_table,
       'relationship' => $base_table,
       'join' => NULL,
-    );
+    ];
 
     // init the tables with our primary table
-    $this->tables[$base_table][$base_table] = array(
+    $this->tables[$base_table][$base_table] = [
       'count' => 1,
       'alias' => $base_table,
-    );
+    ];
 
-    $this->count_field = array(
+    $this->count_field = [
       'table' => $base_table,
       'field' => $base_field,
       'alias' => $base_field,
       'count' => TRUE,
-    );
+    ];
   }
 
   /**
@@ -167,31 +206,31 @@ class Sql extends QueryPluginBase {
     if (empty($alias)) {
       $alias = $table . '_' . $field;
     }
-    $this->count_field = array(
+    $this->count_field = [
       'table' => $table,
       'field' => $field,
       'alias' => $alias,
       'count' => TRUE,
-    );
+    ];
   }
 
   protected function defineOptions() {
     $options = parent::defineOptions();
-    $options['disable_sql_rewrite'] = array(
+    $options['disable_sql_rewrite'] = [
       'default' => FALSE,
-    );
-    $options['distinct'] = array(
+    ];
+    $options['distinct'] = [
       'default' => FALSE,
-    );
-    $options['replica'] = array(
+    ];
+    $options['replica'] = [
       'default' => FALSE,
-    );
-    $options['query_comment'] = array(
+    ];
+    $options['query_comment'] = [
       'default' => '',
-    );
-    $options['query_tags'] = array(
-      'default' => array(),
-    );
+    ];
+    $options['query_tags'] = [
+      'default' => [],
+    ];
 
     return $options;
   }
@@ -202,45 +241,45 @@ class Sql extends QueryPluginBase {
   public function buildOptionsForm(&$form, FormStateInterface $form_state) {
     parent::buildOptionsForm($form, $form_state);
 
-    $form['disable_sql_rewrite'] = array(
+    $form['disable_sql_rewrite'] = [
       '#title' => $this->t('Disable SQL rewriting'),
       '#description' => $this->t('Disabling SQL rewriting will omit all query tags, i. e. disable node access checks as well as override hook_query_alter() implementations in other modules.'),
       '#type' => 'checkbox',
       '#default_value' => !empty($this->options['disable_sql_rewrite']),
       '#suffix' => '<div class="messages messages--warning sql-rewrite-warning js-hide">' . $this->t('WARNING: Disabling SQL rewriting means that node access security is disabled. This may allow users to see data they should not be able to see if your view is misconfigured. Use this option only if you understand and accept this security risk.') . '</div>',
-    );
-    $form['distinct'] = array(
+    ];
+    $form['distinct'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Distinct'),
       '#description' => $this->t('This will make the view display only distinct items. If there are multiple identical items, each will be displayed only once. You can use this to try and remove duplicates from a view, though it does not always work. Note that this can slow queries down, so use it with caution.'),
       '#default_value' => !empty($this->options['distinct']),
-    );
-    $form['replica'] = array(
+    ];
+    $form['replica'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Use Secondary Server'),
       '#description' => $this->t('This will make the query attempt to connect to a replica server if available.  If no replica server is defined or available, it will fall back to the default server.'),
       '#default_value' => !empty($this->options['replica']),
-    );
-    $form['query_comment'] = array(
+    ];
+    $form['query_comment'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Query Comment'),
       '#description' => $this->t('If set, this comment will be embedded in the query and passed to the SQL server. This can be helpful for logging or debugging.'),
       '#default_value' => $this->options['query_comment'],
-    );
-    $form['query_tags'] = array(
+    ];
+    $form['query_tags'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Query Tags'),
       '#description' => $this->t('If set, these tags will be appended to the query and can be used to identify the query in a module. This can be helpful for altering queries.'),
       '#default_value' => implode(', ', $this->options['query_tags']),
-      '#element_validate' => array('views_element_validate_tags'),
-    );
+      '#element_validate' => ['views_element_validate_tags'],
+    ];
   }
 
   /**
    * Special submit handling.
    */
   public function submitOptionsForm(&$form, FormStateInterface $form_state) {
-    $element = array('#parents' => array('query', 'options', 'query_tags'));
+    $element = ['#parents' => ['query', 'options', 'query_tags']];
     $value = explode(',', NestedArray::getValue($form_state->getValues(), $element['#parents']));
     $value = array_filter(array_map('trim', $value));
     $form_state->setValueForElement($element, $value);
@@ -296,24 +335,24 @@ class Sql extends QueryPluginBase {
 
     // Add the table directly to the queue to avoid accidentally marking
     // it.
-    $this->tableQueue[$alias] = array(
+    $this->tableQueue[$alias] = [
       'table' => $join->table,
       'num' => 1,
       'alias' => $alias,
       'join' => $join,
       'relationship' => $link_point,
-    );
+    ];
 
-    $this->relationships[$alias] = array(
+    $this->relationships[$alias] = [
       'link' => $link_point,
       'table' => $join->table,
       'base' => $base,
-    );
+    ];
 
-    $this->tables[$this->view->storage->get('base_table')][$alias] = array(
+    $this->tables[$this->view->storage->get('base_table')][$alias] = [
       'count' => 1,
       'alias' => $alias,
-    );
+    ];
 
     return $alias;
   }
@@ -342,7 +381,7 @@ class Sql extends QueryPluginBase {
    * @param $alias
    *   A specific alias to use, rather than the default alias.
    *
-   * @return $alias
+   * @return string
    *   The alias of the table; this alias can be used to access information
    *   about the table and should always be used to refer to the table when
    *   adding parts to the query. Or FALSE if the table was not able to be
@@ -381,7 +420,7 @@ class Sql extends QueryPluginBase {
    * @param $alias
    *   A specific alias to use, rather than the default alias.
    *
-   * @return $alias
+   * @return string
    *   The alias of the table; this alias can be used to access information
    *   about the table and should always be used to refer to the table when
    *   adding parts to the query. Or FALSE if the table was not able to be
@@ -439,13 +478,13 @@ class Sql extends QueryPluginBase {
       $join = $this->adjustJoin($join, $relationship);
     }
 
-    $this->tableQueue[$alias] = array(
+    $this->tableQueue[$alias] = [
       'table' => $table,
       'num' => $this->tables[$relationship][$table]['count'],
       'alias' => $alias,
       'join' => $join,
       'relationship' => $relationship,
-    );
+    ];
 
     return $alias;
   }
@@ -462,10 +501,10 @@ class Sql extends QueryPluginBase {
         }
         $alias .= $table;
       }
-      $this->tables[$relationship][$table] = array(
+      $this->tables[$relationship][$table] = [
         'count' => 1,
         'alias' => $alias,
-      );
+      ];
     }
     else {
       $this->tables[$relationship][$table]['count']++;
@@ -571,7 +610,7 @@ class Sql extends QueryPluginBase {
    * query they will be added, but additional copies will NOT be added
    * if the table is already there.
    */
-  protected function ensurePath($table, $relationship = NULL, $join = NULL, $traced = array(), $add = array()) {
+  protected function ensurePath($table, $relationship = NULL, $join = NULL, $traced = [], $add = []) {
     if (!isset($relationship)) {
       $relationship = $this->view->storage->get('base_table');
     }
@@ -728,10 +767,10 @@ class Sql extends QueryPluginBase {
    *   - aggregate: Set to TRUE to indicate that this value should be
    *     aggregated in a GROUP BY.
    *
-   * @return $name
+   * @return string
    *   The name that this field can be referred to as. Usually this is the alias.
    */
-  public function addField($table, $field, $alias = '', $params = array()) {
+  public function addField($table, $field, $alias = '', $params = []) {
     // We check for this specifically because it gets a special alias.
     if ($table == $this->view->storage->get('base_table') && $field == $this->view->storage->get('base_field') && empty($alias)) {
       $alias = $this->view->storage->get('base_field');
@@ -756,11 +795,11 @@ class Sql extends QueryPluginBase {
     $alias = strtolower(substr($alias, 0, 60));
 
     // Create a field info array.
-    $field_info = array(
+    $field_info = [
       'field' => $field,
       'table' => $table,
       'alias' => $alias,
-    ) + $params;
+    ] + $params;
 
     // Test to see if the field is actually the same or not. Due to
     // differing parameters changing the aggregation function, we need
@@ -786,13 +825,24 @@ class Sql extends QueryPluginBase {
    * mode where we're changing the query because we didn't get data we needed.
    */
   public function clearFields() {
-    $this->fields = array();
+    $this->fields = [];
   }
 
   /**
    * Add a simple WHERE clause to the query. The caller is responsible for
    * ensuring that all fields are fully qualified (TABLE.FIELD) and that
    * the table already exists in the query.
+   *
+   * The $field, $value and $operator arguments can also be passed in with a
+   * single DatabaseCondition object, like this:
+   * @code
+   * $this->query->addWhere(
+   *   $this->options['group'],
+   *   (new Condition('OR'))
+   *     ->condition($field, $value, 'NOT IN')
+   *     ->condition($field, $value, 'IS NULL')
+   * );
+   * @endcode
    *
    * @param $group
    *   The WHERE group to add these to; groups are used to create AND/OR
@@ -809,17 +859,6 @@ class Sql extends QueryPluginBase {
    *   complex options such as IN, LIKE, LIKE BINARY, or BETWEEN. Defaults to =.
    *   If $field is a string you have to use 'formula' here.
    *
-   * The $field, $value and $operator arguments can also be passed in with a
-   * single DatabaseCondition object, like this:
-   * @code
-   *   $this->query->addWhere(
-   *     $this->options['group'],
-   *     db_or()
-   *       ->condition($field, $value, 'NOT IN')
-   *       ->condition($field, $value, 'IS NULL')
-   *   );
-   * @endcode
-   *
    * @see \Drupal\Core\Database\Query\ConditionInterface::condition()
    * @see \Drupal\Core\Database\Query\Condition
    */
@@ -835,11 +874,11 @@ class Sql extends QueryPluginBase {
       $this->setWhereGroup('AND', $group);
     }
 
-    $this->where[$group]['conditions'][] = array(
+    $this->where[$group]['conditions'][] = [
       'field' => $field,
       'value' => $value,
       'operator' => $operator,
-    );
+    ];
   }
 
   /**
@@ -861,7 +900,7 @@ class Sql extends QueryPluginBase {
    *
    * @see QueryConditionInterface::where()
    */
-  public function addWhereExpression($group, $snippet, $args = array()) {
+  public function addWhereExpression($group, $snippet, $args = []) {
     // Ensure all variants of 0 are actually 0. Thus '', 0 and NULL are all
     // the default group.
     if (empty($group)) {
@@ -873,11 +912,11 @@ class Sql extends QueryPluginBase {
       $this->setWhereGroup('AND', $group);
     }
 
-    $this->where[$group]['conditions'][] = array(
+    $this->where[$group]['conditions'][] = [
       'field' => $snippet,
       'value' => $args,
       'operator' => 'formula',
-    );
+    ];
   }
 
   /**
@@ -898,7 +937,7 @@ class Sql extends QueryPluginBase {
    *
    * @see QueryConditionInterface::having()
    */
-  public function addHavingExpression($group, $snippet, $args = array()) {
+  public function addHavingExpression($group, $snippet, $args = []) {
     // Ensure all variants of 0 are actually 0. Thus '', 0 and NULL are all
     // the default group.
     if (empty($group)) {
@@ -911,11 +950,11 @@ class Sql extends QueryPluginBase {
     }
 
     // Add the clause and the args.
-    $this->having[$group]['conditions'][] = array(
+    $this->having[$group]['conditions'][] = [
       'field' => $snippet,
       'value' => $args,
       'operator' => 'formula',
-    );
+    ];
   }
 
   /**
@@ -937,7 +976,7 @@ class Sql extends QueryPluginBase {
    * @param $params
    *   Any params that should be passed through to the addField.
    */
-  public function addOrderBy($table, $field = NULL, $order = 'ASC', $alias = '', $params = array()) {
+  public function addOrderBy($table, $field = NULL, $order = 'ASC', $alias = '', $params = []) {
     // Only ensure the table if it's not the special random key.
     // @todo: Maybe it would make sense to just add an addOrderByRand or something similar.
     if ($table && $table != 'rand') {
@@ -957,10 +996,10 @@ class Sql extends QueryPluginBase {
       $as = $this->addField($table, $field, $as, $params);
     }
 
-    $this->orderby[] = array(
+    $this->orderby[] = [
       'field' => $as,
       'direction' => strtoupper($order)
-    );
+    ];
   }
 
   /**
@@ -998,8 +1037,8 @@ class Sql extends QueryPluginBase {
   /**
    * Generates a unique placeholder used in the db query.
    */
-  function placeholder($base = 'views') {
-    static $placeholders = array();
+  public function placeholder($base = 'views') {
+    static $placeholders = [];
     if (!isset($placeholders[$base])) {
       $placeholders[$base] = 0;
       return ':' . $base;
@@ -1025,13 +1064,13 @@ class Sql extends QueryPluginBase {
     $has_arguments = FALSE;
     $has_filter = FALSE;
 
-    $main_group = db_and();
-    $filter_group = $this->groupOperator == 'OR' ? db_or() : db_and();
+    $main_group = new Condition('AND');
+    $filter_group = $this->groupOperator == 'OR' ? new Condition('OR') : new Condition('AND');
 
     foreach ($this->$where as $group => $info) {
 
       if (!empty($info['conditions'])) {
-        $sub_group = $info['type'] == 'OR' ? db_or() : db_and();
+        $sub_group = $info['type'] == 'OR' ? new Condition('OR') : new Condition('AND');
         foreach ($info['conditions'] as $clause) {
           if ($clause['operator'] == 'formula') {
             $has_condition = TRUE;
@@ -1079,7 +1118,7 @@ class Sql extends QueryPluginBase {
    *   An array of the fieldnames which are non-aggregates.
    */
   protected function getNonAggregates() {
-    $non_aggregates = array();
+    $non_aggregates = [];
     foreach ($this->fields as $field) {
       $string = '';
       if (!empty($field['table'])) {
@@ -1135,9 +1174,9 @@ class Sql extends QueryPluginBase {
 
       if (!empty($field['function'])) {
         $info = $this->getAggregationInfo();
-        if (!empty($info[$field['function']]['method']) && is_callable(array($this, $info[$field['function']]['method']))) {
+        if (!empty($info[$field['function']]['method']) && is_callable([$this, $info[$field['function']]['method']])) {
           $string = $this::{$info[$field['function']]['method']}($field['function'], $string);
-          $placeholders = !empty($field['placeholders']) ? $field['placeholders'] : array();
+          $placeholders = !empty($field['placeholders']) ? $field['placeholders'] : [];
           $query->addExpression($string, $fieldname, $placeholders);
         }
 
@@ -1145,7 +1184,7 @@ class Sql extends QueryPluginBase {
       }
       // This is a formula, using no tables.
       elseif (empty($field['table'])) {
-        $placeholders = !empty($field['placeholders']) ? $field['placeholders'] : array();
+        $placeholders = !empty($field['placeholders']) ? $field['placeholders'] : [];
         $query->addExpression($string, $fieldname, $placeholders);
       }
       elseif ($this->distinct && !in_array($fieldname, $this->groupby)) {
@@ -1196,7 +1235,7 @@ class Sql extends QueryPluginBase {
       $this->getCountOptimized = TRUE;
     }
 
-    $options = array();
+    $options = [];
     $target = 'default';
     $key = 'default';
     // Detect an external database and set the
@@ -1242,7 +1281,7 @@ class Sql extends QueryPluginBase {
       // Allow 'GROUP BY' even no aggregation function has been set.
       $this->hasAggregate = $this->view->display_handler->getOption('group_by');
     }
-    $groupby = array();
+    $groupby = [];
     if ($this->hasAggregate && (!empty($this->groupby) || !empty($non_aggregates))) {
       $groupby = array_unique(array_merge($this->groupby, $non_aggregates));
     }
@@ -1251,12 +1290,12 @@ class Sql extends QueryPluginBase {
     // entities can be loaded.
     $entity_information = $this->getEntityTableInfo();
     if ($entity_information) {
-      $params = array();
+      $params = [];
       if ($groupby) {
         // Handle grouping, by retrieving the minimum entity_id.
-        $params = array(
+        $params = [
           'function' => 'min',
-        );
+        ];
       }
 
       foreach ($entity_information as $entity_type_id => $info) {
@@ -1315,7 +1354,7 @@ class Sql extends QueryPluginBase {
     }
 
     // Add all query substitutions as metadata.
-    $query->addMetaData('views_substitutions', \Drupal::moduleHandler()->invokeAll('views_query_substitutions', array($this->view)));
+    $query->addMetaData('views_substitutions', \Drupal::moduleHandler()->invokeAll('views_query_substitutions', [$this->view]));
 
     return $query;
   }
@@ -1324,7 +1363,7 @@ class Sql extends QueryPluginBase {
    * Get the arguments attached to the WHERE and HAVING clauses of this query.
    */
   public function getWhereArgs() {
-    $args = array();
+    $args = [];
     foreach ($this->where as $where) {
       $args = array_merge($args, $where['args']);
     }
@@ -1337,14 +1376,14 @@ class Sql extends QueryPluginBase {
   /**
    * Let modules modify the query just prior to finalizing it.
    */
-  function alter(ViewExecutable $view) {
-    \Drupal::moduleHandler()->invokeAll('views_query_alter', array($view, $this));
+  public function alter(ViewExecutable $view) {
+    \Drupal::moduleHandler()->invokeAll('views_query_alter', [$view, $this]);
   }
 
   /**
    * Builds the necessary info to execute the query.
    */
-  function build(ViewExecutable $view) {
+  public function build(ViewExecutable $view) {
     // Make the query distinct if the option was set.
     if (!empty($this->options['distinct'])) {
       $this->setDistinct(TRUE);
@@ -1369,7 +1408,7 @@ class Sql extends QueryPluginBase {
    * Values to set: $view->result, $view->total_rows, $view->execute_time,
    * $view->current_page.
    */
-  function execute(ViewExecutable $view) {
+  public function execute(ViewExecutable $view) {
     $query = $view->build_info['query'];
     $count_query = $view->build_info['count_query'];
 
@@ -1393,7 +1432,7 @@ class Sql extends QueryPluginBase {
     }
 
     if ($query) {
-      $additional_arguments = \Drupal::moduleHandler()->invokeAll('views_query_substitutions', array($view));
+      $additional_arguments = \Drupal::moduleHandler()->invokeAll('views_query_substitutions', [$view]);
 
       // Count queries must be run through the preExecute() method.
       // If not, then hook_query_node_access_alter() may munge the count by
@@ -1437,7 +1476,7 @@ class Sql extends QueryPluginBase {
 
         // Setup the result row objects.
         $view->result = iterator_to_array($result);
-        array_walk($view->result, function(ResultRow $row, $index) {
+        array_walk($view->result, function (ResultRow $row, $index) {
           $row->index = $index;
         });
 
@@ -1449,7 +1488,7 @@ class Sql extends QueryPluginBase {
         $this->loadEntities($view->result);
       }
       catch (DatabaseExceptionWrapper $e) {
-        $view->result = array();
+        $view->result = [];
         if (!empty($view->live_preview)) {
           drupal_set_message($e->getMessage(), 'error');
         }
@@ -1483,67 +1522,101 @@ class Sql extends QueryPluginBase {
     }
 
     // Extract all entity types from entity_information.
-    $entity_types = array();
+    $entity_types = [];
     foreach ($entity_information as $info) {
       $entity_type = $info['entity_type'];
       if (!isset($entity_types[$entity_type])) {
-        $entity_types[$entity_type] = \Drupal::entityManager()->getDefinition($entity_type);
+        $entity_types[$entity_type] = $this->entityTypeManager->getDefinition($entity_type);
       }
     }
 
     // Assemble a list of entities to load.
-    $ids_by_type = array();
+    $entity_ids_by_type = [];
+    $revision_ids_by_type = [];
     foreach ($entity_information as $info) {
       $relationship_id = $info['relationship_id'];
       $entity_type = $info['entity_type'];
+      /** @var \Drupal\Core\Entity\EntityTypeInterface $entity_info */
       $entity_info = $entity_types[$entity_type];
-      $id_key = !$info['revision'] ? $entity_info->getKey('id') : $entity_info->getKey('revision');
+      $revision = $info['revision'];
+      $id_key = !$revision ? $entity_info->getKey('id') : $entity_info->getKey('revision');
       $id_alias = $this->getFieldAlias($info['alias'], $id_key);
 
       foreach ($results as $index => $result) {
         // Store the entity id if it was found.
         if (isset($result->{$id_alias}) && $result->{$id_alias} != '') {
-          $ids_by_type[$entity_type][$index][$relationship_id] = $result->$id_alias;
+          if ($revision) {
+            $revision_ids_by_type[$entity_type][$index][$relationship_id] = $result->$id_alias;
+          }
+          else {
+            $entity_ids_by_type[$entity_type][$index][$relationship_id] = $result->$id_alias;
+          }
         }
       }
     }
 
     // Load all entities and assign them to the correct result row.
-    foreach ($ids_by_type as $entity_type => $ids) {
+    foreach ($entity_ids_by_type as $entity_type => $ids) {
+      $entity_storage = $this->entityTypeManager->getStorage($entity_type);
       $flat_ids = iterator_to_array(new \RecursiveIteratorIterator(new \RecursiveArrayIterator($ids)), FALSE);
 
-      // Drupal core currently has no way to load multiple revisions. Sad.
-      if (isset($entity_information[$entity_type]['revision']) && $entity_information[$entity_type]['revision'] === TRUE) {
-        $entities = array();
-        foreach ($flat_ids as $revision_id) {
-          $entity = entity_revision_load($entity_type, $revision_id);
-          if ($entity) {
-            $entities[$revision_id] = $entity;
-          }
+      $entities = $entity_storage->loadMultiple(array_unique($flat_ids));
+      $results = $this->assignEntitiesToResult($ids, $entities, $results);
+    }
+
+    // Now load all revisions.
+    foreach ($revision_ids_by_type as $entity_type => $revision_ids) {
+      $entity_storage = $this->entityTypeManager->getStorage($entity_type);
+      $entities = [];
+
+      foreach ($revision_ids as $index => $revision_id_by_relationship) {
+        foreach ($revision_id_by_relationship as $revision => $revision_id) {
+          // Drupal core currently has no way to load multiple revisions.
+          $entity = $entity_storage->loadRevision($revision_id);
+          $entities[$revision_id] = $entity;
         }
       }
-      else {
-        $entities = entity_load_multiple($entity_type, $flat_ids);
-      }
 
-      foreach ($ids as $index => $relationships) {
-        foreach ($relationships as $relationship_id => $entity_id) {
-          if (isset($entities[$entity_id])) {
-            $entity = $entities[$entity_id];
-          }
-          else {
-            $entity = NULL;
-          }
+      $results = $this->assignEntitiesToResult($revision_ids, $entities, $results);
+    }
+  }
 
-          if ($relationship_id == 'none') {
-            $results[$index]->_entity = $entity;
-          }
-          else {
-            $results[$index]->_relationship_entities[$relationship_id] = $entity;
-          }
+  /**
+   * Sets entities onto the view result row objects.
+   *
+   * This method takes into account the relationship in which the entity was
+   * needed in the first place.
+   *
+   * @param mixed[][] $ids
+   *   A two dimensional array of identifiers (entity ID / revision ID) keyed by
+   *   relationship.
+   * @param \Drupal\Core\Entity\EntityInterface[] $entities
+   *   An array of entities keyed by their identified (entity ID / revision ID).
+   * @param \Drupal\views\ResultRow[] $results
+   *   The entire views result.
+   *
+   * @return \Drupal\views\ResultRow[]
+   *   The changed views results.
+   */
+  protected function assignEntitiesToResult($ids, array $entities, array $results) {
+    foreach ($ids as $index => $relationships) {
+      foreach ($relationships as $relationship_id => $id) {
+        if (isset($entities[$id])) {
+          $entity = $entities[$id];
+        }
+        else {
+          $entity = NULL;
+        }
+
+        if ($relationship_id == 'none') {
+          $results[$index]->_entity = $entity;
+        }
+        else {
+          $results[$index]->_relationship_entities[$relationship_id] = $entity;
         }
       }
     }
+    return $results;
   }
 
   /**
@@ -1599,82 +1672,82 @@ class Sql extends QueryPluginBase {
   public function getAggregationInfo() {
     // @todo -- need a way to get database specific and customized aggregation
     // functions into here.
-    return array(
-      'group' => array(
+    return [
+      'group' => [
         'title' => $this->t('Group results together'),
         'is aggregate' => FALSE,
-      ),
-      'count' => array(
+      ],
+      'count' => [
         'title' => $this->t('Count'),
         'method' => 'aggregationMethodSimple',
-        'handler' => array(
+        'handler' => [
           'argument' => 'groupby_numeric',
           'field' => 'numeric',
           'filter' => 'groupby_numeric',
           'sort' => 'groupby_numeric',
-        ),
-      ),
-      'count_distinct' => array(
+        ],
+      ],
+      'count_distinct' => [
         'title' => $this->t('Count DISTINCT'),
         'method' => 'aggregationMethodDistinct',
-        'handler' => array(
+        'handler' => [
           'argument' => 'groupby_numeric',
           'field' => 'numeric',
           'filter' => 'groupby_numeric',
           'sort' => 'groupby_numeric',
-        ),
-      ),
-      'sum' => array(
+        ],
+      ],
+      'sum' => [
         'title' => $this->t('Sum'),
         'method' => 'aggregationMethodSimple',
-        'handler' => array(
+        'handler' => [
           'argument' => 'groupby_numeric',
           'field' => 'numeric',
           'filter' => 'groupby_numeric',
           'sort' => 'groupby_numeric',
-        ),
-      ),
-      'avg' => array(
+        ],
+      ],
+      'avg' => [
         'title' => $this->t('Average'),
         'method' => 'aggregationMethodSimple',
-        'handler' => array(
+        'handler' => [
           'argument' => 'groupby_numeric',
           'field' => 'numeric',
           'filter' => 'groupby_numeric',
           'sort' => 'groupby_numeric',
-        ),
-      ),
-      'min' => array(
+        ],
+      ],
+      'min' => [
         'title' => $this->t('Minimum'),
         'method' => 'aggregationMethodSimple',
-        'handler' => array(
+        'handler' => [
           'argument' => 'groupby_numeric',
           'field' => 'numeric',
           'filter' => 'groupby_numeric',
           'sort' => 'groupby_numeric',
-        ),
-      ),
-      'max' => array(
+        ],
+      ],
+      'max' => [
         'title' => $this->t('Maximum'),
         'method' => 'aggregationMethodSimple',
-        'handler' => array(
+        'handler' => [
           'argument' => 'groupby_numeric',
           'field' => 'numeric',
           'filter' => 'groupby_numeric',
           'sort' => 'groupby_numeric',
-        ),
-      ),
-      'stddev_pop' => array(
+        ],
+      ],
+      'stddev_pop' => [
         'title' => $this->t('Standard deviation'),
         'method' => 'aggregationMethodSimple',
-        'handler' => array(
+        'handler' => [
           'argument' => 'groupby_numeric',
           'field' => 'numeric',
           'filter' => 'groupby_numeric',
           'sort' => 'groupby_numeric',
-        ),
-      )
-    );
+        ],
+      ]
+    ];
   }
 
   public function aggregationMethodSimple($group_type, $field) {
@@ -1729,7 +1802,7 @@ class Sql extends QueryPluginBase {
 
     // set up the database timezone
     $db_type = Database::getConnection()->databaseType();
-    if (in_array($db_type, array('mysql', 'pgsql'))) {
+    if (in_array($db_type, ['mysql', 'pgsql'])) {
       $offset = '+00:00';
       static $already_set = FALSE;
       if (!$already_set) {
@@ -1754,7 +1827,7 @@ class Sql extends QueryPluginBase {
     $db_type = Database::getConnection()->databaseType();
     switch ($db_type) {
       case 'mysql':
-        $replace = array(
+        $replace = [
           'Y' => '%Y',
           'y' => '%y',
           'M' => '%b',
@@ -1771,11 +1844,11 @@ class Sql extends QueryPluginBase {
           'i' => '%i',
           's' => '%s',
           'A' => '%p',
-        );
+        ];
         $format = strtr($format, $replace);
         return "DATE_FORMAT($field, '$format')";
       case 'pgsql':
-        $replace = array(
+        $replace = [
           'Y' => 'YYYY',
           'y' => 'YY',
           'M' => 'Mon',
@@ -1795,7 +1868,7 @@ class Sql extends QueryPluginBase {
           'i' => 'MI',
           's' => 'SS',
           'A' => 'AM',
-        );
+        ];
         $format = strtr($format, $replace);
         if (!$string_date) {
           return "TO_CHAR($field, '$format')";
@@ -1804,7 +1877,7 @@ class Sql extends QueryPluginBase {
         // date, back to a string again.
         return "TO_CHAR(TO_TIMESTAMP($field, 'YYYY-MM-DD HH24:MI:SS'), '$format')";
       case 'sqlite':
-        $replace = array(
+        $replace = [
           'Y' => '%Y',
           // No format for 2 digit year number.
           'y' => '%Y',
@@ -1830,7 +1903,7 @@ class Sql extends QueryPluginBase {
           's' => '%S',
           // No format for AM/PM.
           'A' => '',
-        );
+        ];
         $format = strtr($format, $replace);
 
         // Don't use the 'unixepoch' flag for string date comparisons.
@@ -1838,7 +1911,7 @@ class Sql extends QueryPluginBase {
 
         // SQLite does not have a ISO week substitution string, so it needs
         // special handling.
-        // @see http://en.wikipedia.org/wiki/ISO_week_date#Calculation
+        // @see http://wikipedia.org/wiki/ISO_week_date#Calculation
         // @see http://stackoverflow.com/a/15511864/1499564
         if ($format === '%W') {
           $expression = "((strftime('%j', date(strftime('%Y-%m-%d', $field" . $unixepoch . "), '-3 days', 'weekday 4')) - 1) / 7 + 1)";

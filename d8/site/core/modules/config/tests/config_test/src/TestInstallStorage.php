@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\config_test\TestInstallStorage.
- */
-
 namespace Drupal\config_test;
 
 use Drupal\Core\Config\InstallStorage;
@@ -25,7 +20,7 @@ class TestInstallStorage extends InstallStorage {
     if (!isset($this->folders)) {
       $this->folders = $this->getCoreNames();
       $listing = new ExtensionDiscovery(\Drupal::root());
-      $listing->setProfileDirectories(array());
+      $listing->setProfileDirectories([]);
       $this->folders += $this->getComponentNames($listing->scan('profile'));
       $this->folders += $this->getComponentNames($listing->scan('module'));
       $this->folders += $this->getComponentNames($listing->scan('theme'));

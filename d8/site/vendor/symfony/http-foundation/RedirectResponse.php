@@ -23,7 +23,8 @@ class RedirectResponse extends Response
     /**
      * Creates a redirect response so that it conforms to the rules defined for a redirect status code.
      *
-     * @param string $url     The URL to redirect to
+     * @param string $url     The URL to redirect to. The URL should be a full URL, with schema etc.,
+     *                        but practically every browser redirects on paths only as well
      * @param int    $status  The status code (302 by default)
      * @param array  $headers The headers (Location is always set to the given URL)
      *
@@ -33,16 +34,16 @@ class RedirectResponse extends Response
      */
     public function __construct($url, $status = 302, $headers = array())
     {
-        if (empty($url)) {
-            throw new \InvalidArgumentException('Cannot redirect to an empty URL.');
-        }
-
         parent::__construct('', $status, $headers);
 
         $this->setTargetUrl($url);
 
         if (!$this->isRedirect()) {
             throw new \InvalidArgumentException(sprintf('The HTTP status code is not a redirect ("%s" given).', $status));
+        }
+
+        if (301 == $status && !array_key_exists('cache-control', $headers)) {
+            $this->headers->remove('cache-control');
         }
     }
 
@@ -69,7 +70,7 @@ class RedirectResponse extends Response
      *
      * @param string $url The URL to redirect to
      *
-     * @return RedirectResponse The current response.
+     * @return $this
      *
      * @throws \InvalidArgumentException
      */

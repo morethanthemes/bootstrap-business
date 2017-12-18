@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Locale\CountryManager.
- */
-
 namespace Drupal\Core\Locale;
 
 use Drupal\Core\Extension\ModuleHandlerInterface;
@@ -26,7 +21,7 @@ class CountryManager implements CountryManagerInterface {
    */
   protected $countries;
 
-  /*
+  /**
    * Constructor.
    *
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
@@ -42,7 +37,7 @@ class CountryManager implements CountryManagerInterface {
    *   An array of country code => country name pairs.
    */
   public static function getStandardList() {
-    $countries = array(
+    $countries = [
       'AC' => t('Ascension Island'),
       'AD' => t('Andorra'),
       'AE' => t('United Arab Emirates'),
@@ -301,7 +296,7 @@ class CountryManager implements CountryManagerInterface {
       'ZA' => t('South Africa'),
       'ZM' => t('Zambia'),
       'ZW' => t('Zimbabwe'),
-    );
+    ];
 
     // Sort the list.
     natcasesort($countries);

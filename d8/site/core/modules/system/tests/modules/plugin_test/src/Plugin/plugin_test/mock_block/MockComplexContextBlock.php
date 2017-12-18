@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\plugin_test\Plugin\plugin_test\mock_block\MockComplexContextBlock.
- */
-
 namespace Drupal\plugin_test\Plugin\plugin_test\mock_block;
 
 use Drupal\Core\Plugin\ContextAwarePluginBase;
@@ -21,4 +16,5 @@ class MockComplexContextBlock extends ContextAwarePluginBase {
     $node = $this->getContextValue('node');
     return $user->label() . ' -- ' . $node->label();
   }
+
 }

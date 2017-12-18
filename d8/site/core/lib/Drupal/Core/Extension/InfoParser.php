@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Extension\InfoParser.
- */
-
 namespace Drupal\Core\Extension;
 
 /**
@@ -17,7 +12,7 @@ class InfoParser extends InfoParserDynamic {
    *
    * @var array
    */
-  protected static $parsedInfos = array();
+  protected static $parsedInfos = [];
 
   /**
    * {@inheritdoc}

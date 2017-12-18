@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\file\Entity\File.
- */
-
 namespace Drupal\file\Entity;
 
 use Drupal\Core\Entity\ContentEntityBase;
@@ -17,6 +12,8 @@ use Drupal\user\UserInterface;
 
 /**
  * Defines the file entity class.
+ *
+ * @ingroup file
  *
  * @ContentEntityType(
  *   id = "file",
@@ -73,7 +70,7 @@ class File extends ContentEntityBase implements FileInterface {
    *
    * @see file_url_transform_relative()
    */
-  public function url($rel = 'canonical', $options = array()) {
+  public function url($rel = 'canonical', $options = []) {
     return file_create_url($this->getFileUri());
   }
 
@@ -191,7 +188,14 @@ class File extends ContentEntityBase implements FileInterface {
   public function preSave(EntityStorageInterface $storage) {
     parent::preSave($storage);
 
-    $this->setSize(filesize($this->getFileUri()));
+    // The file itself might not exist or be available right now.
+    $uri = $this->getFileUri();
+    $size = @filesize($uri);
+
+    // Set size unless there was an error.
+    if ($size !== FALSE) {
+      $this->setSize($size);
+    }
   }
 
   /**
@@ -219,19 +223,15 @@ class File extends ContentEntityBase implements FileInterface {
    * {@inheritdoc}
    */
   public static function baseFieldDefinitions(EntityTypeInterface $entity_type) {
-    $fields['fid'] = BaseFieldDefinition::create('integer')
-      ->setLabel(t('File ID'))
-      ->setDescription(t('The file ID.'))
-      ->setReadOnly(TRUE)
-      ->setSetting('unsigned', TRUE);
+    /** @var \Drupal\Core\Field\BaseFieldDefinition[] $fields */
+    $fields = parent::baseFieldDefinitions($entity_type);
 
-    $fields['uuid'] = BaseFieldDefinition::create('uuid')
-      ->setLabel(t('UUID'))
-      ->setDescription(t('The file UUID.'))
-      ->setReadOnly(TRUE);
+    $fields['fid']->setLabel(t('File ID'))
+      ->setDescription(t('The file ID.'));
 
-    $fields['langcode'] = BaseFieldDefinition::create('language')
-      ->setLabel(t('Language code'))
+    $fields['uuid']->setDescription(t('The file UUID.'));
+
+    $fields['langcode']->setLabel(t('Language code'))
       ->setDescription(t('The file language code.'));
 
     $fields['uid'] = BaseFieldDefinition::create('entity_reference')

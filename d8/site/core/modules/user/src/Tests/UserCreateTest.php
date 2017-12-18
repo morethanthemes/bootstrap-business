@@ -1,13 +1,10 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\Tests\UserCreateTest.
- */
-
 namespace Drupal\user\Tests;
 
+use Drupal\field\Entity\FieldConfig;
 use Drupal\simpletest\WebTestBase;
+use Drupal\field\Entity\FieldStorageConfig;
 
 /**
  * Tests the create user administration page.
@@ -21,14 +18,14 @@ class UserCreateTest extends WebTestBase {
    *
    * @var array
    */
-  public static $modules = array('image');
+  public static $modules = ['image'];
 
   /**
    * Create a user through the administration interface and ensure that it
    * displays in the user list.
    */
   public function testUserAdd() {
-    $user = $this->drupalCreateUser(array('administer users'));
+    $user = $this->drupalCreateUser(['administer users']);
     $this->drupalLogin($user);
 
     $this->assertEqual($user->getCreatedTime(), REQUEST_TIME, 'Creating a user sets default "created" timestamp.');
@@ -36,27 +33,27 @@ class UserCreateTest extends WebTestBase {
 
     // Create a field.
     $field_name = 'test_field';
-    entity_create('field_storage_config', array(
+    FieldStorageConfig::create([
       'field_name' => $field_name,
       'entity_type' => 'user',
       'module' => 'image',
       'type' => 'image',
       'cardinality' => 1,
       'locked' => FALSE,
-      'indexes' => array('target_id' => array('target_id')),
-      'settings' => array(
+      'indexes' => ['target_id' => ['target_id']],
+      'settings' => [
         'uri_scheme' => 'public',
-      ),
-    ))->save();
+      ],
+    ])->save();
 
-    entity_create('field_config', array(
+    FieldConfig::create([
       'field_name' => $field_name,
       'entity_type' => 'user',
       'label' => 'Picture',
       'bundle' => 'user',
       'description' => t('Your virtual face or picture.'),
       'required' => FALSE,
-      'settings' => array(
+      'settings' => [
         'file_extensions' => 'png gif jpg jpeg',
         'file_directory' => 'pictures',
         'max_filesize' => '30 KB',
@@ -64,8 +61,8 @@ class UserCreateTest extends WebTestBase {
         'title_field' => 0,
         'max_resolution' => '85x85',
         'min_resolution' => '',
-      ),
-    ))->save();
+      ],
+    ])->save();
 
     // Test user creation page for valid fields.
     $this->drupalGet('admin/people/create');
@@ -89,23 +86,23 @@ class UserCreateTest extends WebTestBase {
 
     // We create two users, notifying one and not notifying the other, to
     // ensure that the tests work in both cases.
-    foreach (array(FALSE, TRUE) as $notify) {
+    foreach ([FALSE, TRUE] as $notify) {
       $name = $this->randomMachineName();
-      $edit = array(
+      $edit = [
         'name' => $name,
         'mail' => $this->randomMachineName() . '@example.com',
         'pass[pass1]' => $pass = $this->randomString(),
         'pass[pass2]' => $pass,
         'notify' => $notify,
-      );
+      ];
       $this->drupalPostForm('admin/people/create', $edit, t('Create new account'));
 
       if ($notify) {
-        $this->assertText(t('A welcome message with further instructions has been emailed to the new user @name.', array('@name' => $edit['name'])), 'User created');
+        $this->assertText(t('A welcome message with further instructions has been emailed to the new user @name.', ['@name' => $edit['name']]), 'User created');
         $this->assertEqual(count($this->drupalGetMails()), 1, 'Notification email sent');
       }
       else {
-        $this->assertText(t('Created a new user account for @name. No email has been sent.', array('@name' => $edit['name'])), 'User created');
+        $this->assertText(t('Created a new user account for @name. No email has been sent.', ['@name' => $edit['name']]), 'User created');
         $this->assertEqual(count($this->drupalGetMails()), 0, 'Notification email not sent');
       }
 
@@ -118,15 +115,16 @@ class UserCreateTest extends WebTestBase {
     // Test that the password '0' is considered a password.
     // @see https://www.drupal.org/node/2563751.
     $name = $this->randomMachineName();
-    $edit = array(
+    $edit = [
       'name' => $name,
       'mail' => $this->randomMachineName() . '@example.com',
       'pass[pass1]' => 0,
       'pass[pass2]' => 0,
       'notify' => FALSE,
-    );
+    ];
     $this->drupalPostForm('admin/people/create', $edit, t('Create new account'));
     $this->assertText("Created a new user account for $name. No email has been sent");
     $this->assertNoText('Password field is required');
   }
+
 }

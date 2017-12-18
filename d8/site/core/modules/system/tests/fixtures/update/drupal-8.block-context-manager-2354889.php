@@ -7,31 +7,32 @@
  */
 
 use Drupal\Core\Database\Database;
+use Drupal\Core\Serialization\Yaml;
 
 $connection = Database::getConnection();
 
 // A custom block with visibility settings.
-$block_configs[] = \Drupal\Component\Serialization\Yaml::decode(file_get_contents(__DIR__ . '/block.block.testfor2354889.yml'));
+$block_configs[] = Yaml::decode(file_get_contents(__DIR__ . '/block.block.testfor2354889.yml'));
 
 // A custom block without any visibility settings.
-$block_configs[] = \Drupal\Component\Serialization\Yaml::decode(file_get_contents(__DIR__ . '/block.block.secondtestfor2354889.yml'));
+$block_configs[] = Yaml::decode(file_get_contents(__DIR__ . '/block.block.secondtestfor2354889.yml'));
 
 // A custom block with visibility settings that contain a non-existing context
 // mapping.
-$block_configs[] = \Drupal\Component\Serialization\Yaml::decode(file_get_contents(__DIR__ . '/block.block.thirdtestfor2354889.yml'));
+$block_configs[] = Yaml::decode(file_get_contents(__DIR__ . '/block.block.thirdtestfor2354889.yml'));
 
 foreach ($block_configs as $block_config) {
   $connection->insert('config')
-    ->fields(array(
+    ->fields([
       'collection',
       'name',
       'data',
-    ))
-    ->values(array(
+    ])
+    ->values([
       'collection' => '',
       'name' => 'block.block.' . $block_config['id'],
       'data' => serialize($block_config),
-    ))
+    ])
     ->execute();
 }
 

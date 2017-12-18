@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Plugin\views\area\View.
- */
-
 namespace Drupal\views\Plugin\views\area;
 
 use Drupal\Core\Entity\EntityStorageInterface;
@@ -33,37 +28,37 @@ class View extends AreaPluginBase {
    *
    * @var \Drupal\Core\Entity\EntityStorageInterface
    */
-   protected $viewStorage;
+  protected $viewStorage;
 
-   /**
-    * Constructs a View object.
-    *
-    * @param array $configuration
-    *   A configuration array containing information about the plugin instance.
-    * @param string $plugin_id
-    *   The plugin_id for the plugin instance.
-    * @param mixed $plugin_definition
-    *   The plugin implementation definition.
-    * @param \Drupal\Core\Entity\EntityStorageInterface $view_storage
-    *   The view storage.
-    */
-   public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityStorageInterface $view_storage) {
-     parent::__construct($configuration, $plugin_id, $plugin_definition);
+  /**
+   * Constructs a View object.
+   *
+   * @param array $configuration
+   *   A configuration array containing information about the plugin instance.
+   * @param string $plugin_id
+   *   The plugin_id for the plugin instance.
+   * @param mixed $plugin_definition
+   *   The plugin implementation definition.
+   * @param \Drupal\Core\Entity\EntityStorageInterface $view_storage
+   *   The view storage.
+   */
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityStorageInterface $view_storage) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition);
 
-     $this->viewStorage = $view_storage;
-   }
+    $this->viewStorage = $view_storage;
+  }
 
-   /**
-    * {@inheritdoc}
-    */
-   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-       return new static(
-           $configuration,
-           $plugin_id,
-           $plugin_definition,
-       $container->get('entity.manager')->getStorage('view')
-       );
-   }
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    return new static(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
+      $container->get('entity.manager')->getStorage('view')
+    );
+  }
 
   /**
    * {@inheritdoc}
@@ -71,8 +66,8 @@ class View extends AreaPluginBase {
   protected function defineOptions() {
     $options = parent::defineOptions();
 
-    $options['view_to_insert'] = array('default' => '');
-    $options['inherit_arguments'] = array('default' => FALSE);
+    $options['view_to_insert'] = ['default' => ''];
+    $options['inherit_arguments'] = ['default' => FALSE];
     return $options;
   }
 
@@ -84,22 +79,22 @@ class View extends AreaPluginBase {
 
     $view_display = $this->view->storage->id() . ':' . $this->view->current_display;
 
-    $options = array('' => $this->t('-Select-'));
+    $options = ['' => $this->t('-Select-')];
     $options += Views::getViewsAsOptions(FALSE, 'all', $view_display, FALSE, TRUE);
-    $form['view_to_insert'] = array(
+    $form['view_to_insert'] = [
       '#type' => 'select',
       '#title' => $this->t('View to insert'),
       '#default_value' => $this->options['view_to_insert'],
       '#description' => $this->t('The view to insert into this area.'),
       '#options' => $options,
-    );
+    ];
 
-    $form['inherit_arguments'] = array(
+    $form['inherit_arguments'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Inherit contextual filters'),
       '#default_value' => $this->options['inherit_arguments'],
       '#description' => $this->t('If checked, this view will receive the same contextual filters as its parent.'),
-    );
+    ];
   }
 
   /**
@@ -112,7 +107,7 @@ class View extends AreaPluginBase {
       $view = $this->viewStorage->load($view_name)->getExecutable();
 
       if (empty($view) || !$view->access($display_id)) {
-        return array();
+        return [];
       }
       $view->setDisplay($display_id);
 
@@ -123,7 +118,7 @@ class View extends AreaPluginBase {
       // Check if the view is part of the parent views of this view
       $search = "$view_name:$display_id";
       if (in_array($search, $this->view->parent_views)) {
-        drupal_set_message(t("Recursion detected in view @view display @display.", array('@view' => $view_name, '@display' => $display_id)), 'error');
+        drupal_set_message(t("Recursion detected in view @view display @display.", ['@view' => $view_name, '@display' => $display_id]), 'error');
       }
       else {
         if (!empty($this->options['inherit_arguments']) && !empty($this->view->args)) {
@@ -136,7 +131,7 @@ class View extends AreaPluginBase {
         return $output;
       }
     }
-    return array();
+    return [];
   }
 
   /**

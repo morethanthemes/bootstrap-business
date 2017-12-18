@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\Element\Checkboxes.
- */
-
 namespace Drupal\Core\Render\Element;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -22,8 +17,8 @@ use Drupal\Core\Form\FormStateInterface;
  * @code
  * $form['high_school']['tests_taken'] = array(
  *   '#type' => 'checkboxes',
- *   '#options' => array('SAT' => t('SAT'), 'ACT' => t('ACT'))),
- *   '#title' => t('What standardized tests did you take?'),
+ *   '#options' => array('SAT' => $this->t('SAT'), 'ACT' => $this->t('ACT')),
+ *   '#title' => $this->t('What standardized tests did you take?'),
  *   ...
  * );
  * @endcode
@@ -42,27 +37,27 @@ class Checkboxes extends FormElement {
    */
   public function getInfo() {
     $class = get_class($this);
-    return array(
+    return [
       '#input' => TRUE,
-      '#process' => array(
-        array($class, 'processCheckboxes'),
-      ),
-      '#pre_render' => array(
-        array($class, 'preRenderCompositeFormElement'),
-      ),
-      '#theme_wrappers' => array('checkboxes'),
-    );
+      '#process' => [
+        [$class, 'processCheckboxes'],
+      ],
+      '#pre_render' => [
+        [$class, 'preRenderCompositeFormElement'],
+      ],
+      '#theme_wrappers' => ['checkboxes'],
+    ];
   }
 
   /**
    * Processes a checkboxes form element.
    */
   public static function processCheckboxes(&$element, FormStateInterface $form_state, &$complete_form) {
-    $value = is_array($element['#value']) ? $element['#value'] : array();
+    $value = is_array($element['#value']) ? $element['#value'] : [];
     $element['#tree'] = TRUE;
     if (count($element['#options']) > 0) {
       if (!isset($element['#default_value']) || $element['#default_value'] == 0) {
-        $element['#default_value'] = array();
+        $element['#default_value'] = [];
       }
       $weight = 0;
       foreach ($element['#options'] as $key => $choice) {
@@ -78,8 +73,8 @@ class Checkboxes extends FormElement {
         // sub-elements.
         $weight += 0.001;
 
-        $element += array($key => array());
-        $element[$key] += array(
+        $element += [$key => []];
+        $element[$key] += [
           '#type' => 'checkbox',
           '#title' => $choice,
           '#return_value' => $key,
@@ -89,7 +84,7 @@ class Checkboxes extends FormElement {
           // Errors should only be shown on the parent checkboxes element.
           '#error_no_message' => TRUE,
           '#weight' => $weight,
-        );
+        ];
       }
     }
     return $element;
@@ -100,8 +95,8 @@ class Checkboxes extends FormElement {
    */
   public static function valueCallback(&$element, $input, FormStateInterface $form_state) {
     if ($input === FALSE) {
-      $value = array();
-      $element += array('#default_value' => array());
+      $value = [];
+      $element += ['#default_value' => []];
       foreach ($element['#default_value'] as $key) {
         $value[$key] = $key;
       }
@@ -123,8 +118,44 @@ class Checkboxes extends FormElement {
       return array_combine($input, $input);
     }
     else {
-      return array();
+      return [];
     }
+  }
+
+  /**
+   * Determines which checkboxes were checked when a form is submitted.
+   *
+   * @param array $input
+   *   An array returned by the FormAPI for a set of checkboxes.
+   *
+   * @return array
+   *   An array of keys that were checked.
+   */
+  public static function getCheckedCheckboxes(array $input) {
+    // Browsers do not include unchecked options in a form submission. The
+    // FormAPI tries to normalize this to keep checkboxes consistent with other
+    // form elements. Checkboxes show up as an array in the form of option_id =>
+    // option_id|0, where integer 0 is an unchecked option.
+    //
+    // @see \Drupal\Core\Render\Element\Checkboxes::valueCallback()
+    // @see https://www.w3.org/TR/html401/interact/forms.html#checkbox
+    $checked = array_filter($input, function ($value) {
+      return $value !== 0;
+    });
+    return array_keys($checked);
+  }
+
+  /**
+   * Determines if all checkboxes in a set are unchecked.
+   *
+   * @param array $input
+   *   An array returned by the FormAPI for a set of checkboxes.
+   *
+   * @return bool
+   *   TRUE if all options are unchecked. FALSE otherwise.
+   */
+  public static function detectEmptyCheckboxes(array $input) {
+    return empty(static::getCheckedCheckboxes($input));
   }
 
 }

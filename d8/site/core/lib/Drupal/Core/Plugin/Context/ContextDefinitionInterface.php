@@ -1,16 +1,14 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Plugin\Context\ContextDefinitionInterface.
- */
-
 namespace Drupal\Core\Plugin\Context;
 
 use Drupal\Component\Plugin\Context\ContextDefinitionInterface as ComponentContextDefinitionInterface;
 
 /**
- * Interface for context definitions.
+ * Interface to define definition objects in ContextInterface via TypedData.
+ *
+ * @see \Drupal\Component\Plugin\Context\ContextDefinitionInterface
+ * @see \Drupal\Core\Plugin\Context\ContextInterface
  */
 interface ContextDefinitionInterface extends ComponentContextDefinitionInterface {
 

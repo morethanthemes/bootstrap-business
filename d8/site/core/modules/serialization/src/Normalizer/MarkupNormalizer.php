@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\serialization\Normalizer\MarkupNormalizer.
- */
-
 namespace Drupal\serialization\Normalizer;
 
 /**
@@ -17,12 +12,12 @@ class MarkupNormalizer extends NormalizerBase {
    *
    * @var array
    */
-  protected $supportedInterfaceOrClass = array('Drupal\Component\Render\MarkupInterface');
+  protected $supportedInterfaceOrClass = ['Drupal\Component\Render\MarkupInterface'];
 
   /**
    * {@inheritdoc}
    */
-  public function normalize($object, $format = NULL, array $context = array()) {
+  public function normalize($object, $format = NULL, array $context = []) {
     return (string) $object;
   }
 

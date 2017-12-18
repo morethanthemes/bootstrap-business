@@ -2,14 +2,14 @@ id: d7_node_revision
 label: Node revisions
 migration_tags:
   - Drupal 7
-builder:
-  plugin: d7_node
+deriver: Drupal\node\Plugin\migrate\D7NodeDeriver
 source:
   plugin: d7_node_revision
 process:
+  # If you are using this file to build a custom migration consider removing
+  # the nid and vid fields to allow incremental migrations.
   nid: nid
   vid: vid
-  type: type
   langcode:
     plugin: default_value
     source: language
@@ -28,4 +28,4 @@ destination:
   plugin: entity_revision:node
 migration_dependencies:
   required:
-    - d7_node:*
+    - d7_node

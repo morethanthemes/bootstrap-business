@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\FileTransfer\FTP.
- */
-
 namespace Drupal\Core\FileTransfer;
 
 /**
@@ -26,7 +21,7 @@ abstract class FTP extends FileTransfer {
   /**
    * {@inheritdoc}
    */
-  static function factory($jail, $settings) {
+  public static function factory($jail, $settings) {
     $username = empty($settings['username']) ? '' : $settings['username'];
     $password = empty($settings['password']) ? '' : $settings['password'];
     $hostname = empty($settings['advanced']['hostname']) ? 'localhost' : $settings['advanced']['hostname'];
@@ -50,4 +45,5 @@ abstract class FTP extends FileTransfer {
     $form['advanced']['port']['#default_value'] = 21;
     return $form;
   }
+
 }

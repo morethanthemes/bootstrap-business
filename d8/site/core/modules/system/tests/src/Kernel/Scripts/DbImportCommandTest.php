@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\system\Kernel\Scripts\DbImportCommandTest.
- */
-
 namespace Drupal\Tests\system\Kernel\Scripts;
 
 use Drupal\Core\Command\DbImportCommand;
@@ -42,7 +37,6 @@ class DbImportCommandTest extends KernelTestBase {
     'key_value_expire',
     'menu_link_content',
     'menu_link_content_data',
-    'semaphore',
     'sessions',
     'url_alias',
     'user__roles',
@@ -57,10 +51,10 @@ class DbImportCommandTest extends KernelTestBase {
    * @requires extension pdo_sqlite
    */
   public function testDbImportCommand() {
-    $connection_info = array(
+    $connection_info = [
       'driver' => 'sqlite',
       'database' => ':memory:',
-    );
+    ];
     Database::addConnectionInfo($this->databasePrefix, 'default', $connection_info);
 
     $command = new DbImportCommand();

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\file\Plugin\migrate\source\d6\File.
- */
-
 namespace Drupal\file\Plugin\migrate\source\d6;
 
 use Drupal\migrate\Row;
@@ -14,7 +9,8 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
  * Drupal 6 file source from database.
  *
  * @MigrateSource(
- *   id = "d6_file"
+ *   id = "d6_file",
+ *   source_module = "system"
  * )
  */
 class File extends DrupalSqlBase {
@@ -50,7 +46,7 @@ class File extends DrupalSqlBase {
       // If two or more files have the same timestamp, they'll end up in a
       // non-deterministic order. Ordering by fid (or any other unique field)
       // will prevent this.
-      ->orderBy('fid');
+      ->orderBy('f.fid');
   }
 
   /**
@@ -80,17 +76,17 @@ class File extends DrupalSqlBase {
    * {@inheritdoc}
    */
   public function fields() {
-    return array(
+    return [
       'fid' => $this->t('File ID'),
       'uid' => $this->t('The {users}.uid who added the file. If set to 0, this file was added by an anonymous user.'),
       'filename' => $this->t('File name'),
       'filepath' => $this->t('File path'),
-      'filemime' => $this->t('File Mime Type'),
+      'filemime' => $this->t('File MIME Type'),
       'status' => $this->t('The published status of a file.'),
       'timestamp' => $this->t('The time that the file was added.'),
       'file_directory_path' => $this->t('The Drupal files path.'),
       'is_public' => $this->t('TRUE if the files directory is public otherwise FALSE.'),
-    );
+    ];
   }
   /**
    * {@inheritdoc}

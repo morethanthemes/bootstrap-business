@@ -1,11 +1,6 @@
 <?php
-/**
- * @file
- * Contains \Drupal\update\UpdateProcessorInterface.
- */
 
 namespace Drupal\update;
-
 
 /**
  * Processor of project update information.
@@ -82,4 +77,5 @@ interface UpdateProcessorInterface {
    * @see \Drupal\Core\Queue\QueueInterface::deleteItem()
    */
   public function deleteQueueItem($item);
+
 }

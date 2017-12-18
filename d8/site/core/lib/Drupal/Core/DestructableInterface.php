@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\DestructableInterface.
- */
-
 namespace Drupal\Core;
 
 /**
@@ -23,4 +18,5 @@ interface DestructableInterface {
    * Performs destruct operations.
    */
   public function destruct();
+
 }

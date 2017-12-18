@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Field\Plugin\Field\FieldFormatter\LanguageFormatter.
- */
-
 namespace Drupal\Core\Field\Plugin\Field\FieldFormatter;
 
 use Drupal\Core\Entity\EntityManagerInterface;
@@ -94,11 +89,11 @@ class LanguageFormatter extends StringFormatter {
    */
   public function settingsForm(array $form, FormStateInterface $form_state) {
     $form = parent::settingsForm($form, $form_state);
-    $form['native_language'] = array(
+    $form['native_language'] = [
       '#title' => $this->t('Display in native language'),
       '#type' => 'checkbox',
       '#default_value' => $this->getSetting('native_language'),
-    );
+    ];
     return $form;
   }
 

@@ -1,7 +1,7 @@
 services:
   book.breadcrumb:
     class: Drupal\book\BookBreadcrumbBuilder
-    arguments: ['@entity.manager', '@access_manager', '@current_user']
+    arguments: ['@entity.manager', '@current_user']
     tags:
       - { name: breadcrumb_builder, priority: 701 }
   book.manager:
@@ -35,5 +35,5 @@ services:
     class: Drupal\book\BookUninstallValidator
     tags:
       - { name: module_install.uninstall_validator }
-    arguments: ['@book.outline_storage', '@entity.query', '@string_translation']
+    arguments: ['@book.outline_storage', '@entity_type.manager', '@string_translation']
     lazy: true

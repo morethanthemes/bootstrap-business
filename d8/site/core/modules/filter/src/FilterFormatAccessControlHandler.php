@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\filter\FilterFormatAccessControlHandler.
- */
-
 namespace Drupal\filter;
 
 use Drupal\Core\Access\AccessResult;
@@ -46,7 +41,7 @@ class FilterFormatAccessControlHandler extends EntityAccessControlHandler {
       return AccessResult::forbidden();
     }
 
-    if (in_array($operation, array('disable', 'update'))) {
+    if (in_array($operation, ['disable', 'update', 'view'])) {
       return parent::checkAccess($filter_format, $operation, $account);
     }
 

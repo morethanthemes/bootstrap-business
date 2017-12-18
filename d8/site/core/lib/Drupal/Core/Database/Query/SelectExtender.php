@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Database\Query\SelectExtender.
- */
-
 namespace Drupal\Core\Database\Query;
 
 use Drupal\Core\Database\Connection;
@@ -35,6 +30,8 @@ class SelectExtender implements SelectInterface {
 
   /**
    * The placeholder counter.
+   *
+   * @var int
    */
   protected $placeholder = 0;
 
@@ -77,14 +74,14 @@ class SelectExtender implements SelectInterface {
    * {@inheritdoc}
    */
   public function hasAllTags() {
-    return call_user_func_array(array($this->query, 'hasAllTags'), func_get_args());
+    return call_user_func_array([$this->query, 'hasAllTags'], func_get_args());
   }
 
   /**
    * {@inheritdoc}
    */
   public function hasAnyTag() {
-    return call_user_func_array(array($this->query, 'hasAnyTag'), func_get_args());
+    return call_user_func_array([$this->query, 'hasAnyTag'], func_get_args());
   }
 
   /**
@@ -127,7 +124,7 @@ class SelectExtender implements SelectInterface {
   /**
    * {@inheritdoc}
    */
-  public function where($snippet, $args = array()) {
+  public function where($snippet, $args = []) {
     $this->query->where($snippet, $args);
     return $this;
   }
@@ -171,7 +168,7 @@ class SelectExtender implements SelectInterface {
   /**
    * {@inheritdoc}
    */
-  public function having($snippet, $args = array()) {
+  public function having($snippet, $args = []) {
     $this->query->having($snippet, $args);
     return $this;
   }
@@ -340,7 +337,7 @@ class SelectExtender implements SelectInterface {
   /**
    * {@inheritdoc}
    */
-  public function fields($table_alias, array $fields = array()) {
+  public function fields($table_alias, array $fields = []) {
     $this->query->fields($table_alias, $fields);
     return $this;
   }
@@ -348,42 +345,42 @@ class SelectExtender implements SelectInterface {
   /**
    * {@inheritdoc}
    */
-  public function addExpression($expression, $alias = NULL, $arguments = array()) {
+  public function addExpression($expression, $alias = NULL, $arguments = []) {
     return $this->query->addExpression($expression, $alias, $arguments);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function join($table, $alias = NULL, $condition = NULL, $arguments = array()) {
+  public function join($table, $alias = NULL, $condition = NULL, $arguments = []) {
     return $this->query->join($table, $alias, $condition, $arguments);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function innerJoin($table, $alias = NULL, $condition = NULL, $arguments = array()) {
+  public function innerJoin($table, $alias = NULL, $condition = NULL, $arguments = []) {
     return $this->query->innerJoin($table, $alias, $condition, $arguments);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function leftJoin($table, $alias = NULL, $condition = NULL, $arguments = array()) {
+  public function leftJoin($table, $alias = NULL, $condition = NULL, $arguments = []) {
     return $this->query->leftJoin($table, $alias, $condition, $arguments);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function rightJoin($table, $alias = NULL, $condition = NULL, $arguments = array()) {
+  public function rightJoin($table, $alias = NULL, $condition = NULL, $arguments = []) {
     return $this->query->rightJoin($table, $alias, $condition, $arguments);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function addJoin($type, $table, $alias = NULL, $condition = NULL, $arguments = array()) {
+  public function addJoin($type, $table, $alias = NULL, $condition = NULL, $arguments = []) {
     return $this->query->addJoin($type, $table, $alias, $condition, $arguments);
   }
 
@@ -445,7 +442,7 @@ class SelectExtender implements SelectInterface {
   /**
    * {@inheritdoc}
    */
-  function isNull($field) {
+  public function isNull($field) {
     $this->query->isNull($field);
     return $this;
   }
@@ -453,7 +450,7 @@ class SelectExtender implements SelectInterface {
   /**
    * {@inheritdoc}
    */
-  function isNotNull($field) {
+  public function isNotNull($field) {
     $this->query->isNotNull($field);
     return $this;
   }
@@ -502,7 +499,7 @@ class SelectExtender implements SelectInterface {
    * to handle any additional methods.
    */
   public function __call($method, $args) {
-    $return = call_user_func_array(array($this->query, $method), $args);
+    $return = call_user_func_array([$this->query, $method], $args);
 
     // Some methods will return the called object as part of a fluent interface.
     // Others will return some useful value.  If it's a value, then the caller
@@ -537,4 +534,5 @@ class SelectExtender implements SelectInterface {
   public function orConditionGroup() {
     return $this->conditionGroupFactory('OR');
   }
+
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\entity_test\Entity\EntityTestFieldOverride.
- */
-
 namespace Drupal\entity_test\Entity;
 
 use Drupal\Core\Entity\EntityTypeInterface;
@@ -46,4 +41,5 @@ class EntityTestFieldOverride extends EntityTest {
     }
     return $fields;
   }
+
 }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\MainContent\AjaxRenderer.
- */
-
 namespace Drupal\Core\Render\MainContent;
 
 use Drupal\Core\Ajax\AjaxResponse;
@@ -71,7 +66,7 @@ class AjaxRenderer implements MainContentRendererInterface {
     // replace the element making the Ajax call. The default 'replaceWith'
     // behavior can be changed with #ajax['method'].
     $response->addCommand(new InsertCommand(NULL, $html));
-    $status_messages = array('#type' => 'status_messages');
+    $status_messages = ['#type' => 'status_messages'];
     $output = $this->drupalRenderRoot($status_messages);
     if (!empty($output)) {
       $response->addCommand(new PrependCommand(NULL, $output));

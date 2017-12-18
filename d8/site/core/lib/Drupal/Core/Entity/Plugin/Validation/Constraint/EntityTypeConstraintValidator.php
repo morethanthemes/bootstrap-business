@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\Plugin\Validation\Constraint\EntityTypeConstraintValidator.
- */
-
 namespace Drupal\Core\Entity\Plugin\Validation\Constraint;
 
 use Symfony\Component\Validator\Constraint;
@@ -25,7 +20,7 @@ class EntityTypeConstraintValidator extends ConstraintValidator {
 
     /** @var $entity \Drupal\Core\Entity\EntityInterface */
     if ($entity->getEntityTypeId() != $constraint->type) {
-      $this->context->addViolation($constraint->message, array('%type' => $constraint->type));
+      $this->context->addViolation($constraint->message, ['%type' => $constraint->type]);
     }
   }
 

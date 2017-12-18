@@ -1,14 +1,12 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\simpletest\Tests\KernelTestBaseTest.
- */
-
 namespace Drupal\simpletest\Tests;
 
 use Drupal\Core\Database\Database;
+use Drupal\field\Entity\FieldConfig;
 use Drupal\simpletest\KernelTestBase;
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\Core\Entity\Entity\EntityViewDisplay;
 
 /**
  * Tests KernelTestBase functionality.
@@ -22,7 +20,7 @@ class KernelTestBaseTest extends KernelTestBase {
    *
    * @var array
    */
-  public static $modules = array('entity_test');
+  public static $modules = ['entity_test'];
 
   /**
    * {@inheritdoc}
@@ -52,8 +50,8 @@ EOS;
   /**
    * Tests expected behavior of setUp().
    */
-  function testSetUp() {
-    $modules = array('entity_test');
+  public function testSetUp() {
+    $modules = ['entity_test'];
     $table = 'entity_test';
 
     // Verify that specified $modules have been loaded.
@@ -81,7 +79,7 @@ EOS;
   /**
    * Tests expected load behavior of enableModules().
    */
-  function testEnableModulesLoad() {
+  public function testEnableModulesLoad() {
     $module = 'field_test';
 
     // Verify that the module does not exist yet.
@@ -92,7 +90,7 @@ EOS;
     $this->assertFalse(in_array($module, $list), "{$module}_entity_display_build_alter() in \Drupal::moduleHandler()->getImplementations() not found.");
 
     // Enable the module.
-    $this->enableModules(array($module));
+    $this->enableModules([$module]);
 
     // Verify that the module exists.
     $this->assertTrue(\Drupal::moduleHandler()->moduleExists($module), "$module module found.");
@@ -105,7 +103,7 @@ EOS;
   /**
    * Tests expected installation behavior of enableModules().
    */
-  function testEnableModulesInstall() {
+  public function testEnableModulesInstall() {
     $module = 'module_test';
     $table = 'module_test';
 
@@ -119,7 +117,7 @@ EOS;
     $this->assertFalse(db_table_exists($table), "'$table' database table not found.");
 
     // Install the module.
-    \Drupal::service('module_installer')->install(array($module));
+    \Drupal::service('module_installer')->install([$module]);
 
     // Verify that the enabled module exists.
     $this->assertTrue(\Drupal::moduleHandler()->moduleExists($module), "$module module found.");
@@ -136,11 +134,11 @@ EOS;
   /**
    * Tests installing modules with DependencyInjection services.
    */
-  function testEnableModulesInstallContainer() {
+  public function testEnableModulesInstallContainer() {
     // Install Node module.
-    $this->enableModules(array('user', 'field', 'node'));
+    $this->enableModules(['user', 'field', 'node']);
 
-    $this->installEntitySchema('node', array('node', 'node_field_data'));
+    $this->installEntitySchema('node', ['node', 'node_field_data']);
     // Perform an entity query against node.
     $query = \Drupal::entityQuery('node');
     // Disable node access checks, since User module is not enabled.
@@ -153,7 +151,7 @@ EOS;
   /**
    * Tests expected behavior of installSchema().
    */
-  function testInstallSchema() {
+  public function testInstallSchema() {
     $module = 'entity_test';
     $table = 'entity_test_example';
     // Verify that we can install a table from the module schema.
@@ -192,7 +190,7 @@ EOS;
     $this->assertTrue($schema, "'$table' table schema found.");
 
     // Verify that the same table can be installed after enabling the module.
-    $this->enableModules(array($module));
+    $this->enableModules([$module]);
     $this->installSchema($module, $table);
     $this->assertTrue(db_table_exists($table), "'$table' database table found.");
     $schema = drupal_get_module_schema($module, $table);
@@ -202,10 +200,10 @@ EOS;
   /**
    * Tests expected behavior of installEntitySchema().
    */
-  function testInstallEntitySchema() {
+  public function testInstallEntitySchema() {
     $entity = 'entity_test';
     // The entity_test Entity has a field that depends on the User module.
-    $this->enableModules(array('user'));
+    $this->enableModules(['user']);
     // Verity that the entity schema is created properly.
     $this->installEntitySchema($entity);
     $this->assertTrue(db_table_exists($entity), "'$entity' database table found.");
@@ -214,14 +212,14 @@ EOS;
   /**
    * Tests expected behavior of installConfig().
    */
-  function testInstallConfig() {
+  public function testInstallConfig() {
     // The user module has configuration that depends on system.
-    $this->enableModules(array('system'));
+    $this->enableModules(['system']);
     $module = 'user';
 
     // Verify that default config can only be installed for enabled modules.
     try {
-      $this->installConfig(array($module));
+      $this->installConfig([$module]);
       $this->fail('Exception for non-enabled module found.');
     }
     catch (\Exception $e) {
@@ -230,8 +228,8 @@ EOS;
     $this->assertFalse($this->container->get('config.storage')->exists('user.settings'));
 
     // Verify that default config can be installed.
-    $this->enableModules(array('user'));
-    $this->installConfig(array('user'));
+    $this->enableModules(['user']);
+    $this->installConfig(['user']);
     $this->assertTrue($this->container->get('config.storage')->exists('user.settings'));
     $this->assertTrue($this->config('user.settings')->get('register'));
   }
@@ -239,9 +237,9 @@ EOS;
   /**
    * Tests that the module list is retained after enabling/installing/disabling.
    */
-  function testEnableModulesFixedList() {
+  public function testEnableModulesFixedList() {
     // Install system module.
-    $this->container->get('module_installer')->install(array('system', 'menu_link_content'));
+    $this->container->get('module_installer')->install(['system', 'menu_link_content']);
     $entity_manager = \Drupal::entityManager();
 
     // entity_test is loaded via $modules; its entity type should exist.
@@ -249,17 +247,17 @@ EOS;
     $this->assertTrue(TRUE == $entity_manager->getDefinition('entity_test'));
 
     // Load some additional modules; entity_test should still exist.
-    $this->enableModules(array('field', 'text', 'entity_test'));
+    $this->enableModules(['field', 'text', 'entity_test']);
     $this->assertEqual($this->container->get('module_handler')->moduleExists('entity_test'), TRUE);
     $this->assertTrue(TRUE == $entity_manager->getDefinition('entity_test'));
 
     // Install some other modules; entity_test should still exist.
-    $this->container->get('module_installer')->install(array('user', 'field', 'field_test'), FALSE);
+    $this->container->get('module_installer')->install(['user', 'field', 'field_test'], FALSE);
     $this->assertEqual($this->container->get('module_handler')->moduleExists('entity_test'), TRUE);
     $this->assertTrue(TRUE == $entity_manager->getDefinition('entity_test'));
 
     // Uninstall one of those modules; entity_test should still exist.
-    $this->container->get('module_installer')->uninstall(array('field_test'));
+    $this->container->get('module_installer')->uninstall(['field_test']);
     $this->assertEqual($this->container->get('module_handler')->moduleExists('entity_test'), TRUE);
     $this->assertTrue(TRUE == $entity_manager->getDefinition('entity_test'));
 
@@ -269,75 +267,75 @@ EOS;
     $this->assertTrue(TRUE == $entity_manager->getDefinition('entity_test'));
 
     // Reactivate the previously uninstalled module.
-    $this->enableModules(array('field_test'));
+    $this->enableModules(['field_test']);
 
     // Create a field.
-    entity_create('entity_view_display', array(
+    $display = EntityViewDisplay::create([
       'targetEntityType' => 'entity_test',
       'bundle' => 'entity_test',
       'mode' => 'default',
-    ));
-    $field_storage = entity_create('field_storage_config', array(
+    ]);
+    $field_storage = FieldStorageConfig::create([
       'field_name' => 'test_field',
       'entity_type' => 'entity_test',
       'type' => 'test_field'
-    ));
+    ]);
     $field_storage->save();
-    entity_create('field_config', array(
+    FieldConfig::create([
       'field_storage' => $field_storage,
       'bundle' => 'entity_test',
-    ))->save();
+    ])->save();
   }
 
   /**
    * Tests that ThemeManager works right after loading a module.
    */
-  function testEnableModulesTheme() {
+  public function testEnableModulesTheme() {
     /** @var \Drupal\Core\Render\RendererInterface $renderer */
     $renderer = $this->container->get('renderer');
-    $original_element = $element = array(
+    $original_element = $element = [
       '#type' => 'container',
       '#markup' => 'Foo',
-      '#attributes' => array(),
-    );
-    $this->enableModules(array('system'));
+      '#attributes' => [],
+    ];
+    $this->enableModules(['system']);
     // \Drupal\Core\Theme\ThemeManager::render() throws an exception if modules
     // are not loaded yet.
     $this->assertTrue($renderer->renderRoot($element));
 
     $element = $original_element;
-    $this->disableModules(array('entity_test'));
+    $this->disableModules(['entity_test']);
     $this->assertTrue($renderer->renderRoot($element));
   }
 
   /**
    * Tests that there is no theme by default.
    */
-  function testNoThemeByDefault() {
+  public function testNoThemeByDefault() {
     $themes = $this->config('core.extension')->get('theme');
-    $this->assertEqual($themes, array());
+    $this->assertEqual($themes, []);
 
     $extensions = $this->container->get('config.storage')->read('core.extension');
-    $this->assertEqual($extensions['theme'], array());
+    $this->assertEqual($extensions['theme'], []);
 
     $active_theme = $this->container->get('theme.manager')->getActiveTheme();
     $this->assertEqual($active_theme->getName(), 'core');
   }
 
   /**
-   * Tests that drupal_get_profile() returns NULL.
+   * Tests that \Drupal::installProfile() returns NULL.
    *
    * As the currently active installation profile is used when installing
    * configuration, for example, this is essential to ensure test isolation.
    */
   public function testDrupalGetProfile() {
-    $this->assertNull(drupal_get_profile());
+    $this->assertNull(\Drupal::installProfile());
   }
 
   /**
    * {@inheritdoc}
    */
-  public function run(array $methods = array()) {
+  public function run(array $methods = []) {
     parent::run($methods);
 
     // Check that all tables of the test instance have been deleted. At this
@@ -359,11 +357,11 @@ EOS;
         ':prefix' => $this->databasePrefix
       ]);
 
-      $result = $connection->query("SELECT name FROM " . $this->databasePrefix . ".sqlite_master WHERE type = :type AND name LIKE :table_name AND name NOT LIKE :pattern", array(
+      $result = $connection->query("SELECT name FROM " . $this->databasePrefix . ".sqlite_master WHERE type = :type AND name LIKE :table_name AND name NOT LIKE :pattern", [
         ':type' => 'table',
         ':table_name' => '%',
         ':pattern' => 'sqlite_%',
-      ))->fetchAllKeyed(0, 0);
+      ])->fetchAllKeyed(0, 0);
 
       $this->assertTrue(empty($result), 'All test tables have been removed.');
     }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\quickedit\Plugin\InPlaceEditorBase.
- */
-
 namespace Drupal\quickedit\Plugin;
 
 use Drupal\Core\Plugin\PluginBase;
@@ -23,8 +18,8 @@ abstract class InPlaceEditorBase extends PluginBase implements InPlaceEditorInte
   /**
    * {@inheritdoc}
    */
-  function getMetadata(FieldItemListInterface $items) {
-    return array();
+  public function getMetadata(FieldItemListInterface $items) {
+    return [];
   }
 
 }

@@ -1,15 +1,10 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Routing\RouteBuilder.
- */
-
 namespace Drupal\Core\Routing;
 
-use Drupal\Component\Discovery\YamlDiscovery;
 use Drupal\Core\Access\CheckProviderInterface;
 use Drupal\Core\Controller\ControllerResolverInterface;
+use Drupal\Core\Discovery\YamlDiscovery;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Lock\LockBackendInterface;
 use Drupal\Core\DestructableInterface;
@@ -33,7 +28,7 @@ class RouteBuilder implements RouteBuilderInterface, DestructableInterface {
   /**
    * The used lock backend instance.
    *
-   * @var \Drupal\Core\Lock\LockBackendInterface $lock
+   * @var \Drupal\Core\Lock\LockBackendInterface
    */
   protected $lock;
 
@@ -164,15 +159,15 @@ class RouteBuilder implements RouteBuilderInterface, DestructableInterface {
         unset($routes['route_callbacks']);
       }
       foreach ($routes as $name => $route_info) {
-        $route_info += array(
-          'defaults' => array(),
-          'requirements' => array(),
-          'options' => array(),
+        $route_info += [
+          'defaults' => [],
+          'requirements' => [],
+          'options' => [],
           'host' => NULL,
-          'schemes' => array(),
-          'methods' => array(),
+          'schemes' => [],
+          'methods' => [],
           'condition' => '',
-        );
+        ];
 
         $route = new Route($route_info['path'], $route_info['defaults'], $route_info['requirements'], $route_info['options'], $route_info['host'], $route_info['schemes'], $route_info['methods'], $route_info['condition']);
         $collection->add($name, $route);

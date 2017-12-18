@@ -1,18 +1,16 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\config_translation\Controller\ConfigTranslationController.
- */
-
 namespace Drupal\config_translation\Controller;
 
 use Drupal\config_translation\ConfigMapperManagerInterface;
+use Drupal\config_translation\Exception\ConfigMapperLanguageException;
 use Drupal\Core\Access\AccessManagerInterface;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Language\Language;
+use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\PathProcessor\InboundPathProcessorInterface;
+use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\Routing\RouteMatch;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Session\AccountInterface;
@@ -64,9 +62,16 @@ class ConfigTranslationController extends ControllerBase {
   /**
    * The language manager.
    *
-   * @param \Drupal\Core\Language\LanguageManagerInterface $language_manager
+   * @var \Drupal\Core\Language\LanguageManagerInterface
    */
   protected $languageManager;
+
+  /**
+   * The renderer.
+   *
+   * @var \Drupal\Core\Render\RendererInterface
+   */
+  protected $renderer;
 
   /**
    * Constructs a ConfigTranslationController.
@@ -83,14 +88,17 @@ class ConfigTranslationController extends ControllerBase {
    *   The current user.
    * @param \Drupal\Core\Language\LanguageManagerInterface $language_manager
    *   The language manager.
+   * @param \Drupal\Core\Render\RendererInterface $renderer
+   *   The renderer.
    */
-  public function __construct(ConfigMapperManagerInterface $config_mapper_manager, AccessManagerInterface $access_manager, RequestMatcherInterface $router, InboundPathProcessorInterface $path_processor, AccountInterface $account, LanguageManagerInterface $language_manager) {
+  public function __construct(ConfigMapperManagerInterface $config_mapper_manager, AccessManagerInterface $access_manager, RequestMatcherInterface $router, InboundPathProcessorInterface $path_processor, AccountInterface $account, LanguageManagerInterface $language_manager, RendererInterface $renderer) {
     $this->configMapperManager = $config_mapper_manager;
     $this->accessManager = $access_manager;
     $this->router = $router;
     $this->pathProcessor = $path_processor;
     $this->account = $account;
     $this->languageManager = $language_manager;
+    $this->renderer = $renderer;
   }
 
   /**
@@ -103,7 +111,8 @@ class ConfigTranslationController extends ControllerBase {
       $container->get('router'),
       $container->get('path_processor_manager'),
       $container->get('current_user'),
-      $container->get('language_manager')
+      $container->get('language_manager'),
+      $container->get('renderer')
     );
   }
 
@@ -125,19 +134,45 @@ class ConfigTranslationController extends ControllerBase {
     $mapper = $this->configMapperManager->createInstance($plugin_id);
     $mapper->populateFromRouteMatch($route_match);
 
-    $page = array();
-    $page['#title'] = $this->t('Translations for %label', array('%label' => $mapper->getTitle()));
+    $page = [];
+    $page['#title'] = $this->t('Translations for %label', ['%label' => $mapper->getTitle()]);
 
     $languages = $this->languageManager->getLanguages();
     if (count($languages) == 1) {
-      drupal_set_message($this->t('In order to translate configuration, the website must have at least two <a href=":url">languages</a>.', array(':url' => $this->url('entity.configurable_language.collection'))), 'warning');
+      drupal_set_message($this->t('In order to translate configuration, the website must have at least two <a href=":url">languages</a>.', [':url' => $this->url('entity.configurable_language.collection')]), 'warning');
     }
-    $original_langcode = $mapper->getLangcode();
+
+    try {
+      $original_langcode = $mapper->getLangcode();
+      $operations_access = TRUE;
+    }
+    catch (ConfigMapperLanguageException $exception) {
+      $items = [];
+      foreach ($mapper->getConfigNames() as $config_name) {
+        $langcode = $mapper->getLangcodeFromConfig($config_name);
+        $items[] = $this->t('@name: @langcode', [
+          '@name' => $config_name,
+          '@langcode'  => $langcode,
+        ]);
+      }
+      $message = [
+        'message' => ['#markup' => $this->t('The configuration objects have different language codes so they cannot be translated:')],
+        'items' => [
+          '#theme' => 'item_list',
+          '#items' => $items,
+        ],
+      ];
+      drupal_set_message($this->renderer->renderPlain($message), 'warning');
+
+      $original_langcode = LanguageInterface::LANGCODE_NOT_SPECIFIED;
+      $operations_access = FALSE;
+    }
+
     if (!isset($languages[$original_langcode])) {
       // If the language is not configured on the site, create a dummy language
       // object for this listing only to ensure the user gets useful info.
       $language_name = $this->languageManager->getLanguageName($original_langcode);
-      $languages[$original_langcode] = new Language(array('id' => $original_langcode, 'name' => $language_name));
+      $languages[$original_langcode] = new Language(['id' => $original_langcode, 'name' => $language_name]);
     }
 
     // We create a fake request object to pass into
@@ -146,10 +181,10 @@ class ConfigTranslationController extends ControllerBase {
     // possible nor performant.
     $fake_request = $request->duplicate();
 
-    $page['languages'] = array(
+    $page['languages'] = [
       '#type' => 'table',
-      '#header' => array($this->t('Language'), $this->t('Operations')),
-    );
+      '#header' => [$this->t('Language'), $this->t('Operations')],
+    ];
     foreach ($languages as $language) {
       $langcode = $language->getId();
 
@@ -163,54 +198,57 @@ class ConfigTranslationController extends ControllerBase {
       // Prepare the language name and the operations depending on whether this
       // is the original language or not.
       if ($langcode == $original_langcode) {
-        $language_name = '<strong>' . $this->t('@language (original)', array('@language' => $language->getName())) . '</strong>';
+        $language_name = '<strong>' . $this->t('@language (original)', ['@language' => $language->getName()]) . '</strong>';
 
         // Check access for the path/route for editing, so we can decide to
         // include a link to edit or not.
         $edit_access = $this->accessManager->checkNamedRoute($mapper->getBaseRouteName(), $route_match->getRawParameters()->all(), $this->account);
 
         // Build list of operations.
-        $operations = array();
+        $operations = [];
         if ($edit_access) {
-          $operations['edit'] = array(
+          $operations['edit'] = [
             'title' => $this->t('Edit'),
             'url' => Url::fromRoute($mapper->getBaseRouteName(), $mapper->getBaseRouteParameters(), ['query' => ['destination' => $mapper->getOverviewPath()]]),
-          );
+          ];
         }
       }
       else {
         $language_name = $language->getName();
 
-        $operations = array();
+        $operations = [];
         // If no translation exists for this language, link to add one.
         if (!$mapper->hasTranslation($language)) {
-          $operations['add'] = array(
+          $operations['add'] = [
             'title' => $this->t('Add'),
             'url' => Url::fromRoute($mapper->getAddRouteName(), $mapper->getAddRouteParameters()),
-          );
+          ];
         }
         else {
           // Otherwise, link to edit the existing translation.
-          $operations['edit'] = array(
+          $operations['edit'] = [
             'title' => $this->t('Edit'),
             'url' => Url::fromRoute($mapper->getEditRouteName(), $mapper->getEditRouteParameters()),
-          );
+          ];
 
-          $operations['delete'] = array(
+          $operations['delete'] = [
             'title' => $this->t('Delete'),
             'url' => Url::fromRoute($mapper->getDeleteRouteName(), $mapper->getDeleteRouteParameters()),
-          );
+          ];
         }
       }
 
-      $page['languages'][$langcode]['language'] = array(
+      $page['languages'][$langcode]['language'] = [
         '#markup' => $language_name,
-      );
+      ];
 
-      $page['languages'][$langcode]['operations'] = array(
+      $page['languages'][$langcode]['operations'] = [
         '#type' => 'operations',
         '#links' => $operations,
-      );
+        // Even if the mapper contains multiple language codes, the source
+        // configuration can still be edited.
+        '#access' => ($langcode == $original_langcode) || $operations_access,
+      ];
     }
     return $page;
   }

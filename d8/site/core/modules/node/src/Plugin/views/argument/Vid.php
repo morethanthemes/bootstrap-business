@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Plugin\views\argument\Vid.
- */
-
 namespace Drupal\node\Plugin\views\argument;
 
 use Drupal\Core\Database\Connection;
@@ -44,7 +39,7 @@ class Vid extends NumericArgument {
    *   The plugin implementation definition.
    * @param \Drupal\Core\Database\Connection $database
    *   Database Service Object.
-   * @param \Drupal\node\NodeStorageInterface
+   * @param \Drupal\node\NodeStorageInterface $node_storage
    *   The node storage.
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition, Connection $database, NodeStorageInterface $node_storage) {
@@ -71,10 +66,10 @@ class Vid extends NumericArgument {
    * Override the behavior of title(). Get the title of the revision.
    */
   public function titleQuery() {
-    $titles = array();
+    $titles = [];
 
-    $results = $this->database->query('SELECT nr.vid, nr.nid, npr.title FROM {node_revision} nr WHERE nr.vid IN ( :vids[] )', array(':vids[]' => $this->value))->fetchAllAssoc('vid', PDO::FETCH_ASSOC);
-    $nids = array();
+    $results = $this->database->query('SELECT nr.vid, nr.nid, npr.title FROM {node_revision} nr WHERE nr.vid IN ( :vids[] )', [':vids[]' => $this->value])->fetchAllAssoc('vid', PDO::FETCH_ASSOC);
+    $nids = [];
     foreach ($results as $result) {
       $nids[] = $result['nid'];
     }

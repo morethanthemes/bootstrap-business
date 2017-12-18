@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\search\SearchPageInterface.
- */
-
 namespace Drupal\search;
 
 use Drupal\Core\Config\Entity\ConfigEntityInterface;
@@ -50,7 +45,7 @@ interface SearchPageInterface extends ConfigEntityInterface {
    * Returns the path for the search.
    *
    * @return string
-   *  The part of the path for this search page that comes after 'search'.
+   *   The part of the path for this search page that comes after 'search'.
    */
   public function getPath();
 

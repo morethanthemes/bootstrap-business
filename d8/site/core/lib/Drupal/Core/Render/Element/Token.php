@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\Element\Token.
- */
-
 namespace Drupal\Core\Render\Element;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -26,13 +21,13 @@ class Token extends Hidden {
    */
   public function getInfo() {
     $class = get_class($this);
-    return array(
+    return [
       '#input' => TRUE,
-      '#pre_render' => array(
-        array($class, 'preRenderHidden'),
-      ),
+      '#pre_render' => [
+        [$class, 'preRenderHidden'],
+      ],
       '#theme' => 'input__hidden',
-    );
+    ];
   }
 
   /**

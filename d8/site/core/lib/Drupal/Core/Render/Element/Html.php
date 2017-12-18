@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\Element\Html.
- */
-
 namespace Drupal\Core\Render\Element;
 
 /**
@@ -18,13 +13,13 @@ class Html extends RenderElement {
    * {@inheritdoc}
    */
   public function getInfo() {
-    return array(
+    return [
       '#theme' => 'html',
       // HTML5 Shiv
-      '#attached' => array(
-        'library' => array('core/html5shiv'),
-      ),
-    );
+      '#attached' => [
+        'library' => ['core/html5shiv'],
+      ],
+    ];
   }
 
 }

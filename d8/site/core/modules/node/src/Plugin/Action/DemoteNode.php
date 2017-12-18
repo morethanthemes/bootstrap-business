@@ -1,14 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Plugin\Action\DemoteNode.
- */
-
 namespace Drupal\node\Plugin\Action;
 
-use Drupal\Core\Action\ActionBase;
-use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Field\FieldUpdateActionBase;
+use Drupal\node\NodeInterface;
 
 /**
  * Demotes a node.
@@ -19,25 +14,13 @@ use Drupal\Core\Session\AccountInterface;
  *   type = "node"
  * )
  */
-class DemoteNode extends ActionBase {
+class DemoteNode extends FieldUpdateActionBase {
 
   /**
    * {@inheritdoc}
    */
-  public function execute($entity = NULL) {
-    $entity->setPromoted(FALSE);
-    $entity->save();
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function access($object, AccountInterface $account = NULL, $return_as_object = FALSE) {
-    /** @var \Drupal\node\NodeInterface $object */
-    $result = $object->access('update', $account, TRUE)
-      ->andIf($object->promote->access('edit', $account, TRUE));
-
-    return $return_as_object ? $result : $result->isAllowed();
+  protected function getFieldsToUpdate() {
+    return ['promote' => NodeInterface::NOT_PROMOTED];
   }
 
 }

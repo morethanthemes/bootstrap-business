@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\image\Plugin\ImageEffect\ScaleAndCropImageEffect.
- */
-
 namespace Drupal\image\Plugin\ImageEffect;
 
 use Drupal\Core\Image\ImageInterface;
@@ -25,7 +20,7 @@ class ScaleAndCropImageEffect extends ResizeImageEffect {
    */
   public function applyEffect(ImageInterface $image) {
     if (!$image->scaleAndCrop($this->configuration['width'], $this->configuration['height'])) {
-      $this->logger->error('Image scale and crop failed using the %toolkit toolkit on %path (%mimetype, %dimensions)', array('%toolkit' => $image->getToolkitId(), '%path' => $image->getSource(), '%mimetype' => $image->getMimeType(), '%dimensions' => $image->getWidth() . 'x' . $image->getHeight()));
+      $this->logger->error('Image scale and crop failed using the %toolkit toolkit on %path (%mimetype, %dimensions)', ['%toolkit' => $image->getToolkitId(), '%path' => $image->getSource(), '%mimetype' => $image->getMimeType(), '%dimensions' => $image->getWidth() . 'x' . $image->getHeight()]);
       return FALSE;
     }
     return TRUE;

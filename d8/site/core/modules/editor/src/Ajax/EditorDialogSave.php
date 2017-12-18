@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\editor\Ajax\EditorDialogSave.
- */
-
 namespace Drupal\editor\Ajax;
 
 use Drupal\Core\Ajax\CommandInterface;
@@ -38,10 +33,10 @@ class EditorDialogSave implements CommandInterface {
    * {@inheritdoc}
    */
   public function render() {
-    return array(
+    return [
       'command' => 'editorDialogSave',
       'values' => $this->values,
-    );
+    ];
   }
 
 }

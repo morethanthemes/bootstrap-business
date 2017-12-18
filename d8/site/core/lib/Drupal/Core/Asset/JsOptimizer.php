@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Asset\JsOptimizer.
- */
-
 namespace Drupal\Core\Asset;
 
 use Drupal\Component\Utility\Unicode;
@@ -21,7 +16,7 @@ class JsOptimizer implements AssetOptimizerInterface {
     if ($js_asset['type'] !== 'file') {
       throw new \Exception('Only file JavaScript assets can be optimized.');
     }
-    if ($js_asset['type'] === 'file' && !$js_asset['preprocess']) {
+    if (!$js_asset['preprocess']) {
       throw new \Exception('Only file JavaScript assets with preprocessing enabled can be optimized.');
     }
 

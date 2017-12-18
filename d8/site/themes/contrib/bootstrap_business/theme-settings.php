@@ -38,4 +38,41 @@ function bootstrap_business_form_system_theme_settings_alter(&$form, &$form_stat
     '#collapsed' => TRUE,
   );
 
+    $form['mtt_settings']['bootstrap_tab']['bootstrap'] = array(
+    '#type' => 'details',
+    '#title' => t('Bootstrap'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'tabs',
+  );
+
+  $form['mtt_settings']['bootstrap_tab']['bootstrap']['bootstrap_remote_type'] = array(
+    '#type' => 'select',
+    '#title' => t('Select the remote type'),
+    '#description'   => t('From the drop down select box, select how to load the Bootstrap library. If you select "Local" make sure that you download and place Bootstrap folder into the root theme folder (bootstrap_business/bootstrap).'),
+    '#default_value' => theme_get_setting('bootstrap_remote_type', 'bootstrap_business'),
+    '#options' => array(
+    'local' => t('Local / No remote'),
+    'cdn' => t('CDN'),
+    ),
+  );
+
+  $form['mtt_settings']['premium_tab']['premium'] = array(
+    '#type' => 'details',
+    '#title' => t('Premium Themes'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'tabs',
+  );
+
+  $form['mtt_settings']['premium_tab']['premium']['premium_description'] = array(
+   '#type' => 'item',
+   '#markup' =>
+   '<div class="theme-settings-title">'.t("Check Our Premium themes").'</div>
+   <div class="theme-settings-image-wrapper">
+   <a href="http://morethanthemes.com/drupal-themes?utm_source=bootstrap-business-demo&utm_medium=theme-settings&utm_campaign=free-themes" target="_blank">
+   <img src="' . base_path() . drupal_get_path('theme', 'bootstrap_business') . '/images/premium.jpg" />
+   </a></div> ',
+  );
+
 }

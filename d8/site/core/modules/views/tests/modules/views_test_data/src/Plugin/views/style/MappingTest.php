@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views_test_data\Plugin\views\style\MappingTest.
- */
-
 namespace Drupal\views_test_data\Plugin\views\style;
 
 use Drupal\views\Plugin\views\style\Mapping;
@@ -29,26 +24,26 @@ class MappingTest extends Mapping {
    * {@inheritdoc}
    */
   protected function defineMapping() {
-    return array(
-      'title_field' => array(
+    return [
+      'title_field' => [
         '#title' => $this->t('Title field'),
         '#description' => $this->t('Choose the field with the custom title.'),
         '#toggle' => TRUE,
         '#required' => TRUE,
-      ),
-      'name_field' => array(
+      ],
+      'name_field' => [
         '#title' => $this->t('Name field'),
         '#description' => $this->t('Choose the field with the custom name.'),
-      ),
-      'numeric_field' => array(
+      ],
+      'numeric_field' => [
         '#title' => $this->t('Numeric field'),
         '#description' => $this->t('Select one or more numeric fields.'),
         '#multiple' => TRUE,
         '#toggle' => TRUE,
         '#filter' => 'filterNumericFields',
         '#required' => TRUE,
-      ),
-    );
+      ],
+    ];
   }
 
   /**

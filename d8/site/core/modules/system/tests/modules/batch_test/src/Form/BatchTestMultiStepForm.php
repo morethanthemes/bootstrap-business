@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\batch_test\Form\BatchTestMultiStepForm.
- */
-
 namespace Drupal\batch_test\Form;
 
 use Drupal\Core\Form\FormBase;
@@ -32,13 +27,13 @@ class BatchTestMultiStepForm extends FormBase {
       $form_state->set('step', $step);
     }
 
-    $form['step_display'] = array(
+    $form['step_display'] = [
       '#markup' => 'step ' . $step . '<br/>',
-    );
-    $form['submit'] = array(
+    ];
+    $form['submit'] = [
       '#type' => 'submit',
       '#value' => 'Submit',
-    );
+    ];
 
     // This is a POST form with multiple steps that does not transition from one
     // step to the next via POST requests, but via GET requests, because it uses

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Flood\MemoryBackend.
- */
-
 namespace Drupal\Core\Flood;
 
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -24,7 +19,7 @@ class MemoryBackend implements FloodInterface {
   /**
    * An array holding flood events, keyed by event name and identifier.
    */
-  protected $events = array();
+  protected $events = [];
 
   /**
    * Construct the MemoryBackend.
@@ -66,6 +61,9 @@ class MemoryBackend implements FloodInterface {
     if (!isset($identifier)) {
       $identifier = $this->requestStack->getCurrentRequest()->getClientIp();
     }
+    if (!isset($this->events[$name][$identifier])) {
+      return $threshold > 0;
+    }
     $limit = microtime(TRUE) - $window;
     $number = count(array_filter($this->events[$name][$identifier], function ($timestamp) use ($limit) {
       return $timestamp > $limit;
@@ -88,4 +86,5 @@ class MemoryBackend implements FloodInterface {
       }
     }
   }
+
 }

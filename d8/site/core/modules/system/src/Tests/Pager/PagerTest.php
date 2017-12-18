@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Pager\PagerTest.
- */
-
 namespace Drupal\system\Tests\Pager;
 
 use Drupal\simpletest\WebTestBase;
@@ -21,7 +16,7 @@ class PagerTest extends WebTestBase {
    *
    * @var array
    */
-  public static $modules = array('dblog', 'pager_test');
+  public static $modules = ['dblog', 'pager_test'];
 
   /**
    * A user with permission to access site reports.
@@ -41,16 +36,16 @@ class PagerTest extends WebTestBase {
       $logger->debug($this->randomString());
     }
 
-    $this->adminUser = $this->drupalCreateUser(array(
+    $this->adminUser = $this->drupalCreateUser([
       'access site reports',
-    ));
+    ]);
     $this->drupalLogin($this->adminUser);
   }
 
   /**
    * Tests markup and CSS classes of pager links.
    */
-  function testActiveClass() {
+  public function testActiveClass() {
     // Verify first page.
     $this->drupalGet('admin/reports/dblog');
     $current_page = 0;
@@ -58,21 +53,21 @@ class PagerTest extends WebTestBase {
 
     // Verify any page but first/last.
     $current_page++;
-    $this->drupalGet('admin/reports/dblog', array('query' => array('page' => $current_page)));
+    $this->drupalGet('admin/reports/dblog', ['query' => ['page' => $current_page]]);
     $this->assertPagerItems($current_page);
 
     // Verify last page.
-    $elements = $this->xpath('//li[contains(@class, :class)]/a', array(':class' => 'pager__item--last'));
+    $elements = $this->xpath('//li[contains(@class, :class)]/a', [':class' => 'pager__item--last']);
     preg_match('@page=(\d+)@', $elements[0]['href'], $matches);
     $current_page = (int) $matches[1];
-    $this->drupalGet($GLOBALS['base_root'] . parse_url($this->getUrl())['path'] . $elements[0]['href'], array('external' => TRUE));
+    $this->drupalGet($GLOBALS['base_root'] . parse_url($this->getUrl())['path'] . $elements[0]['href'], ['external' => TRUE]);
     $this->assertPagerItems($current_page);
   }
 
   /**
    * Test proper functioning of the query parameters and the pager cache context.
    */
-  protected function testPagerQueryParametersAndCacheContext() {
+  public function testPagerQueryParametersAndCacheContext() {
     // First page.
     $this->drupalGet('pager-test/query-parameters');
     $this->assertText(t('Pager calls: 0'), 'Initial call to pager shows 0 calls.');
@@ -80,19 +75,102 @@ class PagerTest extends WebTestBase {
     $this->assertCacheContext('url.query_args');
 
     // Go to last page, the count of pager calls need to go to 1.
-    $elements = $this->xpath('//li[contains(@class, :class)]/a', array(':class' => 'pager__item--last'));
+    $elements = $this->xpath('//li[contains(@class, :class)]/a', [':class' => 'pager__item--last']);
     $this->drupalGet($this->getAbsoluteUrl($elements[0]['href']));
     $this->assertText(t('Pager calls: 1'), 'First link call to pager shows 1 calls.');
     $this->assertText('[url.query_args.pagers:0]=0.60');
     $this->assertCacheContext('url.query_args');
 
     // Go back to first page, the count of pager calls need to go to 2.
-    $elements = $this->xpath('//li[contains(@class, :class)]/a', array(':class' => 'pager__item--first'));
+    $elements = $this->xpath('//li[contains(@class, :class)]/a', [':class' => 'pager__item--first']);
     $this->drupalGet($this->getAbsoluteUrl($elements[0]['href']));
-    $this->drupalGet($GLOBALS['base_root'] . parse_url($this->getUrl())['path'] . $elements[0]['href'], array('external' => TRUE));
+    $this->drupalGet($GLOBALS['base_root'] . parse_url($this->getUrl())['path'] . $elements[0]['href'], ['external' => TRUE]);
     $this->assertText(t('Pager calls: 2'), 'Second link call to pager shows 2 calls.');
     $this->assertText('[url.query_args.pagers:0]=0.0');
     $this->assertCacheContext('url.query_args');
+  }
+
+  /**
+   * Test proper functioning of multiple pagers.
+   */
+  public function testMultiplePagers() {
+    // First page.
+    $this->drupalGet('pager-test/multiple-pagers');
+
+    // Test data.
+    // Expected URL query string param is 0-indexed.
+    // Expected page per pager is 1-indexed.
+    $test_data = [
+      // With no query, all pagers set to first page.
+      [
+        'input_query' => NULL,
+        'expected_page' => [0 => '1', 1 => '1', 4 => '1'],
+        'expected_query' => '?page=0,0,,,0',
+      ],
+      // Blanks around page numbers should not be relevant.
+      [
+        'input_query' => '?page=2  ,    10,,,   5     ,,',
+        'expected_page' => [0 => '3', 1 => '11', 4 => '6'],
+        'expected_query' => '?page=2,10,,,5',
+      ],
+      // Blanks within page numbers should lead to only the first integer
+      // to be considered.
+      [
+        'input_query' => '?page=2  ,   3 0,,,   4  13    ,,',
+        'expected_page' => [0 => '3', 1 => '4', 4 => '5'],
+        'expected_query' => '?page=2,3,,,4',
+      ],
+      // If floats are passed as page numbers, only the integer part is
+      // returned.
+      [
+        'input_query' => '?page=2.1,6.999,,,5.',
+        'expected_page' => [0 => '3', 1 => '7', 4 => '6'],
+        'expected_query' => '?page=2,6,,,5',
+      ],
+      // Partial page fragment, undefined pagers set to first page.
+      [
+        'input_query' => '?page=5,2',
+        'expected_page' => [0 => '6', 1 => '3', 4 => '1'],
+        'expected_query' => '?page=5,2,,,0',
+      ],
+      // Partial page fragment, undefined pagers set to first page.
+      [
+        'input_query' => '?page=,2',
+        'expected_page' => [0 => '1', 1 => '3', 4 => '1'],
+        'expected_query' => '?page=0,2,,,0',
+      ],
+      // Partial page fragment, undefined pagers set to first page.
+      [
+        'input_query' => '?page=,',
+        'expected_page' => [0 => '1', 1 => '1', 4 => '1'],
+        'expected_query' => '?page=0,0,,,0',
+      ],
+      // With overflow pages, all pagers set to max page.
+      [
+        'input_query' => '?page=99,99,,,99',
+        'expected_page' => [0 => '16', 1 => '16', 4 => '16'],
+        'expected_query' => '?page=15,15,,,15',
+      ],
+      // Wrong value for the page resets pager to first page.
+      [
+        'input_query' => '?page=bar,5,foo,qux,bet',
+        'expected_page' => [0 => '1', 1 => '6', 4 => '1'],
+        'expected_query' => '?page=0,5,,,0',
+      ],
+    ];
+
+    // We loop through the page with the test data query parameters, and check
+    // that the active page for each pager element has the expected page
+    // (1-indexed) and resulting query parameter
+    foreach ($test_data as $data) {
+      $input_query = str_replace(' ', '%20', $data['input_query']);
+      $this->drupalGet($GLOBALS['base_root'] . parse_url($this->getUrl())['path'] . $input_query, ['external' => TRUE]);
+      foreach ([0, 1, 4] as $pager_element) {
+        $active_page = $this->cssSelect("div.test-pager-{$pager_element} ul.pager__items li.is-active:contains('{$data['expected_page'][$pager_element]}')");
+        $destination = str_replace('%2C', ',', $active_page[0]->a['href'][0]->__toString());
+        $this->assertEqual($destination, $data['expected_query']);
+      }
+    }
   }
 
   /**
@@ -125,7 +203,7 @@ class PagerTest extends WebTestBase {
    *   The current pager page the internal browser is on.
    */
   protected function assertPagerItems($current_page) {
-    $elements = $this->xpath('//ul[contains(@class, :class)]/li', array(':class' => 'pager__items'));
+    $elements = $this->xpath('//ul[contains(@class, :class)]/li', [':class' => 'pager__items']);
     $this->assertTrue(!empty($elements), 'Pager found.');
 
     // Make current page 1-based.
@@ -238,4 +316,5 @@ class PagerTest extends WebTestBase {
     }
     $this->assertTrue(strpos($element['class'], $class) === FALSE, $message);
   }
+
 }

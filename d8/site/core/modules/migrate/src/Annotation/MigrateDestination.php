@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\migrate\Annotation\MigrateDestination.
- */
-
 namespace Drupal\migrate\Annotation;
 
 use Drupal\Component\Annotation\Plugin;
@@ -49,12 +44,14 @@ class MigrateDestination extends Plugin {
   public $requirements_met = TRUE;
 
   /**
-   * A class to make the plugin derivative aware.
+   * Identifies the system handling the data the destination plugin will write.
+   *
+   * The destination plugin itself determines how the value is used. For
+   * example, Migrate Drupal's destination plugins expect destination_module to
+   * be the name of a module that must be installed on the destination.
    *
    * @var string
-   *
-   * @see \Drupal\Component\Plugin\Discovery\DerivativeDiscoveryDecorator
    */
-  public $derivative;
+  public $destination_module;
 
 }

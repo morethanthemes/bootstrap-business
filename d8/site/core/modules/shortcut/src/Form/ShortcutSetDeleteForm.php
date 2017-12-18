@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\shortcut\Form\ShortcutSetDeleteForm.
- */
-
 namespace Drupal\shortcut\Form;
 
 use Drupal\Core\Entity\EntityDeleteForm;
@@ -70,11 +65,11 @@ class ShortcutSetDeleteForm extends EntityDeleteForm {
       $info .= '<p>' . t('If you have chosen this shortcut set as the default for some or all users, they may also be affected by deleting it.') . '</p>';
     }
 
-    $form['info'] = array(
+    $form['info'] = [
       '#markup' => $info,
-    );
+    ];
 
     return parent::buildForm($form, $form_state);
-   }
+  }
 
 }

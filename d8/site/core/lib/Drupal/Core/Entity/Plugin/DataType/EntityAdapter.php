@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\Plugin\DataType\EntityAdapter.
- */
-
 namespace Drupal\Core\Entity\Plugin\DataType;
 
 use Drupal\Core\Entity\FieldableEntityInterface;
@@ -51,7 +46,7 @@ class EntityAdapter extends TypedData implements \IteratorAggregate, ComplexData
   public static function createFromEntity(EntityInterface $entity) {
     $definition = EntityDataDefinition::create()
       ->setEntityTypeId($entity->getEntityTypeId())
-      ->setBundles([ $entity->bundle() ]);
+      ->setBundles([$entity->bundle()]);
     $instance = new static($definition);
     $instance->setValue($entity);
     return $instance;
@@ -118,7 +113,7 @@ class EntityAdapter extends TypedData implements \IteratorAggregate, ComplexData
     if (!$this->entity instanceof FieldableEntityInterface) {
       // @todo: Add support for config entities in
       // https://www.drupal.org/node/1818574.
-      return array();
+      return [];
     }
     return $this->entity->getFields($include_computed);
   }

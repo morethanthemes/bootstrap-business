@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\responsive_image\ResponsiveImageStyleInterface.
- */
-
 namespace Drupal\responsive_image;
 
 use Drupal\Core\Config\Entity\ConfigEntityInterface;
@@ -13,6 +8,16 @@ use Drupal\Core\Config\Entity\ConfigEntityInterface;
  * Provides an interface defining a responsive_image mapping entity.
  */
 interface ResponsiveImageStyleInterface extends ConfigEntityInterface {
+
+  /**
+   * The machine name for the empty image breakpoint image style option.
+   */
+  const EMPTY_IMAGE = '_empty image_';
+
+  /**
+   * The machine name for the original image breakpoint image style option.
+   */
+  const ORIGINAL_IMAGE = '_original image_';
 
   /**
    * Checks if there is at least one mapping defined.

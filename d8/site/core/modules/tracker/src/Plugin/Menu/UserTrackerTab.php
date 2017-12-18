@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\tracker\Plugin\Menu\UserTrackerTab.
- */
-
 namespace Drupal\tracker\Plugin\Menu;
 
 use Drupal\Core\Menu\LocalTaskDefault;
@@ -42,7 +37,7 @@ class UserTrackerTab extends LocalTaskDefault {
    * {@inheritdoc}
    */
   public function getRouteParameters(RouteMatchInterface $route_match) {
-    return array('user' => $this->currentUser()->Id());
+    return ['user' => $this->currentUser()->Id()];
   }
 
 }

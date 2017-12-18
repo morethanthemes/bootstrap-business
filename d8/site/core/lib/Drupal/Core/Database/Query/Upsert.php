@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Database\Query\Upsert.
- */
-
 namespace Drupal\Core\Database\Query;
 
 use Drupal\Core\Database\Connection;
@@ -18,7 +13,7 @@ use Drupal\Core\Database\Database;
  * Insert except the rows will be set to the desired values even if the key
  * existed before.
  */
-abstract class Upsert extends Query {
+abstract class Upsert extends Query implements \Countable {
 
   use InsertTrait;
 
@@ -101,7 +96,7 @@ abstract class Upsert extends Query {
     }
 
     $max_placeholder = 0;
-    $values = array();
+    $values = [];
     foreach ($this->insertValues as $insert_values) {
       foreach ($insert_values as $value) {
         $values[':db_insert_placeholder_' . $max_placeholder++] = $value;
@@ -111,7 +106,7 @@ abstract class Upsert extends Query {
     $last_insert_id = $this->connection->query((string) $this, $values, $this->queryOptions);
 
     // Re-initialize the values array so that we can re-use this query.
-    $this->insertValues = array();
+    $this->insertValues = [];
 
     return $last_insert_id;
   }

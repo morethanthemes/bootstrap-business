@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Plugin\views\row\EntityReference.
- */
-
 namespace Drupal\views\Plugin\views\row;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -30,7 +25,7 @@ class EntityReference extends Fields {
    */
   protected function defineOptions() {
     $options = parent::defineOptions();
-    $options['separator'] = array('default' => '-');
+    $options['separator'] = ['default' => '-'];
 
     return $options;
   }
@@ -42,7 +37,7 @@ class EntityReference extends Fields {
     parent::buildOptionsForm($form, $form_state);
 
     // Expand the description of the 'Inline field' checkboxes.
-    $form['inline']['#description'] .= '<br />' . $this->t("<strong>Note:</strong> In 'Entity Reference' displays, all fields will be displayed inline unless an explicit selection of inline fields is made here." );
+    $form['inline']['#description'] .= '<br />' . $this->t("<strong>Note:</strong> In 'Entity Reference' displays, all fields will be displayed inline unless an explicit selection of inline fields is made here.");
   }
 
   /**
@@ -58,4 +53,5 @@ class EntityReference extends Fields {
 
     return parent::preRender($row);
   }
+
 }

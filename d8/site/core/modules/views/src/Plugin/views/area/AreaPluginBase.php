@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Plugin\views\area\AreaPluginBase.
- */
-
 namespace Drupal\views\Plugin\views\area;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -67,7 +62,7 @@ abstract class AreaPluginBase extends HandlerBase {
     $this->definition['field'] = !empty($this->definition['field']) ? $this->definition['field'] : '';
     $label = !empty($this->definition['label']) ? $this->definition['label'] : $this->definition['field'];
     $options['admin_label']['default'] = $label;
-    $options['empty'] = array('default' => FALSE);
+    $options['empty'] = ['default' => FALSE];
 
     return $options;
   }
@@ -86,11 +81,11 @@ abstract class AreaPluginBase extends HandlerBase {
     parent::buildOptionsForm($form, $form_state);
 
     if ($form_state->get('type') != 'empty') {
-      $form['empty'] = array(
+      $form['empty'] = [
         '#type' => 'checkbox',
         '#title' => $this->t('Display even if view has no result'),
         '#default_value' => isset($this->options['empty']) ? $this->options['empty'] : 0,
-      );
+      ];
     }
   }
 
@@ -98,7 +93,7 @@ abstract class AreaPluginBase extends HandlerBase {
    * Performs any operations needed before full rendering.
    *
    * @param array $results
-   *  The results of the view.
+   *   The results of the view.
    */
   public function preRender(array $results) {
   }
@@ -112,7 +107,7 @@ abstract class AreaPluginBase extends HandlerBase {
    * @return array
    *   In any case we need a valid Drupal render array to return.
    */
-  public abstract function render($empty = FALSE);
+  abstract public function render($empty = FALSE);
 
   /**
    * Does that area have nothing to show.

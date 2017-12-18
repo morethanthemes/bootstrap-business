@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Installer\InstallerServiceProvider.
- */
-
 namespace Drupal\Core\Installer;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;
@@ -33,8 +28,8 @@ class InstallerServiceProvider implements ServiceProviderInterface, ServiceModif
     // Replace services with in-memory implementations.
     $definition = $container->getDefinition('cache_factory');
     $definition->setClass('Drupal\Core\Cache\MemoryBackendFactory');
-    $definition->setArguments(array());
-    $definition->setMethodCalls(array());
+    $definition->setArguments([]);
+    $definition->setMethodCalls([]);
     $container
       ->register('keyvalue', 'Drupal\Core\KeyValueStore\KeyValueMemoryFactory');
     $container
@@ -78,7 +73,7 @@ class InstallerServiceProvider implements ServiceProviderInterface, ServiceModif
     // No service may persist when the early installer kernel is rebooted into
     // the production environment.
     // @todo The DrupalKernel reboot performed by drupal_install_system() is
-    //   actually not a "regular" reboot (like ModuleHandler::install()), so
+    //   actually not a "regular" reboot (like ModuleInstaller::install()), so
     //   services are not actually persisted.
     foreach ($container->findTaggedServiceIds('persist') as $id => $tags) {
       $definition = $container->getDefinition($id);

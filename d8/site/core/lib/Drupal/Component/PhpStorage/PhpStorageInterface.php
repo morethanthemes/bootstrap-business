@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\PhpStorage\PhpStorageInterface.
- */
-
 namespace Drupal\Component\PhpStorage;
 
 /**
@@ -49,7 +44,7 @@ interface PhpStorageInterface {
    * @param string $name
    *   The virtual file name. Can be a relative path.
    * @param string $code
-   *    The PHP code to be saved.
+   *   The PHP code to be saved.
    *
    * @return bool
    *   TRUE if the save succeeded, FALSE if it failed.
@@ -85,7 +80,7 @@ interface PhpStorageInterface {
    * @param string $name
    *   The virtual file name. Can be a relative path.
    *
-   * @return string|FALSE
+   * @return string|false
    *   The full file path for the provided name. Return FALSE if the
    *   implementation needs to prevent access to the file.
    */

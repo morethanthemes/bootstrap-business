@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Command\DbDumpCommand.
- */
-
 namespace Drupal\Core\Command;
 
 use Drupal\Component\Utility\Variable;
@@ -38,7 +33,7 @@ class DbDumpCommand extends DbCommandBase {
    *
    * @var array
    */
-  protected $excludeTables = ['simpletest.+'];
+  protected $excludeTables = ['test[0-9]+'];
 
   /**
    * {@inheritdoc}
@@ -74,7 +69,7 @@ class DbDumpCommand extends DbCommandBase {
    *   The database connection to use.
    * @param array $schema_only
    *   Table patterns for which to only dump the schema, no data.
-   * @return string The PHP script.
+   * @return string
    *   The PHP script.
    */
   protected function generateScript(Connection $connection, array $schema_only = []) {
@@ -107,7 +102,7 @@ class DbDumpCommand extends DbCommandBase {
    *
    * @param \Drupal\Core\Database\Connection $connection
    *   The database connection to use.
-   * @return array An array of table names.
+   * @return array
    *   An array of table names.
    */
   protected function getTables(Connection $connection) {
@@ -375,8 +370,12 @@ class DbDumpCommand extends DbCommandBase {
    *   The template for the generated PHP script.
    */
   protected function getTemplate() {
+    // The template contains an instruction for the file to be ignored by PHPCS.
+    // This is because the files can be huge and coding standards are
+    // irrelevant.
     $script = <<<'ENDOFSCRIPT'
 <?php
+// @codingStandardsIgnoreFile
 /**
  * @file
  * A database agnostic dump for testing purposes.

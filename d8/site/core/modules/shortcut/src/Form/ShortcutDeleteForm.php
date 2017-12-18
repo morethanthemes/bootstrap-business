@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\shortcut\Form\ShortcutDeleteForm.
- */
-
 namespace Drupal\shortcut\Form;
 
 use Drupal\Core\Entity\ContentEntityDeleteForm;
@@ -26,9 +21,9 @@ class ShortcutDeleteForm extends ContentEntityDeleteForm {
    * {@inheritdoc}
    */
   public function getCancelUrl() {
-    return new Url('entity.shortcut_set.customize_form', array(
+    return new Url('entity.shortcut_set.customize_form', [
       'shortcut_set' => $this->entity->bundle(),
-    ));
+    ]);
   }
 
   /**

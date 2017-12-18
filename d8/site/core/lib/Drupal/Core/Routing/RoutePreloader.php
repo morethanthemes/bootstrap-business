@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Routing\RoutePreloader.
- */
-
 namespace Drupal\Core\Routing;
 
 use Drupal\Core\Cache\Cache;
@@ -43,7 +38,7 @@ class RoutePreloader implements EventSubscriberInterface {
    *
    * @var array
    */
-  protected $nonAdminRoutesOnRebuild = array();
+  protected $nonAdminRoutesOnRebuild = [];
 
   /**
    * The cache backend used to skip the state loading.
@@ -119,7 +114,7 @@ class RoutePreloader implements EventSubscriberInterface {
    */
   public function onFinishedRoutes(Event $event) {
     $this->state->set('routing.non_admin_routes', $this->nonAdminRoutesOnRebuild);
-    $this->nonAdminRoutesOnRebuild = array();
+    $this->nonAdminRoutesOnRebuild = [];
   }
 
   /**
@@ -127,11 +122,11 @@ class RoutePreloader implements EventSubscriberInterface {
    */
   public static function getSubscribedEvents() {
     // Set a really low priority to catch as many as possible routes.
-    $events[RoutingEvents::ALTER] = array('onAlterRoutes', -1024);
-    $events[RoutingEvents::FINISHED] = array('onFinishedRoutes');
+    $events[RoutingEvents::ALTER] = ['onAlterRoutes', -1024];
+    $events[RoutingEvents::FINISHED] = ['onFinishedRoutes'];
     // Load the routes before the controller is executed (which happens after
     // the kernel request event).
-    $events[KernelEvents::REQUEST][] = array('onRequest');
+    $events[KernelEvents::REQUEST][] = ['onRequest'];
     return $events;
   }
 

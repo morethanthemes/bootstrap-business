@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Field\Annotation\FieldFormatter.
- */
-
 namespace Drupal\Core\Field\Annotation;
 
 use Drupal\Component\Annotation\Plugin;
@@ -66,7 +61,7 @@ class FieldFormatter extends Plugin {
    *
    * @var array
    */
-  public $field_types = array();
+  public $field_types = [];
 
   /**
    * An integer to determine the weight of this formatter relative to other

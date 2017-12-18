@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\ckeditor_test\Plugin\CKEditorPlugin\Llama.
- */
-
 namespace Drupal\ckeditor_test\Plugin\CKEditorPlugin;
 
 use Drupal\ckeditor\CKEditorPluginInterface;
@@ -19,9 +14,10 @@ use Drupal\editor\Entity\Editor;
  * CKEditorPluginButtonsInterface interface, there is no way of actually loading
  * this plugin.
  *
- * @see MetaContextual
- * @see MetaButton
- * @see MetaContextualAndButton
+ * @see \Drupal\ckeditor_test\Plugin\CKEditorPlugin\LlamaContextual
+ * @see \Drupal\ckeditor_test\Plugin\CKEditorPlugin\LlamaButton
+ * @see \Drupal\ckeditor_test\Plugin\CKEditorPlugin\LlamaContextualAndButton
+ * @see \Drupal\ckeditor_test\Plugin\CKEditorPlugin\LlamaCss
  *
  * @CKEditorPlugin(
  *   id = "llama",
@@ -33,28 +29,28 @@ class Llama extends PluginBase implements CKEditorPluginInterface {
   /**
    * {@inheritdoc}
    */
-  function getDependencies(Editor $editor) {
-    return array();
+  public function getDependencies(Editor $editor) {
+    return [];
   }
 
   /**
    * {@inheritdoc}
    */
-  function getLibraries(Editor $editor) {
-    return array();
+  public function getLibraries(Editor $editor) {
+    return [];
   }
 
   /**
    * {@inheritdoc}
    */
-  function isInternal() {
+  public function isInternal() {
     return FALSE;
   }
 
   /**
    * {@inheritdoc}
    */
-  function getFile() {
+  public function getFile() {
     return drupal_get_path('module', 'ckeditor_test') . '/js/llama.js';
   }
 
@@ -62,7 +58,7 @@ class Llama extends PluginBase implements CKEditorPluginInterface {
    * {@inheritdoc}
    */
   public function getConfig(Editor $editor) {
-    return array();
+    return [];
   }
 
 }

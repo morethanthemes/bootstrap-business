@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\form_test\Form\FormTestRequiredAttributeForm.
- */
-
 namespace Drupal\form_test\Form;
 
 use Drupal\Core\Form\FormBase;
@@ -26,17 +21,17 @@ class FormTestRequiredAttributeForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    foreach (array('textfield', 'textarea', 'password') as $type) {
-      $form[$type] = array(
+    foreach (['textfield', 'textarea', 'password'] as $type) {
+      $form[$type] = [
         '#type' => $type,
         '#required' => TRUE,
         '#title' => $type,
-      );
+      ];
     }
-    $form['submit'] = array(
+    $form['submit'] = [
       '#type' => 'submit',
       '#value' => 'Submit',
-    );
+    ];
     return $form;
   }
 

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Functions that need to be loaded on every Drupal request.
@@ -8,11 +9,15 @@ use Drupal\Component\Utility\Crypt;
 use Drupal\Component\Utility\Html;
 use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Component\Utility\Unicode;
+use Drupal\Core\Config\BootstrapConfigStorageFactory;
 use Drupal\Core\Logger\RfcLogLevel;
 use Drupal\Core\Render\Markup;
+use Drupal\Component\Render\MarkupInterface;
+use Drupal\Core\Test\TestDatabase;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Site\Settings;
 use Drupal\Core\Utility\Error;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 
 /**
  * Minimum supported version of PHP.
@@ -54,6 +59,8 @@ const ERROR_REPORTING_DISPLAY_VERBOSE = 'verbose';
  * @deprecated in Drupal 8.0.0, will be removed before Drupal 9.0.0.
  *   Use Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE or
  *   \Drupal\user\RoleInterface::ANONYMOUS_ID instead.
+ *
+ * @see https://www.drupal.org/node/1619504
  */
 const DRUPAL_ANONYMOUS_RID = AccountInterface::ANONYMOUS_ROLE;
 
@@ -63,6 +70,8 @@ const DRUPAL_ANONYMOUS_RID = AccountInterface::ANONYMOUS_ROLE;
  * @deprecated in Drupal 8.0.0, will be removed before Drupal 9.0.0.
  *   Use Drupal\Core\Session\AccountInterface::AUTHENTICATED_ROLE or
  *   \Drupal\user\RoleInterface::AUTHENTICATED_ID instead.
+ *
+ * @see https://www.drupal.org/node/1619504
  */
 const DRUPAL_AUTHENTICATED_RID = AccountInterface::AUTHENTICATED_ROLE;
 
@@ -80,6 +89,11 @@ const DRUPAL_EXTENSION_NAME_MAX_LENGTH = 50;
  *
  * @see http://php.net/manual/reserved.variables.server.php
  * @see http://php.net/manual/function.time.php
+ *
+ * @deprecated in Drupal 8.3.0, will be removed before Drupal 9.0.0.
+ *   Use \Drupal::time()->getRequestTime();
+ *
+ * @see https://www.drupal.org/node/2785211
  */
 define('REQUEST_TIME', (int) $_SERVER['REQUEST_TIME']);
 
@@ -97,6 +111,8 @@ const DRUPAL_PHP_FUNCTION_PATTERN = '[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*';
  *
  * @deprecated in Drupal 8.0.x and will be removed before 9.0.0. Drupal core no
  *   longer creates an active directory.
+ *
+ * @see https://www.drupal.org/node/2501187
  */
 const CONFIG_ACTIVE_DIRECTORY = 'active';
 
@@ -115,6 +131,8 @@ const CONFIG_SYNC_DIRECTORY = 'sync';
  *
  * @deprecated in Drupal 8.0.x and will be removed before 9.0.0. The staging
  *   directory was renamed to sync.
+ *
+ * @see https://www.drupal.org/node/2574957
  */
 const CONFIG_STAGING_DIRECTORY = 'staging';
 
@@ -151,6 +169,7 @@ function config_get_config_directory($type) {
   if (!empty($config_directories[$type])) {
     return $config_directories[$type];
   }
+  // @todo https://www.drupal.org/node/2696103 Throw a more specific exception.
   throw new \Exception("The configuration directory type '$type' does not exist");
 }
 
@@ -188,7 +207,7 @@ function config_get_config_directory($type) {
 function drupal_get_filename($type, $name, $filename = NULL) {
   // The location of files will not change during the request, so do not use
   // drupal_static().
-  static $files = array();
+  static $files = [];
 
   // Type 'core' only exists to simplify application-level logic; it always maps
   // to the /core directory, whereas $name is ignored. It is only requested via
@@ -204,7 +223,7 @@ function drupal_get_filename($type, $name, $filename = NULL) {
     $type = 'module';
   }
   if (!isset($files[$type])) {
-    $files[$type] = array();
+    $files[$type] = [];
   }
 
   if (isset($filename)) {
@@ -224,11 +243,11 @@ function drupal_get_filename($type, $name, $filename = NULL) {
     // system_rebuild_module_data() and
     // \Drupal\Core\Extension\ThemeHandlerInterface::rebuildThemeData().
     if (!isset($files[$type][$name]) && \Drupal::hasService('state')) {
-      $files[$type] += \Drupal::state()->get('system.' . $type . '.files', array());
+      $files[$type] += \Drupal::state()->get('system.' . $type . '.files', []);
     }
     // If still unknown, create a user-level error message.
     if (!isset($files[$type][$name])) {
-      trigger_error(SafeMarkup::format('The following @type is missing from the file system: @name', array('@type' => $type, '@name' => $name)), E_USER_WARNING);
+      trigger_error(SafeMarkup::format('The following @type is missing from the file system: @name', ['@type' => $type, '@name' => $name]), E_USER_WARNING);
     }
   }
 
@@ -258,11 +277,10 @@ function drupal_get_path($type, $name) {
  * Translates a string to the current language or to a given language.
  *
  * In order for strings to be localized, make them available in one of the ways
- * supported by the
- * @link https://www.drupal.org/node/322729 Localization API @endlink. When
- * possible, use the \Drupal\Core\StringTranslation\StringTranslationTrait
- * $this->t(). Otherwise create a new
- * \Drupal\Core\StringTranslation\TranslatableMarkup object directly.
+ * supported by the @link i18n Localization API. @endlink When possible, use
+ * the \Drupal\Core\StringTranslation\StringTranslationTrait $this->t().
+ * Otherwise create a new \Drupal\Core\StringTranslation\TranslatableMarkup
+ * object directly.
  *
  * See \Drupal\Core\StringTranslation\TranslatableMarkup::__construct() for
  * important security information and usage guidelines.
@@ -281,7 +299,8 @@ function drupal_get_path($type, $name) {
  *   - 'langcode' (defaults to the current language): A language code, to
  *     translate to a language other than what is used to display the page.
  *   - 'context' (defaults to the empty context): The context the source string
- *     belongs to.
+ *     belongs to. See the @link i18n Internationalization topic @endlink for
+ *     more information about string contexts.
  *
  * @return \Drupal\Core\StringTranslation\TranslatableMarkup
  *   An object that, when cast to a string, returns the translated string.
@@ -292,19 +311,22 @@ function drupal_get_path($type, $name) {
  *
  * @ingroup sanitization
  */
-function t($string, array $args = array(), array $options = array()) {
-  return \Drupal::translation()->translate($string, $args, $options);
+function t($string, array $args = [], array $options = []) {
+  return new TranslatableMarkup($string, $args, $options);
 }
 
 /**
  * Formats a string for HTML display by replacing variable placeholders.
  *
- * @see \Drupal\Component\Utility\SafeMarkup::format()
+ * @see \Drupal\Component\Render\FormattableMarkup::placeholderFormat()
+ * @see \Drupal\Component\Render\FormattableMarkup
  * @see t()
  * @ingroup sanitization
  *
  * @deprecated in Drupal 8.0.0, will be removed before Drupal 9.0.0.
- *   Use \Drupal\Component\Utility\SafeMarkup::format().
+ *   Use \Drupal\Component\Render\FormattableMarkup.
+ *
+ * @see https://www.drupal.org/node/2302363
  */
 function format_string($string, array $args) {
   return SafeMarkup::format($string, $args);
@@ -338,6 +360,8 @@ function format_string($string, array $args) {
  *
  * @deprecated in Drupal 8.0.0, will be removed before Drupal 9.0.0.
  *   Use \Drupal\Component\Utility\Unicode::validateUtf8().
+ *
+ * @see https://www.drupal.org/node/1992584
  */
 function drupal_validate_utf8($text) {
   return Unicode::validateUtf8($text);
@@ -366,7 +390,7 @@ function drupal_validate_utf8($text) {
  *
  * @see \Drupal\Core\Utility\Error::decodeException()
  */
-function watchdog_exception($type, Exception $exception, $message = NULL, $variables = array(), $severity = RfcLogLevel::ERROR, $link = NULL) {
+function watchdog_exception($type, Exception $exception, $message = NULL, $variables = [], $severity = RfcLogLevel::ERROR, $link = NULL) {
 
   // Use a default value if $message is not set.
   if (empty($message)) {
@@ -437,11 +461,11 @@ function watchdog_exception($type, Exception $exception, $message = NULL, $varia
 function drupal_set_message($message = NULL, $type = 'status', $repeat = FALSE) {
   if (isset($message)) {
     if (!isset($_SESSION['messages'][$type])) {
-      $_SESSION['messages'][$type] = array();
+      $_SESSION['messages'][$type] = [];
     }
 
     // Convert strings which are safe to the simplest Markup objects.
-    if (!($message instanceof Markup) && SafeMarkup::isSafe($message)) {
+    if (!($message instanceof Markup) && $message instanceof MarkupInterface) {
       $message = Markup::create((string) $message);
     }
 
@@ -491,7 +515,7 @@ function drupal_get_messages($type = NULL, $clear_queue = TRUE) {
         unset($_SESSION['messages'][$type]);
       }
       if (isset($messages[$type])) {
-        return array($type => $messages[$type]);
+        return [$type => $messages[$type]];
       }
     }
     else {
@@ -501,7 +525,7 @@ function drupal_get_messages($type = NULL, $clear_queue = TRUE) {
       return $messages;
     }
   }
-  return array();
+  return [];
 }
 
 /**
@@ -595,7 +619,7 @@ function _drupal_exception_handler_additional($exception, $exception2) {
  * @param string $new_prefix
  *   Internal use only. A new prefix to be stored.
  *
- * @return string|FALSE
+ * @return string|false
  *   Either the simpletest prefix (the string "simpletest" followed by any
  *   number of digits) or FALSE if the user agent does not contain a valid
  *   HMAC and timestamp.
@@ -618,15 +642,16 @@ function drupal_valid_test_ua($new_prefix = NULL) {
   // string.
   $http_user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : NULL;
   $user_agent = isset($_COOKIE['SIMPLETEST_USER_AGENT']) ? $_COOKIE['SIMPLETEST_USER_AGENT'] : $http_user_agent;
-  if (isset($user_agent) && preg_match("/^(simpletest\d+);(.+);(.+);(.+)$/", $user_agent, $matches)) {
+  if (isset($user_agent) && preg_match("/^simple(\w+\d+):(.+):(.+):(.+)$/", $user_agent, $matches)) {
     list(, $prefix, $time, $salt, $hmac) = $matches;
-    $check_string =  $prefix . ';' . $time . ';' . $salt;
+    $check_string = $prefix . ':' . $time . ':' . $salt;
     // Read the hash salt prepared by drupal_generate_test_ua().
     // This function is called before settings.php is read and Drupal's error
     // handlers are set up. While Drupal's error handling may be properly
     // configured on production sites, the server's PHP error_reporting may not.
     // Ensure that no information leaks on production sites.
-    $key_file = DRUPAL_ROOT . '/sites/simpletest/' . substr($prefix, 10) . '/.htkey';
+    $test_db = new TestDatabase($prefix);
+    $key_file = DRUPAL_ROOT . '/' . $test_db->getTestSitePath() . '/.htkey';
     if (!is_readable($key_file)) {
       header($_SERVER['SERVER_PROTOCOL'] . ' 403 Forbidden');
       exit;
@@ -636,10 +661,14 @@ function drupal_valid_test_ua($new_prefix = NULL) {
     $key = $private_key . filectime(__FILE__) . fileinode(__FILE__);
     $time_diff = REQUEST_TIME - $time;
     $test_hmac = Crypt::hmacBase64($check_string, $key);
-    // Since we are making a local request a 5 second time window is allowed,
+    // Since we are making a local request a 600 second time window is allowed,
     // and the HMAC must match.
-    if ($time_diff >= 0 && $time_diff <= 5 && $hmac === $test_hmac) {
+    if ($time_diff >= 0 && $time_diff <= 600 && $hmac === $test_hmac) {
       $test_prefix = $prefix;
+    }
+    else {
+      header($_SERVER['SERVER_PROTOCOL'] . ' 403 Forbidden (SIMPLETEST_USER_AGENT invalid)');
+      exit;
     }
   }
   return $test_prefix;
@@ -653,7 +682,8 @@ function drupal_generate_test_ua($prefix) {
 
   if (!isset($key) || $last_prefix != $prefix) {
     $last_prefix = $prefix;
-    $key_file = DRUPAL_ROOT . '/sites/simpletest/' . substr($prefix, 10) . '/.htkey';
+    $test_db = new TestDatabase($prefix);
+    $key_file = DRUPAL_ROOT . '/' . $test_db->getTestSitePath() . '/.htkey';
     // When issuing an outbound HTTP client request from within an inbound test
     // request, then the outbound request has to use the same User-Agent header
     // as the inbound request. A newly generated private key for the same test
@@ -677,8 +707,8 @@ function drupal_generate_test_ua($prefix) {
   }
   // Generate a moderately secure HMAC based on the database credentials.
   $salt = uniqid('', TRUE);
-  $check_string = $prefix . ';' . time() . ';' . $salt;
-  return $check_string . ';' . Crypt::hmacBase64($check_string, $key);
+  $check_string = $prefix . ':' . time() . ':' . $salt;
+  return 'simple' . $check_string . ':' . Crypt::hmacBase64($check_string, $key);
 }
 
 /**
@@ -712,12 +742,22 @@ function drupal_installation_attempted() {
  * When this function is called during Drupal's initial installation process,
  * the name of the profile that's about to be installed is stored in the global
  * installation state. At all other times, the "install_profile" setting will be
- * available in settings.php.
+ * available in container as a parameter.
  *
- * @return string|null $profile
+ * @return string|null
  *   The name of the installation profile or NULL if no installation profile is
  *   currently active. This is the case for example during the first steps of
  *   the installer or during unit tests.
+ *
+ * @deprecated in Drupal 8.3.0, will be removed before Drupal 9.0.0.
+ *   Use the install_profile container parameter or \Drupal::installProfile()
+ *   instead. If you are accessing the value before it is written to
+ *   configuration during the installer use the $install_state global. If you
+ *   need to access the value before container is available you can use
+ *   BootstrapConfigStorageFactory to load the value directly from
+ *   configuration.
+ *
+ * @see https://www.drupal.org/node/2538996
  */
 function drupal_get_profile() {
   global $install_state;
@@ -732,8 +772,18 @@ function drupal_get_profile() {
     }
   }
   else {
-    // Fall back to NULL, if there is no 'install_profile' setting.
-    $profile = Settings::get('install_profile');
+    if (\Drupal::hasContainer()) {
+      $profile = \Drupal::installProfile();
+    }
+    else {
+      $profile = BootstrapConfigStorageFactory::getDatabaseStorage()->read('core.extension')['profile'];
+    }
+
+    // A BC layer just in in case this only exists in Settings. Introduced in
+    // Drupal 8.3.x and will be removed before Drupal 9.0.0.
+    if (empty($profile)) {
+      $profile = Settings::get('install_profile');
+    }
   }
 
   return $profile;
@@ -865,7 +915,7 @@ function drupal_classloader_register($name, $path) {
  * @see drupal_static_reset()
  */
 function &drupal_static($name, $default_value = NULL, $reset = FALSE) {
-  static $data = array(), $default = array();
+  static $data = [], $default = [];
   // First check if dealing with a previously defined static variable.
   if (isset($data[$name]) || array_key_exists($name, $data)) {
     // Non-NULL $name and both $data[$name] and $default[$name] statics exist.
@@ -918,7 +968,7 @@ function drupal_static_reset($name = NULL) {
  *   string and therefore has few valid use-cases. Note also, that this method
  *   does not mark the string as safe.
  *
- * @see \Drupal\Component\Utility\SafeMarkup::format()
+ * @see https://www.drupal.org/node/2302363
  */
 function drupal_placeholder($text) {
   return '<em class="placeholder">' . Html::escape($text) . '</em>';
@@ -944,7 +994,7 @@ function drupal_placeholder($text) {
 function &drupal_register_shutdown_function($callback = NULL) {
   // We cannot use drupal_static() here because the static cache is reset during
   // batch processing, which breaks batch handling.
-  static $callbacks = array();
+  static $callbacks = [];
 
   if (isset($callback)) {
     // Only register the internal shutdown function once.
@@ -955,7 +1005,7 @@ function &drupal_register_shutdown_function($callback = NULL) {
     // Remove $callback from the arguments.
     unset($args[0]);
     // Save callback and arguments
-    $callbacks[] = array('callback' => $callback, 'arguments' => $args);
+    $callbacks[] = ['callback' => $callback, 'arguments' => $args];
   }
   return $callbacks;
 }

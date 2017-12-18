@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\locale\Locale.
- */
-
 namespace Drupal\locale;
 
 /**
@@ -25,4 +20,5 @@ class Locale {
   public static function config() {
     return \Drupal::service('locale.config_manager');
   }
+
 }

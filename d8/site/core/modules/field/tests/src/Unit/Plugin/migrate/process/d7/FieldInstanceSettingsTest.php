@@ -1,14 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\field\Unit\Plugin\migrate\process\d7\FieldInstanceSettingsTest.
- */
-
 namespace Drupal\Tests\field\Unit\Plugin\migrate\process\d7;
 
 use Drupal\field\Plugin\migrate\process\d7\FieldInstanceSettings;
-use Drupal\migrate\Entity\MigrationInterface;
+use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\Row;
 use Drupal\Tests\migrate\Unit\MigrateTestCase;
@@ -33,7 +28,7 @@ class FieldInstanceSettingsTest extends MigrateTestCase {
       ->disableOriginalConstructor()
       ->getMock();
 
-    $value = $plugin->transform([[], ['type' => 'image_image']], $executable, $row, 'foo');
+    $value = $plugin->transform([[], ['type' => 'image_image'], ['data' => '']], $executable, $row, 'foo');
     $this->assertInternalType('array', $value['default_image']);
     $this->assertSame('', $value['default_image']['alt']);
     $this->assertSame('', $value['default_image']['title']);

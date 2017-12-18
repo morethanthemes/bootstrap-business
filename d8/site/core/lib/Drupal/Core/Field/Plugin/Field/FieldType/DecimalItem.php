@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Field\Plugin\Field\FieldType\DecimalItem.
- */
-
 namespace Drupal\Core\Field\Plugin\Field\FieldType;
 
 use Drupal\Core\Field\FieldDefinitionInterface;
@@ -30,10 +25,10 @@ class DecimalItem extends NumericItemBase {
    * {@inheritdoc}
    */
   public static function defaultStorageSettings() {
-    return array(
+    return [
       'precision' => 10,
       'scale' => 2,
-    ) + parent::defaultStorageSettings();
+    ] + parent::defaultStorageSettings();
   }
 
   /**
@@ -51,42 +46,43 @@ class DecimalItem extends NumericItemBase {
    * {@inheritdoc}
    */
   public static function schema(FieldStorageDefinitionInterface $field_definition) {
-    return array(
-      'columns' => array(
-        'value' => array(
+    return [
+      'columns' => [
+        'value' => [
           'type' => 'numeric',
           'precision' => $field_definition->getSetting('precision'),
           'scale' => $field_definition->getSetting('scale'),
-        )
-      ),
-    );
+        ]
+      ],
+    ];
   }
 
   /**
    * {@inheritdoc}
    */
   public function storageSettingsForm(array &$form, FormStateInterface $form_state, $has_data) {
-    $element = array();
+    $element = [];
     $settings = $this->getSettings();
 
-    $range = range(10, 32);
-    $element['precision'] = array(
-      '#type' => 'select',
+    $element['precision'] = [
+      '#type' => 'number',
       '#title' => t('Precision'),
-      '#options' => array_combine($range, $range),
+      '#min' => 10,
+      '#max' => 32,
       '#default_value' => $settings['precision'],
       '#description' => t('The total number of digits to store in the database, including those to the right of the decimal.'),
       '#disabled' => $has_data,
-    );
-    $range = range(0, 10);
-    $element['scale'] = array(
-      '#type' => 'select',
-      '#title' => t('Scale', array(), array('context' => 'decimal places')),
-      '#options' => array_combine($range, $range),
+    ];
+
+    $element['scale'] = [
+      '#type' => 'number',
+      '#title' => t('Scale', [], ['context' => 'decimal places']),
+      '#min' => 0,
+      '#max' => 10,
       '#default_value' => $settings['scale'],
       '#description' => t('The number of digits to the right of the decimal.'),
       '#disabled' => $has_data,
-    );
+    ];
 
     return $element;
   }
@@ -98,13 +94,13 @@ class DecimalItem extends NumericItemBase {
     $constraint_manager = \Drupal::typedDataManager()->getValidationConstraintManager();
     $constraints = parent::getConstraints();
 
-    $constraints[] = $constraint_manager->create('ComplexData', array(
-      'value' => array(
-        'Regex' => array(
+    $constraints[] = $constraint_manager->create('ComplexData', [
+      'value' => [
+        'Regex' => [
           'pattern' => '/^[+-]?((\d+(\.\d*)?)|(\.\d+))$/i',
-        )
-      ),
-    ));
+        ]
+      ],
+    ]);
 
     return $constraints;
   }
@@ -152,7 +148,7 @@ class DecimalItem extends NumericItemBase {
     $scale = rand($decimal_digits, $scale);
 
     // @see "Example #1 Calculate a random floating-point number" in
-    // http://php.net/manual/en/function.mt-getrandmax.php
+    // http://php.net/manual/function.mt-getrandmax.php
     $random_decimal = $min + mt_rand() / mt_getrandmax() * ($max - $min);
     $values['value'] = self::truncateDecimal($random_decimal, $scale);
     return $values;

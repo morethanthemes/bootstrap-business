@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Form\FormSubmitterInterface.
- */
-
 namespace Drupal\Core\Form;
 
 /**
@@ -67,7 +62,7 @@ interface FormSubmitterInterface {
    *     ),
    *     'fragment' => 'baz',
    *   ),
-   * ));
+   * );
    * @endcode
    *
    * @param \Drupal\Core\Form\FormStateInterface $form_state

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\forum\Plugin\Validation\Constraint\ForumLeafConstraintValidator.
- */
-
 namespace Drupal\forum\Plugin\Validation\Constraint;
 
 use Symfony\Component\Validator\Constraint;
@@ -31,7 +26,7 @@ class ForumLeafConstraintValidator extends ConstraintValidator {
 
     // The forum_container flag must not be set.
     if (!empty($item->entity->forum_container->value)) {
-      $this->context->addViolation($constraint->noLeafMessage, array('%forum' => $item->entity->getName()));
+      $this->context->addViolation($constraint->noLeafMessage, ['%forum' => $item->entity->getName()]);
     }
   }
 

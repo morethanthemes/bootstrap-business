@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Routing\Enhancer\ParamConversionEnhancer.
- */
-
 namespace Drupal\Core\Routing\Enhancer;
 
 use Drupal\Core\ParamConverter\ParamConverterManagerInterface;
@@ -67,7 +62,7 @@ class ParamConversionEnhancer implements RouteEnhancerInterface, EventSubscriber
     // Foreach will copy the values from the array it iterates. Even if they
     // are references, use it to break them. This avoids any scenarios where raw
     // variables also get replaced with converted values.
-    $raw_variables = array();
+    $raw_variables = [];
     foreach (array_intersect_key($defaults, $variables) as $key => $value) {
       $raw_variables[$key] = $value;
     }
@@ -90,7 +85,7 @@ class ParamConversionEnhancer implements RouteEnhancerInterface, EventSubscriber
    * {@inheritdoc}
    */
   public static function getSubscribedEvents() {
-    $events[KernelEvents::EXCEPTION][] = array('onException', 75);
+    $events[KernelEvents::EXCEPTION][] = ['onException', 75];
     return $events;
   }
 

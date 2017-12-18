@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Cache\Context\LanguagesCacheContext.
- */
-
 namespace Drupal\Core\Cache\Context;
 
 use Drupal\Core\Cache\CacheableMetadata;
@@ -13,12 +8,12 @@ use Drupal\Core\Language\LanguageManagerInterface;
 /**
  * Defines the LanguagesCacheContext service, for "per language" caching.
  */
-class LanguagesCacheContext implements CalculatedCacheContextInterface  {
+class LanguagesCacheContext implements CalculatedCacheContextInterface {
 
   /**
    * The language manager.
    *
-   * @param \Drupal\Core\Language\LanguageManagerInterface $language_manager
+   * @var \Drupal\Core\Language\LanguageManagerInterface
    */
   protected $languageManager;
 
@@ -55,7 +50,7 @@ class LanguagesCacheContext implements CalculatedCacheContextInterface  {
    */
   public function getContext($type = NULL) {
     if ($type === NULL) {
-      $context_parts = array();
+      $context_parts = [];
       if ($this->languageManager->isMultilingual()) {
         foreach ($this->languageManager->getLanguageTypes() as $type) {
           $context_parts[] = $this->languageManager->getCurrentLanguage($type)->getId();

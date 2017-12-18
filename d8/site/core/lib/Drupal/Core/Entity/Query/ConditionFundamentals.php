@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\Query\ConditionFundamentals.
- */
-
 namespace Drupal\Core\Entity\Query;
 
 /**
@@ -17,7 +12,7 @@ abstract class ConditionFundamentals {
    *
    * @var array
    */
-  protected $conditions = array();
+  protected $conditions = [];
 
   /**
    * The conjunction of this condition group. The value is one of the following:
@@ -41,7 +36,7 @@ abstract class ConditionFundamentals {
    *
    * @var array
    */
-  protected $namespaces = array();
+  protected $namespaces = [];
 
   /**
    * Constructs a Condition object.

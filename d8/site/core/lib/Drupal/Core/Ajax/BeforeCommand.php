@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Ajax\BeforeCommand.
- */
-
 namespace Drupal\Core\Ajax;
 
 /**
@@ -28,13 +23,13 @@ class BeforeCommand extends InsertCommand {
    */
   public function render() {
 
-    return array(
+    return [
       'command' => 'insert',
       'method' => 'before',
       'selector' => $this->selector,
       'data' => $this->getRenderedContent(),
       'settings' => $this->settings,
-    );
+    ];
   }
 
 }

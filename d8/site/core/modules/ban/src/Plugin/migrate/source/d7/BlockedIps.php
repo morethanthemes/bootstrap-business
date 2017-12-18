@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\ban\Plugin\migrate\source\d7\BlockedIps.
- */
-
 namespace Drupal\ban\Plugin\migrate\source\d7;
 
 use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
@@ -14,7 +9,7 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
  *
  * @MigrateSource(
  *   id = "d7_blocked_ips",
- *   source_provider = "system"
+ *   source_module = "system"
  * )
  */
 class BlockedIps extends DrupalSqlBase {

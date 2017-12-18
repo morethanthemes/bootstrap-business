@@ -22,6 +22,14 @@ system.404:
   requirements:
     _access: 'TRUE'
 
+system.4xx:
+  path: '/system/4xx'
+  defaults:
+    _controller: '\Drupal\system\Controller\Http4xxController:on4xx'
+    _title: 'Client error'
+  requirements:
+    _access: 'TRUE'
+
 system.admin:
   path: '/admin'
   defaults:
@@ -146,7 +154,7 @@ system.site_information_settings:
   path: '/admin/config/system/site-information'
   defaults:
     _form: 'Drupal\system\Form\SiteInformationForm'
-    _title: 'Site information'
+    _title: 'Basic site settings'
   requirements:
     _permission: 'administer site configuration'
 
@@ -273,6 +281,14 @@ system.modules_list_confirm:
   requirements:
     _permission: 'administer modules'
 
+system.modules_list_experimental_confirm:
+  path: '/admin/modules/list/confirm-experimental'
+  defaults:
+    _form: 'Drupal\system\Form\ModulesListExperimentalConfirmForm'
+    _title: 'Experimental modules'
+  requirements:
+    _permission: 'administer modules'
+
 system.theme_uninstall:
   path: '/admin/appearance/uninstall'
   defaults:
@@ -389,6 +405,13 @@ system.theme_settings_theme:
   requirements:
     _access: 'TRUE'
 
+'<nolink>':
+  path: ''
+  options:
+    _no_path: TRUE
+  requirements:
+    _access: 'TRUE'
+
 '<current>':
   path: '<current>'
 
@@ -405,6 +428,14 @@ system.modules_uninstall_confirm:
   defaults:
     _form: 'Drupal\system\Form\ModulesUninstallConfirmForm'
     _title: 'Confirm uninstall'
+  requirements:
+    _permission: 'administer modules'
+
+system.prepare_modules_entity_uninstall:
+  path: '/admin/modules/uninstall/entity/{entity_type_id}'
+  defaults:
+    _form: '\Drupal\system\Form\PrepareModulesEntityUninstallForm'
+    _title_callback: '\Drupal\system\Form\PrepareModulesEntityUninstallForm::formTitle'
   requirements:
     _permission: 'administer modules'
 
@@ -455,7 +486,10 @@ system.db_update:
   defaults:
     op: 'info'
   requirements:
-    _access: 'TRUE'
+    _access_system_update: 'TRUE'
+  options:
+    default_url_options:
+      path_processing: FALSE
 
 system.admin_content:
   path: '/admin/content'
@@ -470,5 +504,12 @@ system.entity_autocomplete:
   path: '/entity_reference_autocomplete/{target_type}/{selection_handler}/{selection_settings_key}'
   defaults:
     _controller: '\Drupal\system\Controller\EntityAutocompleteController::handleAutocomplete'
+  requirements:
+    _access: 'TRUE'
+
+system.csrftoken:
+  path: '/session/token'
+  defaults:
+    _controller: '\Drupal\system\Controller\CsrfTokenController::csrfToken'
   requirements:
     _access: 'TRUE'

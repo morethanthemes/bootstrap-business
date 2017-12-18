@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Config\Entity\EntityDisplayModeBaseUnitTest.
- */
-
 namespace Drupal\Tests\Core\Config\Entity;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;
@@ -82,7 +77,7 @@ class EntityDisplayModeBaseUnitTest extends UnitTestCase {
     $target_entity_type->expects($this->any())
       ->method('getProvider')
       ->will($this->returnValue('test_module'));
-    $values = array('targetEntityType' => $target_entity_type_id);
+    $values = ['targetEntityType' => $target_entity_type_id];
 
     $this->entityManager->expects($this->at(0))
       ->method('getDefinition')
@@ -94,8 +89,8 @@ class EntityDisplayModeBaseUnitTest extends UnitTestCase {
       ->will($this->returnValue($this->entityInfo));
 
     $this->entity = $this->getMockBuilder('\Drupal\Core\Entity\EntityDisplayModeBase')
-      ->setConstructorArgs(array($values, $this->entityType))
-      ->setMethods(array('getFilterFormat'))
+      ->setConstructorArgs([$values, $this->entityType])
+      ->setMethods(['getFilterFormat'])
       ->getMock();
 
     $dependencies = $this->entity->calculateDependencies()->getDependencies();
@@ -110,7 +105,7 @@ class EntityDisplayModeBaseUnitTest extends UnitTestCase {
     $mock = $this->getMock(
       'Drupal\Core\Entity\EntityDisplayModeBase',
       NULL,
-      array(array('something' => 'nothing'), 'test_type')
+      [['something' => 'nothing'], 'test_type']
     );
 
     // Some test values.
@@ -139,7 +134,7 @@ class EntityDisplayModeBaseUnitTest extends UnitTestCase {
     $mock = $this->getMock(
       'Drupal\Core\Entity\EntityDisplayModeBase',
       NULL,
-      array(array('something' => 'nothing'), 'test_type')
+      [['something' => 'nothing'], 'test_type']
     );
 
     // A test value.

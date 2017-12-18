@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\UnitTestCase.
- */
-
 namespace Drupal\Tests;
 
 use Drupal\Component\FileCache\FileCacheFactory;
@@ -13,14 +8,14 @@ use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\StringTranslation\PluralTranslatableMarkup;
-
+use PHPUnit\Framework\TestCase;
 
 /**
  * Provides a base class and helpers for Drupal unit tests.
  *
  * @ingroup testing
  */
-abstract class UnitTestCase extends \PHPUnit_Framework_TestCase {
+abstract class UnitTestCase extends TestCase {
 
   /**
    * The random generator.
@@ -47,7 +42,9 @@ abstract class UnitTestCase extends \PHPUnit_Framework_TestCase {
 
     // Ensure that the NullFileCache implementation is used for the FileCache as
     // unit tests should not be relying on caches implicitly.
-    FileCacheFactory::setConfiguration(['default' => ['class' => '\Drupal\Component\FileCache\NullFileCache']]);
+    FileCacheFactory::setConfiguration([FileCacheFactory::DISABLE_CACHE => TRUE]);
+    // Ensure that FileCacheFactory has a prefix.
+    FileCacheFactory::setPrefix('prefix');
 
     $this->root = dirname(dirname(substr(__DIR__, 0, -strlen(__NAMESPACE__))));
   }
@@ -107,18 +104,18 @@ abstract class UnitTestCase extends \PHPUnit_Framework_TestCase {
    * @return \PHPUnit_Framework_MockObject_MockBuilder
    *   A MockBuilder object for the ConfigFactory with the desired return values.
    */
-  public function getConfigFactoryStub(array $configs = array()) {
-    $config_get_map = array();
-    $config_editable_map = array();
+  public function getConfigFactoryStub(array $configs = []) {
+    $config_get_map = [];
+    $config_editable_map = [];
     // Construct the desired configuration object stubs, each with its own
     // desired return map.
     foreach ($configs as $config_name => $config_values) {
-      $map = array();
+      $map = [];
       foreach ($config_values as $key => $value) {
-        $map[] = array($key, $value);
+        $map[] = [$key, $value];
       }
       // Also allow to pass in no argument.
-      $map[] = array('', $config_values);
+      $map[] = ['', $config_values];
 
       $immutable_config_object = $this->getMockBuilder('Drupal\Core\Config\ImmutableConfig')
         ->disableOriginalConstructor()
@@ -126,7 +123,7 @@ abstract class UnitTestCase extends \PHPUnit_Framework_TestCase {
       $immutable_config_object->expects($this->any())
         ->method('get')
         ->will($this->returnValueMap($map));
-      $config_get_map[] = array($config_name, $immutable_config_object);
+      $config_get_map[] = [$config_name, $immutable_config_object];
 
       $mutable_config_object = $this->getMockBuilder('Drupal\Core\Config\Config')
         ->disableOriginalConstructor()
@@ -134,7 +131,7 @@ abstract class UnitTestCase extends \PHPUnit_Framework_TestCase {
       $mutable_config_object->expects($this->any())
         ->method('get')
         ->will($this->returnValueMap($map));
-      $config_editable_map[] = array($config_name, $mutable_config_object);
+      $config_editable_map[] = [$config_name, $mutable_config_object];
     }
     // Construct a config factory with the array of configuration object stubs
     // as its return map.
@@ -203,14 +200,14 @@ abstract class UnitTestCase extends \PHPUnit_Framework_TestCase {
   /**
    * Returns a stub translation manager that just returns the passed string.
    *
-   * @return \PHPUnit_Framework_MockObject_MockBuilder
-   *   A MockBuilder of \Drupal\Core\StringTranslation\TranslationInterface
+   * @return \PHPUnit_Framework_MockObject_MockObject|\Drupal\Core\StringTranslation\TranslationInterface
+   *   A mock translation object.
    */
   public function getStringTranslationStub() {
     $translation = $this->getMock('Drupal\Core\StringTranslation\TranslationInterface');
     $translation->expects($this->any())
       ->method('translate')
-      ->willReturnCallback(function ($string, array $args = array(), array $options = array()) use ($translation) {
+      ->willReturnCallback(function ($string, array $args = [], array $options = []) use ($translation) {
         return new TranslatableMarkup($string, $args, $options, $translation);
       });
     $translation->expects($this->any())

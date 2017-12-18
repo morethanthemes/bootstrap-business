@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\KeyValueStore\KeyValueMemoryFactory.
- */
-
 namespace Drupal\Core\KeyValueStore;
 
 /**
@@ -17,7 +12,7 @@ class KeyValueMemoryFactory implements KeyValueFactoryInterface {
    *
    * @var array
    */
-  protected $collections = array();
+  protected $collections = [];
 
   /**
    * {@inheritdoc}
@@ -28,4 +23,5 @@ class KeyValueMemoryFactory implements KeyValueFactoryInterface {
     }
     return $this->collections[$collection];
   }
+
 }

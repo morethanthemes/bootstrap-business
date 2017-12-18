@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Form\ModulesUninstallConfirmForm.
- */
-
 namespace Drupal\system\Form;
 
 use Drupal\Core\Config\ConfigManagerInterface;
@@ -56,7 +51,7 @@ class ModulesUninstallConfirmForm extends ConfirmFormBase {
    *
    * @var array
    */
-  protected $modules = array();
+  protected $modules = [];
 
   /**
    * Constructs a ModulesUninstallConfirmForm object.
@@ -140,15 +135,15 @@ class ModulesUninstallConfirmForm extends ConfirmFormBase {
 
     $data = system_rebuild_module_data();
     $form['text']['#markup'] = '<p>' . $this->t('The following modules will be completely uninstalled from your site, and <em>all data from these modules will be lost</em>!') . '</p>';
-    $form['modules'] = array(
+    $form['modules'] = [
       '#theme' => 'item_list',
       '#items' => array_map(function ($module) use ($data) {
         return $data[$module]->info['name'];
       }, $this->modules),
-    );
+    ];
 
     // List the dependent entities.
-    $this->addDependencyListsToForm($form, 'module', $this->modules , $this->configManager, $this->entityManager);
+    $this->addDependencyListsToForm($form, 'module', $this->modules, $this->configManager, $this->entityManager);
 
     return parent::buildForm($form, $form_state);
   }

@@ -1,11 +1,7 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\Tests\Views\BulkFormAccessTest.
- */
-
 namespace Drupal\user\Tests\Views;
+
 use Drupal\Component\Utility\SafeMarkup;
 use Drupal\user\Entity\User;
 
@@ -23,26 +19,26 @@ class BulkFormAccessTest extends UserTestBase {
    *
    * @var array
    */
-  public static $modules = array('user_access_test');
+  public static $modules = ['user_access_test'];
 
   /**
    * Views used by this test.
    *
    * @var array
    */
-  public static $testViews = array('test_user_bulk_form');
+  public static $testViews = ['test_user_bulk_form'];
 
   /**
    * Tests if users that may not be edited, can not be edited in bulk.
    */
   public function testUserEditAccess() {
     // Create an authenticated user.
-    $no_edit_user = $this->drupalCreateUser(array(), 'no_edit');
+    $no_edit_user = $this->drupalCreateUser([], 'no_edit');
     // Ensure this account is not blocked.
     $this->assertFalse($no_edit_user->isBlocked(), 'The user is not blocked.');
 
-    // Login as user admin.
-    $admin_user = $this->drupalCreateUser(array('administer users'));
+    // Log in as user admin.
+    $admin_user = $this->drupalCreateUser(['administer users']);
     $this->drupalLogin($admin_user);
 
     // Ensure that the account "no_edit" can not be edited.
@@ -51,11 +47,11 @@ class BulkFormAccessTest extends UserTestBase {
     $this->assertResponse(403, 'The user may not be edited.');
 
     // Test blocking the account "no_edit".
-    $edit = array(
-      'user_bulk_form[' . ($no_edit_user->id() -1) . ']' => TRUE,
+    $edit = [
+      'user_bulk_form[' . ($no_edit_user->id() - 1) . ']' => TRUE,
       'action' => 'user_block_user_action',
-    );
-    $this->drupalPostForm('test-user-bulk-form', $edit, t('Apply'));
+    ];
+    $this->drupalPostForm('test-user-bulk-form', $edit, t('Apply to selected items'));
     $this->assertResponse(200);
 
     $this->assertRaw(SafeMarkup::format('No access to execute %action on the @entity_type_label %entity_label.', [
@@ -72,23 +68,23 @@ class BulkFormAccessTest extends UserTestBase {
     $normal_user = $this->drupalCreateUser();
     $this->assertTrue($normal_user->access('update', $admin_user));
 
-    $edit = array(
-      'user_bulk_form[' . ($normal_user->id() -1) . ']' => TRUE,
+    $edit = [
+      'user_bulk_form[' . ($normal_user->id() - 1) . ']' => TRUE,
       'action' => 'user_block_user_action',
-    );
-    $this->drupalPostForm('test-user-bulk-form', $edit, t('Apply'));
+    ];
+    $this->drupalPostForm('test-user-bulk-form', $edit, t('Apply to selected items'));
 
     $normal_user = User::load($normal_user->id());
     $this->assertTrue($normal_user->isBlocked(), 'The user is blocked.');
 
-    // Login as user without the 'administer users' permission.
+    // Log in as user without the 'administer users' permission.
     $this->drupalLogin($this->drupalCreateUser());
 
-    $edit = array(
-      'user_bulk_form[' . ($normal_user->id() -1) . ']' => TRUE,
+    $edit = [
+      'user_bulk_form[' . ($normal_user->id() - 1) . ']' => TRUE,
       'action' => 'user_unblock_user_action',
-    );
-    $this->drupalPostForm('test-user-bulk-form', $edit, t('Apply'));
+    ];
+    $this->drupalPostForm('test-user-bulk-form', $edit, t('Apply to selected items'));
 
     // Re-load the normal user and ensure it is still blocked.
     $normal_user = User::load($normal_user->id());
@@ -100,11 +96,11 @@ class BulkFormAccessTest extends UserTestBase {
    */
   public function testUserDeleteAccess() {
     // Create two authenticated users.
-    $account = $this->drupalCreateUser(array(), 'no_delete');
-    $account2 = $this->drupalCreateUser(array(), 'may_delete');
+    $account = $this->drupalCreateUser([], 'no_delete');
+    $account2 = $this->drupalCreateUser([], 'may_delete');
 
-    // Login as user admin.
-    $this->drupalLogin($this->drupalCreateUser(array('administer users')));
+    // Log in as user admin.
+    $this->drupalLogin($this->drupalCreateUser(['administer users']));
 
     // Ensure that the account "no_delete" can not be deleted.
     $this->drupalGet('user/' . $account->id() . '/cancel');
@@ -114,15 +110,15 @@ class BulkFormAccessTest extends UserTestBase {
     $this->assertResponse(200, 'The user "may_delete" may be deleted.');
 
     // Test deleting the accounts "no_delete" and "may_delete".
-    $edit = array(
-      'user_bulk_form[' . ($account->id() -1) . ']' => TRUE,
-      'user_bulk_form[' . ($account2->id() -1) . ']' => TRUE,
+    $edit = [
+      'user_bulk_form[' . ($account->id() - 1) . ']' => TRUE,
+      'user_bulk_form[' . ($account2->id() - 1) . ']' => TRUE,
       'action' => 'user_cancel_user_action',
-    );
-    $this->drupalPostForm('test-user-bulk-form', $edit, t('Apply'));
-    $edit = array(
+    ];
+    $this->drupalPostForm('test-user-bulk-form', $edit, t('Apply to selected items'));
+    $edit = [
       'user_cancel_method' => 'user_cancel_delete',
-    );
+    ];
     $this->drupalPostForm(NULL, $edit, t('Cancel accounts'));
 
     // Ensure the account "no_delete" still exists.
@@ -132,4 +128,5 @@ class BulkFormAccessTest extends UserTestBase {
     $account = User::load($account2->id());
     $this->assertNull($account, 'The user "may_delete" is deleted.');
   }
+
 }

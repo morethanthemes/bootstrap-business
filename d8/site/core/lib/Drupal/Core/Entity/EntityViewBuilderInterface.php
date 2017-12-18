@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\EntityViewBuilderInterface.
- */
-
 namespace Drupal\Core\Entity;
 
 use Drupal\Core\Field\FieldItemInterface;
@@ -75,7 +70,7 @@ interface EntityViewBuilderInterface {
    *   comments belongs to, or not passing one, and having the comments node not
    *   be available for loading.
    */
-  public function viewMultiple(array $entities = array(), $view_mode = 'full', $langcode = NULL);
+  public function viewMultiple(array $entities = [], $view_mode = 'full', $langcode = NULL);
 
   /**
    * Resets the entity render cache.
@@ -104,7 +99,7 @@ interface EntityViewBuilderInterface {
    * @param \Drupal\Core\Field\FieldItemListInterface $items
    *   FieldItemList containing the values to be displayed.
    * @param string|array $display_options
-   *  Can be either:
+   *   Can be either:
    *   - The name of a view mode. The field will be displayed according to the
    *     display settings specified for this view mode in the $field
    *     definition for the field in the entity's bundle. If no display settings
@@ -127,7 +122,7 @@ interface EntityViewBuilderInterface {
    *
    * @see \Drupal\Core\Entity\EntityViewBuilderInterface::viewFieldItem()
    */
-  public function viewField(FieldItemListInterface $items, $display_options = array());
+  public function viewField(FieldItemListInterface $items, $display_options = []);
 
   /**
    * Builds a renderable array for a single field item.
@@ -143,7 +138,7 @@ interface EntityViewBuilderInterface {
    *
    * @see \Drupal\Core\Entity\EntityViewBuilderInterface::viewField()
    */
-  public function viewFieldItem(FieldItemInterface $item, $display_options = array());
+  public function viewFieldItem(FieldItemInterface $item, $display_options = []);
 
   /**
    * The cache tag associated with this entity view builder.

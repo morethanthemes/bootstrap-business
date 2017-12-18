@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\KeyValueStore\KeyValueFactory.
- */
-
 namespace Drupal\Core\KeyValueStore;
 
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -42,10 +37,10 @@ class KeyValueFactory implements KeyValueFactoryInterface {
    *
    * @var array
    */
-  protected $stores = array();
+  protected $stores = [];
 
   /**
-   * var \Symfony\Component\DependencyInjection\ContainerInterface
+   * @var \Symfony\Component\DependencyInjection\ContainerInterface
    */
   protected $container;
 
@@ -55,7 +50,7 @@ class KeyValueFactory implements KeyValueFactoryInterface {
    * @param array $options
    *   (optional) Collection-specific storage override options.
    */
-  function __construct(ContainerInterface $container, array $options = array()) {
+  public function __construct(ContainerInterface $container, array $options = []) {
     $this->container = $container;
     $this->options = $options;
   }
@@ -80,4 +75,3 @@ class KeyValueFactory implements KeyValueFactoryInterface {
   }
 
 }
-

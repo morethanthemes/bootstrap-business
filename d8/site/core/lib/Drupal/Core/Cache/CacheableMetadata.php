@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\Core\Cache\CacheableMetadata.
- */
 
 namespace Drupal\Core\Cache;
 
@@ -10,7 +6,6 @@ namespace Drupal\Core\Cache;
  * Defines a generic class for passing cacheability metadata.
  *
  * @ingroup cache
- *
  */
 class CacheableMetadata implements RefinableCacheableDependencyInterface {
 

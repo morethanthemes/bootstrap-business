@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\Plugin\migrate\source\d7\Role.
- */
-
 namespace Drupal\user\Plugin\migrate\source\d7;
 
 use Drupal\migrate\Row;
@@ -14,7 +9,8 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
  * Drupal 7 role source from database.
  *
  * @MigrateSource(
- *   id = "d7_user_role"
+ *   id = "d7_user_role",
+ *   source_module = "user"
  * )
  */
 class Role extends DrupalSqlBase {
@@ -30,11 +26,11 @@ class Role extends DrupalSqlBase {
    * {@inheritdoc}
    */
   public function fields() {
-    return array(
+    return [
       'rid' => $this->t('Role ID.'),
       'name' => $this->t('The name of the user role.'),
       'weight' => $this->t('The weight of the role.'),
-    );
+    ];
   }
 
   /**

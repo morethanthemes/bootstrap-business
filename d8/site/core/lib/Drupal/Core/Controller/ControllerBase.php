@@ -1,13 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Controller\ControllerBase.
- */
-
 namespace Drupal\Core\Controller;
 
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
+use Drupal\Core\Logger\LoggerChannelTrait;
 use Drupal\Core\Routing\LinkGeneratorTrait;
 use Drupal\Core\Routing\RedirectDestinationTrait;
 use Drupal\Core\Routing\UrlGeneratorTrait;
@@ -23,8 +19,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * difficult to unit test. Therefore this base class should only be used by
  * controller classes that contain only trivial glue code.  Controllers that
  * contain sufficiently complex logic that it's worth testing should not use
- * this base class but use ContainerInjectionInterface instead, or even better be
- * refactored to be trivial glue code.
+ * this base class but use ContainerInjectionInterface instead, or even
+ * better be refactored to be trivial glue code.
  *
  * The services exposed here are those that it is reasonable for a well-behaved
  * controller to leverage. A controller that needs other services may
@@ -38,6 +34,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 abstract class ControllerBase implements ContainerInjectionInterface {
 
   use LinkGeneratorTrait;
+  use LoggerChannelTrait;
   use RedirectDestinationTrait;
   use StringTranslationTrait;
   use UrlGeneratorTrait;
@@ -73,7 +70,7 @@ abstract class ControllerBase implements ContainerInjectionInterface {
   /**
    * The configuration factory.
    *
-   * @var \Drupal\Core\Config\Config
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
    */
   protected $configFactory;
 
@@ -290,7 +287,7 @@ abstract class ControllerBase implements ContainerInjectionInterface {
    * \Drupal\Core\DependencyInjection\ContainerInjectionInterface should be used
    * for injecting services.
    *
-   * @return \Symfony\Component\DependencyInjection\ContainerInterface $container
+   * @return \Symfony\Component\DependencyInjection\ContainerInterface
    *   The service container.
    */
   private function container() {

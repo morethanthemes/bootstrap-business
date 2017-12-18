@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\serialization\Normalizer\ListNormalizer.
- */
-
 namespace Drupal\serialization\Normalizer;
 
 /**
@@ -28,10 +23,10 @@ class ListNormalizer extends NormalizerBase {
   /**
    * {@inheritdoc}
    */
-  public function normalize($object, $format = NULL, array $context = array()) {
-    $attributes = array();
+  public function normalize($object, $format = NULL, array $context = []) {
+    $attributes = [];
     foreach ($object as $fieldItem) {
-      $attributes[] = $this->serializer->normalize($fieldItem, $format);
+      $attributes[] = $this->serializer->normalize($fieldItem, $format, $context);
     }
     return $attributes;
   }

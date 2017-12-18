@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\KeyValueStore\KeyValueFactoryInterface.
- */
-
 namespace Drupal\Core\KeyValueStore;
 
 /**
@@ -24,4 +19,3 @@ interface KeyValueFactoryInterface {
   public function get($collection);
 
 }
-

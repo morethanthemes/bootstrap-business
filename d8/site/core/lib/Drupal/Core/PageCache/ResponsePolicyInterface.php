@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\PageCache\ResponsePolicyInterface.
- */
-
 namespace Drupal\Core\PageCache;
 
 use Symfony\Component\HttpFoundation\Request;
@@ -32,7 +27,7 @@ interface ResponsePolicyInterface {
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request object.
    *
-   * @return string|NULL
+   * @return string|null
    *   Either static::DENY or NULL. Calling code may attempt to store a page in
    *   the cache unless static::DENY is returned. Returns NULL if the policy
    *   policy is not specified for the given response.

@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\entity_test\EntityTestForm.
- */
 
 namespace Drupal\entity_test;
 
@@ -36,11 +32,11 @@ class EntityTestForm extends ContentEntityForm {
 
     // @todo: Is there a better way to check if an entity type is revisionable?
     if ($entity->getEntityType()->hasKey('revision') && !$entity->isNew()) {
-      $form['revision'] = array(
+      $form['revision'] = [
         '#type' => 'checkbox',
         '#title' => t('Create new revision'),
         '#default_value' => $entity->isNewRevision(),
-      );
+      ];
     }
 
     return $form;
@@ -62,10 +58,10 @@ class EntityTestForm extends ContentEntityForm {
       $entity->save();
 
       if ($is_new) {
-        $message = t('%entity_type @id has been created.', array('@id' => $entity->id(), '%entity_type' => $entity->getEntityTypeId()));
+        $message = t('%entity_type @id has been created.', ['@id' => $entity->id(), '%entity_type' => $entity->getEntityTypeId()]);
       }
       else {
-        $message = t('%entity_type @id has been updated.', array('@id' => $entity->id(), '%entity_type' => $entity->getEntityTypeId()));
+        $message = t('%entity_type @id has been updated.', ['@id' => $entity->id(), '%entity_type' => $entity->getEntityTypeId()]);
       }
       drupal_set_message($message);
 
@@ -73,7 +69,7 @@ class EntityTestForm extends ContentEntityForm {
         $entity_type = $entity->getEntityTypeId();
         $form_state->setRedirect(
           "entity.$entity_type.edit_form",
-          array($entity_type => $entity->id())
+          [$entity_type => $entity->id()]
         );
       }
       else {

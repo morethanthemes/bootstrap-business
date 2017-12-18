@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\Core\StackMiddleware\ReverseProxyMiddleware.
- */
 
 namespace Drupal\Core\StackMiddleware;
 
@@ -77,7 +73,7 @@ class ReverseProxyMiddleware implements HttpKernelInterface {
       $forwarded_header = $settings->get('reverse_proxy_forwarded_header', 'FORWARDED');
       $request::setTrustedHeaderName($request::HEADER_FORWARDED, $forwarded_header);
 
-      $proxies = $settings->get('reverse_proxy_addresses', array());
+      $proxies = $settings->get('reverse_proxy_addresses', []);
       if (count($proxies) > 0) {
         $request::setTrustedProxies($proxies);
       }

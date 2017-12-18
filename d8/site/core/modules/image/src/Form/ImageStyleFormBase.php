@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\image\Form\ImageStyleFormBase.
- */
-
 namespace Drupal\image\Form;
 
 use Drupal\Core\Entity\EntityForm;
@@ -55,20 +50,20 @@ abstract class ImageStyleFormBase extends EntityForm {
    */
   public function form(array $form, FormStateInterface $form_state) {
 
-    $form['label'] = array(
+    $form['label'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Image style name'),
       '#default_value' => $this->entity->label(),
       '#required' => TRUE,
-    );
-    $form['name'] = array(
+    ];
+    $form['name'] = [
       '#type' => 'machine_name',
-      '#machine_name' => array(
-        'exists' => array($this->imageStyleStorage, 'load'),
-      ),
+      '#machine_name' => [
+        'exists' => [$this->imageStyleStorage, 'load'],
+      ],
       '#default_value' => $this->entity->id(),
       '#required' => TRUE,
-    );
+    ];
 
     return parent::form($form, $form_state);
   }

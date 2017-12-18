@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\TypedData\MapDataDefinition.
- */
-
 namespace Drupal\Core\TypedData;
 
 /**
@@ -44,7 +39,7 @@ class MapDataDefinition extends ComplexDataDefinitionBase {
    */
   public function getPropertyDefinitions() {
     if (!isset($this->propertyDefinitions)) {
-      $this->propertyDefinitions = array();
+      $this->propertyDefinitions = [];
     }
     return $this->propertyDefinitions;
   }

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\Element\Password.
- */
-
 namespace Drupal\Core\Render\Element;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -13,11 +8,14 @@ use Drupal\Core\Render\Element;
 /**
  * Provides a form element for entering a password, with hidden text.
  *
+ * Properties:
+ * - #size: The size of the input element in characters.
+ *
  * Usage example:
  * @code
  * $form['pass'] = array(
  *   '#type' => 'password',
- *   '#title => t('Password'),
+ *   '#title' => $this->t('Password'),
  *   '#size' => 25,
  * );
  * @endcode
@@ -34,20 +32,20 @@ class Password extends FormElement {
    */
   public function getInfo() {
     $class = get_class($this);
-    return array(
+    return [
       '#input' => TRUE,
       '#size' => 60,
       '#maxlength' => 128,
-      '#process' => array(
-        array($class, 'processAjaxForm'),
-        array($class, 'processPattern'),
-      ),
-      '#pre_render' => array(
-        array($class, 'preRenderPassword'),
-      ),
+      '#process' => [
+        [$class, 'processAjaxForm'],
+        [$class, 'processPattern'],
+      ],
+      '#pre_render' => [
+        [$class, 'preRenderPassword'],
+      ],
       '#theme' => 'input__password',
-      '#theme_wrappers' => array('form_element'),
-    );
+      '#theme_wrappers' => ['form_element'],
+    ];
   }
 
   /**
@@ -63,8 +61,8 @@ class Password extends FormElement {
    */
   public static function preRenderPassword($element) {
     $element['#attributes']['type'] = 'password';
-    Element::setAttributes($element, array('id', 'name', 'size', 'maxlength', 'placeholder'));
-    static::setAttributes($element, array('form-text'));
+    Element::setAttributes($element, ['id', 'name', 'size', 'maxlength', 'placeholder']);
+    static::setAttributes($element, ['form-text']);
 
     return $element;
   }

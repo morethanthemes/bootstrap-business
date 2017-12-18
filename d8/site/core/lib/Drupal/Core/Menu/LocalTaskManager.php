@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Menu\LocalTaskManager.
- */
-
 namespace Drupal\Core\Menu;
 
 use Drupal\Component\Plugin\Exception\PluginException;
@@ -34,11 +29,11 @@ class LocalTaskManager extends DefaultPluginManager implements LocalTaskManagerI
   /**
    * {@inheritdoc}
    */
-  protected $defaults = array(
+  protected $defaults = [
     // (required) The name of the route this task links to.
     'route_name' => '',
     // Parameters for route variables when generating a link.
-    'route_parameters' => array(),
+    'route_parameters' => [],
     // The static title for the local task.
     'title' => '',
     // The route name where the root tab appears.
@@ -48,12 +43,12 @@ class LocalTaskManager extends DefaultPluginManager implements LocalTaskManagerI
     // The weight of the tab.
     'weight' => NULL,
     // The default link options.
-    'options' => array(),
+    'options' => [],
     // Default class for local task implementations.
     'class' => 'Drupal\Core\Menu\LocalTaskDefault',
     // The plugin id. Set by the plugin system based on the top-level YAML key.
     'id' => '',
-  );
+  ];
 
   /**
    * A controller resolver object.
@@ -81,7 +76,7 @@ class LocalTaskManager extends DefaultPluginManager implements LocalTaskManagerI
    *
    * @var array
    */
-  protected $instances = array();
+  protected $instances = [];
 
   /**
    * The local task render arrays for the current route.
@@ -143,7 +138,7 @@ class LocalTaskManager extends DefaultPluginManager implements LocalTaskManagerI
     $this->account = $account;
     $this->moduleHandler = $module_handler;
     $this->alterInfo('local_tasks');
-    $this->setCacheBackend($cache, 'local_task_plugins:' . $language_manager->getCurrentLanguage()->getId(), array('local_task'));
+    $this->setCacheBackend($cache, 'local_task_plugins:' . $language_manager->getCurrentLanguage()->getId(), ['local_task']);
   }
 
   /**
@@ -163,7 +158,7 @@ class LocalTaskManager extends DefaultPluginManager implements LocalTaskManagerI
    */
   public function processDefinition(&$definition, $plugin_id) {
     parent::processDefinition($definition, $plugin_id);
-     // If there is no route name, this is a broken definition.
+    // If there is no route name, this is a broken definition.
     if (empty($definition['route_name'])) {
       throw new PluginException(sprintf('Plugin (%s) definition must include "route_name"', $plugin_id));
     }
@@ -173,7 +168,7 @@ class LocalTaskManager extends DefaultPluginManager implements LocalTaskManagerI
    * {@inheritdoc}
    */
   public function getTitle(LocalTaskInterface $local_task) {
-    $controller = array($local_task, 'getTitle');
+    $controller = [$local_task, 'getTitle'];
     $request = $this->requestStack->getCurrentRequest();
     $arguments = $this->controllerResolver->getArguments($request, $controller);
     return call_user_func_array($controller, $arguments);
@@ -183,7 +178,7 @@ class LocalTaskManager extends DefaultPluginManager implements LocalTaskManagerI
    * {@inheritdoc}
    */
   public function getDefinitions() {
-    $definitions =  parent::getDefinitions();
+    $definitions = parent::getDefinitions();
 
     $count = 0;
     foreach ($definitions as &$definition) {
@@ -201,7 +196,7 @@ class LocalTaskManager extends DefaultPluginManager implements LocalTaskManagerI
    */
   public function getLocalTasksForRoute($route_name) {
     if (!isset($this->instances[$route_name])) {
-      $this->instances[$route_name] = array();
+      $this->instances[$route_name] = [];
       if ($cache = $this->cacheBackend->get($this->cacheKey . ':' . $route_name)) {
         $base_routes = $cache->data['base_routes'];
         $parents = $cache->data['parents'];
@@ -211,9 +206,9 @@ class LocalTaskManager extends DefaultPluginManager implements LocalTaskManagerI
         $definitions = $this->getDefinitions();
         // We build the hierarchy by finding all tabs that should
         // appear on the current route.
-        $base_routes = array();
-        $parents = array();
-        $children = array();
+        $base_routes = [];
+        $parents = [];
+        $children = [];
         foreach ($definitions as $plugin_id => $task_info) {
           // Fill in the base_route from the parent to insure consistency.
           if (!empty($task_info['parent_id']) && !empty($definitions[$task_info['parent_id']])) {
@@ -223,7 +218,7 @@ class LocalTaskManager extends DefaultPluginManager implements LocalTaskManagerI
             $definitions[$plugin_id]['base_route'] = $definitions[$task_info['parent_id']]['base_route'];
           }
           if ($route_name == $task_info['route_name']) {
-            if(!empty($task_info['base_route'])) {
+            if (!empty($task_info['base_route'])) {
               $base_routes[$task_info['base_route']] = $task_info['base_route'];
             }
             // Tabs that link to the current route are viable parents
@@ -239,7 +234,7 @@ class LocalTaskManager extends DefaultPluginManager implements LocalTaskManagerI
         if ($base_routes) {
           // Find all the plugins with the same root and that are at the top
           // level or that have a visible parent.
-          foreach ($definitions  as $plugin_id => $task_info) {
+          foreach ($definitions as $plugin_id => $task_info) {
             if (!empty($base_routes[$task_info['base_route']]) && (empty($task_info['parent_id']) || !empty($parents[$task_info['parent_id']]))) {
               // Concat '> ' with root ID for the parent of top-level tabs.
               $parent = empty($task_info['parent_id']) ? '> ' . $task_info['base_route'] : $task_info['parent_id'];
@@ -247,11 +242,11 @@ class LocalTaskManager extends DefaultPluginManager implements LocalTaskManagerI
             }
           }
         }
-        $data = array(
+        $data = [
           'base_routes' => $base_routes,
           'parents' => $parents,
           'children' => $children,
-        );
+        ];
         $this->cacheBackend->set($this->cacheKey . ':' . $route_name, $data, Cache::PERMANENT, $this->cacheTags);
       }
       // Create a plugin instance for each element of the hierarchy.
@@ -293,10 +288,10 @@ class LocalTaskManager extends DefaultPluginManager implements LocalTaskManagerI
    */
   public function getTasksBuild($current_route_name, RefinableCacheableDependencyInterface &$cacheability) {
     $tree = $this->getLocalTasksForRoute($current_route_name);
-    $build = array();
+    $build = [];
 
     // Collect all route names.
-    $route_names = array();
+    $route_names = [];
     foreach ($tree as $instances) {
       foreach ($instances as $child) {
         $route_names[] = $child->getRouteName();

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\config\Form\ConfigImportForm.
- */
-
 namespace Drupal\config\Form;
 
 use Drupal\Core\Archiver\ArchiveTar;
@@ -55,16 +50,22 @@ class ConfigImportForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    $form['import_tarball'] = array(
+    $directory = config_get_config_directory(CONFIG_SYNC_DIRECTORY);
+    $directory_is_writable = is_writable($directory);
+    if (!$directory_is_writable) {
+      drupal_set_message($this->t('The directory %directory is not writable.', ['%directory' => $directory]), 'error');
+    }
+    $form['import_tarball'] = [
       '#type' => 'file',
       '#title' => $this->t('Configuration archive'),
-      '#description' => $this->t('Allowed types: @extensions.', array('@extensions' => 'tar.gz tgz tar.bz2')),
-    );
+      '#description' => $this->t('Allowed types: @extensions.', ['@extensions' => 'tar.gz tgz tar.bz2']),
+    ];
 
-    $form['submit'] = array(
+    $form['submit'] = [
       '#type' => 'submit',
       '#value' => $this->t('Upload'),
-    );
+      '#disabled' => !$directory_is_writable,
+    ];
     return $form;
   }
 
@@ -72,13 +73,16 @@ class ConfigImportForm extends FormBase {
    * {@inheritdoc}
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
-    $file_upload = $this->getRequest()->files->get('files[import_tarball]', NULL, TRUE);
-    if ($file_upload && $file_upload->isValid()) {
-      $form_state->setValue('import_tarball', $file_upload->getRealPath());
+    $all_files = $this->getRequest()->files->get('files', []);
+    if (!empty($all_files['import_tarball'])) {
+      $file_upload = $all_files['import_tarball'];
+      if ($file_upload->isValid()) {
+        $form_state->setValue('import_tarball', $file_upload->getRealPath());
+        return;
+      }
     }
-    else {
-      $form_state->setErrorByName('import_tarball', $this->t('The file could not be uploaded.'));
-    }
+
+    $form_state->setErrorByName('import_tarball', $this->t('The file could not be uploaded.'));
   }
 
   /**
@@ -89,7 +93,7 @@ class ConfigImportForm extends FormBase {
       $this->configStorage->deleteAll();
       try {
         $archiver = new ArchiveTar($path, 'gz');
-        $files = array();
+        $files = [];
         foreach ($archiver->listContent() as $file) {
           $files[] = $file['filename'];
         }
@@ -98,11 +102,10 @@ class ConfigImportForm extends FormBase {
         $form_state->setRedirect('config.sync');
       }
       catch (\Exception $e) {
-        drupal_set_message($this->t('Could not extract the contents of the tar file. The error message is <em>@message</em>', array('@message' => $e->getMessage())), 'error');
+        drupal_set_message($this->t('Could not extract the contents of the tar file. The error message is <em>@message</em>', ['@message' => $e->getMessage()]), 'error');
       }
       drupal_unlink($path);
     }
   }
 
 }
-

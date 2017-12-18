@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\Plugin\views\field\UserData.
- */
-
 namespace Drupal\user\Plugin\views\field;
 
 use Drupal\Core\Extension\ModuleHandlerInterface;
@@ -63,8 +58,8 @@ class UserData extends FieldPluginBase {
   protected function defineOptions() {
     $options = parent::defineOptions();
 
-    $options['data_module'] = array('default' => '');
-    $options['data_name'] = array('default' => '');
+    $options['data_module'] = ['default' => ''];
+    $options['data_name'] = ['default' => ''];
 
     return $options;
   }
@@ -76,25 +71,25 @@ class UserData extends FieldPluginBase {
     parent::buildOptionsForm($form, $form_state);
 
     $modules = $this->moduleHandler->getModuleList();
-    $names = array();
+    $names = [];
     foreach (array_keys($modules) as $name) {
       $names[$name] = $this->moduleHandler->getName($name);
     }
 
-    $form['data_module'] = array(
+    $form['data_module'] = [
       '#title' => $this->t('Module name'),
       '#type' => 'select',
       '#description' => $this->t('The module which sets this user data.'),
       '#default_value' => $this->options['data_module'],
       '#options' => $names,
-    );
+    ];
 
-    $form['data_name'] = array(
+    $form['data_name'] = [
       '#title' => $this->t('Name'),
       '#type' => 'textfield',
       '#description' => $this->t('The name of the data key.'),
       '#default_value' => $this->options['data_name'],
-    );
+    ];
   }
 
   /**

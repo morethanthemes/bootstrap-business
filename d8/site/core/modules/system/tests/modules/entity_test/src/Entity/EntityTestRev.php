@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\entity_test\Entity\EntityTestRev.
- */
-
 namespace Drupal\entity_test\Entity;
 
 use Drupal\Core\Entity\EntityTypeInterface;
@@ -33,6 +28,7 @@ use Drupal\Core\Field\BaseFieldDefinition;
  *   base_table = "entity_test_rev",
  *   revision_table = "entity_test_rev_revision",
  *   admin_permission = "administer entity_test content",
+ *   show_revision_ui = TRUE,
  *   entity_keys = {
  *     "id" = "id",
  *     "uuid" = "uuid",
@@ -42,6 +38,7 @@ use Drupal\Core\Field\BaseFieldDefinition;
  *     "langcode" = "langcode",
  *   },
  *   links = {
+ *     "add-form" = "/entity_test_rev/add",
  *     "canonical" = "/entity_test_rev/manage/{entity_test_rev}",
  *     "delete-form" = "/entity_test/delete/entity_test_rev/{entity_test_rev}",
  *     "edit-form" = "/entity_test_rev/manage/{entity_test_rev}/edit",
@@ -57,15 +54,16 @@ class EntityTestRev extends EntityTest {
   public static function baseFieldDefinitions(EntityTypeInterface $entity_type) {
     $fields = parent::baseFieldDefinitions($entity_type);
 
-    $fields['revision_id'] = BaseFieldDefinition::create('integer')
-      ->setLabel(t('Revision ID'))
-      ->setDescription(t('The version id of the test entity.'))
-      ->setReadOnly(TRUE)
-      ->setSetting('unsigned', TRUE);
-
-    $fields['langcode']->setRevisionable(TRUE);
     $fields['name']->setRevisionable(TRUE);
     $fields['user_id']->setRevisionable(TRUE);
+
+    $fields['non_rev_field'] = BaseFieldDefinition::create('string')
+      ->setLabel(t('Non Revisionable Field'))
+      ->setDescription(t('A non-revisionable test field.'))
+      ->setRevisionable(FALSE)
+      ->setTranslatable(TRUE)
+      ->setCardinality(1)
+      ->setReadOnly(TRUE);
 
     return $fields;
   }

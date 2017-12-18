@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\Gettext\PoMemoryWriter.
- */
-
 namespace Drupal\Component\Gettext;
 
 /**
@@ -22,8 +17,8 @@ class PoMemoryWriter implements PoWriterInterface {
   /**
    * Constructor, initialize empty items.
    */
-  function __construct() {
-    $this->_items = array();
+  public function __construct() {
+    $this->_items = [];
   }
 
   /**
@@ -62,7 +57,7 @@ class PoMemoryWriter implements PoWriterInterface {
    *
    * Not implemented. Not relevant for the MemoryWriter.
    */
-  function setLangcode($langcode) {
+  public function setLangcode($langcode) {
   }
 
   /**
@@ -70,7 +65,7 @@ class PoMemoryWriter implements PoWriterInterface {
    *
    * Not implemented. Not relevant for the MemoryWriter.
    */
-  function getLangcode() {
+  public function getLangcode() {
   }
 
   /**
@@ -78,7 +73,7 @@ class PoMemoryWriter implements PoWriterInterface {
    *
    * Not implemented. Not relevant for the MemoryWriter.
    */
-  function getHeader() {
+  public function getHeader() {
   }
 
   /**
@@ -86,7 +81,7 @@ class PoMemoryWriter implements PoWriterInterface {
    *
    * Not implemented. Not relevant for the MemoryWriter.
    */
-  function setHeader(PoHeader $header) {
+  public function setHeader(PoHeader $header) {
   }
 
 }

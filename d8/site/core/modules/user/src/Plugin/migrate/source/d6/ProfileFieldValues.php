@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\Plugin\migrate\source\d6\ProfileFieldValues.
- */
-
 namespace Drupal\user\Plugin\migrate\source\d6;
 
 use Drupal\migrate\Row;
@@ -15,7 +10,7 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
  *
  * @MigrateSource(
  *   id = "d6_profile_field_values",
- *   source_provider = "profile"
+ *   source_module = "profile"
  * )
  */
 class ProfileFieldValues extends DrupalSqlBase {
@@ -26,7 +21,7 @@ class ProfileFieldValues extends DrupalSqlBase {
   public function query() {
     $query = $this->select('profile_values', 'pv')
       ->distinct()
-      ->fields('pv', array('fid', 'uid'));
+      ->fields('pv', ['uid']);
 
     return $query;
   }
@@ -37,9 +32,9 @@ class ProfileFieldValues extends DrupalSqlBase {
   public function prepareRow(Row $row) {
     // Find profile values for this row.
     $query = $this->select('profile_values', 'pv')
-      ->fields('pv', array('fid', 'value'));
+      ->fields('pv', ['fid', 'value']);
     $query->leftJoin('profile_fields', 'pf', 'pf.fid=pv.fid');
-    $query->fields('pf', array('name', 'type'));
+    $query->fields('pf', ['name', 'type']);
     $query->condition('uid', $row->getSourceProperty('uid'));
     $results = $query->execute();
 
@@ -48,14 +43,14 @@ class ProfileFieldValues extends DrupalSqlBase {
       if ($profile_value['type'] == 'date') {
         $date = unserialize($profile_value['value']);
         $date = date('Y-m-d', mktime(0, 0, 0, $date['month'], $date['day'], $date['year']));
-        $row->setSourceProperty($profile_value['name'], array('value' => $date));
+        $row->setSourceProperty($profile_value['name'], ['value' => $date]);
       }
       elseif ($profile_value['type'] == 'list') {
         // Explode by newline and comma.
         $row->setSourceProperty($profile_value['name'], preg_split("/[\r\n,]+/", $profile_value['value']));
       }
       else {
-        $row->setSourceProperty($profile_value['name'], array($profile_value['value']));
+        $row->setSourceProperty($profile_value['name'], [$profile_value['value']]);
       }
     }
 
@@ -66,16 +61,16 @@ class ProfileFieldValues extends DrupalSqlBase {
    * {@inheritdoc}
    */
   public function fields() {
-    $fields = array(
+    $fields = [
       'fid' => $this->t('Unique profile field ID.'),
       'uid' => $this->t('The user Id.'),
       'value' => $this->t('The value for this field.'),
-    );
+    ];
 
     $query = $this->select('profile_values', 'pv')
-      ->fields('pv', array('fid', 'value'));
+      ->fields('pv', ['fid', 'value']);
     $query->leftJoin('profile_fields', 'pf', 'pf.fid=pv.fid');
-    $query->fields('pf', array('name', 'title'));
+    $query->fields('pf', ['name', 'title']);
     $results = $query->execute();
     foreach ($results as $profile) {
       $fields[$profile['name']] = $this->t($profile['title']);
@@ -88,12 +83,12 @@ class ProfileFieldValues extends DrupalSqlBase {
    * {@inheritdoc}
    */
   public function getIds() {
-    return array(
-      'uid' => array(
+    return [
+      'uid' => [
         'type' => 'integer',
         'alias' => 'pv',
-      ),
-    );
+      ],
+    ];
   }
 
 }

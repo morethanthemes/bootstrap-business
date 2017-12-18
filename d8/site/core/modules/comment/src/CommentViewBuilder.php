@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\comment\CommentViewBuilder.
- */
-
 namespace Drupal\comment;
 
 use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
@@ -13,12 +8,11 @@ use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\EntityViewBuilder;
 use Drupal\Core\Language\LanguageManagerInterface;
-use Drupal\Core\Render\Element;
 use Drupal\Core\Session\AccountInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Render controller for comments.
+ * View builder handler for comments.
  */
 class CommentViewBuilder extends EntityViewBuilder {
 
@@ -94,7 +88,7 @@ class CommentViewBuilder extends EntityViewBuilder {
     }
 
     // Pre-load associated users into cache to leverage multiple loading.
-    $uids = array();
+    $uids = [];
     foreach ($entities as $entity) {
       $uids[] = $entity->getOwnerId();
     }
@@ -131,19 +125,22 @@ class CommentViewBuilder extends EntityViewBuilder {
 
       $display = $displays[$entity->bundle()];
       if ($display->getComponent('links')) {
-        $build[$id]['links'] = array(
-          '#lazy_builder' => ['comment.lazy_builders:renderLinks', [
-            $entity->id(),
-            $view_mode,
-            $entity->language()->getId(),
-            !empty($entity->in_preview),
-          ]],
+        $build[$id]['links'] = [
+          '#lazy_builder' => [
+            'comment.lazy_builders:renderLinks',
+            [
+              $entity->id(),
+              $view_mode,
+              $entity->language()->getId(),
+              !empty($entity->in_preview),
+            ],
+          ],
           '#create_placeholder' => TRUE,
-        );
+        ];
       }
 
       if (!isset($build[$id]['#attached'])) {
-        $build[$id]['#attached'] = array();
+        $build[$id]['#attached'] = [];
       }
       $build[$id]['#attached']['library'][] = 'comment/drupal.comment-by-viewer';
       if ($this->moduleHandler->moduleExists('history') && $this->currentUser->isAuthenticated()) {

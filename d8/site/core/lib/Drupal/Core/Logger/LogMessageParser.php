@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Logger\LogMessageParser.
- */
-
 namespace Drupal\Core\Logger;
 
 /**
@@ -16,7 +11,7 @@ class LogMessageParser implements LogMessageParserInterface {
    * {@inheritdoc}
    */
   public function parseMessagePlaceholders(&$message, array &$context) {
-    $variables = array();
+    $variables = [];
     $has_psr3 = FALSE;
     if (($start = strpos($message, '{')) !== FALSE && strpos($message, '}') > $start) {
       $has_psr3 = TRUE;

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\statistics\Tests\Views\IntegrationTest.
- */
-
 namespace Drupal\statistics\Tests\Views;
 
 use Drupal\views\Tests\ViewTestBase;
@@ -24,7 +19,7 @@ class IntegrationTest extends ViewTestBase {
    *
    * @var array
    */
-  public static $modules = array('statistics', 'statistics_test_views', 'node');
+  public static $modules = ['statistics', 'statistics_test_views', 'node'];
 
   /**
    * Stores the user object that accesses the page.
@@ -45,39 +40,42 @@ class IntegrationTest extends ViewTestBase {
    *
    * @var array
    */
-  public static $testViews = array('test_statistics_integration');
+  public static $testViews = ['test_statistics_integration'];
 
   protected function setUp() {
     parent::setUp();
 
-    ViewTestData::createTestViews(get_class($this), array('statistics_test_views'));
+    ViewTestData::createTestViews(get_class($this), ['statistics_test_views']);
 
-    // Create a new user for viewing nodes.
-    $this->webUser = $this->drupalCreateUser(array('access content'));
+    // Create a new user for viewing nodes and statistics.
+    $this->webUser = $this->drupalCreateUser(['access content', 'view post access counter']);
 
-    $this->drupalCreateContentType(array('type' => 'page'));
-    $this->node = $this->drupalCreateNode(array('type' => 'page'));
+    // Create a new user for viewing nodes only.
+    $this->deniedUser = $this->drupalCreateUser(['access content']);
 
-    // Enable access logging.
+    $this->drupalCreateContentType(['type' => 'page']);
+    $this->node = $this->drupalCreateNode(['type' => 'page']);
+
+    // Enable counting of content views.
     $this->config('statistics.settings')
-      ->set('access_log.enabled', 1)
       ->set('count_content_views', 1)
       ->save();
 
-    $this->drupalLogin($this->webUser);
   }
 
   /**
    * Tests the integration of the {node_counter} table in views.
    */
   public function testNodeCounterIntegration() {
+    $this->drupalLogin($this->webUser);
+
     $this->drupalGet('node/' . $this->node->id());
     // Manually calling statistics.php, simulating ajax behavior.
     // @see \Drupal\statistics\Tests\StatisticsLoggingTest::testLogging().
     global $base_url;
-    $stats_path = $base_url . '/' . drupal_get_path('module', 'statistics'). '/statistics.php';
-    $client = \Drupal::service('http_client_factory')->fromOptions(['config/curl', array(CURLOPT_TIMEOUT => 10)]);
-    $client->post($stats_path, array('form_params' => array('nid' => $this->node->id())));
+    $stats_path = $base_url . '/' . drupal_get_path('module', 'statistics') . '/statistics.php';
+    $client = \Drupal::httpClient();
+    $client->post($stats_path, ['form_params' => ['nid' => $this->node->id()]]);
     $this->drupalGet('test_statistics_integration');
 
     $expected = statistics_get($this->node->id());
@@ -89,6 +87,17 @@ class IntegrationTest extends ViewTestBase {
       $xpath = "//div[contains(@class, views-field-$field)]/span[@class = 'field-content']";
       $this->assertFieldByXpath($xpath, $value, "The $field output matches the expected.");
     }
+
+    $this->drupalLogout();
+    $this->drupalLogin($this->deniedUser);
+    $this->drupalGet('test_statistics_integration');
+    $this->assertResponse(200);
+
+    foreach ($expected as $field => $value) {
+      $xpath = "//div[contains(@class, views-field-$field)]/span[@class = 'field-content']";
+      $this->assertNoFieldByXpath($xpath, $value, "The $field output is not displayed.");
+    }
+
   }
 
 }

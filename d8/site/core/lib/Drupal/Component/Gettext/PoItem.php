@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\Gettext\PoItem.
- */
-
 namespace Drupal\Component\Gettext;
 
 /**
@@ -18,7 +13,7 @@ class PoItem {
   /**
    * The language code this translation is in.
    *
-   * @car string
+   * @var string
    */
   private $_langcode;
 
@@ -32,7 +27,8 @@ class PoItem {
   /**
    * The source string or array of strings if it has plurals.
    *
-   * @var string or array
+   * @var string|array
+   *
    * @see $_plural
    */
   private $_source;
@@ -54,7 +50,7 @@ class PoItem {
   /**
    * The translation string or array of strings if it has plurals.
    *
-   * @var string or array
+   * @var string|array
    * @see $_plural
    */
   private $_translation;
@@ -64,7 +60,7 @@ class PoItem {
    *
    * @return string with langcode
    */
-  function getLangcode() {
+  public function getLangcode() {
     return $this->_langcode;
   }
 
@@ -73,7 +69,7 @@ class PoItem {
    *
    * @param string $langcode
    */
-  function setLangcode($langcode) {
+  public function setLangcode($langcode) {
     $this->_langcode = $langcode;
   }
 
@@ -82,7 +78,7 @@ class PoItem {
    *
    * @return string $context
    */
-  function getContext() {
+  public function getContext() {
     return $this->_context;
   }
 
@@ -91,7 +87,7 @@ class PoItem {
    *
    * @param string $context
    */
-  function setContext($context) {
+  public function setContext($context) {
     $this->_context = $context;
   }
 
@@ -101,7 +97,7 @@ class PoItem {
    *
    * @return string or array $translation
    */
-  function getSource() {
+  public function getSource() {
     return $this->_source;
   }
 
@@ -109,9 +105,9 @@ class PoItem {
    * Set the source string or the array of strings if the translation has
    * plurals.
    *
-   * @param string or array $source
+   * @param string|array $source
    */
-  function setSource($source) {
+  public function setSource($source) {
     $this->_source = $source;
   }
 
@@ -121,7 +117,7 @@ class PoItem {
    *
    * @return string or array $translation
    */
-  function getTranslation() {
+  public function getTranslation() {
     return $this->_translation;
   }
 
@@ -129,9 +125,9 @@ class PoItem {
    * Set the translation string or the array of strings if the translation has
    * plurals.
    *
-   * @param string or array $translation
+   * @param string|array $translation
    */
-  function setTranslation($translation) {
+  public function setTranslation($translation) {
     $this->_translation = $translation;
   }
 
@@ -140,7 +136,7 @@ class PoItem {
    *
    * @param bool $plural
    */
-  function setPlural($plural) {
+  public function setPlural($plural) {
     $this->_plural = $plural;
   }
 
@@ -149,7 +145,7 @@ class PoItem {
    *
    * @return bool
    */
-  function isPlural() {
+  public function isPlural() {
     return $this->_plural;
   }
 
@@ -158,25 +154,25 @@ class PoItem {
    *
    * @return String $comment
    */
-  function getComment() {
+  public function getComment() {
     return $this->_comment;
   }
 
   /**
    * Set the comment of this translation.
    *
-   * @param String $comment
+   * @param string $comment
    */
-  function setComment($comment) {
+  public function setComment($comment) {
     $this->_comment = $comment;
   }
 
   /**
    * Create the PoItem from a structured array.
    *
-   * @param array values
+   * @param array $values
    */
-  public function setFromArray(array $values = array()) {
+  public function setFromArray(array $values = []) {
     if (isset($values['context'])) {
       $this->setContext($values['context']);
     }
@@ -186,7 +182,7 @@ class PoItem {
     if (isset($values['translation'])) {
       $this->setTranslation($values['translation']);
     }
-    if (isset($values['comment'])){
+    if (isset($values['comment'])) {
       $this->setComment($values['comment']);
     }
     if (isset($this->_source) &&

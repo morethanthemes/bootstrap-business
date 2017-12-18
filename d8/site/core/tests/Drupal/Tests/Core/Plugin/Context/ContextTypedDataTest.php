@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Plugin\Context\ContextTypedDataTest.
- */
-
 namespace Drupal\Tests\Core\Plugin\Context;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;
@@ -12,6 +7,7 @@ use Drupal\Core\Plugin\Context\Context;
 use Drupal\Core\Plugin\Context\ContextDefinition;
 use Drupal\Core\TypedData\DataDefinition;
 use Drupal\Core\TypedData\Plugin\DataType\StringData;
+use Drupal\Core\TypedData\TypedDataManagerInterface;
 use Drupal\Tests\UnitTestCase;
 
 /**
@@ -39,12 +35,10 @@ class ContextTypedDataTest extends UnitTestCase {
    */
   public function testGetContextValue() {
     // Prepare a container that holds the typed data manager mock.
-    $typed_data_manager = $this->getMockBuilder('Drupal\Core\TypedData\TypedDataManager')
-      ->disableOriginalConstructor()
-      ->getMock();
+    $typed_data_manager = $this->getMock(TypedDataManagerInterface::class);
     $typed_data_manager->expects($this->once())
       ->method('getCanonicalRepresentation')
-      ->will($this->returnCallback(array($this, 'getCanonicalRepresentation')));
+      ->will($this->returnCallback([$this, 'getCanonicalRepresentation']));
     $container = new ContainerBuilder();
     $container->set('typed_data_manager', $typed_data_manager);
     \Drupal::setContainer($container);

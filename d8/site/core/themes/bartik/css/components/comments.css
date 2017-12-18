@@ -49,7 +49,6 @@
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 0.733em;
   line-height: 1.2;
-
 }
 .comment__permalink {
   font-size: 0.733em;
@@ -104,9 +103,6 @@
   margin-top: 0.94em;
   margin-bottom: 0.45em;
   font-size: 1.171em;
-}
-.comment__content nav {
-  padding-top: 1px;
 }
 .indented {
   margin-left: 40px; /* LTR */

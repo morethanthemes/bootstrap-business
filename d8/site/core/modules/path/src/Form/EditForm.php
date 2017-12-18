@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\path\Form\EditForm.
- */
-
 namespace Drupal\path\Form;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -26,7 +21,7 @@ class EditForm extends PathFormBase {
    * {@inheritdoc}
    */
   protected function buildPath($pid) {
-    return $this->aliasStorage->load(array('pid' => $pid));
+    return $this->aliasStorage->load(['pid' => $pid]);
   }
 
   /**
@@ -36,32 +31,29 @@ class EditForm extends PathFormBase {
     $form = parent::buildForm($form, $form_state, $pid);
 
     $form['#title'] = $this->path['alias'];
-    $form['pid'] = array(
+    $form['pid'] = [
       '#type' => 'hidden',
       '#value' => $this->path['pid'],
-    );
-    $form['actions']['delete'] = array(
-      '#type' => 'submit',
-      '#value' => $this->t('Delete'),
-      '#submit' => array('::deleteSubmit'),
-    );
-    return $form;
-  }
+    ];
 
-  /**
-   * Submits the delete form.
-   */
-  public function deleteSubmit(array &$form, FormStateInterface $form_state) {
-    $url = new Url('path.delete', array(
-      'pid' => $form_state->getValue('pid'),
-    ));
+    $url = new Url('path.delete', [
+      'pid' => $this->path['pid'],
+    ]);
 
     if ($this->getRequest()->query->has('destination')) {
       $url->setOption('query', $this->getDestinationArray());
-      $this->getRequest()->query->remove('destination');
     }
 
-    $form_state->setRedirectUrl($url);
+    $form['actions']['delete'] = [
+      '#type' => 'link',
+      '#title' => $this->t('Delete'),
+      '#url' => $url,
+      '#attributes' => [
+        'class' => ['button', 'button--danger'],
+      ],
+    ];
+
+    return $form;
   }
 
 }

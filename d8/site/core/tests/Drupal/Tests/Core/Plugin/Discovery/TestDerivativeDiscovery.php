@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Plugin\Discovery\TestDerivativeDiscovery.
- */
-
 namespace Drupal\Tests\Core\Plugin\Discovery;
 
 use Drupal\Component\Plugin\Derivative\DeriverInterface;
@@ -26,7 +21,7 @@ class TestDerivativeDiscovery implements DeriverInterface {
    * {@inheritdoc}
    */
   public function getDerivativeDefinitions($base_plugin_definition) {
-    $plugins = array();
+    $plugins = [];
     for ($i = 0; $i < 2; $i++) {
       $plugins['test_discovery_' . $i] = $base_plugin_definition;
     }

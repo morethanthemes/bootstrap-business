@@ -1,20 +1,15 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Component\FileCache\FileCacheTest.
- */
-
 namespace Drupal\Tests\Component\FileCache;
 
 use Drupal\Component\FileCache\FileCache;
-use Drupal\Tests\UnitTestCase;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @coversDefaultClass \Drupal\Component\FileCache\FileCache
  * @group FileCache
  */
-class FileCacheTest extends UnitTestCase {
+class FileCacheTest extends TestCase {
 
   /**
    * FileCache object used for the tests.

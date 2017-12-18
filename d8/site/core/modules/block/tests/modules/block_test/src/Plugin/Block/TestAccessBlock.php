@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\block_test\Plugin\Block\TestAccessBlock.
- */
-
 namespace Drupal\block_test\Plugin\Block;
 
 use Drupal\Core\Access\AccessResult;
@@ -81,4 +76,3 @@ class TestAccessBlock extends BlockBase implements ContainerFactoryPluginInterfa
   }
 
 }
-

@@ -1,16 +1,14 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Cache\ChainedFastBackendFactory.
- */
-
 namespace Drupal\Core\Cache;
+
 use Drupal\Core\Site\Settings;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 
 /**
  * Defines the chained fast cache backend factory.
+ *
+ * @see \Drupal\Core\Cache\ChainedFastBackend
  */
 class ChainedFastBackendFactory implements CacheFactoryInterface {
 
@@ -33,14 +31,14 @@ class ChainedFastBackendFactory implements CacheFactoryInterface {
   /**
    * Constructs ChainedFastBackendFactory object.
    *
-   * @param \Drupal\Core\Site\Settings|NULL $settings
+   * @param \Drupal\Core\Site\Settings|null $settings
    *   (optional) The settings object.
-   * @param string|NULL $consistent_service_name
+   * @param string|null $consistent_service_name
    *   (optional) The service name of the consistent backend factory. Defaults
    *   to:
    *   - $settings->get('cache')['default'] (if specified)
    *   - 'cache.backend.database' (if the above isn't specified)
-   * @param string|NULL $fast_service_name
+   * @param string|null $fast_service_name
    *   (optional) The service name of the fast backend factory. Defaults to:
    *   - 'cache.backend.apcu' (if the PHP process has APCu enabled)
    *   - NULL (if the PHP process doesn't have APCu enabled)
@@ -48,7 +46,7 @@ class ChainedFastBackendFactory implements CacheFactoryInterface {
   public function __construct(Settings $settings = NULL, $consistent_service_name = NULL, $fast_service_name = NULL) {
     // Default the consistent backend to the site's default backend.
     if (!isset($consistent_service_name)) {
-      $cache_settings = isset($settings) ? $settings->get('cache') : array();
+      $cache_settings = isset($settings) ? $settings->get('cache') : [];
       $consistent_service_name = isset($cache_settings['default']) ? $cache_settings['default'] : 'cache.backend.database';
     }
 

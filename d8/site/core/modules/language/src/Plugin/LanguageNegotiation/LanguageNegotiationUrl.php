@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\language\Plugin\LanguageNegotiation\LanguageNegotiationUrl.
- */
-
 namespace Drupal\language\Plugin\LanguageNegotiation;
 
 use Drupal\Core\Language\LanguageInterface;
@@ -85,7 +80,7 @@ class LanguageNegotiationUrl extends LanguageNegotiationMethodBase implements In
             if (!empty($config['domains'][$language->getId()])) {
               // Ensure that there is exactly one protocol in the URL when
               // checking the hostname.
-              $host = 'http://' . str_replace(array('http://', 'https://'), '', $config['domains'][$language->getId()]);
+              $host = 'http://' . str_replace(['http://', 'https://'], '', $config['domains'][$language->getId()]);
               $host = parse_url($host, PHP_URL_HOST);
               if ($http_host == $host) {
                 $langcode = $language->getId();
@@ -105,15 +100,18 @@ class LanguageNegotiationUrl extends LanguageNegotiationMethodBase implements In
    */
   public function processInbound($path, Request $request) {
     $config = $this->config->get('language.negotiation')->get('url');
-    $parts = explode('/', trim($path, '/'));
-    $prefix = array_shift($parts);
 
-    // Search prefix within added languages.
-    foreach ($this->languageManager->getLanguages() as $language) {
-      if (isset($config['prefixes'][$language->getId()]) && $config['prefixes'][$language->getId()] == $prefix) {
-        // Rebuild $path with the language removed.
-        $path = '/' . implode('/', $parts);
-        break;
+    if ($config['source'] == LanguageNegotiationUrl::CONFIG_PATH_PREFIX) {
+      $parts = explode('/', trim($path, '/'));
+      $prefix = array_shift($parts);
+
+      // Search prefix within added languages.
+      foreach ($this->languageManager->getLanguages() as $language) {
+        if (isset($config['prefixes'][$language->getId()]) && $config['prefixes'][$language->getId()] == $prefix) {
+          // Rebuild $path with the language removed.
+          $path = '/' . implode('/', $parts);
+          break;
+        }
       }
     }
 
@@ -123,7 +121,7 @@ class LanguageNegotiationUrl extends LanguageNegotiationMethodBase implements In
   /**
    * {@inheritdoc}
    */
-  public function processOutbound($path, &$options = array(), Request $request = NULL, BubbleableMetadata $bubbleable_metadata = NULL) {
+  public function processOutbound($path, &$options = [], Request $request = NULL, BubbleableMetadata $bubbleable_metadata = NULL) {
     $url_scheme = 'http';
     $port = 80;
     if ($request) {
@@ -149,14 +147,14 @@ class LanguageNegotiationUrl extends LanguageNegotiationMethodBase implements In
         }
       }
     }
-    elseif ($config['source'] ==  LanguageNegotiationUrl::CONFIG_DOMAIN) {
+    elseif ($config['source'] == LanguageNegotiationUrl::CONFIG_DOMAIN) {
       if (is_object($options['language']) && !empty($config['domains'][$options['language']->getId()])) {
 
         // Save the original base URL. If it contains a port, we need to
         // retain it below.
         if (!empty($options['base_url'])) {
           // The colon in the URL scheme messes up the port checking below.
-          $normalized_base_url = str_replace(array('https://', 'http://'), '', $options['base_url']);
+          $normalized_base_url = str_replace(['https://', 'http://'], '', $options['base_url']);
         }
 
         // Ask for an absolute URL with our modified base URL.
@@ -196,18 +194,20 @@ class LanguageNegotiationUrl extends LanguageNegotiationMethodBase implements In
    * {@inheritdoc}
    */
   public function getLanguageSwitchLinks(Request $request, $type, Url $url) {
-    $links = array();
+    $links = [];
+    $query = $request->query->all();
 
     foreach ($this->languageManager->getNativeLanguages() as $language) {
-      $links[$language->getId()] = array(
+      $links[$language->getId()] = [
         // We need to clone the $url object to avoid using the same one for all
         // links. When the links are rendered, options are set on the $url
         // object, so if we use the same one, they would be set for all links.
         'url' => clone $url,
         'title' => $language->getName(),
         'language' => $language,
-        'attributes' => array('class' => array('language-link')),
-      );
+        'attributes' => ['class' => ['language-link']],
+        'query' => $query,
+      ];
     }
 
     return $links;

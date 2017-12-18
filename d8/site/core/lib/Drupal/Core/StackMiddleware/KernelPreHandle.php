@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\StackMiddleware\KernelPreHandle.
- */
-
 namespace Drupal\Core\StackMiddleware;
 
 use Drupal\Core\DrupalKernelInterface;
@@ -35,7 +30,6 @@ class KernelPreHandle implements HttpKernelInterface {
    *
    * @param \Symfony\Component\HttpKernel\HttpKernelInterface $http_kernel
    *   The wrapped HTTP kernel.
-   *
    * @param \Drupal\Core\DrupalKernelInterface $drupal_kernel
    *   The main Drupal kernel.
    */
@@ -54,4 +48,3 @@ class KernelPreHandle implements HttpKernelInterface {
   }
 
 }
-

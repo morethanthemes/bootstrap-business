@@ -1,12 +1,8 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\DrupalKernel\DiscoverServiceProvidersTest.
- */
-
 namespace Drupal\Tests\Core\DrupalKernel;
 
+use Composer\Autoload\ClassLoader;
 use Drupal\Core\DrupalKernel;
 use Drupal\Core\Site\Settings;
 use Drupal\Tests\UnitTestCase;
@@ -23,23 +19,23 @@ class DiscoverServiceProvidersTest extends UnitTestCase {
    * @covers ::discoverServiceProviders
    */
   public function testDiscoverServiceCustom() {
-    new Settings(array(
-      'container_yamls' => array(
+    new Settings([
+      'container_yamls' => [
         __DIR__ . '/fixtures/custom.yml'
-      ),
-    ));
+      ],
+    ]);
 
-    $kernel = new DrupalKernel('prod', new \Composer\Autoload\ClassLoader());
+    $kernel = new DrupalKernel('prod', new ClassLoader());
     $kernel->discoverServiceProviders();
 
-    $expect = array(
-      'app' => array(
+    $expect = [
+      'app' => [
         'core' => 'core/core.services.yml',
-      ),
-      'site' => array(
+      ],
+      'site' => [
         __DIR__ . '/fixtures/custom.yml',
-      ),
-    );
+      ],
+    ];
 
     $this->assertAttributeSame($expect, 'serviceYamls', $kernel);
   }
@@ -49,15 +45,14 @@ class DiscoverServiceProvidersTest extends UnitTestCase {
    */
   public function testDiscoverServiceNoContainerYamls() {
     new Settings([]);
-    $kernel = new DrupalKernel('prod', new \Composer\Autoload\ClassLoader());
+    $kernel = new DrupalKernel('prod', new ClassLoader());
     $kernel->discoverServiceProviders();
 
     $expect = [
       'app' => [
         'core' => 'core/core.services.yml',
       ],
-      'site' => [
-      ],
+      'site' => [],
     ];
     $this->assertAttributeSame($expect, 'serviceYamls', $kernel);
   }

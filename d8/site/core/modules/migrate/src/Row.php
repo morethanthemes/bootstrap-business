@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\migrate\Row.
- */
-
 namespace Drupal\migrate;
 
 use Drupal\Component\Utility\NestedArray;
@@ -20,21 +15,21 @@ class Row {
    *
    * @var array
    */
-  protected $source = array();
+  protected $source = [];
 
   /**
    * The source identifiers.
    *
    * @var array
    */
-  protected $sourceIds = array();
+  protected $sourceIds = [];
 
   /**
    * The destination values.
    *
    * @var array
    */
-  protected $destination = array();
+  protected $destination = [];
 
   /**
    * Level separator of destination and source properties.
@@ -46,11 +41,11 @@ class Row {
    *
    * @var array
    */
-  protected $idMap = array(
+  protected $idMap = [
     'original_hash' => '',
     'hash' => '',
     'source_row_status' => MigrateIdMapInterface::STATUS_NEEDS_UPDATE,
-  );
+  ];
 
   /**
    * Whether the source has been frozen already.
@@ -83,6 +78,13 @@ class Row {
   protected $isStub = FALSE;
 
   /**
+   * The empty destination properties.
+   *
+   * @var array
+   */
+  protected $emptyDestinationProperties = [];
+
+  /**
    * Constructs a \Drupal\Migrate\Row object.
    *
    * @param array $values
@@ -96,7 +98,7 @@ class Row {
    * @throws \InvalidArgumentException
    *   Thrown when a source ID property does not exist.
    */
-  public function __construct(array $values, array $source_ids, $is_stub = FALSE) {
+  public function __construct(array $values = [], array $source_ids = [], $is_stub = FALSE) {
     $this->source = $values;
     $this->sourceIds = $source_ids;
     $this->isStub = $is_stub;
@@ -111,10 +113,11 @@ class Row {
    * Retrieves the values of the source identifiers.
    *
    * @return array
-   *   An array containing the values of the source identifiers.
+   *   An array containing the values of the source identifiers. Returns values
+   *   in the same order as defined in $this->sourceIds.
    */
   public function getSourceIdValues() {
-    return array_intersect_key($this->source, $this->sourceIds);
+    return array_merge($this->sourceIds, array_intersect_key($this->source, $this->sourceIds));
   }
 
   /**
@@ -234,6 +237,26 @@ class Row {
   }
 
   /**
+   * Sets a destination to be empty.
+   *
+   * @param string $property
+   *   The destination property.
+   */
+  public function setEmptyDestinationProperty($property) {
+    $this->emptyDestinationProperties[] = $property;
+  }
+
+  /**
+   * Gets the empty destination properties.
+   *
+   * @return array
+   *   An array of destination properties.
+   */
+  public function getEmptyDestinationProperties() {
+    return $this->emptyDestinationProperties;
+  }
+
+  /**
    * Returns the whole destination array.
    *
    * @return array
@@ -340,4 +363,5 @@ class Row {
   public function isStub() {
     return $this->isStub;
   }
+
 }

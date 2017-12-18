@@ -1,20 +1,23 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Plugin\migrate\source\d6\Node.
- */
-
 namespace Drupal\node\Plugin\migrate\source\d6;
 
+use Drupal\Core\Database\Query\SelectInterface;
+use Drupal\Core\Entity\EntityManagerInterface;
+use Drupal\Core\Extension\ModuleHandler;
+use Drupal\Core\State\StateInterface;
+use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate\Row;
 use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Drupal 6 node source from database.
  *
  * @MigrateSource(
- *   id = "d6_node"
+ *   id = "d6_node",
+ *   source_module = "node"
+ *
  * )
  */
 class Node extends DrupalSqlBase {
@@ -39,12 +42,44 @@ class Node extends DrupalSqlBase {
   protected $fieldInfo;
 
   /**
+   * The module handler.
+   *
+   * @var \Drupal\Core\Extension\ModuleHandler
+   */
+  protected $moduleHandler;
+
+  /**
+   * {@inheritdoc}
+   */
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, MigrationInterface $migration, StateInterface $state, EntityManagerInterface $entity_manager, ModuleHandler $module_handler) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition, $migration, $state, $entity_manager);
+    $this->moduleHandler = $module_handler;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition, MigrationInterface $migration = NULL) {
+    return new static(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
+      $migration,
+      $container->get('state'),
+      $container->get('entity.manager'),
+      $container->get('module_handler')
+    );
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function query() {
-    // Select node in its last revision.
-    $query = $this->select('node_revisions', 'nr')
-      ->fields('n', array(
+    $query = $this->select('node_revisions', 'nr');
+    $query->innerJoin('node', 'n', static::JOIN);
+    $this->handleTranslations($query);
+
+    $query->fields('n', [
         'nid',
         'type',
         'language',
@@ -57,22 +92,28 @@ class Node extends DrupalSqlBase {
         'sticky',
         'tnid',
         'translate',
-      ))
-      ->fields('nr', array(
-        'vid',
+      ])
+      ->fields('nr', [
         'title',
         'body',
         'teaser',
         'log',
         'timestamp',
         'format',
-      ));
+        'vid',
+      ]);
     $query->addField('n', 'uid', 'node_uid');
     $query->addField('nr', 'uid', 'revision_uid');
-    $query->innerJoin('node', 'n', static::JOIN);
+
+    // If the content_translation module is enabled, get the source langcode
+    // to fill the content_translation_source field.
+    if ($this->moduleHandler->moduleExists('content_translation')) {
+      $query->leftJoin('node', 'nt', 'n.tnid = nt.nid');
+      $query->addField('nt', 'language', 'source_langcode');
+    }
 
     if (isset($this->configuration['node_type'])) {
-      $query->condition('type', $this->configuration['node_type']);
+      $query->condition('n.type', $this->configuration['node_type']);
     }
 
     return $query;
@@ -90,7 +131,7 @@ class Node extends DrupalSqlBase {
    * {@inheritdoc}
    */
   public function fields() {
-    $fields = array(
+    $fields = [
       'nid' => $this->t('Node ID'),
       'type' => $this->t('Type'),
       'title' => $this->t('Title'),
@@ -108,7 +149,7 @@ class Node extends DrupalSqlBase {
       'language' => $this->t('Language (fr, en, ...)'),
       'tnid' => $this->t('The translation set id for this node'),
       'timestamp' => $this->t('The timestamp the latest revision of this node was created.'),
-    );
+    ];
     return $fields;
   }
 
@@ -128,28 +169,33 @@ class Node extends DrupalSqlBase {
       }
     }
 
+    // Make sure we always have a translation set.
+    if ($row->getSourceProperty('tnid') == 0) {
+      $row->setSourceProperty('tnid', $row->getSourceProperty('nid'));
+    }
+
     return parent::prepareRow($row);
   }
 
   /**
-   * Gets CCK field values for a node.
+   * Gets field values for a node.
    *
    * @param \Drupal\migrate\Row $node
    *   The node.
    *
    * @return array
-   *   CCK field values, keyed by field name.
+   *   Field values, keyed by field name.
    */
   protected function getFieldValues(Row $node) {
     $values = [];
     foreach ($this->getFieldInfo($node->getSourceProperty('type')) as $field => $info) {
-      $values[$field] = $this->getCckData($info, $node);
+      $values[$field] = $this->getFieldData($info, $node);
     }
     return $values;
   }
 
   /**
-   * Gets CCK field and instance definitions from the database.
+   * Gets field and instance definitions from the database.
    *
    * @param string $node_type
    *   The node type for which to get field info.
@@ -161,14 +207,14 @@ class Node extends DrupalSqlBase {
     if (!isset($this->fieldInfo)) {
       $this->fieldInfo = [];
 
-      // Query the database directly for all CCK field info.
+      // Query the database directly for all field info.
       $query = $this->select('content_node_field_instance', 'cnfi');
       $query->join('content_node_field', 'cnf', 'cnf.field_name = cnfi.field_name');
       $query->fields('cnfi');
       $query->fields('cnf');
 
       foreach ($query->execute() as $field) {
-        $this->fieldInfo[ $field['type_name'] ][ $field['field_name'] ] = $field;
+        $this->fieldInfo[$field['type_name']][$field['field_name']] = $field;
       }
 
       foreach ($this->fieldInfo as $type => $fields) {
@@ -186,7 +232,7 @@ class Node extends DrupalSqlBase {
   }
 
   /**
-   * Retrieves raw CCK field data for a node.
+   * Retrieves raw field data for a node.
    *
    * @param array $field
    *   A field and instance definition from getFieldInfo().
@@ -196,7 +242,7 @@ class Node extends DrupalSqlBase {
    * @return array
    *   The field values, keyed by delta.
    */
-  protected function getCckData(array $field, Row $node) {
+  protected function getFieldData(array $field, Row $node) {
     $field_table = 'content_' . $field['field_name'];
     $node_table = 'content_type_' . $node->getSourceProperty('type');
 
@@ -232,10 +278,9 @@ class Node extends DrupalSqlBase {
 
       return $query
         // This call to isNotNull() is a kludge which relies on the convention
-        // that CCK field schemas usually define their most important
-        // column first. A better way would be to allow cckfield plugins to
-        // alter the query directly before it's run, but this will do for
-        // the time being.
+        // that field schemas usually define their most important column first.
+        // A better way would be to allow field plugins to alter the query
+        // directly before it's run, but this will do for the time being.
         ->isNotNull($field['field_name'] . '_' . $columns[0])
         ->condition('nid', $node->getSourceProperty('nid'))
         ->condition('vid', $node->getSourceProperty('vid'))
@@ -248,12 +293,48 @@ class Node extends DrupalSqlBase {
   }
 
   /**
+   * Retrieves raw field data for a node.
+   *
+   * @deprecated in Drupal 8.2.x, to be removed in Drupal 9.0.x. Use
+   *   getFieldData() instead.
+   *
+   * @param array $field
+   *   A field and instance definition from getFieldInfo().
+   * @param \Drupal\migrate\Row $node
+   *   The node.
+   *
+   * @return array
+   *   The field values, keyed by delta.
+   */
+  protected function getCckData(array $field, Row $node) {
+    return $this->getFieldData($field, $node);
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function getIds() {
     $ids['nid']['type'] = 'integer';
     $ids['nid']['alias'] = 'n';
     return $ids;
+  }
+
+  /**
+   * Adapt our query for translations.
+   *
+   * @param \Drupal\Core\Database\Query\SelectInterface $query
+   *   The generated query.
+   */
+  protected function handleTranslations(SelectInterface $query) {
+    // Check whether or not we want translations.
+    if (empty($this->configuration['translations'])) {
+      // No translations: Yield untranslated nodes, or default translations.
+      $query->where('n.tnid = 0 OR n.tnid = n.nid');
+    }
+    else {
+      // Translations: Yield only non-default translations.
+      $query->where('n.tnid <> 0 AND n.tnid <> n.nid');
+    }
   }
 
 }

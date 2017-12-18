@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\Element\VerticalTabs.
- */
-
 namespace Drupal\Core\Render\Element;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -29,24 +24,24 @@ use Drupal\Core\Render\Element;
  *
  * $form['author'] = array(
  *   '#type' => 'details',
- *   '#title' => 'Author',
+ *   '#title' => $this->t('Author'),
  *   '#group' => 'information',
  * );
  *
  * $form['author']['name'] = array(
  *   '#type' => 'textfield',
- *   '#title' => t('Name'),
+ *   '#title' => $this->t('Name'),
  * );
  *
  * $form['publication'] = array(
  *   '#type' => 'details',
- *   '#title' => t('Publication'),
+ *   '#title' => $this->t('Publication'),
  *   '#group' => 'information',
  * );
  *
  * $form['publication']['publisher'] = array(
  *   '#type' => 'textfield',
- *   '#title' => t('Publisher'),
+ *   '#title' => $this->t('Publisher'),
  * );
  * @endcode
  *
@@ -59,16 +54,16 @@ class VerticalTabs extends RenderElement {
    */
   public function getInfo() {
     $class = get_class($this);
-    return array(
+    return [
       '#default_tab' => '',
-      '#process' => array(
-        array($class, 'processVerticalTabs'),
-      ),
-      '#pre_render' => array(
-        array($class, 'preRenderVerticalTabs'),
-      ),
-      '#theme_wrappers' => array('vertical_tabs', 'form_element'),
-    );
+      '#process' => [
+        [$class, 'processVerticalTabs'],
+      ],
+      '#pre_render' => [
+        [$class, 'preRenderVerticalTabs'],
+      ],
+      '#theme_wrappers' => ['vertical_tabs', 'form_element'],
+    ];
   }
 
   /**
@@ -111,11 +106,11 @@ class VerticalTabs extends RenderElement {
 
     // Inject a new details as child, so that form_process_details() processes
     // this details element like any other details.
-    $element['group'] = array(
+    $element['group'] = [
       '#type' => 'details',
-      '#theme_wrappers' => array(),
+      '#theme_wrappers' => [],
       '#parents' => $element['#parents'],
-    );
+    ];
 
     // Add an invisible label for accessibility.
     if (!isset($element['#title'])) {
@@ -130,14 +125,14 @@ class VerticalTabs extends RenderElement {
     // form is rendered, e.g. on preview pages or when form validation
     // fails.
     $name = implode('__', $element['#parents']);
-    if ($form_state->hasValue($name . '__active_tab')){
+    if ($form_state->hasValue($name . '__active_tab')) {
       $element['#default_tab'] = $form_state->getValue($name . '__active_tab');
     }
-    $element[$name . '__active_tab'] = array(
+    $element[$name . '__active_tab'] = [
       '#type' => 'hidden',
       '#default_value' => $element['#default_tab'],
-      '#attributes' => array('class' => array('vertical-tabs-active-tab')),
-    );
+      '#attributes' => ['class' => ['vertical-tabs__active-tab']],
+    ];
     // Clean up the active tab value so it's not accidentally stored in
     // settings forms.
     $form_state->addCleanValueKey($name . '__active_tab');

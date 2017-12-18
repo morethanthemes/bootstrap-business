@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\PageCache\RequestPolicy\CommandLineOrUnsafeMethod.
- */
-
 namespace Drupal\Core\PageCache\RequestPolicy;
 
 use Drupal\Core\PageCache\RequestPolicyInterface;
@@ -23,7 +18,7 @@ class CommandLineOrUnsafeMethod implements RequestPolicyInterface {
    * {@inheritdoc}
    */
   public function check(Request $request) {
-    if ($this->isCli() || !$request->isMethodSafe()) {
+    if ($this->isCli() || !$request->isMethodCacheable()) {
       return static::DENY;
     }
   }

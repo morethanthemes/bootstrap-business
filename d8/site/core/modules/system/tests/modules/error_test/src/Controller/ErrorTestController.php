@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\error_test\Controller\ErrorTestController.
- */
 
 namespace Drupal\error_test\Controller;
 
@@ -50,7 +46,7 @@ class ErrorTestController extends ControllerBase {
     // This will generate a notice.
     $monkey_love = $bananas;
     // This will generate a warning.
-    $awesomely_big = 1/0;
+    $awesomely_big = 1 / 0;
     // This will generate a user error. Use & to check for double escaping.
     trigger_error("Drupal & awesome", E_USER_WARNING);
     return [];
@@ -60,7 +56,7 @@ class ErrorTestController extends ControllerBase {
    * Generate fatals to test the error handler.
    */
   public function generateFatals() {
-    $function = function(array $test) {
+    $function = function (array $test) {
     };
 
     $function("test-string");

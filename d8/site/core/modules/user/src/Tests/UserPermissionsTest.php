@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\Tests\UserPermissionsTest.
- */
-
 namespace Drupal\user\Tests;
 
 use Drupal\simpletest\WebTestBase;
@@ -36,7 +31,7 @@ class UserPermissionsTest extends WebTestBase {
   protected function setUp() {
     parent::setUp();
 
-    $this->adminUser = $this->drupalCreateUser(array('administer permissions', 'access user profiles', 'administer site configuration', 'administer modules', 'administer account settings'));
+    $this->adminUser = $this->drupalCreateUser(['administer permissions', 'access user profiles', 'administer site configuration', 'administer modules', 'administer account settings']);
 
     // Find the new role ID.
     $all_rids = $this->adminUser->getRoles();
@@ -47,7 +42,7 @@ class UserPermissionsTest extends WebTestBase {
   /**
    * Test changing user permissions through the permissions page.
    */
-  function testUserPermissionChanges() {
+  public function testUserPermissionChanges() {
     $permissions_hash_generator = $this->container->get('user_permissions_hash_generator');
 
     $storage = $this->container->get('entity.manager')->getStorage('user_role');
@@ -64,7 +59,7 @@ class UserPermissionsTest extends WebTestBase {
 
     // Add a permission.
     $this->assertFalse($account->hasPermission('administer users'), 'User does not have "administer users" permission.');
-    $edit = array();
+    $edit = [];
     $edit[$rid . '[administer users]'] = TRUE;
     $this->drupalPostForm('admin/people/permissions', $edit, t('Save permissions'));
     $this->assertText(t('The changes have been saved.'), 'Successful save message displayed.');
@@ -77,7 +72,7 @@ class UserPermissionsTest extends WebTestBase {
 
     // Remove a permission.
     $this->assertTrue($account->hasPermission('access user profiles'), 'User has "access user profiles" permission.');
-    $edit = array();
+    $edit = [];
     $edit[$rid . '[access user profiles]'] = FALSE;
     $this->drupalPostForm('admin/people/permissions', $edit, t('Save permissions'));
     $this->assertText(t('The changes have been saved.'), 'Successful save message displayed.');
@@ -97,7 +92,7 @@ class UserPermissionsTest extends WebTestBase {
   /**
    * Test assigning of permissions for the administrator role.
    */
-  function testAdministratorRole() {
+  public function testAdministratorRole() {
     $this->drupalLogin($this->adminUser);
     $this->drupalGet('admin/config/people/accounts');
 
@@ -107,7 +102,7 @@ class UserPermissionsTest extends WebTestBase {
     $this->assertFalse(Role::load($this->rid)->isAdmin());
 
     // Set the user's role to be the administrator role.
-    $edit = array();
+    $edit = [];
     $edit['user_admin_role'] = $this->rid;
     $this->drupalPostForm('admin/config/people/accounts', $edit, t('Save configuration'));
 
@@ -116,12 +111,12 @@ class UserPermissionsTest extends WebTestBase {
 
     // Enable aggregator module and ensure the 'administer news feeds'
     // permission is assigned by default.
-    \Drupal::service('module_installer')->install(array('aggregator'));
+    \Drupal::service('module_installer')->install(['aggregator']);
 
     $this->assertTrue($this->adminUser->hasPermission('administer news feeds'), 'The permission was automatically assigned to the administrator role');
 
     // Ensure that selecting '- None -' removes the admin role.
-    $edit = array();
+    $edit = [];
     $edit['user_admin_role'] = '';
     $this->drupalPostForm('admin/config/people/accounts', $edit, t('Save configuration'));
 
@@ -140,7 +135,7 @@ class UserPermissionsTest extends WebTestBase {
   /**
    * Verify proper permission changes by user_role_change_permissions().
    */
-  function testUserRoleChangePermissions() {
+  public function testUserRoleChangePermissions() {
     $permissions_hash_generator = $this->container->get('user_permissions_hash_generator');
 
     $rid = $this->rid;
@@ -153,10 +148,10 @@ class UserPermissionsTest extends WebTestBase {
     $this->assertTrue($account->hasPermission('administer site configuration'), 'User has "administer site configuration" permission.');
 
     // Change permissions.
-    $permissions = array(
+    $permissions = [
       'administer users' => 1,
       'access user profiles' => 0,
-    );
+    ];
     user_role_change_permissions($rid, $permissions);
 
     // Verify proper permission changes.

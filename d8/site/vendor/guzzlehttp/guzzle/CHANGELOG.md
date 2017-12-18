@@ -1,5 +1,81 @@
 # CHANGELOG
 
+## 6.3.0 - 2017-06-22
+
+* Feature: force IP resolution (ipv4 or ipv6) [#1608](https://github.com/guzzle/guzzle/pull/1608), [#1659](https://github.com/guzzle/guzzle/pull/1659)
+* Improvement: Don't include summary in exception message when body is empty [#1621](https://github.com/guzzle/guzzle/pull/1621)
+* Improvement: Handle `on_headers` option in MockHandler [#1580](https://github.com/guzzle/guzzle/pull/1580)
+* Improvement: Added SUSE Linux CA path [#1609](https://github.com/guzzle/guzzle/issues/1609)
+* Improvement: Use class reference for getting the name of the class instead of using hardcoded strings [#1641](https://github.com/guzzle/guzzle/pull/1641)
+* Feature: Added `read_timeout` option [#1611](https://github.com/guzzle/guzzle/pull/1611)
+* Bug fix: PHP 7.x fixes [#1685](https://github.com/guzzle/guzzle/pull/1685), [#1686](https://github.com/guzzle/guzzle/pull/1686), [#1811](https://github.com/guzzle/guzzle/pull/1811)
+* Deprecation: BadResponseException instantiation without a response [#1642](https://github.com/guzzle/guzzle/pull/1642)
+* Feature: Added NTLM auth [#1569](https://github.com/guzzle/guzzle/pull/1569)
+* Feature: Track redirect HTTP status codes [#1711](https://github.com/guzzle/guzzle/pull/1711)
+* Improvement: Check handler type during construction [#1745](https://github.com/guzzle/guzzle/pull/1745)
+* Improvement: Always include the Content-Length if there's a body [#1721](https://github.com/guzzle/guzzle/pull/1721)
+* Feature: Added convenience method to access a cookie by name [#1318](https://github.com/guzzle/guzzle/pull/1318)
+* Bug fix: Fill `CURLOPT_CAPATH` and `CURLOPT_CAINFO` properly [#1684](https://github.com/guzzle/guzzle/pull/1684)
+* Improvement:  	Use `\GuzzleHttp\Promise\rejection_for` function instead of object init [#1827](https://github.com/guzzle/guzzle/pull/1827)
+
+
++ Minor code cleanups, documentation fixes and clarifications.
+
+## 6.2.3 - 2017-02-28
+
+* Fix deprecations with guzzle/psr7 version 1.4
+
+## 6.2.2 - 2016-10-08
+
+* Allow to pass nullable Response to delay callable
+* Only add scheme when host is present
+* Fix drain case where content-length is the literal string zero
+* Obfuscate in-URL credentials in exceptions
+
+## 6.2.1 - 2016-07-18
+
+* Address HTTP_PROXY security vulnerability, CVE-2016-5385:
+  https://httpoxy.org/
+* Fixing timeout bug with StreamHandler:
+  https://github.com/guzzle/guzzle/pull/1488
+* Only read up to `Content-Length` in PHP StreamHandler to avoid timeouts when
+  a server does not honor `Connection: close`.
+* Ignore URI fragment when sending requests.
+
+## 6.2.0 - 2016-03-21
+
+* Feature: added `GuzzleHttp\json_encode` and `GuzzleHttp\json_decode`.
+  https://github.com/guzzle/guzzle/pull/1389
+* Bug fix: Fix sleep calculation when waiting for delayed requests.
+  https://github.com/guzzle/guzzle/pull/1324
+* Feature: More flexible history containers.
+  https://github.com/guzzle/guzzle/pull/1373
+* Bug fix: defer sink stream opening in StreamHandler.
+  https://github.com/guzzle/guzzle/pull/1377
+* Bug fix: do not attempt to escape cookie values.
+  https://github.com/guzzle/guzzle/pull/1406
+* Feature: report original content encoding and length on decoded responses.
+  https://github.com/guzzle/guzzle/pull/1409
+* Bug fix: rewind seekable request bodies before dispatching to cURL.
+  https://github.com/guzzle/guzzle/pull/1422
+* Bug fix: provide an empty string to `http_build_query` for HHVM workaround.
+  https://github.com/guzzle/guzzle/pull/1367
+
+## 6.1.1 - 2015-11-22
+
+* Bug fix: Proxy::wrapSync() now correctly proxies to the appropriate handler
+  https://github.com/guzzle/guzzle/commit/911bcbc8b434adce64e223a6d1d14e9a8f63e4e4
+* Feature: HandlerStack is now more generic.
+  https://github.com/guzzle/guzzle/commit/f2102941331cda544745eedd97fc8fd46e1ee33e
+* Bug fix: setting verify to false in the StreamHandler now disables peer
+  verification. https://github.com/guzzle/guzzle/issues/1256
+* Feature: Middleware now uses an exception factory, including more error
+  context. https://github.com/guzzle/guzzle/pull/1282
+* Feature: better support for disabled functions.
+  https://github.com/guzzle/guzzle/pull/1287
+* Bug fix: fixed regression where MockHandler was not using `sink`.
+  https://github.com/guzzle/guzzle/pull/1292
+
 ## 6.1.0 - 2015-09-08
 
 * Feature: Added the `on_stats` request option to provide access to transfer
@@ -702,7 +778,7 @@ interfaces.
 * Deprecating Response::getRequest() and now using a shallow clone of a request object to remove a circular reference
   to help with refcount based garbage collection of resources created by sending a request
 * Deprecating ZF1 cache and log adapters. These will be removed in the next major version.
-* Deprecating `Response::getPreviousResponse()` (method signature still exists, but it'sdeprecated). Use the
+* Deprecating `Response::getPreviousResponse()` (method signature still exists, but it's deprecated). Use the
   HistoryPlugin for a history.
 * Added a `responseBody` alias for the `response_body` location
 * Refactored internals to no longer rely on Response::getRequest()

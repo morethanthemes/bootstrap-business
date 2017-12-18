@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\Plugin\views\field\Permissions.
- */
-
 namespace Drupal\user\Plugin\views\field;
 
 use Drupal\Core\Entity\EntityManagerInterface;
@@ -71,7 +66,7 @@ class Permissions extends PrerenderList {
   public function init(ViewExecutable $view, DisplayPluginBase $display, array &$options = NULL) {
     parent::init($view, $display, $options);
 
-    $this->additional_fields['uid'] = array('table' => 'users_field_data', 'field' => 'uid');
+    $this->additional_fields['uid'] = ['table' => 'users_field_data', 'field' => 'uid'];
   }
 
   public function query() {
@@ -80,12 +75,11 @@ class Permissions extends PrerenderList {
   }
 
   public function preRender(&$values) {
-    $uids = array();
-    $this->items = array();
+    $this->items = [];
 
     $permission_names = \Drupal::service('user.permissions')->getPermissions();
 
-    $rids = array();
+    $rids = [];
     foreach ($values as $result) {
       $user_rids = $this->getEntity($result)->getRoles();
       $uid = $this->getValue($result);
@@ -105,28 +99,14 @@ class Permissions extends PrerenderList {
         }
       }
 
-      foreach ($uids as $uid) {
-        if (isset($this->items[$uid])) {
-          ksort($this->items[$uid]);
-        }
+      foreach ($this->items as &$permission) {
+        ksort($permission);
       }
     }
   }
 
-  function render_item($count, $item) {
+  public function render_item($count, $item) {
     return $item['permission'];
   }
-
-  /*
-  protected function documentSelfTokens(&$tokens) {
-    $tokens['[' . $this->options['id'] . '-role' . ']'] = $this->t('The name of the role.');
-    $tokens['[' . $this->options['id'] . '-rid' . ']'] = $this->t('The role ID of the role.');
-  }
-
-  protected function addSelfTokens(&$tokens, $item) {
-    $tokens['[' . $this->options['id'] . '-role' . ']'] = $item['role'];
-    $tokens['[' . $this->options['id'] . '-rid' . ']'] = $item['rid'];
-  }
-  */
 
 }

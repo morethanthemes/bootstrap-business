@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\batch_test\Form\BatchTestSimpleForm.
- */
-
 namespace Drupal\batch_test\Form;
 
 use Drupal\Core\Form\FormBase;
@@ -26,21 +21,21 @@ class BatchTestSimpleForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    $form['batch'] = array(
+    $form['batch'] = [
       '#type' => 'select',
       '#title' => 'Choose batch',
-      '#options' => array(
+      '#options' => [
         'batch_0' => 'batch 0',
         'batch_1' => 'batch 1',
         'batch_2' => 'batch 2',
         'batch_3' => 'batch 3',
         'batch_4' => 'batch 4',
-      ),
-    );
-    $form['submit'] = array(
+      ],
+    ];
+    $form['submit'] = [
       '#type' => 'submit',
       '#value' => 'Submit',
-    );
+    ];
 
     return $form;
   }

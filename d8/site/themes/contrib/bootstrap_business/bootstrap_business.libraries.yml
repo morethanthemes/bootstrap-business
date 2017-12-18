@@ -2,9 +2,24 @@ bootstrap:
   version: VERSION
   css:
     base:
-      bootstrap/css/bootstrap.min.css: { weight: 0 }
+      bootstrap/css/bootstrap.min.css: { weight: -1 }
   js:
     bootstrap/js/bootstrap.min.js: {}
+  dependencies:
+    - core/jquery
+
+bootstrap-cdn:
+  version: 3.3.7
+  remote: //maxcdn.bootstrapcdn.com/bootstrap/3.3.7
+  css:
+    base:
+      //maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css: { weight: -1 }
+  js:
+    //maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js: {}
+  license:
+    name: The MIT License (MIT)
+    url: //github.com/twbs/bootstrap/blob/master/LICENSE
+    gpl-compatible: true
   dependencies:
     - core/jquery
 

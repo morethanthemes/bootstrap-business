@@ -1,13 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Path\UrlAliasFixtures.
- */
-
 namespace Drupal\system\Tests\Path;
 
 use Drupal\Core\Database\Connection;
+use Drupal\Core\Path\AliasStorage;
 
 /**
  * Utility methods to generate sample data, database configuration, etc.
@@ -51,28 +47,28 @@ class UrlAliasFixtures {
    * @return array of URL alias definitions.
    */
   public function sampleUrlAliases() {
-    return array(
-      array(
+    return [
+      [
         'source' => '/node/1',
         'alias' => '/alias_for_node_1_en',
         'langcode' => 'en'
-      ),
-      array(
+      ],
+      [
         'source' => '/node/2',
         'alias' => '/alias_for_node_2_en',
         'langcode' => 'en'
-      ),
-      array(
+      ],
+      [
         'source' => '/node/1',
         'alias' => '/alias_for_node_1_fr',
         'langcode' => 'fr'
-      ),
-      array(
+      ],
+      [
         'source' => '/node/1',
         'alias' => '/alias_for_node_1_und',
         'langcode' => 'und'
-      )
-    );
+      ]
+    ];
   }
 
 
@@ -83,7 +79,7 @@ class UrlAliasFixtures {
    *   Table definitions.
    */
   public function tableDefinition() {
-    $tables = array();
+    $tables = [];
 
     // Prime the drupal_get_filename() cache with the location of the system
     // module as its location is known and shouldn't change.
@@ -92,9 +88,10 @@ class UrlAliasFixtures {
     module_load_install('system');
     $schema = system_schema();
 
-    $tables['url_alias'] = $schema['url_alias'];
+    $tables['url_alias'] = AliasStorage::schemaDefinition();
     $tables['key_value'] = $schema['key_value'];
 
     return $tables;
   }
+
 }

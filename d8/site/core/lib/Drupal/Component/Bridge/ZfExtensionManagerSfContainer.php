@@ -1,9 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\Bridge\ZfExtensionManagerSfContainer.
- */
 namespace Drupal\Component\Bridge;
 
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
@@ -19,9 +15,9 @@ class ZfExtensionManagerSfContainer implements ReaderManagerInterface, WriterMan
   /**
    * This property was based from Zend Framework (http://framework.zend.com/)
    *
-   * @link      http://github.com/zendframework/zf2 for the canonical source repository
+   * @link http://github.com/zendframework/zf2 for the canonical source repository
    * @copyright Copyright (c) 2005-2013 Zend Technologies USA Inc. (http://www.zend.com)
-   * @license   http://framework.zend.com/license/new-bsd New BSD License
+   * @license http://framework.zend.com/license/new-bsd New BSD License
    *
    * A map of characters to be replaced through strtr.
    *
@@ -29,7 +25,7 @@ class ZfExtensionManagerSfContainer implements ReaderManagerInterface, WriterMan
    *
    * @see \Drupal\Component\Bridge\ZfExtensionManagerSfContainer::canonicalizeName().
    */
-  protected $canonicalNamesReplacements = array('-' => '', '_' => '', ' ' => '', '\\' => '', '/' => '');
+  protected $canonicalNamesReplacements = ['-' => '', '_' => '', ' ' => '', '\\' => '', '/' => ''];
 
   /**
    * The prefix to be used when retrieving plugins from the container.
@@ -59,7 +55,7 @@ class ZfExtensionManagerSfContainer implements ReaderManagerInterface, WriterMan
    *   The prefix to be used when retrieving plugins from the container.
    */
   public function __construct($prefix = '') {
-    return $this->prefix = $prefix;
+    $this->prefix = $prefix;
   }
 
   /**
@@ -79,9 +75,9 @@ class ZfExtensionManagerSfContainer implements ReaderManagerInterface, WriterMan
   /**
    * This method was based from Zend Framework (http://framework.zend.com/)
    *
-   * @link      http://github.com/zendframework/zf2 for the canonical source repository
+   * @link http://github.com/zendframework/zf2 for the canonical source repository
    * @copyright Copyright (c) 2005-2013 Zend Technologies USA Inc. (http://www.zend.com)
-   * @license   http://framework.zend.com/license/new-bsd New BSD License
+   * @license http://framework.zend.com/license/new-bsd New BSD License
    *
    * Canonicalize the extension name to a service name.
    *

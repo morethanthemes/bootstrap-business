@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\NodeGrantDatabaseStorageInterface.
- */
-
 namespace Drupal\node;
 
 use Drupal\Core\Session\AccountInterface;
@@ -23,7 +18,7 @@ interface NodeGrantDatabaseStorageInterface {
    *   A user object representing the user for whom the operation is to be
    *   performed.
    *
-   * @return int.
+   * @return int
    *   Status of the access check.
    */
   public function checkAll(AccountInterface $account);
@@ -36,11 +31,11 @@ interface NodeGrantDatabaseStorageInterface {
    * @param array $tables
    *   A list of tables that need to be part of the alter.
    * @param string $op
-   *    The operation to be performed on the node. Possible values are:
-   *    - "view"
-   *    - "update"
-   *    - "delete"
-   *    - "create"
+   *   The operation to be performed on the node. Possible values are:
+   *   - "view"
+   *   - "update"
+   *   - "delete"
+   *   - "create"
    * @param \Drupal\Core\Session\AccountInterface $account
    *   A user object representing the user for whom the operation is to be
    *   performed.
@@ -61,7 +56,7 @@ interface NodeGrantDatabaseStorageInterface {
    * permission changes.
    *
    * Note: Don't call this method directly from a contributed module. Call
-   * node_access_write_grants() instead.
+   * \Drupal\node\NodeAccessControlHandlerInterface::acquireGrants() instead.
    *
    * @param \Drupal\node\NodeInterface $node
    *   The node whose grants are being written.
@@ -78,9 +73,6 @@ interface NodeGrantDatabaseStorageInterface {
    *   (optional) If false, does not delete records. This is only for optimization
    *   purposes, and assumes the caller has already performed a mass delete of
    *   some form. Defaults to TRUE.
-   *
-   * @see node_access_write_grants()
-   * @see node_access_acquire_grants()
    */
   public function write(NodeInterface $node, array $grants, $realm = NULL, $delete = TRUE);
 

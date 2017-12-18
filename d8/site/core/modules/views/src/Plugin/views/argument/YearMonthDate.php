@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Plugin\views\argument\YearMonthDate.
- */
-
 namespace Drupal\views\Plugin\views\argument;
 
 /**
@@ -35,7 +30,7 @@ class YearMonthDate extends Date {
   /**
    * Provide a link to the next level of the view
    */
-  function title() {
+  public function title() {
     return format_date(strtotime($this->argument . "15" . " 00:00:00 UTC"), 'custom', $this->format, 'UTC');
   }
 

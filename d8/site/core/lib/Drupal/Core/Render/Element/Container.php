@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\Element\Container.
- */
-
 namespace Drupal\Core\Render\Element;
 
 use Drupal\Component\Utility\Html as HtmlUtility;
@@ -20,7 +15,7 @@ use Drupal\Core\Form\FormStateInterface;
  * @code
  * $form['needs_accommodation'] = array(
  *   '#type' => 'checkbox',
- *   '#title' => 'Need Special Accommodations?',
+ *   '#title' => $this->t('Need Special Accommodations?'),
  * );
  *
  * $form['accommodation'] = array(
@@ -37,7 +32,7 @@ use Drupal\Core\Form\FormStateInterface;
  *
  * $form['accommodation']['diet'] = array(
  *   '#type' => 'textfield',
- *   '#title' => t('Dietary Restrictions'),
+ *   '#title' => $this->t('Dietary Restrictions'),
  * );
  * @endcode
  *
@@ -50,16 +45,16 @@ class Container extends RenderElement {
    */
   public function getInfo() {
     $class = get_class($this);
-    return array(
-      '#process' => array(
-        array($class, 'processGroup'),
-        array($class, 'processContainer'),
-      ),
-      '#pre_render' => array(
-        array($class, 'preRenderGroup'),
-      ),
-      '#theme_wrappers' => array('container'),
-    );
+    return [
+      '#process' => [
+        [$class, 'processGroup'],
+        [$class, 'processContainer'],
+      ],
+      '#pre_render' => [
+        [$class, 'preRenderGroup'],
+      ],
+      '#theme_wrappers' => ['container'],
+    ];
   }
 
   /**

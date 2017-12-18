@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\HtmlResponse.
- */
-
 namespace Drupal\Core\Render;
 
 use Drupal\Core\Cache\CacheableMetadata;
@@ -36,9 +31,11 @@ class HtmlResponse extends Response implements CacheableResponseInterface, Attac
     // A render array can automatically be converted to a string and set the
     // necessary metadata.
     if (is_array($content) && (isset($content['#markup']))) {
-      $content += ['#attached' => [
-        'html_response_attachment_placeholders' => [],
-        'placeholders' => []],
+      $content += [
+        '#attached' => [
+          'html_response_attachment_placeholders' => [],
+          'placeholders' => [],
+        ],
       ];
       $this->addCacheableDependency(CacheableMetadata::createFromRenderArray($content));
       $this->setAttachments($content['#attached']);

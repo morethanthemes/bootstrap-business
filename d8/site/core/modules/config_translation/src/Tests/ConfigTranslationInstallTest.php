@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\config_translation\Tests\ConfigTranslationInstallTest.
- */
-
 namespace Drupal\config_translation\Tests;
 
 use Drupal\simpletest\InstallerTestBase;
@@ -68,7 +63,7 @@ ENDPO;
     $this->drupalPostForm('admin/config/regional/language/add', ['predefined_langcode' => 'fr'], t('Add custom language'));
 
     $edit = [
-      'modules[Multilingual][config_translation][enable]' => TRUE,
+      'modules[config_translation][enable]' => TRUE,
     ];
     $this->drupalPostForm('admin/modules', $edit, t('Install'));
 

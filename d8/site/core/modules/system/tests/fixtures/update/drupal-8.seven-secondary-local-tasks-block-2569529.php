@@ -7,11 +7,12 @@
  */
 
 use Drupal\Core\Database\Database;
+use Drupal\Core\Serialization\Yaml;
 
 $connection = Database::getConnection();
 
 // Structure of a custom block with visibility settings.
-$block_configs[] = \Drupal\Component\Serialization\Yaml::decode(file_get_contents(__DIR__ . '/block.block.testfor2569529.yml'));
+$block_configs[] = Yaml::decode(file_get_contents(__DIR__ . '/block.block.testfor2569529.yml'));
 
 foreach ($block_configs as $block_config) {
   $connection->insert('config')
@@ -30,11 +31,11 @@ foreach ($block_configs as $block_config) {
 
 // Update the config entity query "index".
 $existing_blocks = $connection->select('key_value')
-    ->fields('key_value', ['value'])
-    ->condition('collection', 'config.entity.key_store.block')
-    ->condition('name', 'theme:seven')
-    ->execute()
-    ->fetchField();
+  ->fields('key_value', ['value'])
+  ->condition('collection', 'config.entity.key_store.block')
+  ->condition('name', 'theme:seven')
+  ->execute()
+  ->fetchField();
 $existing_blocks = unserialize($existing_blocks);
 
 $connection->update('key_value')

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Field\PluginSettingsBase.
- */
-
 namespace Drupal\Core\Field;
 
 use Drupal\Component\Plugin\DependentPluginInterface;
@@ -22,7 +17,7 @@ abstract class PluginSettingsBase extends PluginBase implements PluginSettingsIn
    *
    * @var array
    */
-  protected $settings = array();
+  protected $settings = [];
 
   /**
    * The plugin settings injected by third party modules.
@@ -31,7 +26,7 @@ abstract class PluginSettingsBase extends PluginBase implements PluginSettingsIn
    *
    * @var array
    */
-  protected $thirdPartySettings = array();
+  protected $thirdPartySettings = [];
 
   /**
    * Whether default settings have been merged into the current $settings.
@@ -44,7 +39,7 @@ abstract class PluginSettingsBase extends PluginBase implements PluginSettingsIn
    * {@inheritdoc}
    */
   public static function defaultSettings() {
-    return array();
+    return [];
   }
 
   /**
@@ -99,7 +94,7 @@ abstract class PluginSettingsBase extends PluginBase implements PluginSettingsIn
    */
   public function getThirdPartySettings($module = NULL) {
     if ($module) {
-      return isset($this->thirdPartySettings[$module]) ? $this->thirdPartySettings[$module] : NULL;
+      return isset($this->thirdPartySettings[$module]) ? $this->thirdPartySettings[$module] : [];
     }
     return $this->thirdPartySettings;
   }
@@ -145,11 +140,11 @@ abstract class PluginSettingsBase extends PluginBase implements PluginSettingsIn
   public function calculateDependencies() {
     if (!empty($this->thirdPartySettings)) {
       // Create dependencies on any modules providing third party settings.
-      return array(
+      return [
         'module' => array_keys($this->thirdPartySettings)
-      );
+      ];
     }
-    return array();
+    return [];
   }
 
   /**

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\error_service_test\Logger\TestLog.
- */
-
 namespace Drupal\error_service_test\Logger;
 
 use Drupal\Core\Logger\RfcLoggerTrait;
@@ -21,7 +16,7 @@ class TestLog implements LoggerInterface {
   /**
    * {@inheritdoc}
    */
-  public function log($level, $message, array $context = array()) {
+  public function log($level, $message, array $context = []) {
     $trigger = [
       '%type' => 'Exception',
       '@message' => 'Deforestation',

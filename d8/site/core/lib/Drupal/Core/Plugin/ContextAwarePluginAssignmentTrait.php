@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Plugin\ContextAwarePluginAssignmentTrait.
- */
-
 namespace Drupal\Core\Plugin;
 
 /**
@@ -17,7 +12,7 @@ trait ContextAwarePluginAssignmentTrait {
    *
    * @see \Drupal\Core\StringTranslation\StringTranslationTrait
    */
-  abstract protected function t($string, array $args = array(), array $options = array());
+  abstract protected function t($string, array $args = [], array $options = []);
 
   /**
    * Wraps the context handler.

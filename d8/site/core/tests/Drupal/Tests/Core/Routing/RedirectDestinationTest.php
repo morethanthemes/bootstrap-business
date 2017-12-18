@@ -1,12 +1,8 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Routing\RedirectDestinationTest.
- */
-
 namespace Drupal\Tests\Core\Routing;
 
+use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Routing\RedirectDestination;
 use Drupal\Tests\UnitTestCase;
 use Symfony\Component\HttpFoundation\Request;
@@ -53,10 +49,10 @@ class RedirectDestinationTest extends UnitTestCase {
   protected function setupUrlGenerator() {
     $this->urlGenerator->expects($this->any())
       ->method('generateFromRoute')
-      ->willReturnCallback(function($route, $parameters, $options) {
+      ->willReturnCallback(function ($route, $parameters, $options) {
         $query_string = '';
         if (!empty($options['query'])) {
-          $query_string = '?' . $options['query'];
+          $query_string = '?' . UrlHelper::buildQuery($options['query']);
         }
 
         return '/current-path' . $query_string;
@@ -106,7 +102,7 @@ class RedirectDestinationTest extends UnitTestCase {
     // A request with a destination query.
     $data[] = [$request, '/example'];
 
-      // A request without a destination query,
+    // A request without a destination query,
     $request = Request::create('/');
     $data[] = [$request, '/current-path'];
 

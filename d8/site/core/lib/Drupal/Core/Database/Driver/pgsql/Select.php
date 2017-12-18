@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Database\Driver\pgsql\Select.
- */
-
 namespace Drupal\Core\Database\Driver\pgsql;
 
 use Drupal\Core\Database\Query\Select as QuerySelect;
@@ -119,7 +114,7 @@ class Select extends QuerySelect {
   /**
    * {@inheritdoc}
    */
-  public function addExpression($expression, $alias = NULL, $arguments = array()) {
+  public function addExpression($expression, $alias = NULL, $arguments = []) {
     if (empty($alias)) {
       $alias = 'expression';
     }
@@ -132,11 +127,11 @@ class Select extends QuerySelect {
     }
     $alias = $alias_candidate;
 
-    $this->expressions[$alias] = array(
+    $this->expressions[$alias] = [
       'expression' => $expression,
       'alias' => $this->connection->escapeAlias($alias_candidate),
       'arguments' => $arguments,
-    );
+    ];
 
     return $alias;
   }
@@ -157,6 +152,7 @@ class Select extends QuerySelect {
 
     return $result;
   }
+
 }
 
 /**

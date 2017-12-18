@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\node\Plugin\views\row\Rss.
- */
-
 namespace Drupal\node\Plugin\views\row;
 
 use Drupal\Core\Entity\EntityManagerInterface;
@@ -27,12 +22,12 @@ use Drupal\views\Plugin\views\row\RssPluginBase;
 class Rss extends RssPluginBase {
 
   // Basic properties that let the row style follow relationships.
-  var $base_table = 'node_field_data';
+  public $base_table = 'node_field_data';
 
-  var $base_field = 'nid';
+  public $base_field = 'nid';
 
   // Stores the nodes loaded with preRender.
-  var $nodes = array();
+  public $nodes = [];
 
   /**
    * {@inheritdoc}
@@ -79,7 +74,7 @@ class Rss extends RssPluginBase {
   }
 
   public function preRender($values) {
-    $nids = array();
+    $nids = [];
     foreach ($values as $row) {
       $nids[] = $row->{$this->field_alias};
     }
@@ -108,23 +103,23 @@ class Rss extends RssPluginBase {
       return;
     }
 
-    $node->link = $node->url('canonical', array('absolute' => TRUE));
-    $node->rss_namespaces = array();
-    $node->rss_elements = array(
-      array(
+    $node->link = $node->url('canonical', ['absolute' => TRUE]);
+    $node->rss_namespaces = [];
+    $node->rss_elements = [
+      [
         'key' => 'pubDate',
         'value' => gmdate('r', $node->getCreatedTime()),
-      ),
-      array(
+      ],
+      [
         'key' => 'dc:creator',
         'value' => $node->getOwner()->getDisplayName(),
-      ),
-      array(
+      ],
+      [
         'key' => 'guid',
         'value' => $node->id() . ' at ' . $base_url,
-        'attributes' => array('isPermaLink' => 'false'),
-      ),
-    );
+        'attributes' => ['isPermaLink' => 'false'],
+      ],
+    ];
 
     // The node gets built and modules add to or modify $node->rss_elements
     // and $node->rss_namespaces.
@@ -140,7 +135,7 @@ class Rss extends RssPluginBase {
     elseif (function_exists('rdf_get_namespaces')) {
       // Merge RDF namespaces in the XML namespaces in case they are used
       // further in the RSS content.
-      $xml_rdf_namespaces = array();
+      $xml_rdf_namespaces = [];
       foreach (rdf_get_namespaces() as $prefix => $uri) {
         $xml_rdf_namespaces['xmlns:' . $prefix] = $uri;
       }
@@ -158,12 +153,12 @@ class Rss extends RssPluginBase {
     // template_preprocess_views_view_row_rss() can still access it.
     $item->elements = &$node->rss_elements;
     $item->nid = $node->id();
-    $build = array(
+    $build = [
       '#theme' => $this->themeFunctions(),
       '#view' => $this->view,
       '#options' => $this->options,
       '#row' => $item,
-    );
+    ];
 
     return $build;
   }

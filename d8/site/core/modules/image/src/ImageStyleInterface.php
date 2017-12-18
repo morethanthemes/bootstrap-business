@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\image\ImageStyleInterface.
- */
-
 namespace Drupal\image;
 
 use Drupal\Core\Config\Entity\ConfigEntityInterface;
@@ -198,5 +193,16 @@ interface ImageStyleInterface extends ConfigEntityInterface {
    * @return $this
    */
   public function deleteImageEffect(ImageEffectInterface $effect);
+
+  /**
+   * Determines if this style can be applied to a given image.
+   *
+   * @param string $uri
+   *   The URI of the image.
+   *
+   * @return bool
+   *   TRUE if the image is supported, FALSE otherwise.
+   */
+  public function supportsUri($uri);
 
 }

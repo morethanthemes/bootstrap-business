@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\locale\PluralFormula.
- */
-
 namespace Drupal\locale;
 
 use Drupal\Core\Language\LanguageManagerInterface;
@@ -97,7 +92,7 @@ class PluralFormula implements PluralFormulaInterface {
   /**
    * Loads the formulae and stores them on the PluralFormula object if not set.
    *
-   * @return []
+   * @return array
    */
   protected function loadFormulae() {
     if (!isset($this->formulae)) {

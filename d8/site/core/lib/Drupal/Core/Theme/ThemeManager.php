@@ -1,17 +1,11 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Theme\ThemeManager.
- */
-
 namespace Drupal\Core\Theme;
 
 use Drupal\Component\Render\MarkupInterface;
 use Drupal\Core\Render\Markup;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Routing\StackedRouteMatchInterface;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Template\Attribute;
 
@@ -49,9 +43,11 @@ class ThemeManager implements ThemeManagerInterface {
   protected $themeInitialization;
 
   /**
-   * @var \Symfony\Component\HttpFoundation\RequestStack
+   * The module handler.
+   *
+   * @var \Drupal\Core\Extension\ModuleHandlerInterface
    */
-  protected $requestStack;
+  protected $moduleHandler;
 
   /**
    * The app root.
@@ -69,15 +65,13 @@ class ThemeManager implements ThemeManagerInterface {
    *   The theme negotiator.
    * @param \Drupal\Core\Theme\ThemeInitializationInterface $theme_initialization
    *   The theme initialization.
-   * @param \Symfony\Component\HttpFoundation\RequestStack $request_stack
-   *   The request stack.
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
+   *   The module handler.
    */
-  public function __construct($root, ThemeNegotiatorInterface $theme_negotiator, ThemeInitializationInterface $theme_initialization, RequestStack $request_stack, ModuleHandlerInterface $module_handler) {
+  public function __construct($root, ThemeNegotiatorInterface $theme_negotiator, ThemeInitializationInterface $theme_initialization, ModuleHandlerInterface $module_handler) {
     $this->root = $root;
     $this->themeNegotiator = $theme_negotiator;
     $this->themeInitialization = $theme_initialization;
-    $this->requestStack = $request_stack;
     $this->moduleHandler = $module_handler;
   }
 
@@ -177,7 +171,7 @@ class ThemeManager implements ThemeManagerInterface {
         // Only log a message when not trying theme suggestions ($hook being an
         // array).
         if (!isset($candidate)) {
-          \Drupal::logger('theme')->warning('Theme hook %hook not found.', array('%hook' => $hook));
+          \Drupal::logger('theme')->warning('Theme hook %hook not found.', ['%hook' => $hook]);
         }
         // There is no theme implementation for the hook passed. Return FALSE so
         // the function calling
@@ -194,7 +188,7 @@ class ThemeManager implements ThemeManagerInterface {
     // the arguments expected by the theme function.
     if (isset($variables['#theme']) || isset($variables['#theme_wrappers'])) {
       $element = $variables;
-      $variables = array();
+      $variables = [];
       if (isset($info['variables'])) {
         foreach (array_keys($info['variables']) as $name) {
           if (isset($element["#$name"]) || array_key_exists("#$name", $element)) {
@@ -214,12 +208,12 @@ class ThemeManager implements ThemeManagerInterface {
       $variables += $info['variables'];
     }
     elseif (!empty($info['render element'])) {
-      $variables += array($info['render element'] => array());
+      $variables += [$info['render element'] => []];
     }
     // Supply original caller info.
-    $variables += array(
+    $variables += [
       'theme_hook_original' => $original_hook,
-    );
+    ];
 
     // Set base hook for later use. For example if '#theme' => 'node__article'
     // is called, we run hook_theme_suggestions_node_alter() rather than
@@ -233,7 +227,7 @@ class ThemeManager implements ThemeManagerInterface {
     }
 
     // Invoke hook_theme_suggestions_HOOK().
-    $suggestions = $this->moduleHandler->invokeAll('theme_suggestions_' . $base_theme_hook, array($variables));
+    $suggestions = $this->moduleHandler->invokeAll('theme_suggestions_' . $base_theme_hook, [$variables]);
     // If the theme implementation was invoked with a direct theme suggestion
     // like '#theme' => 'node__article', add it to the suggestions array before
     // invoking suggestion alter hooks.
@@ -243,10 +237,10 @@ class ThemeManager implements ThemeManagerInterface {
 
     // Invoke hook_theme_suggestions_alter() and
     // hook_theme_suggestions_HOOK_alter().
-    $hooks = array(
+    $hooks = [
       'theme_suggestions',
       'theme_suggestions_' . $base_theme_hook,
-    );
+    ];
     $this->moduleHandler->alter($hooks, $suggestions, $variables, $base_theme_hook);
     $this->alter($hooks, $suggestions, $variables, $base_theme_hook);
 
@@ -309,7 +303,7 @@ class ThemeManager implements ThemeManagerInterface {
       unset($preprocess_bubbleable['#cache']['keys']);
       if ($preprocess_bubbleable) {
         // @todo Inject the Renderer in https://www.drupal.org/node/2529438.
-        drupal_render($preprocess_bubbleable);
+        \Drupal::service('renderer')->render($preprocess_bubbleable);
       }
     }
 
@@ -353,14 +347,14 @@ class ThemeManager implements ThemeManagerInterface {
       // intuitive, is reasonably safe, and allows us to save on the overhead of
       // adding some new variable to track that.
       if (!isset($variables['directory'])) {
-        $default_template_variables = array();
+        $default_template_variables = [];
         template_preprocess($default_template_variables, $hook, $info);
         $variables += $default_template_variables;
       }
       if (!isset($default_attributes)) {
         $default_attributes = new Attribute();
       }
-      foreach (array('attributes', 'title_attributes', 'content_attributes') as $key) {
+      foreach (['attributes', 'title_attributes', 'content_attributes'] as $key) {
         if (isset($variables[$key]) && !($variables[$key] instanceof Attribute)) {
           if ($variables[$key]) {
             $variables[$key] = new Attribute($variables[$key]);
@@ -433,13 +427,13 @@ class ThemeManager implements ThemeManagerInterface {
       }
     }
 
-    $theme_keys = array();
+    $theme_keys = [];
     foreach ($theme->getBaseThemes() as $base) {
       $theme_keys[] = $base->getName();
     }
 
     $theme_keys[] = $theme->getName();
-    $functions = array();
+    $functions = [];
     foreach ($theme_keys as $theme_key) {
       $function = $theme_key . '_' . $type . '_alter';
       if (function_exists($function)) {

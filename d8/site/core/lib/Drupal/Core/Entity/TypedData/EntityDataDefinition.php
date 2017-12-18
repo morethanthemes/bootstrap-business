@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\TypedData\EntityDataDefinition.
- */
-
 namespace Drupal\Core\Entity\TypedData;
 
 use Drupal\Core\TypedData\ComplexDataDefinitionBase;
@@ -24,7 +19,7 @@ class EntityDataDefinition extends ComplexDataDefinitionBase implements EntityDa
    * @return static
    */
   public static function create($entity_type_id = NULL) {
-    $definition = new static(array());
+    $definition = new static([]);
     // Set the passed entity type.
     if (isset($entity_type_id)) {
       $definition->setEntityTypeId($entity_type_id);
@@ -46,7 +41,7 @@ class EntityDataDefinition extends ComplexDataDefinitionBase implements EntityDa
       $definition->setEntityTypeId($parts[1]);
     }
     if (isset($parts[2])) {
-      $definition->setBundles(array($parts[2]));
+      $definition->setBundles([$parts[2]]);
     }
     return $definition;
   }
@@ -60,7 +55,7 @@ class EntityDataDefinition extends ComplexDataDefinitionBase implements EntityDa
         // Return an empty array for entities that are not content entities.
         $entity_type_class = \Drupal::entityManager()->getDefinition($entity_type_id)->getClass();
         if (!in_array('Drupal\Core\Entity\FieldableEntityInterface', class_implements($entity_type_class))) {
-          $this->propertyDefinitions = array();
+          $this->propertyDefinitions = [];
         }
         else {
           // @todo: Add support for handling multiple bundles.
@@ -76,7 +71,7 @@ class EntityDataDefinition extends ComplexDataDefinitionBase implements EntityDa
       }
       else {
         // No entity type given.
-        $this->propertyDefinitions = array();
+        $this->propertyDefinitions = [];
       }
     }
     return $this->propertyDefinitions;
@@ -120,7 +115,7 @@ class EntityDataDefinition extends ComplexDataDefinitionBase implements EntityDa
    */
   public function getBundles() {
     $bundle = isset($this->definition['constraints']['Bundle']) ? $this->definition['constraints']['Bundle'] : NULL;
-    return is_string($bundle) ? array($bundle) : $bundle;
+    return is_string($bundle) ? [$bundle] : $bundle;
   }
 
   /**

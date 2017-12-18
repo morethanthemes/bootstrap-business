@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Plugin\Derivative\ViewsExposedFilterBlock.
- */
-
 namespace Drupal\views\Plugin\Derivative;
 
 use Drupal\Core\Plugin\Discovery\ContainerDeriverInterface;
@@ -14,7 +9,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * Provides block plugin definitions for all Views exposed filters.
  *
- * @see \Drupal\views\Plugin\block\block\ViewsExposedFilterBlock
+ * @see \Drupal\views\Plugin\Block\ViewsExposedFilterBlock
  */
 class ViewsExposedFilterBlock implements ContainerDeriverInterface {
 
@@ -23,7 +18,7 @@ class ViewsExposedFilterBlock implements ContainerDeriverInterface {
    *
    * @var array
    */
-  protected $derivatives = array();
+  protected $derivatives = [];
 
   /**
    * The view storage.
@@ -90,15 +85,15 @@ class ViewsExposedFilterBlock implements ContainerDeriverInterface {
           // Add a block definition for the block.
           if ($display->usesExposedFormInBlock()) {
             $delta = $view->id() . '-' . $display->display['id'];
-            $desc = t('Exposed form: @view-@display_id', array('@view' => $view->id(), '@display_id' => $display->display['id']));
-            $this->derivatives[$delta] = array(
+            $desc = t('Exposed form: @view-@display_id', ['@view' => $view->id(), '@display_id' => $display->display['id']]);
+            $this->derivatives[$delta] = [
               'admin_label' => $desc,
-              'config_dependencies' => array(
-                'config' => array(
+              'config_dependencies' => [
+                'config' => [
                   $view->getConfigDependencyName(),
-                )
-              )
-            );
+                ]
+              ]
+            ];
             $this->derivatives[$delta] += $base_plugin_definition;
           }
         }

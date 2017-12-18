@@ -32,12 +32,14 @@ class Store implements StoreInterface
      * Constructor.
      *
      * @param string $root The path to the cache directory
+     *
+     * @throws \RuntimeException
      */
     public function __construct($root)
     {
         $this->root = $root;
-        if (!is_dir($this->root)) {
-            mkdir($this->root, 0777, true);
+        if (!file_exists($this->root) && !@mkdir($this->root, 0777, true) && !is_dir($this->root)) {
+            throw new \RuntimeException(sprintf('Unable to create the store directory (%s).', $this->root));
         }
         $this->keyCache = new \SplObjectStorage();
         $this->locks = array();
@@ -50,22 +52,15 @@ class Store implements StoreInterface
     {
         // unlock everything
         foreach ($this->locks as $lock) {
-            if (file_exists($lock)) {
-                @unlink($lock);
-            }
+            flock($lock, LOCK_UN);
+            fclose($lock);
         }
 
-        $error = error_get_last();
-        if (1 === $error['type'] && false === headers_sent()) {
-            // send a 503
-            header('HTTP/1.0 503 Service Unavailable');
-            header('Retry-After: 10');
-            echo '503 Service Unavailable';
-        }
+        $this->locks = array();
     }
 
     /**
-     * Locks the cache for a given Request.
+     * Tries to lock the cache for a given Request, without blocking.
      *
      * @param Request $request A Request instance
      *
@@ -73,21 +68,24 @@ class Store implements StoreInterface
      */
     public function lock(Request $request)
     {
-        $path = $this->getPath($this->getCacheKey($request).'.lck');
-        if (!is_dir(dirname($path)) && false === @mkdir(dirname($path), 0777, true)) {
-            return false;
+        $key = $this->getCacheKey($request);
+
+        if (!isset($this->locks[$key])) {
+            $path = $this->getPath($key);
+            if (!file_exists(dirname($path)) && false === @mkdir(dirname($path), 0777, true) && !is_dir(dirname($path))) {
+                return $path;
+            }
+            $h = fopen($path, 'cb');
+            if (!flock($h, LOCK_EX | LOCK_NB)) {
+                fclose($h);
+
+                return $path;
+            }
+
+            $this->locks[$key] = $h;
         }
 
-        $lock = @fopen($path, 'x');
-        if (false !== $lock) {
-            fclose($lock);
-
-            $this->locks[] = $path;
-
-            return true;
-        }
-
-        return !file_exists($path) ?: $path;
+        return true;
     }
 
     /**
@@ -99,14 +97,37 @@ class Store implements StoreInterface
      */
     public function unlock(Request $request)
     {
-        $file = $this->getPath($this->getCacheKey($request).'.lck');
+        $key = $this->getCacheKey($request);
 
-        return is_file($file) ? @unlink($file) : false;
+        if (isset($this->locks[$key])) {
+            flock($this->locks[$key], LOCK_UN);
+            fclose($this->locks[$key]);
+            unset($this->locks[$key]);
+
+            return true;
+        }
+
+        return false;
     }
 
     public function isLocked(Request $request)
     {
-        return is_file($this->getPath($this->getCacheKey($request).'.lck'));
+        $key = $this->getCacheKey($request);
+
+        if (isset($this->locks[$key])) {
+            return true; // shortcut if lock held by this process
+        }
+
+        if (!file_exists($path = $this->getPath($key))) {
+            return false;
+        }
+
+        $h = fopen($path, 'rb');
+        flock($h, LOCK_EX | LOCK_NB, $wouldBlock);
+        flock($h, LOCK_UN); // release the lock we just acquired
+        fclose($h);
+
+        return (bool) $wouldBlock;
     }
 
     /**
@@ -139,7 +160,7 @@ class Store implements StoreInterface
         }
 
         list($req, $headers) = $match;
-        if (is_file($body = $this->getPath($headers['x-content-digest'][0]))) {
+        if (file_exists($body = $this->getPath($headers['x-content-digest'][0]))) {
             return $this->restoreResponse($headers, $body);
         }
 
@@ -242,10 +263,8 @@ class Store implements StoreInterface
             }
         }
 
-        if ($modified) {
-            if (false === $this->save($key, serialize($entries))) {
-                throw new \RuntimeException('Unable to store the metadata.');
-            }
+        if ($modified && false === $this->save($key, serialize($entries))) {
+            throw new \RuntimeException('Unable to store the metadata.');
         }
     }
 
@@ -266,7 +285,7 @@ class Store implements StoreInterface
         }
 
         foreach (preg_split('/[\s,]+/', $vary) as $header) {
-            $key = strtr(strtolower($header), '_', '-');
+            $key = str_replace('_', '-', strtolower($header));
             $v1 = isset($env1[$key]) ? $env1[$key] : null;
             $v2 = isset($env2[$key]) ? $env2[$key] : null;
             if ($v1 !== $v2) {
@@ -288,7 +307,7 @@ class Store implements StoreInterface
      */
     private function getMetadata($key)
     {
-        if (false === $entries = $this->load($key)) {
+        if (!$entries = $this->load($key)) {
             return array();
         }
 
@@ -298,13 +317,40 @@ class Store implements StoreInterface
     /**
      * Purges data for the given URL.
      *
+     * This method purges both the HTTP and the HTTPS version of the cache entry.
+     *
+     * @param string $url A URL
+     *
+     * @return bool true if the URL exists with either HTTP or HTTPS scheme and has been purged, false otherwise
+     */
+    public function purge($url)
+    {
+        $http = preg_replace('#^https:#', 'http:', $url);
+        $https = preg_replace('#^http:#', 'https:', $url);
+
+        $purgedHttp = $this->doPurge($http);
+        $purgedHttps = $this->doPurge($https);
+
+        return $purgedHttp || $purgedHttps;
+    }
+
+    /**
+     * Purges data for the given URL.
+     *
      * @param string $url A URL
      *
      * @return bool true if the URL exists and has been purged, false otherwise
      */
-    public function purge($url)
+    private function doPurge($url)
     {
-        if (is_file($path = $this->getPath($this->getCacheKey(Request::create($url))))) {
+        $key = $this->getCacheKey(Request::create($url));
+        if (isset($this->locks[$key])) {
+            flock($this->locks[$key], LOCK_UN);
+            fclose($this->locks[$key]);
+            unset($this->locks[$key]);
+        }
+
+        if (file_exists($path = $this->getPath($key))) {
             unlink($path);
 
             return true;
@@ -324,7 +370,7 @@ class Store implements StoreInterface
     {
         $path = $this->getPath($key);
 
-        return is_file($path) ? file_get_contents($path) : false;
+        return file_exists($path) ? file_get_contents($path) : false;
     }
 
     /**
@@ -338,23 +384,36 @@ class Store implements StoreInterface
     private function save($key, $data)
     {
         $path = $this->getPath($key);
-        if (!is_dir(dirname($path)) && false === @mkdir(dirname($path), 0777, true)) {
-            return false;
-        }
 
-        $tmpFile = tempnam(dirname($path), basename($path));
-        if (false === $fp = @fopen($tmpFile, 'wb')) {
-            return false;
-        }
-        @fwrite($fp, $data);
-        @fclose($fp);
+        if (isset($this->locks[$key])) {
+            $fp = $this->locks[$key];
+            @ftruncate($fp, 0);
+            @fseek($fp, 0);
+            $len = @fwrite($fp, $data);
+            if (strlen($data) !== $len) {
+                @ftruncate($fp, 0);
 
-        if ($data != file_get_contents($tmpFile)) {
-            return false;
-        }
+                return false;
+            }
+        } else {
+            if (!file_exists(dirname($path)) && false === @mkdir(dirname($path), 0777, true) && !is_dir(dirname($path))) {
+                return false;
+            }
 
-        if (false === @rename($tmpFile, $path)) {
-            return false;
+            $tmpFile = tempnam(dirname($path), basename($path));
+            if (false === $fp = @fopen($tmpFile, 'wb')) {
+                return false;
+            }
+            @fwrite($fp, $data);
+            @fclose($fp);
+
+            if ($data != file_get_contents($tmpFile)) {
+                return false;
+            }
+
+            if (false === @rename($tmpFile, $path)) {
+                return false;
+            }
         }
 
         @chmod($path, 0666 & ~umask());

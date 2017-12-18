@@ -1,12 +1,6 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\token_test\Controller\TestController.
- */
-
 namespace Drupal\token_test\Controller;
-
 
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Render\BubbleableMetadata;

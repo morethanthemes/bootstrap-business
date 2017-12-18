@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\Form\UserLoginForm.
- */
-
 namespace Drupal\user\Form;
 
 use Drupal\Core\Flood\FloodInterface;
@@ -93,31 +88,31 @@ class UserLoginForm extends FormBase {
     $config = $this->config('system.site');
 
     // Display login form:
-    $form['name'] = array(
+    $form['name'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Username'),
       '#size' => 60,
       '#maxlength' => USERNAME_MAX_LENGTH,
-      '#description' => $this->t('Enter your @s username.', array('@s' => $config->get('name'))),
+      '#description' => $this->t('Enter your @s username.', ['@s' => $config->get('name')]),
       '#required' => TRUE,
-      '#attributes' => array(
+      '#attributes' => [
         'autocorrect' => 'none',
         'autocapitalize' => 'none',
         'spellcheck' => 'false',
         'autofocus' => 'autofocus',
-      ),
-    );
+      ],
+    ];
 
-    $form['pass'] = array(
+    $form['pass'] = [
       '#type' => 'password',
       '#title' => $this->t('Password'),
       '#size' => 60,
       '#description' => $this->t('Enter the password that accompanies your username.'),
       '#required' => TRUE,
-    );
+    ];
 
-    $form['actions'] = array('#type' => 'actions');
-    $form['actions']['submit'] = array('#type' => 'submit', '#value' => $this->t('Log in'));
+    $form['actions'] = ['#type' => 'actions'];
+    $form['actions']['submit'] = ['#type' => 'submit', '#value' => $this->t('Log in')];
 
     $form['#validate'][] = '::validateName';
     $form['#validate'][] = '::validateAuthentication';
@@ -138,7 +133,7 @@ class UserLoginForm extends FormBase {
     if (!$this->getRequest()->request->has('destination')) {
       $form_state->setRedirect(
         'entity.user.canonical',
-        array('user' => $account->id())
+        ['user' => $account->id()]
       );
     }
     else {
@@ -154,7 +149,7 @@ class UserLoginForm extends FormBase {
   public function validateName(array &$form, FormStateInterface $form_state) {
     if (!$form_state->isValueEmpty('name') && user_is_blocked($form_state->getValue('name'))) {
       // Blocked in user administration.
-      $form_state->setErrorByName('name', $this->t('The username %name has not been activated or is blocked.', array('%name' => $form_state->getValue('name'))));
+      $form_state->setErrorByName('name', $this->t('The username %name has not been activated or is blocked.', ['%name' => $form_state->getValue('name')]));
     }
   }
 
@@ -176,7 +171,7 @@ class UserLoginForm extends FormBase {
         $form_state->set('flood_control_triggered', 'ip');
         return;
       }
-      $accounts = $this->userStorage->loadByProperties(array('name' => $form_state->getValue('name'), 'status' => 1));
+      $accounts = $this->userStorage->loadByProperties(['name' => $form_state->getValue('name'), 'status' => 1]);
       $account = reset($accounts);
       if ($account) {
         if ($flood_config->get('uid_only')) {
@@ -223,23 +218,29 @@ class UserLoginForm extends FormBase {
 
       if ($flood_control_triggered = $form_state->get('flood_control_triggered')) {
         if ($flood_control_triggered == 'user') {
-          $form_state->setErrorByName('name', $this->formatPlural($flood_config->get('user_limit'), 'There has been more than one failed login attempt for this account. It is temporarily blocked. Try again later or <a href=":url">request a new password</a>.', 'There have been more than @count failed login attempts for this account. It is temporarily blocked. Try again later or <a href=":url">request a new password</a>.', array(':url' => $this->url('user.pass'))));
+          $form_state->setErrorByName('name', $this->formatPlural($flood_config->get('user_limit'), 'There has been more than one failed login attempt for this account. It is temporarily blocked. Try again later or <a href=":url">request a new password</a>.', 'There have been more than @count failed login attempts for this account. It is temporarily blocked. Try again later or <a href=":url">request a new password</a>.', [':url' => $this->url('user.pass')]));
         }
         else {
           // We did not find a uid, so the limit is IP-based.
-          $form_state->setErrorByName('name', $this->t('Too many failed login attempts from your IP address. This IP address is temporarily blocked. Try again later or <a href=":url">request a new password</a>.', array(':url' => $this->url('user.pass'))));
+          $form_state->setErrorByName('name', $this->t('Too many failed login attempts from your IP address. This IP address is temporarily blocked. Try again later or <a href=":url">request a new password</a>.', [':url' => $this->url('user.pass')]));
         }
       }
       else {
-        $form_state->setErrorByName('name', $this->t('Unrecognized username or password. <a href=":password">Have you forgotten your password?</a>', array(':password' => $this->url('user.pass', [], array('query' => array('name' => $form_state->getValue('name')))))));
-        $accounts = $this->userStorage->loadByProperties(array('name' => $form_state->getValue('name')));
+        // Use $form_state->getUserInput() in the error message to guarantee
+        // that we send exactly what the user typed in. The value from
+        // $form_state->getValue() may have been modified by validation
+        // handlers that ran earlier than this one.
+        $user_input = $form_state->getUserInput();
+        $query = isset($user_input['name']) ? ['name' => $user_input['name']] : [];
+        $form_state->setErrorByName('name', $this->t('Unrecognized username or password. <a href=":password">Forgot your password?</a>', [':password' => $this->url('user.pass', [], ['query' => $query])]));
+        $accounts = $this->userStorage->loadByProperties(['name' => $form_state->getValue('name')]);
         if (!empty($accounts)) {
-          $this->logger('user')->notice('Login attempt failed for %user.', array('%user' => $form_state->getValue('name')));
+          $this->logger('user')->notice('Login attempt failed for %user.', ['%user' => $form_state->getValue('name')]);
         }
         else {
           // If the username entered is not a valid user,
           // only store the IP address.
-          $this->logger('user')->notice('Login attempt failed from %ip.', array('%ip' => $this->getRequest()->getClientIp()));
+          $this->logger('user')->notice('Login attempt failed from %ip.', ['%ip' => $this->getRequest()->getClientIp()]);
         }
       }
     }

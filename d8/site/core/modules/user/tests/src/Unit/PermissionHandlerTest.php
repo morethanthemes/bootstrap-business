@@ -97,40 +97,43 @@ class PermissionHandlerTest extends UnitTestCase {
     $this->moduleHandler = $this->getMock('Drupal\Core\Extension\ModuleHandlerInterface');
     $this->moduleHandler->expects($this->once())
       ->method('getModuleDirectories')
-      ->willReturn(array(
+      ->willReturn([
         'module_a' => vfsStream::url('modules/module_a'),
         'module_b' => vfsStream::url('modules/module_b'),
         'module_c' => vfsStream::url('modules/module_c'),
-      ));
+      ]);
 
     $url = vfsStream::url('modules');
     mkdir($url . '/module_a');
-    file_put_contents($url . '/module_a/module_a.permissions.yml',
-"access_module_a: single_description"
-    );
+    file_put_contents($url . '/module_a/module_a.permissions.yml', "access_module_a: single_description");
     mkdir($url . '/module_b');
-    file_put_contents($url . '/module_b/module_b.permissions.yml',
-"'access module b':
+    file_put_contents($url . '/module_b/module_b.permissions.yml', <<<EOF
+'access module b':
   title: 'Access B'
   description: 'bla bla'
-");
+'access module a via module b':
+  title: 'Access A via B'
+  provider: 'module_a'
+EOF
+    );
     mkdir($url . '/module_c');
-    file_put_contents($url . '/module_c/module_c.permissions.yml',
-"'access_module_c':
+    file_put_contents($url . '/module_c/module_c.permissions.yml', <<<EOF
+'access_module_c':
   title: 'Access C'
   description: 'bla bla'
   'restrict access': TRUE
-");
-    $modules = array('module_a', 'module_b', 'module_c');
-    $extensions = array(
+EOF
+    );
+    $modules = ['module_a', 'module_b', 'module_c'];
+    $extensions = [
       'module_a' => $this->mockModuleExtension('module_a', 'Module a'),
       'module_b' => $this->mockModuleExtension('module_b', 'Module b'),
       'module_c' => $this->mockModuleExtension('module_c', 'Module c'),
-    );
+    ];
     $this->moduleHandler->expects($this->any())
       ->method('getImplementations')
       ->with('permission')
-      ->willReturn(array());
+      ->willReturn([]);
 
     $this->moduleHandler->expects($this->any())
       ->method('getModuleList')
@@ -184,9 +187,10 @@ class PermissionHandlerTest extends UnitTestCase {
 
     $url = vfsStream::url('modules');
     mkdir($url . '/module_a');
-    file_put_contents($url . '/module_a/module_a.permissions.yml',
-"access_module_a2: single_description2
-access_module_a1: single_description1"
+    file_put_contents($url . '/module_a/module_a.permissions.yml', <<<EOF
+access_module_a2: single_description2
+access_module_a1: single_description1
+EOF
     );
     mkdir($url . '/module_b');
     file_put_contents($url . '/module_b/module_b.permissions.yml',
@@ -223,40 +227,44 @@ access_module_a1: single_description1"
     $this->moduleHandler = $this->getMock('Drupal\Core\Extension\ModuleHandlerInterface');
     $this->moduleHandler->expects($this->once())
       ->method('getModuleDirectories')
-      ->willReturn(array(
+      ->willReturn([
         'module_a' => vfsStream::url('modules/module_a'),
         'module_b' => vfsStream::url('modules/module_b'),
         'module_c' => vfsStream::url('modules/module_c'),
-      ));
+      ]);
 
     $url = vfsStream::url('modules');
     mkdir($url . '/module_a');
-    file_put_contents($url . '/module_a/module_a.permissions.yml',
-"permission_callbacks:
+    file_put_contents($url . '/module_a/module_a.permissions.yml', <<<EOF
+permission_callbacks:
   - 'Drupal\\user\\Tests\\TestPermissionCallbacks::singleDescription'
-");
+EOF
+    );
     mkdir($url . '/module_b');
-    file_put_contents($url . '/module_b/module_b.permissions.yml',
-"permission_callbacks:
+    file_put_contents($url . '/module_b/module_b.permissions.yml', <<<EOF
+permission_callbacks:
   - 'Drupal\\user\\Tests\\TestPermissionCallbacks::titleDescription'
-");
+  - 'Drupal\\user\\Tests\\TestPermissionCallbacks::titleProvider'
+EOF
+    );
     mkdir($url . '/module_c');
-    file_put_contents($url . '/module_c/module_c.permissions.yml',
-"permission_callbacks:
+    file_put_contents($url . '/module_c/module_c.permissions.yml', <<<EOF
+permission_callbacks:
   - 'Drupal\\user\\Tests\\TestPermissionCallbacks::titleDescriptionRestrictAccess'
-");
+EOF
+    );
 
-    $modules = array('module_a', 'module_b', 'module_c');
-    $extensions = array(
+    $modules = ['module_a', 'module_b', 'module_c'];
+    $extensions = [
       'module_a' => $this->mockModuleExtension('module_a', 'Module a'),
       'module_b' => $this->mockModuleExtension('module_b', 'Module b'),
       'module_c' => $this->mockModuleExtension('module_c', 'Module c'),
-    );
+    ];
 
     $this->moduleHandler->expects($this->any())
       ->method('getImplementations')
       ->with('permission')
-      ->willReturn(array());
+      ->willReturn([]);
 
     $this->moduleHandler->expects($this->any())
       ->method('getModuleList')
@@ -265,15 +273,19 @@ access_module_a1: single_description1"
     $this->controllerResolver->expects($this->at(0))
       ->method('getControllerFromDefinition')
       ->with('Drupal\\user\\Tests\\TestPermissionCallbacks::singleDescription')
-      ->willReturn(array(new TestPermissionCallbacks(), 'singleDescription'));
+      ->willReturn([new TestPermissionCallbacks(), 'singleDescription']);
     $this->controllerResolver->expects($this->at(1))
       ->method('getControllerFromDefinition')
       ->with('Drupal\\user\\Tests\\TestPermissionCallbacks::titleDescription')
-      ->willReturn(array(new TestPermissionCallbacks(), 'titleDescription'));
+      ->willReturn([new TestPermissionCallbacks(), 'titleDescription']);
     $this->controllerResolver->expects($this->at(2))
       ->method('getControllerFromDefinition')
+      ->with('Drupal\\user\\Tests\\TestPermissionCallbacks::titleProvider')
+      ->willReturn([new TestPermissionCallbacks(), 'titleProvider']);
+    $this->controllerResolver->expects($this->at(3))
+      ->method('getControllerFromDefinition')
       ->with('Drupal\\user\\Tests\\TestPermissionCallbacks::titleDescriptionRestrictAccess')
-      ->willReturn(array(new TestPermissionCallbacks(), 'titleDescriptionRestrictAccess'));
+      ->willReturn([new TestPermissionCallbacks(), 'titleDescriptionRestrictAccess']);
 
     $this->permissionHandler = new TestPermissionHandler($this->moduleHandler, $this->stringTranslation, $this->controllerResolver);
 
@@ -295,29 +307,30 @@ access_module_a1: single_description1"
     $this->moduleHandler = $this->getMock('Drupal\Core\Extension\ModuleHandlerInterface');
     $this->moduleHandler->expects($this->once())
       ->method('getModuleDirectories')
-      ->willReturn(array(
+      ->willReturn([
         'module_a' => vfsStream::url('modules/module_a'),
-      ));
+      ]);
 
     $url = vfsStream::url('modules');
     mkdir($url . '/module_a');
-    file_put_contents($url . '/module_a/module_a.permissions.yml',
-"'access module a':
+    file_put_contents($url . '/module_a/module_a.permissions.yml', <<<EOF
+'access module a':
   title: 'Access A'
   description: 'bla bla'
 permission_callbacks:
   - 'Drupal\\user\\Tests\\TestPermissionCallbacks::titleDescription'
-");
-
-    $modules = array('module_a');
-    $extensions = array(
-      'module_a' => $this->mockModuleExtension('module_a', 'Module a'),
+EOF
     );
+
+    $modules = ['module_a'];
+    $extensions = [
+      'module_a' => $this->mockModuleExtension('module_a', 'Module a'),
+    ];
 
     $this->moduleHandler->expects($this->any())
       ->method('getImplementations')
       ->with('permission')
-      ->willReturn(array());
+      ->willReturn([]);
 
     $this->moduleHandler->expects($this->any())
       ->method('getModuleList')
@@ -326,7 +339,7 @@ permission_callbacks:
     $this->controllerResolver->expects($this->once())
       ->method('getControllerFromDefinition')
       ->with('Drupal\\user\\Tests\\TestPermissionCallbacks::titleDescription')
-      ->willReturn(array(new TestPermissionCallbacks(), 'titleDescription'));
+      ->willReturn([new TestPermissionCallbacks(), 'titleDescription']);
 
     $this->permissionHandler = new TestPermissionHandler($this->moduleHandler, $this->stringTranslation, $this->controllerResolver);
 
@@ -351,7 +364,7 @@ permission_callbacks:
    *   The actual permissions
    */
   protected function assertPermissions(array $actual_permissions) {
-    $this->assertCount(3, $actual_permissions);
+    $this->assertCount(4, $actual_permissions);
     $this->assertEquals($actual_permissions['access_module_a']['title'], 'single_description');
     $this->assertEquals($actual_permissions['access_module_a']['provider'], 'module_a');
     $this->assertEquals($actual_permissions['access module b']['title'], 'Access B');
@@ -359,6 +372,7 @@ permission_callbacks:
     $this->assertEquals($actual_permissions['access_module_c']['title'], 'Access C');
     $this->assertEquals($actual_permissions['access_module_c']['provider'], 'module_c');
     $this->assertEquals($actual_permissions['access_module_c']['restrict access'], TRUE);
+    $this->assertEquals($actual_permissions['access module a via module b']['provider'], 'module_a');
   }
 
 }
@@ -385,28 +399,37 @@ class TestPermissionHandler extends PermissionHandler {
 class TestPermissionCallbacks {
 
   public function singleDescription() {
-    return array(
+    return [
       'access_module_a' => 'single_description'
-    );
+    ];
   }
 
   public function titleDescription() {
-    return array(
-      'access module b' => array(
+    return [
+      'access module b' => [
         'title' => 'Access B',
         'description' => 'bla bla',
-      ),
-    );
+      ],
+    ];
   }
 
   public function titleDescriptionRestrictAccess() {
-    return array(
-      'access_module_c' => array(
+    return [
+      'access_module_c' => [
         'title' => 'Access C',
         'description' => 'bla bla',
         'restrict access' => TRUE,
-      ),
-    );
+      ],
+    ];
+  }
+
+  public function titleProvider() {
+    return [
+      'access module a via module b' => [
+        'title' => 'Access A via B',
+        'provider' => 'module_a',
+      ],
+    ];
   }
 
 }
@@ -419,7 +442,7 @@ class TestTranslationManager implements TranslationInterface {
   /**
    * {@inheritdoc}
    */
-  public function translate($string, array $args = array(), array $options = array()) {
+  public function translate($string, array $args = [], array $options = []) {
     return new TranslatableMarkup($string, $args, $options, $this);
   }
 
@@ -433,7 +456,7 @@ class TestTranslationManager implements TranslationInterface {
   /**
    * {@inheritdoc}
    */
-  public function formatPlural($count, $singular, $plural, array $args = array(), array $options = array()) {
+  public function formatPlural($count, $singular, $plural, array $args = [], array $options = []) {
     return new PluralTranslatableMarkup($count, $singular, $plural, $args, $options, $this);
   }
 

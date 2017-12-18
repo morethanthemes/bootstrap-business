@@ -39,7 +39,7 @@ class PropertyMetadata extends MemberMetadata
     public function __construct($class, $name)
     {
         if (!property_exists($class, $name)) {
-            throw new ValidatorException(sprintf('Property %s does not exist in class %s', $name, $class));
+            throw new ValidatorException(sprintf('Property "%s" does not exist in class "%s"', $name, $class));
         }
 
         parent::__construct($class, $name, $name);
@@ -58,12 +58,17 @@ class PropertyMetadata extends MemberMetadata
      */
     protected function newReflectionMember($objectOrClassName)
     {
-        $class = new \ReflectionClass($objectOrClassName);
-        while (!$class->hasProperty($this->getName())) {
-            $class = $class->getParentClass();
+        $originalClass = is_string($objectOrClassName) ? $objectOrClassName : get_class($objectOrClassName);
+
+        while (!property_exists($objectOrClassName, $this->getName())) {
+            $objectOrClassName = get_parent_class($objectOrClassName);
+
+            if (false === $objectOrClassName) {
+                throw new ValidatorException(sprintf('Property "%s" does not exist in class "%s".', $this->getName(), $originalClass));
+            }
         }
 
-        $member = new \ReflectionProperty($class->getName(), $this->getName());
+        $member = new \ReflectionProperty($objectOrClassName, $this->getName());
         $member->setAccessible(true);
 
         return $member;

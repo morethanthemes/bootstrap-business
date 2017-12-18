@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\Plugin\migrate\process\d6\UserUpdate7002.
- */
-
 namespace Drupal\user\Plugin\migrate\process\d6;
 
 use Drupal\migrate\MigrateExecutableInterface;
@@ -30,11 +25,11 @@ class UserUpdate7002 extends ProcessPluginBase implements ContainerFactoryPlugin
    */
   protected static $timezones;
 
- /**
-  * Contains the system.theme configuration object.
-  *
-  * @var \Drupal\Core\Config\Config
-  */
+  /**
+   * Contains the system.theme configuration object.
+   *
+   * @var \Drupal\Core\Config\Config
+   */
   protected $dateConfig;
 
   /**

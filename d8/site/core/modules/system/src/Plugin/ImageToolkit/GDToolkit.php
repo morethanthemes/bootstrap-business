@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Plugin\ImageToolkit\GDToolkit.
- */
-
 namespace Drupal\system\Plugin\ImageToolkit;
 
 use Drupal\Component\Utility\Color;
@@ -53,7 +48,7 @@ class GDToolkit extends ImageToolkitBase {
    *
    * @see \Drupal\system\Plugin\ImageToolkit\GDToolkit::parseFile()
    * @see \Drupal\system\Plugin\ImageToolkit\GDToolkit::setResource()
-   * @see http://php.net/manual/en/function.getimagesize.php
+   * @see http://php.net/manual/function.getimagesize.php
    */
   protected $preLoadInfo = NULL;
 
@@ -148,7 +143,7 @@ class GDToolkit extends ImageToolkitBase {
    * {@inheritdoc}
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
-    $form['image_jpeg_quality'] = array(
+    $form['image_jpeg_quality'] = [
       '#type' => 'number',
       '#title' => t('JPEG quality'),
       '#description' => t('Define the image quality for JPEG manipulations. Ranges from 0 to 100. Higher values mean better image quality but bigger files.'),
@@ -156,7 +151,7 @@ class GDToolkit extends ImageToolkitBase {
       '#max' => 100,
       '#default_value' => $this->configFactory->getEditable('system.image.gd')->get('jpeg_quality', FALSE),
       '#field_suffix' => t('%'),
-    );
+    ];
     return $form;
   }
 
@@ -165,7 +160,7 @@ class GDToolkit extends ImageToolkitBase {
    */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
     $this->configFactory->getEditable('system.image.gd')
-      ->set('jpeg_quality', $form_state->getValue(array('gd', 'image_jpeg_quality')))
+      ->set('jpeg_quality', $form_state->getValue(['gd', 'image_jpeg_quality']))
       ->save();
   }
 
@@ -191,13 +186,13 @@ class GDToolkit extends ImageToolkitBase {
         // Convert indexed images to truecolor, copying the image to a new
         // truecolor resource, so that filters work correctly and don't result
         // in unnecessary dither.
-        $data = array(
+        $data = [
           'width' => imagesx($resource),
           'height' => imagesy($resource),
           'extension' => image_type_to_extension($this->getType(), FALSE),
           'transparent_color' => $this->getTransparentColor(),
           'is_temp' => TRUE,
-        );
+        ];
         if ($this->apply('create_new', $data)) {
           imagecopy($this->getResource(), $resource, 0, 0, 0, 0, imagesx($resource), imagesy($resource));
           imagedestroy($resource);
@@ -367,18 +362,18 @@ class GDToolkit extends ImageToolkitBase {
    * {@inheritdoc}
    */
   public function getRequirements() {
-    $requirements = array();
+    $requirements = [];
 
     $info = gd_info();
-    $requirements['version'] = array(
+    $requirements['version'] = [
       'title' => t('GD library'),
       'value' => $info['GD Version'],
-    );
+    ];
 
     // Check for filter and rotate support.
     if (!function_exists('imagefilter') || !function_exists('imagerotate')) {
       $requirements['version']['severity'] = REQUIREMENT_WARNING;
-      $requirements['version']['description'] = t('The GD Library for PHP is enabled, but was compiled without support for functions used by the rotate and desaturate effects. It was probably compiled using the official GD libraries from http://www.libgd.org instead of the GD library bundled with PHP. You should recompile PHP --with-gd using the bundled GD library. See <a href=":url">the PHP manual</a>.', array(':url' => 'http://www.php.net/manual/book.image.php'));
+      $requirements['version']['description'] = t('The GD Library for PHP is enabled, but was compiled without support for functions used by the rotate and desaturate effects. It was probably compiled using the official GD libraries from http://www.libgd.org instead of the GD library bundled with PHP. You should recompile PHP --with-gd using the bundled GD library. See <a href="http://php.net/manual/book.image.php">the PHP manual</a>.');
     }
 
     return $requirements;
@@ -396,9 +391,17 @@ class GDToolkit extends ImageToolkitBase {
    * {@inheritdoc}
    */
   public static function getSupportedExtensions() {
-    $extensions = array();
+    $extensions = [];
     foreach (static::supportedTypes() as $image_type) {
-      $extensions[] = Unicode::strtolower(image_type_to_extension($image_type, FALSE));
+      // @todo Automatically fetch possible extensions for each mime type.
+      // @see https://www.drupal.org/node/2311679
+      $extension = Unicode::strtolower(image_type_to_extension($image_type, FALSE));
+      $extensions[] = $extension;
+      // Add some known similar extensions.
+      if ($extension === 'jpeg') {
+        $extensions[] = 'jpg';
+        $extensions[] = 'jpe';
+      }
     }
     return $extensions;
   }
@@ -418,6 +421,9 @@ class GDToolkit extends ImageToolkitBase {
    * @see image_type_to_extension()
    */
   public function extensionToImageType($extension) {
+    if (in_array($extension, ['jpe', 'jpg'])) {
+      $extension = 'jpeg';
+    }
     foreach ($this->supportedTypes() as $type) {
       if (image_type_to_extension($type, FALSE) === $extension) {
         return $type;
@@ -434,6 +440,7 @@ class GDToolkit extends ImageToolkitBase {
    *   IMAGETYPE_* constant (e.g. IMAGETYPE_JPEG, IMAGETYPE_PNG, etc.).
    */
   protected static function supportedTypes() {
-    return array(IMAGETYPE_PNG, IMAGETYPE_JPEG, IMAGETYPE_GIF);
+    return [IMAGETYPE_PNG, IMAGETYPE_JPEG, IMAGETYPE_GIF];
   }
+
 }

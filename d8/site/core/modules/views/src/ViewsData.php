@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\ViewsData.
- */
-
 namespace Drupal\views;
 
 use Drupal\Component\Utility\NestedArray;
@@ -45,7 +40,7 @@ class ViewsData {
    *
    * @var array
    */
-  protected $storage = array();
+  protected $storage = [];
 
   /**
    * All table storage data loaded from cache.
@@ -55,7 +50,7 @@ class ViewsData {
    *
    * @var array
    */
-  protected $allStorage = array();
+  protected $allStorage = [];
 
   /**
    * Whether the data has been fully loaded in this request.
@@ -86,7 +81,7 @@ class ViewsData {
   protected $moduleHandler;
 
   /**
-   * The language manager
+   * The language manager.
    *
    * @var \Drupal\Core\Language\LanguageManagerInterface
    */
@@ -114,63 +109,76 @@ class ViewsData {
   }
 
   /**
+   * Gets all table data.
+   *
+   * @see https://www.drupal.org/node/2723553
+   *
+   * @return array
+   *   An array of table data.
+   */
+  public function getAll() {
+    if (!$this->fullyLoaded) {
+      $this->allStorage = $this->getData();
+    }
+
+    // Set storage from allStorage outside of the fullyLoaded check to prevent
+    // cache calls on requests that have requested all data to get a single
+    // tables data. Make sure $this->storage is populated in this case.
+    $this->storage = $this->allStorage;
+    return $this->allStorage;
+  }
+
+  /**
    * Gets data for a particular table, or all tables.
    *
    * @param string|null $key
    *   The key of the cache entry to retrieve. Defaults to NULL, this will
    *   return all table data.
    *
-   * @return array $data
+   * @deprecated NULL $key deprecated in Drupal 8.2.x and will be removed in
+   * 9.0.0. Use getAll() instead.
+   *
+   * @see https://www.drupal.org/node/2723553
+   *
+   * @return array
    *   An array of table data.
    */
   public function get($key = NULL) {
-    if ($key) {
-      if (!isset($this->storage[$key])) {
-        // Prepare a cache ID for get and set.
-        $cid = $this->baseCid . ':' . $key;
-        $from_cache = FALSE;
-
-        if ($data = $this->cacheGet($cid)) {
-          $this->storage[$key] = $data->data;
-          $from_cache = TRUE;
-        }
-        // If there is no cached entry and data is not already fully loaded,
-        // rebuild. This will stop requests for invalid tables calling getData.
-        elseif (!$this->fullyLoaded) {
-          $this->allStorage = $this->getData();
-        }
-
-        if (!$from_cache) {
-          if (!isset($this->allStorage[$key])) {
-            // Write an empty cache entry if no information for that table
-            // exists to avoid repeated cache get calls for this table and
-            // prevent loading all tables unnecessarily.
-            $this->storage[$key] = array();
-            $this->allStorage[$key] = array();
-          }
-          else {
-            $this->storage[$key] = $this->allStorage[$key];
-          }
-
-          // Create a cache entry for the requested table.
-          $this->cacheSet($cid, $this->allStorage[$key]);
-        }
-      }
-
-      return $this->storage[$key];
+    if (!$key) {
+      return $this->getAll();
     }
-    else {
-      if (!$this->fullyLoaded) {
+    if (!isset($this->storage[$key])) {
+      // Prepare a cache ID for get and set.
+      $cid = $this->baseCid . ':' . $key;
+      $from_cache = FALSE;
+
+      if ($data = $this->cacheGet($cid)) {
+        $this->storage[$key] = $data->data;
+        $from_cache = TRUE;
+      }
+      // If there is no cached entry and data is not already fully loaded,
+      // rebuild. This will stop requests for invalid tables calling getData.
+      elseif (!$this->fullyLoaded) {
         $this->allStorage = $this->getData();
       }
 
-      // Set storage from allStorage outside of the fullyLoaded check to prevent
-      // cache calls on requests that have requested all data to get a single
-      // tables data. Make sure $this->storage is populated in this case.
-      $this->storage = $this->allStorage;
-    }
+      if (!$from_cache) {
+        if (!isset($this->allStorage[$key])) {
+          // Write an empty cache entry if no information for that table
+          // exists to avoid repeated cache get calls for this table and
+          // prevent loading all tables unnecessarily.
+          $this->storage[$key] = [];
+          $this->allStorage[$key] = [];
+        }
+        else {
+          $this->storage[$key] = $this->allStorage[$key];
+        }
 
-    return $this->allStorage;
+        // Create a cache entry for the requested table.
+        $this->cacheSet($cid, $this->allStorage[$key]);
+      }
+    }
+    return $this->storage[$key];
   }
 
   /**
@@ -200,7 +208,7 @@ class ViewsData {
    *   The data that will be cached.
    */
   protected function cacheSet($cid, $data) {
-    return $this->cacheBackend->set($this->prepareCid($cid), $data, Cache::PERMANENT, array('views_data', 'config:core.extension'));
+    return $this->cacheBackend->set($this->prepareCid($cid), $data, Cache::PERMANENT, ['views_data', 'config:core.extension']);
   }
 
   /**
@@ -266,9 +274,9 @@ class ViewsData {
       if (!empty($table_info['table']['entity type'])) {
         $entity_table = 'views_entity_' . $table_info['table']['entity type'];
 
-        $data[$entity_table]['table']['join'][$table_name] = array(
+        $data[$entity_table]['table']['join'][$table_name] = [
           'left_table' => $table_name,
-        );
+        ];
         $data[$entity_table]['table']['entity type'] = $table_info['table']['entity type'];
         // Copy over the default table group if we have none yet.
         if (!empty($table_info['table']['group']) && empty($data[$entity_table]['table']['group'])) {
@@ -289,15 +297,15 @@ class ViewsData {
    *     - weight: The weight of the base table.
    */
   public function fetchBaseTables() {
-    $tables = array();
+    $tables = [];
 
     foreach ($this->get() as $table => $info) {
       if (!empty($info['table']['base'])) {
-        $tables[$table] = array(
+        $tables[$table] = [
           'title' => $info['table']['base']['title'],
           'help' => !empty($info['table']['base']['help']) ? $info['table']['base']['help'] : '',
           'weight' => !empty($info['table']['base']['weight']) ? $info['table']['base']['weight'] : 0,
-        );
+        ];
       }
     }
 
@@ -319,9 +327,10 @@ class ViewsData {
    * Clears the class storage and cache.
    */
   public function clear() {
-    $this->storage = array();
-    $this->allStorage = array();
+    $this->storage = [];
+    $this->allStorage = [];
     $this->fullyLoaded = FALSE;
-    Cache::invalidateTags(array('views_data'));
+    Cache::invalidateTags(['views_data']);
   }
+
 }

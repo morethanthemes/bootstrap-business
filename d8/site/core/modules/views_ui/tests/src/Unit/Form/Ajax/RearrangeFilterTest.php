@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\views_ui\Unit\Form\Ajax\RearrangeFilterTest.
- */
-
 namespace Drupal\Tests\views_ui\Unit\Form\Ajax;
 
 use Drupal\Tests\UnitTestCase;
@@ -22,8 +17,8 @@ class RearrangeFilterTest extends UnitTestCase {
    */
   public function testStaticMethods() {
     // Test the RearrangeFilter::arrayKeyPlus method.
-    $original = array(0 => 'one', 1 => 'two', 2 => 'three');
-    $expected = array(1 => 'one', 2 => 'two', 3 => 'three');
+    $original = [0 => 'one', 1 => 'two', 2 => 'three'];
+    $expected = [1 => 'one', 2 => 'two', 3 => 'three'];
     $this->assertSame(RearrangeFilter::arrayKeyPlus($original), $expected);
   }
 

@@ -6,12 +6,8 @@
  */
 
 use Drupal\Core\StringTranslation\TranslatableMarkup;
+use Drupal\views\Entity\View;
 use Drupal\views\Views;
-
-/**
- * @addtogroup updates-8.0.0-beta
- * @{
- */
 
 /**
  * Update the cacheability metadata for all views.
@@ -33,15 +29,6 @@ function views_post_update_update_cacheability_metadata() {
   }
 
 }
-
-/**
- * @} End of "addtogroup updates-8.0.0-beta".
- */
-
-/**
- * @addtogroup updates-8.0.0-rc
- * @{
- */
 
 /**
  * Update some views fields that were previously duplicated.
@@ -137,5 +124,92 @@ function views_post_update_cleanup_duplicate_views_data() {
 }
 
 /**
- * @} End of "addtogroup updates-8.0.0-rc".
+ * Include field formatter dependencies in a view when the formatter is used.
  */
+function views_post_update_field_formatter_dependencies() {
+  $views = View::loadMultiple();
+  array_walk($views, function (View $view) {
+    $view->save();
+  });
+}
+
+/**
+ * Fix views with dependencies on taxonomy terms that don't exist.
+ */
+function views_post_update_taxonomy_index_tid() {
+  $views = View::loadMultiple();
+  array_walk($views, function (View $view) {
+    $old_dependencies = $view->getDependencies();
+    $new_dependencies = $view->calculateDependencies()->getDependencies();
+    if ($old_dependencies !== $new_dependencies) {
+      $view->save();
+    }
+  });
+}
+
+/**
+ * Fix views with serializer dependencies.
+ */
+function views_post_update_serializer_dependencies() {
+  $views = View::loadMultiple();
+  array_walk($views, function (View $view) {
+    $old_dependencies = $view->getDependencies();
+    $new_dependencies = $view->calculateDependencies()->getDependencies();
+    if ($old_dependencies !== $new_dependencies) {
+      $view->save();
+    }
+  });
+}
+
+/**
+ * Set all boolean filter values to strings.
+ */
+function views_post_update_boolean_filter_values() {
+  $config_factory = \Drupal::configFactory();
+  foreach ($config_factory->listAll('views.view.') as $view_config_name) {
+    $view = $config_factory->getEditable($view_config_name);
+    $save = FALSE;
+    foreach ($view->get('display') as $display_name => $display) {
+      if (isset($display['display_options']['filters'])) {
+        foreach ($display['display_options']['filters'] as $filter_name => $filter) {
+          if (isset($filter['plugin_id']) && $filter['plugin_id'] === 'boolean') {
+            $new_value = FALSE;
+            // Update all boolean and integer values to strings.
+            if ($filter['value'] === TRUE || $filter['value'] === 1) {
+              $new_value = '1';
+            }
+            elseif ($filter['value'] === FALSE || $filter['value'] === 0) {
+              $new_value = '0';
+            }
+            if ($new_value !== FALSE) {
+              $view->set("display.$display_name.display_options.filters.$filter_name.value", $new_value);
+              $save = TRUE;
+            }
+          }
+        }
+      }
+    }
+    if ($save) {
+      $view->save();
+    }
+  }
+}
+
+/**
+ * Rebuild caches to ensure schema changes are read in.
+ */
+function views_post_update_grouped_filters() {
+  // Empty update to cause a cache rebuild so that the schema changes are read.
+}
+
+/**
+ * Fix table names for revision metadata fields.
+ */
+function views_post_update_revision_metadata_fields() {
+  // The table names are fixed automatically in
+  // \Drupal\views\Entity\View::preSave(), so we just need to re-save all views.
+  $views = View::loadMultiple();
+  array_walk($views, function (View $view) {
+    $view->save();
+  });
+}

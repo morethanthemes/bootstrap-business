@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\PrivateTempStore.
- */
-
 namespace Drupal\user;
 
 use Drupal\Core\KeyValueStore\KeyValueStoreExpirableInterface;
@@ -73,14 +68,16 @@ class PrivateTempStore {
   /**
    * Constructs a new object for accessing data from a key/value store.
    *
-   * @param KeyValueStoreExpirableInterface $storage
+   * @param \Drupal\Core\KeyValueStore\KeyValueStoreExpirableInterface $storage
    *   The key/value storage object used for this data. Each storage object
    *   represents a particular collection of data and will contain any number
    *   of key/value pairs.
    * @param \Drupal\Core\Lock\LockBackendInterface $lock_backend
    *   The lock object used for this data.
-   * @param mixed $owner
-   *   The owner key to store along with the data (e.g. a user or session ID).
+   * @param \Drupal\Core\Session\AccountProxyInterface $current_user
+   *   The current user account.
+   * @param \Symfony\Component\HttpFoundation\RequestStack $request_stack
+   *   The request stack.
    * @param int $expire
    *   The time to live for items, in seconds.
    */
@@ -115,6 +112,9 @@ class PrivateTempStore {
    *   The key of the data to store.
    * @param mixed $value
    *   The data to store.
+   *
+   * @throws \Drupal\user\TempStoreException
+   *   Thrown when a lock for the backend storage could not be acquired.
    */
   public function set($key, $value) {
     $key = $this->createkey($key);
@@ -125,11 +125,11 @@ class PrivateTempStore {
       }
     }
 
-    $value = (object) array(
+    $value = (object) [
       'owner' => $this->getOwner(),
       'data' => $value,
       'updated' => (int) $this->requestStack->getMasterRequest()->server->get('REQUEST_TIME'),
-    );
+    ];
     $this->storage->setWithExpire($key, $value, $this->expire);
     $this->lockBackend->release($key);
   }
@@ -164,6 +164,9 @@ class PrivateTempStore {
    * @return bool
    *   TRUE if the object was deleted or does not exist, FALSE if it exists but
    *   is not owned by $this->owner.
+   *
+   * @throws \Drupal\user\TempStoreException
+   *   Thrown when a lock for the backend storage could not be acquired.
    */
   public function delete($key) {
     $key = $this->createkey($key);
@@ -206,4 +209,5 @@ class PrivateTempStore {
   protected function getOwner() {
     return $this->currentUser->id() ?: $this->requestStack->getCurrentRequest()->getSession()->getId();
   }
+
 }

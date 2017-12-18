@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\Plugin\FallbackPluginManagerInterface.
- */
-
 namespace Drupal\Component\Plugin;
 
 /**
@@ -23,6 +18,6 @@ interface FallbackPluginManagerInterface {
    * @return string
    *   The id of an existing plugin to use when the plugin does not exist.
    */
-  public function getFallbackPluginId($plugin_id, array $configuration = array());
+  public function getFallbackPluginId($plugin_id, array $configuration = []);
 
 }

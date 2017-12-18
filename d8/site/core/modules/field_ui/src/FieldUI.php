@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\field_ui\FieldUI.
- */
-
 namespace Drupal\field_ui;
 
 use Drupal\Component\Utility\UrlHelper;
@@ -52,9 +47,9 @@ class FieldUI {
     $next_destination = array_shift($destinations);
     if (is_array($next_destination)) {
       $next_destination['options']['query']['destinations'] = $destinations;
-      $next_destination += array(
-        'route_parameters' => array(),
-      );
+      $next_destination += [
+        'route_parameters' => [],
+      ];
       $next_destination = Url::fromRoute($next_destination['route_name'], $next_destination['route_parameters'], $next_destination['options']);
     }
     else {
@@ -82,7 +77,7 @@ class FieldUI {
    */
   public static function getRouteBundleParameter(EntityTypeInterface $entity_type, $bundle) {
     $bundle_parameter_key = $entity_type->getBundleEntityType() ?: 'bundle';
-    return array($bundle_parameter_key => $bundle);
+    return [$bundle_parameter_key => $bundle];
   }
 
 }

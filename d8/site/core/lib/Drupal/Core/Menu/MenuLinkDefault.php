@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Menu\MenuLinkDefault.
- */
-
 namespace Drupal\Core\Menu;
 
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
@@ -18,13 +13,13 @@ class MenuLinkDefault extends MenuLinkBase implements ContainerFactoryPluginInte
   /**
    * {@inheritdoc}
    */
-  protected $overrideAllowed = array(
+  protected $overrideAllowed = [
     'menu_name' => 1,
     'parent' => 1,
     'weight' => 1,
     'expanded' => 1,
     'enabled' => 1,
-  );
+  ];
 
   /**
    * The static menu link service used to store updates to weight/parent etc.

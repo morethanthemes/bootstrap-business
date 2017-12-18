@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\EventSubscriber\ReplicaDatabaseIgnoreSubscriber.
- */
-
 namespace Drupal\Core\EventSubscriber;
 
 use Drupal\Core\Database\Database;
@@ -52,8 +47,8 @@ class ReplicaDatabaseIgnoreSubscriber implements EventSubscriberInterface {
   /**
    * {@inheritdoc}
    */
-  static function getSubscribedEvents() {
-    $events[KernelEvents::REQUEST][] = array('checkReplicaServer');
+  public static function getSubscribedEvents() {
+    $events[KernelEvents::REQUEST][] = ['checkReplicaServer'];
     return $events;
   }
 

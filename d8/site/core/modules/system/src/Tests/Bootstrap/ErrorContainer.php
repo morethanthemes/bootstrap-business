@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Bootstrap\ErrorContainer.
- */
-
 namespace Drupal\system\Tests\Bootstrap;
 
 use Drupal\Core\DependencyInjection\Container;
@@ -20,7 +15,7 @@ class ErrorContainer extends Container {
   public function get($id, $invalidBehavior = self::EXCEPTION_ON_INVALID_REFERENCE) {
     if ($id === 'http_kernel') {
       // Enforce a recoverable error.
-      $callable = function(ErrorContainer $container) {
+      $callable = function (ErrorContainer $container) {
       };
       $callable(1);
     }

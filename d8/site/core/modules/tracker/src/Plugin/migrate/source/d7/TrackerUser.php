@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\tracker\Plugin\migrate\source\d7\TrackerUser.
- */
 
 namespace Drupal\tracker\Plugin\migrate\source\d7;
 
@@ -13,7 +9,7 @@ use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
  *
  * @MigrateSource(
  *   id = "d7_tracker_user",
- *   source_provider = "tracker"
+ *   source_module = "tracker"
  * )
  */
 class TrackerUser extends DrupalSqlBase {

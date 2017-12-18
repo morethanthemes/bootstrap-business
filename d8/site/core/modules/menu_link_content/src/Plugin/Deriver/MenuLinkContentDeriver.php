@@ -1,15 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\menu_link_content\Plugin\Deriver\MenuLinkContentDeriver.
- */
-
 namespace Drupal\menu_link_content\Plugin\Deriver;
 
 use Drupal\Component\Plugin\Derivative\DeriverBase;
 use Drupal\Core\Entity\EntityManagerInterface;
-use Drupal\Core\Entity\Query\QueryFactory;
 use Drupal\Core\Menu\MenuLinkManagerInterface;
 use Drupal\Core\Plugin\Discovery\ContainerDeriverInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -21,13 +15,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * compared to entity referenced ones.
  */
 class MenuLinkContentDeriver extends DeriverBase implements ContainerDeriverInterface {
-
-  /**
-   * The query factory.
-   *
-   * @var \Drupal\Core\Entity\Query\QueryFactory
-   */
-  protected $queryFactory;
 
   /**
    * The entity manager.
@@ -46,16 +33,12 @@ class MenuLinkContentDeriver extends DeriverBase implements ContainerDeriverInte
   /**
    * Constructs a MenuLinkContentDeriver instance.
    *
-   * @param \Drupal\Core\Entity\Query\QueryFactory $query_factory
-   *   The query factory.
-   *
    * @param \Drupal\Core\Entity\EntityManagerInterface $entity_manager
    *   The entity manager.
    * @param \Drupal\Core\Menu\MenuLinkManagerInterface $menu_link_manager
    *   The menu link manager.
    */
-  public function __construct(QueryFactory $query_factory, EntityManagerInterface $entity_manager, MenuLinkManagerInterface $menu_link_manager) {
-    $this->queryFactory = $query_factory;
+  public function __construct(EntityManagerInterface $entity_manager, MenuLinkManagerInterface $menu_link_manager) {
     $this->entityManager = $entity_manager;
     $this->menuLinkManager = $menu_link_manager;
   }
@@ -65,7 +48,6 @@ class MenuLinkContentDeriver extends DeriverBase implements ContainerDeriverInte
    */
   public static function create(ContainerInterface $container, $base_plugin_id) {
     return new static(
-      $container->get('entity.query'),
       $container->get('entity.manager'),
       $container->get('plugin.manager.menu.link')
     );
@@ -76,7 +58,7 @@ class MenuLinkContentDeriver extends DeriverBase implements ContainerDeriverInte
    */
   public function getDerivativeDefinitions($base_plugin_definition) {
     // Get all custom menu links which should be rediscovered.
-    $entity_ids = $this->queryFactory->get('menu_link_content')
+    $entity_ids = $this->entityManager->getStorage('menu_link_content')->getQuery()
       ->condition('rediscover', TRUE)
       ->execute();
     $plugin_definitions = [];

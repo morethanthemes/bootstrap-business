@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Plugin\views\pager\Mini.
- */
-
 namespace Drupal\views\Plugin\views\pager;
 
 /**
@@ -41,9 +36,9 @@ class Mini extends SqlBase {
    */
   public function summaryTitle() {
     if (!empty($this->options['offset'])) {
-      return $this->formatPlural($this->options['items_per_page'], 'Mini pager, @count item, skip @skip', 'Mini pager, @count items, skip @skip', array('@count' => $this->options['items_per_page'], '@skip' => $this->options['offset']));
+      return $this->formatPlural($this->options['items_per_page'], 'Mini pager, @count item, skip @skip', 'Mini pager, @count items, skip @skip', ['@count' => $this->options['items_per_page'], '@skip' => $this->options['offset']]);
     }
-      return $this->formatPlural($this->options['items_per_page'], 'Mini pager, @count item', 'Mini pager, @count items', array('@count' => $this->options['items_per_page']));
+    return $this->formatPlural($this->options['items_per_page'], 'Mini pager, @count item', 'Mini pager, @count items', ['@count' => $this->options['items_per_page']]);
   }
 
   /**
@@ -52,14 +47,17 @@ class Mini extends SqlBase {
   public function query() {
     parent::query();
 
-    // Don't query for the next page if we have a pager that has a limited
-    // amount of pages.
-    if ($this->getItemsPerPage() > 0 && (empty($this->options['total_pages']) || ($this->getCurrentPage() < $this->options['total_pages']))) {
-      // Increase the items in the query in order to be able to find out whether
-      // there is another page.
-      $limit = $this->view->query->getLimit();
-      $limit += 1;
-      $this->view->query->setLimit($limit);
+    // Only modify the query if we don't want to do a total row count
+    if (!$this->view->get_total_rows) {
+      // Don't query for the next page if we have a pager that has a limited
+      // amount of pages.
+      if ($this->getItemsPerPage() > 0 && (empty($this->options['total_pages']) || ($this->getCurrentPage() < $this->options['total_pages']))) {
+        // Increase the items in the query in order to be able to find out
+        // whether there is another page.
+        $limit = $this->view->query->getLimit();
+        $limit += 1;
+        $this->view->query->setLimit($limit);
+      }
     }
   }
 
@@ -74,19 +72,16 @@ class Mini extends SqlBase {
    * {@inheritdoc}
    */
   public function postExecute(&$result) {
-    // In query() one more item might have been retrieved than necessary. If so,
-    // the next link needs to be displayed and the item removed.
-    if ($this->getItemsPerPage() > 0 && count($result) > $this->getItemsPerPage()) {
-      array_pop($result);
-      // Make sure the pager shows the next link by setting the total items to
-      // the biggest possible number but prevent failing calculations like
-      // ceil(PHP_INT_MAX) we take PHP_INT_MAX / 2.
-      $total = PHP_INT_MAX / 2;
+    // Only modify the result if we didn't do a total row count
+    if (!$this->view->get_total_rows) {
+      $this->total_items = $this->getCurrentPage() * $this->getItemsPerPage() + count($result);
+      // query() checks if we need a next link by setting limit 1 record past
+      // this page If we got the extra record we need to remove it before we
+      // render the result.
+      if ($this->getItemsPerPage() > 0 && count($result) > $this->getItemsPerPage()) {
+        array_pop($result);
+      }
     }
-    else {
-      $total = $this->getCurrentPage() * $this->getItemsPerPage() + count($result);
-    }
-    $this->total_items = $total;
   }
 
   /**
@@ -94,17 +89,17 @@ class Mini extends SqlBase {
    */
   public function render($input) {
     // The 1, 3 indexes are correct, see template_preprocess_pager().
-    $tags = array(
+    $tags = [
       1 => $this->options['tags']['previous'],
       3 => $this->options['tags']['next'],
-    );
-    return array(
+    ];
+    return [
       '#theme' => $this->themeFunctions(),
       '#tags' => $tags,
       '#element' => $this->options['id'],
       '#parameters' => $input,
       '#route_name' => !empty($this->view->live_preview) ? '<current>' : '<none>',
-    );
+    ];
   }
 
 }

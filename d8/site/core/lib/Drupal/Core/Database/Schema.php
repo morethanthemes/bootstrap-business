@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Database\Schema.
- */
-
 namespace Drupal\Core\Database;
 
 use Drupal\Core\Database\Query\Condition;
@@ -24,6 +19,8 @@ abstract class Schema implements PlaceholderInterface {
 
   /**
    * The placeholder counter.
+   *
+   * @var int
    */
   protected $placeholder = 0;
 
@@ -35,6 +32,8 @@ abstract class Schema implements PlaceholderInterface {
    * method.
    *
    * @see DatabaseSchema::getPrefixInfo()
+   *
+   * @var string
    */
   protected $defaultSchema = 'public';
 
@@ -82,10 +81,10 @@ abstract class Schema implements PlaceholderInterface {
    *   A keyed array with information about the schema, table name and prefix.
    */
   protected function getPrefixInfo($table = 'default', $add_prefix = TRUE) {
-    $info = array(
+    $info = [
       'schema' => $this->defaultSchema,
       'prefix' => $this->connection->tablePrefix($table),
-    );
+    ];
     if ($add_prefix) {
       $table = $info['prefix'] . $table;
     }
@@ -110,7 +109,7 @@ abstract class Schema implements PlaceholderInterface {
    *
    * This prevents using {} around non-table names like indexes and keys.
    */
-  function prefixNonTable($table) {
+  public function prefixNonTable($table) {
     $args = func_get_args();
     $info = $this->getPrefixInfo($table);
     $args[0] = $info['table'];
@@ -229,7 +228,7 @@ abstract class Schema implements PlaceholderInterface {
 
     // Convert the table expression from its SQL LIKE syntax to a regular
     // expression and escape the delimiter that will be used for matching.
-    $table_expression = str_replace(array('%', '_'), array('.*?', '.'), preg_quote($table_expression, '/'));
+    $table_expression = str_replace(['%', '_'], ['.*?', '.'], preg_quote($table_expression, '/'));
     $tables = preg_grep('/^' . $table_expression . '$/i', $tables);
 
     return $tables;
@@ -310,6 +309,8 @@ abstract class Schema implements PlaceholderInterface {
    *   created field will be set to the value of the key in all rows.
    *   This is most useful for creating NOT NULL columns with no default
    *   value in existing tables.
+   *   Alternatively, the 'initial_form_field' key may be used, which will
+   *   auto-populate the new field with values from the specified field.
    * @param $keys_new
    *   (optional) Keys and indexes specification to be created on the
    *   table along with adding the field. The format is the same as a
@@ -323,7 +324,7 @@ abstract class Schema implements PlaceholderInterface {
    * @throws \Drupal\Core\Database\SchemaObjectExistsException
    *   If the specified table already has a field by that name.
    */
-  abstract public function addField($table, $field, $spec, $keys_new = array());
+  abstract public function addField($table, $field, $spec, $keys_new = []);
 
   /**
    * Drop a field.
@@ -579,7 +580,7 @@ abstract class Schema implements PlaceholderInterface {
    * @throws \Drupal\Core\Database\SchemaObjectExistsException
    *   If the specified destination field already exists.
    */
-  abstract public function changeField($table, $field, $field_new, $spec, $keys_new = array());
+  abstract public function changeField($table, $field, $field_new, $spec, $keys_new = []);
 
   /**
    * Create a new table from a Drupal table definition.
@@ -594,7 +595,7 @@ abstract class Schema implements PlaceholderInterface {
    */
   public function createTable($name, $table) {
     if ($this->tableExists($name)) {
-      throw new SchemaObjectExistsException(t('Table @name already exists.', array('@name' => $name)));
+      throw new SchemaObjectExistsException(t('Table @name already exists.', ['@name' => $name]));
     }
     $statements = $this->createTableSql($name, $table);
     foreach ($statements as $statement) {
@@ -615,7 +616,7 @@ abstract class Schema implements PlaceholderInterface {
    *   An array of field names.
    */
   public function fieldNames($fields) {
-    $return = array();
+    $return = [];
     foreach ($fields as $field) {
       if (is_array($field)) {
         $return[] = $field[0];
@@ -660,4 +661,5 @@ abstract class Schema implements PlaceholderInterface {
     }
     return is_string($value) ? $this->connection->quote($value) : $value;
   }
+
 }

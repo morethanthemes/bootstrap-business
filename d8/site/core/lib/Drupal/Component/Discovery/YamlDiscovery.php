@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\Discovery\YamlDiscovery.
- */
-
 namespace Drupal\Component\Discovery;
 
 use Drupal\Component\Serialization\Yaml;
@@ -27,7 +22,7 @@ class YamlDiscovery implements DiscoverableInterface {
    *
    * @var array
    */
-  protected $directories = array();
+  protected $directories = [];
 
   /**
    * Constructs a YamlDiscovery object.
@@ -47,7 +42,7 @@ class YamlDiscovery implements DiscoverableInterface {
    * {@inheritdoc}
    */
   public function findAll() {
-    $all = array();
+    $all = [];
 
     $files = $this->findFiles();
     $provider_by_files = array_flip($files);
@@ -66,7 +61,7 @@ class YamlDiscovery implements DiscoverableInterface {
       foreach ($provider_by_files as $file => $provider) {
         // If a file is empty or its contents are commented out, return an empty
         // array instead of NULL for type consistency.
-        $all[$provider] = Yaml::decode(file_get_contents($file)) ?: [];
+        $all[$provider] = $this->decode($file);
         $file_cache->set($file, $all[$provider]);
       }
     }
@@ -75,12 +70,23 @@ class YamlDiscovery implements DiscoverableInterface {
   }
 
   /**
+   * Decode a YAML file.
+   *
+   * @param string $file
+   *   Yaml file path.
+   * @return array
+   */
+  protected function decode($file) {
+    return Yaml::decode(file_get_contents($file)) ?: [];
+  }
+
+  /**
    * Returns an array of file paths, keyed by provider.
    *
    * @return array
    */
   protected function findFiles() {
-    $files = array();
+    $files = [];
     foreach ($this->directories as $provider => $directory) {
       $file = $directory . '/' . $provider . '.' . $this->name . '.yml';
       if (file_exists($file)) {
@@ -91,4 +97,3 @@ class YamlDiscovery implements DiscoverableInterface {
   }
 
 }
-

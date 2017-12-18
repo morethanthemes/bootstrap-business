@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\PermissionHandlerInterface.
- */
-
 namespace Drupal\user;
 
 /**
@@ -55,4 +50,3 @@ interface PermissionHandlerInterface {
   public function moduleProvidesPermissions($module_name);
 
 }
-

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\EntityTypeManager.
- */
-
 namespace Drupal\Core\Entity;
 
 use Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException;
@@ -22,13 +17,21 @@ use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 /**
  * Manages entity type plugin definitions.
  *
- * Each entity type definition array is set in the entity type's
- * annotation and altered by hook_entity_type_alter().
+ * Each entity type definition array is set in the entity type's annotation and
+ * altered by hook_entity_type_alter().
+ *
+ * Do not use hook_entity_type_alter() hook to add information to entity types,
+ * unless one of the following is true:
+ * - You are filling in default values.
+ * - You need to dynamically add information only in certain circumstances.
+ * - Your hook needs to run after hook_entity_type_build() implementations.
+ * Use hook_entity_type_build() instead in all other cases.
  *
  * @see \Drupal\Core\Entity\Annotation\EntityType
  * @see \Drupal\Core\Entity\EntityInterface
  * @see \Drupal\Core\Entity\EntityTypeInterface
  * @see hook_entity_type_alter()
+ * @see hook_entity_type_build()
  */
 class EntityTypeManager extends DefaultPluginManager implements EntityTypeManagerInterface, ContainerAwareInterface {
 
@@ -177,25 +180,20 @@ class EntityTypeManager extends DefaultPluginManager implements EntityTypeManage
    * {@inheritdoc}
    */
   public function getFormObject($entity_type, $operation) {
-    if (!isset($this->handlers['form'][$operation][$entity_type])) {
-      if (!$class = $this->getDefinition($entity_type, TRUE)->getFormClass($operation)) {
-        throw new InvalidPluginDefinitionException($entity_type, sprintf('The "%s" entity type did not specify a "%s" form class.', $entity_type, $operation));
-      }
-
-      $form_object = $this->classResolver->getInstanceFromDefinition($class);
-
-      $form_object
-        ->setStringTranslation($this->stringTranslation)
-        ->setModuleHandler($this->moduleHandler)
-        ->setEntityTypeManager($this)
-        ->setOperation($operation)
-        // The entity manager cannot be injected due to a circular dependency.
-        // @todo Remove this set call in https://www.drupal.org/node/2603542.
-        ->setEntityManager(\Drupal::entityManager());
-      $this->handlers['form'][$operation][$entity_type] = $form_object;
+    if (!$class = $this->getDefinition($entity_type, TRUE)->getFormClass($operation)) {
+      throw new InvalidPluginDefinitionException($entity_type, sprintf('The "%s" entity type did not specify a "%s" form class.', $entity_type, $operation));
     }
 
-    return $this->handlers['form'][$operation][$entity_type];
+    $form_object = $this->classResolver->getInstanceFromDefinition($class);
+
+    return $form_object
+      ->setStringTranslation($this->stringTranslation)
+      ->setModuleHandler($this->moduleHandler)
+      ->setEntityTypeManager($this)
+      ->setOperation($operation)
+      // The entity manager cannot be injected due to a circular dependency.
+      // @todo Remove this set call in https://www.drupal.org/node/2603542.
+      ->setEntityManager(\Drupal::entityManager());
   }
 
   /**

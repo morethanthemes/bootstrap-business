@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Plugin\views\argument\GroupByNumeric.
- */
-
 namespace Drupal\views\Plugin\views\argument;
 
 /**
@@ -21,7 +16,7 @@ class GroupByNumeric extends ArgumentPluginBase {
     $field = $this->getField();
     $placeholder = $this->placeholder();
 
-    $this->query->addHavingExpression(0, "$field = $placeholder", array($placeholder => $this->argument));
+    $this->query->addHavingExpression(0, "$field = $placeholder", [$placeholder => $this->argument]);
   }
 
   public function adminLabel($short = FALSE) {
@@ -32,7 +27,7 @@ class GroupByNumeric extends ArgumentPluginBase {
    * {@inheritdoc}
    */
   public function getSortName() {
-    return $this->t('Numerical', array(), array('context' => 'Sort order'));
+    return $this->t('Numerical', [], ['context' => 'Sort order']);
   }
 
 }

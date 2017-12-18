@@ -23,14 +23,18 @@ use Symfony\Component\Serializer\Mapping\Loader\LoaderInterface;
  */
 class ClassMetadataFactory implements ClassMetadataFactoryInterface
 {
+    use ClassResolverTrait;
+
     /**
      * @var LoaderInterface
      */
     private $loader;
+
     /**
      * @var Cache
      */
     private $cache;
+
     /**
      * @var array
      */
@@ -44,6 +48,10 @@ class ClassMetadataFactory implements ClassMetadataFactoryInterface
     {
         $this->loader = $loader;
         $this->cache = $cache;
+
+        if (null !== $cache) {
+            @trigger_error(sprintf('Passing a Doctrine Cache instance as 2nd parameter of the "%s" constructor is deprecated since version 3.1. This parameter will be removed in Symfony 4.0. Use the "%s" class instead.', __CLASS__, CacheClassMetadataFactory::class), E_USER_DEPRECATED);
+        }
     }
 
     /**
@@ -52,9 +60,6 @@ class ClassMetadataFactory implements ClassMetadataFactoryInterface
     public function getMetadataFor($value)
     {
         $class = $this->getClass($value);
-        if (!$class) {
-            throw new InvalidArgumentException(sprintf('Cannot create metadata for non-objects. Got: "%s"', gettype($value)));
-        }
 
         if (isset($this->loadedClasses[$class])) {
             return $this->loadedClasses[$class];
@@ -62,10 +67,6 @@ class ClassMetadataFactory implements ClassMetadataFactoryInterface
 
         if ($this->cache && ($this->loadedClasses[$class] = $this->cache->fetch($class))) {
             return $this->loadedClasses[$class];
-        }
-
-        if (!class_exists($class) && !interface_exists($class)) {
-            throw new InvalidArgumentException(sprintf('The class or interface "%s" does not exist.', $class));
         }
 
         $classMetadata = new ClassMetadata($class);
@@ -95,24 +96,14 @@ class ClassMetadataFactory implements ClassMetadataFactoryInterface
      */
     public function hasMetadataFor($value)
     {
-        $class = $this->getClass($value);
+        try {
+            $this->getClass($value);
 
-        return class_exists($class) || interface_exists($class);
-    }
-
-    /**
-     * Gets a class name for a given class or instance.
-     *
-     * @param mixed $value
-     *
-     * @return string|bool
-     */
-    private function getClass($value)
-    {
-        if (!is_object($value) && !is_string($value)) {
-            return false;
+            return true;
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            // Return false in case of exception
         }
 
-        return ltrim(is_object($value) ? get_class($value) : $value, '\\');
+        return false;
     }
 }

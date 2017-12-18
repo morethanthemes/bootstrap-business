@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Field\Plugin\Field\FieldWidget\OptionsWidgetBase.
- */
-
 namespace Drupal\Core\Field\Plugin\Field\FieldWidget;
 
 use Drupal\Core\Entity\FieldableEntityInterface;
@@ -55,7 +50,7 @@ abstract class OptionsWidgetBase extends WidgetBase {
     $this->has_value = isset($items[0]->{$this->column});
 
     // Add our custom validator.
-    $element['#element_validate'][] = array(get_class($this), 'validateElement');
+    $element['#element_validate'][] = [get_class($this), 'validateElement'];
     $element['#key_column'] = $this->column;
 
     // The rest of the $element is built by child method implementations.
@@ -73,7 +68,7 @@ abstract class OptionsWidgetBase extends WidgetBase {
    */
   public static function validateElement(array $element, FormStateInterface $form_state) {
     if ($element['#required'] && $element['#value'] == '_none') {
-      $form_state->setError($element, t('@name field is required.', array('@name' => $element['#title'])));
+      $form_state->setError($element, t('@name field is required.', ['@name' => $element['#title']]));
     }
 
     // Massage submitted form values.
@@ -85,7 +80,7 @@ abstract class OptionsWidgetBase extends WidgetBase {
       $values = array_values($element['#value']);
     }
     else {
-      $values = array($element['#value']);
+      $values = [$element['#value']];
     }
 
     // Filter out the 'none' option. Use a strict comparison, because
@@ -96,9 +91,9 @@ abstract class OptionsWidgetBase extends WidgetBase {
     }
 
     // Transpose selections from field => delta to delta => field.
-    $items = array();
+    $items = [];
     foreach ($values as $value) {
-      $items[] = array($element['#key_column'] => $value);
+      $items[] = [$element['#key_column'] => $value];
     }
     $form_state->setValueForElement($element, $items);
   }
@@ -126,13 +121,13 @@ abstract class OptionsWidgetBase extends WidgetBase {
       }
 
       $module_handler = \Drupal::moduleHandler();
-      $context = array(
+      $context = [
         'fieldDefinition' => $this->fieldDefinition,
         'entity' => $entity,
-      );
+      ];
       $module_handler->alter('options_list', $options, $context);
 
-      array_walk_recursive($options, array($this, 'sanitizeLabel'));
+      array_walk_recursive($options, [$this, 'sanitizeLabel']);
 
       // Options might be nested ("optgroups"). If the widget does not support
       // nested options, flatten the list.
@@ -150,17 +145,15 @@ abstract class OptionsWidgetBase extends WidgetBase {
    *
    * @param \Drupal\Core\Field\FieldItemListInterface $items
    *   The field values.
-   * @param int $delta
-   *   (optional) The delta of the item to get options for. Defaults to 0.
    *
    * @return array
    *   The array of corresponding selected options.
    */
-  protected function getSelectedOptions(FieldItemListInterface $items, $delta = 0) {
+  protected function getSelectedOptions(FieldItemListInterface $items) {
     // We need to check against a flat list of options.
     $flat_options = OptGroup::flattenOptions($this->getOptions($items->getEntity()));
 
-    $selected_options = array();
+    $selected_options = [];
     foreach ($items as $item) {
       $value = $item->{$this->column};
       // Keep the value if it actually is in the list of options (needs to be
@@ -197,9 +190,9 @@ abstract class OptionsWidgetBase extends WidgetBase {
   /**
    * Returns the empty option label to add to the list of options, if any.
    *
-   * @return string|NULL
+   * @return string|null
    *   Either a label of the empty option, or NULL.
    */
-  protected function getEmptyLabel() { }
+  protected function getEmptyLabel() {}
 
 }

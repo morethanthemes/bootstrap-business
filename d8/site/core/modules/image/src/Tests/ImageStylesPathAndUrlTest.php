@@ -1,12 +1,8 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\image\Tests\ImageStylesPathAndUrlTest.
- */
-
 namespace Drupal\image\Tests;
 
+use Drupal\image\Entity\ImageStyle;
 use Drupal\simpletest\WebTestBase;
 
 /**
@@ -21,7 +17,7 @@ class ImageStylesPathAndUrlTest extends WebTestBase {
    *
    * @var array
    */
-  public static $modules = array('image', 'image_module_test');
+  public static $modules = ['image', 'image_module_test'];
 
   /**
    * @var \Drupal\image\ImageStyleInterface
@@ -31,14 +27,14 @@ class ImageStylesPathAndUrlTest extends WebTestBase {
   protected function setUp() {
     parent::setUp();
 
-    $this->style = entity_create('image_style', array('name' => 'style_foo', 'label' => $this->randomString()));
+    $this->style = ImageStyle::create(['name' => 'style_foo', 'label' => $this->randomString()]);
     $this->style->save();
   }
 
   /**
    * Tests \Drupal\image\ImageStyleInterface::buildUri().
    */
-  function testImageStylePath() {
+  public function testImageStylePath() {
     $scheme = 'public';
     $actual = $this->style->buildUri("$scheme://foo/bar.gif");
     $expected = "$scheme://styles/" . $this->style->id() . "/$scheme/foo/bar.gif";
@@ -52,42 +48,42 @@ class ImageStylesPathAndUrlTest extends WebTestBase {
   /**
    * Tests an image style URL using the "public://" scheme.
    */
-  function testImageStyleUrlAndPathPublic() {
+  public function testImageStyleUrlAndPathPublic() {
     $this->doImageStyleUrlAndPathTests('public');
   }
 
   /**
    * Tests an image style URL using the "private://" scheme.
    */
-  function testImageStyleUrlAndPathPrivate() {
+  public function testImageStyleUrlAndPathPrivate() {
     $this->doImageStyleUrlAndPathTests('private');
   }
 
   /**
    * Tests an image style URL with the "public://" scheme and unclean URLs.
    */
-   function testImageStyleUrlAndPathPublicUnclean() {
-     $this->doImageStyleUrlAndPathTests('public', FALSE);
-   }
+  public function testImageStyleUrlAndPathPublicUnclean() {
+    $this->doImageStyleUrlAndPathTests('public', FALSE);
+  }
 
   /**
    * Tests an image style URL with the "private://" schema and unclean URLs.
    */
-  function testImageStyleUrlAndPathPrivateUnclean() {
+  public function testImageStyleUrlAndPathPrivateUnclean() {
     $this->doImageStyleUrlAndPathTests('private', FALSE);
   }
 
   /**
    * Tests an image style URL with a file URL that has an extra slash in it.
    */
-  function testImageStyleUrlExtraSlash() {
+  public function testImageStyleUrlExtraSlash() {
     $this->doImageStyleUrlAndPathTests('public', TRUE, TRUE);
   }
 
   /**
    * Tests that an invalid source image returns a 404.
    */
-  function testImageStyleUrlForMissingSourceImage() {
+  public function testImageStyleUrlForMissingSourceImage() {
     $non_existent_uri = 'public://foo.png';
     $generated_url = $this->style->buildUrl($non_existent_uri);
     $this->drupalGet($generated_url);
@@ -97,7 +93,7 @@ class ImageStylesPathAndUrlTest extends WebTestBase {
   /**
    * Tests building an image style URL.
    */
-  function doImageStyleUrlAndPathTests($scheme, $clean_url = TRUE, $extra_slash = FALSE) {
+  public function doImageStyleUrlAndPathTests($scheme, $clean_url = TRUE, $extra_slash = FALSE) {
     $this->prepareRequestForGenerator($clean_url);
 
     // Make the default scheme neither "public" nor "private" to verify the
@@ -159,6 +155,11 @@ class ImageStylesPathAndUrlTest extends WebTestBase {
     $image = $this->container->get('image.factory')->get($generated_uri);
     $this->assertEqual($this->drupalGetHeader('Content-Type'), $image->getMimeType(), 'Expected Content-Type was reported.');
     $this->assertEqual($this->drupalGetHeader('Content-Length'), $image->getFileSize(), 'Expected Content-Length was reported.');
+
+    // Check that we did not download the original file.
+    $original_image = $this->container->get('image.factory')->get($original_uri);
+    $this->assertNotEqual($this->drupalGetHeader('Content-Length'), $original_image->getFileSize());
+
     if ($scheme == 'private') {
       $this->assertEqual($this->drupalGetHeader('Expires'), 'Sun, 19 Nov 1978 05:00:00 GMT', 'Expires header was sent.');
       $this->assertNotEqual(strpos($this->drupalGetHeader('Cache-Control'), 'no-cache'), FALSE, 'Cache-Control header contains \'no-cache\' to prevent caching.');
@@ -168,6 +169,12 @@ class ImageStylesPathAndUrlTest extends WebTestBase {
       // works too.
       $this->drupalGet($generate_url);
       $this->assertResponse(200, 'Image was generated at the URL.');
+
+      // Check that the second request also returned the generated image.
+      $this->assertEqual($this->drupalGetHeader('Content-Length'), $image->getFileSize());
+
+      // Check that we did not download the original file.
+      $this->assertNotEqual($this->drupalGetHeader('Content-Length'), $original_image->getFileSize());
 
       // Make sure that access is denied for existing style files if we do not
       // have access.
@@ -179,20 +186,20 @@ class ImageStylesPathAndUrlTest extends WebTestBase {
       // make sure that access is denied.
       $file_noaccess = array_shift($files);
       $original_uri_noaccess = file_unmanaged_copy($file_noaccess->uri, $scheme . '://', FILE_EXISTS_RENAME);
-      $generated_uri_noaccess = $scheme . '://styles/' . $this->style->id() . '/' . $scheme . '/'. drupal_basename($original_uri_noaccess);
+      $generated_uri_noaccess = $scheme . '://styles/' . $this->style->id() . '/' . $scheme . '/' . drupal_basename($original_uri_noaccess);
       $this->assertFalse(file_exists($generated_uri_noaccess), 'Generated file does not exist.');
       $generate_url_noaccess = $this->style->buildUrl($original_uri_noaccess);
 
       $this->drupalGet($generate_url_noaccess);
       $this->assertResponse(403, 'Confirmed that access is denied for the private image style.');
       // Verify that images are not appended to the response. Currently this test only uses PNG images.
-      if (strpos($generate_url, '.png') === FALSE ) {
+      if (strpos($generate_url, '.png') === FALSE) {
         $this->fail('Confirming that private image styles are not appended require PNG file.');
       }
       else {
         // Check for PNG-Signature (cf. http://www.libpng.org/pub/png/book/chapter08.html#png.ch08.div.2) in the
         // response body.
-        $this->assertNoRaw( chr(137) . chr(80) . chr(78) . chr(71) . chr(13) . chr(10) . chr(26) . chr(10), 'No PNG signature found in the response body.');
+        $this->assertNoRaw(chr(137) . chr(80) . chr(78) . chr(71) . chr(13) . chr(10) . chr(26) . chr(10), 'No PNG signature found in the response body.');
       }
     }
     else {
@@ -237,7 +244,7 @@ class ImageStylesPathAndUrlTest extends WebTestBase {
     // image derivative using the first one as a source.
     $nested_url = $this->style->buildUrl($generated_uri, $clean_url);
     $matches_expected_url_format = (boolean) preg_match('/styles\/' . $this->style->id() . '\/' . $scheme . '\/styles\/' . $this->style->id() . '\/' . $scheme . '/', $nested_url);
-    $this->assertTrue($matches_expected_url_format, "Url for a derivative of an image style matches expected format.");
+    $this->assertTrue($matches_expected_url_format, "URL for a derivative of an image style matches expected format.");
     $nested_url_with_wrong_token = str_replace(IMAGE_DERIVATIVE_TOKEN . '=', 'wrongparam=', $nested_url);
     $this->drupalGet($nested_url_with_wrong_token);
     $this->assertResponse(403, 'Image generated from an earlier derivative was inaccessible at the URL with a missing token.');
@@ -253,7 +260,7 @@ class ImageStylesPathAndUrlTest extends WebTestBase {
 
     // Check that requesting a nonexistent image does not create any new
     // directories in the file system.
-    $directory = $scheme . '://styles/' .  $this->style->id() . '/' . $scheme . '/' . $this->randomMachineName();
+    $directory = $scheme . '://styles/' . $this->style->id() . '/' . $scheme . '/' . $this->randomMachineName();
     $this->drupalGet(file_create_url($directory . '/' . $this->randomString()));
     $this->assertFalse(file_exists($directory), 'New directory was not created in the filesystem when requesting an unauthorized image.');
   }

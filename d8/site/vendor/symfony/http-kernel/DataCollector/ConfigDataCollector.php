@@ -29,7 +29,6 @@ class ConfigDataCollector extends DataCollector
     private $kernel;
     private $name;
     private $version;
-    private $cacheVersionInfo = true;
 
     /**
      * Constructor.
@@ -75,7 +74,7 @@ class ConfigDataCollector extends DataCollector
             'wincache_enabled' => extension_loaded('wincache') && ini_get('wincache.ocenabled'),
             'zend_opcache_enabled' => extension_loaded('Zend OPcache') && ini_get('opcache.enable'),
             'bundles' => array(),
-            'sapi_name' => php_sapi_name(),
+            'sapi_name' => PHP_SAPI,
         );
 
         if (isset($this->kernel)) {
@@ -125,11 +124,6 @@ class ConfigDataCollector extends DataCollector
     public function getSymfonyState()
     {
         return $this->data['symfony_state'];
-    }
-
-    public function setCacheVersionInfo($cacheVersionInfo)
-    {
-        $this->cacheVersionInfo = $cacheVersionInfo;
     }
 
     /**

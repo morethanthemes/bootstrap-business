@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Plugin\views\argument\Date.
- */
-
 namespace Drupal\views\Plugin\views\argument;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -14,7 +9,7 @@ use Drupal\node\NodeInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Abstract argument handler for dates.
+ * Argument handler for dates.
  *
  * Adds an option to set a default argument based on the current date.
  *
@@ -45,7 +40,7 @@ class Date extends Formula implements ContainerFactoryPluginInterface {
    */
   protected $argFormat = 'Y-m-d';
 
-  var $option_name = 'default_argument_date';
+  public $option_name = 'default_argument_date';
 
   /**
    * The route match.
@@ -90,9 +85,9 @@ class Date extends Formula implements ContainerFactoryPluginInterface {
    */
   public function defaultArgumentForm(&$form, FormStateInterface $form_state) {
     parent::defaultArgumentForm($form, $form_state);
-    $form['default_argument_type']['#options'] += array('date' => $this->t('Current date'));
-    $form['default_argument_type']['#options'] += array('node_created' => $this->t("Current node's creation time"));
-    $form['default_argument_type']['#options'] += array('node_changed' => $this->t("Current node's update time"));
+    $form['default_argument_type']['#options'] += ['date' => $this->t('Current date')];
+    $form['default_argument_type']['#options'] += ['node_created' => $this->t("Current node's creation time")];
+    $form['default_argument_type']['#options'] += ['node_changed' => $this->t("Current node's update time")];
   }
 
   /**
@@ -103,7 +98,7 @@ class Date extends Formula implements ContainerFactoryPluginInterface {
     if (!$raw && $this->options['default_argument_type'] == 'date') {
       return date($this->argFormat, REQUEST_TIME);
     }
-    elseif (!$raw && in_array($this->options['default_argument_type'], array('node_created', 'node_changed'))) {
+    elseif (!$raw && in_array($this->options['default_argument_type'], ['node_created', 'node_changed'])) {
       $node = $this->routeMatch->getParameter('node');
 
       if (!($node instanceof NodeInterface)) {
@@ -124,7 +119,7 @@ class Date extends Formula implements ContainerFactoryPluginInterface {
    * {@inheritdoc}
    */
   public function getSortName() {
-    return $this->t('Date', array(), array('context' => 'Sort order'));
+    return $this->t('Date', [], ['context' => 'Sort order']);
   }
 
   /**

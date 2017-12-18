@@ -1,15 +1,10 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\image\Form\ImageEffectFormBase.
- */
-
 namespace Drupal\image\Form;
 
 use Drupal\Core\Form\FormBase;
-use Drupal\Core\Form\FormState;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Form\SubformState;
 use Drupal\image\ConfigurableImageEffectInterface;
 use Drupal\image\ImageStyleInterface;
 use Drupal\Component\Plugin\Exception\PluginNotFoundException;
@@ -30,7 +25,7 @@ abstract class ImageEffectFormBase extends FormBase {
   /**
    * The image effect.
    *
-   * @var \Drupal\image\ImageEffectInterface
+   * @var \Drupal\image\ImageEffectInterface|\Drupal\image\ConfigurableImageEffectInterface
    */
   protected $imageEffect;
 
@@ -69,35 +64,37 @@ abstract class ImageEffectFormBase extends FormBase {
     }
 
     $form['#attached']['library'][] = 'image/admin';
-    $form['uuid'] = array(
+    $form['uuid'] = [
       '#type' => 'value',
       '#value' => $this->imageEffect->getUuid(),
-    );
-    $form['id'] = array(
+    ];
+    $form['id'] = [
       '#type' => 'value',
       '#value' => $this->imageEffect->getPluginId(),
-    );
+    ];
 
-    $form['data'] = $this->imageEffect->buildConfigurationForm(array(), $form_state);
+    $form['data'] = [];
+    $subform_state = SubformState::createForSubform($form['data'], $form, $form_state);
+    $form['data'] = $this->imageEffect->buildConfigurationForm($form['data'], $subform_state);
     $form['data']['#tree'] = TRUE;
 
     // Check the URL for a weight, then the image effect, otherwise use default.
-    $form['weight'] = array(
+    $form['weight'] = [
       '#type' => 'hidden',
       '#value' => $request->query->has('weight') ? (int) $request->query->get('weight') : $this->imageEffect->getWeight(),
-    );
+    ];
 
-    $form['actions'] = array('#type' => 'actions');
-    $form['actions']['submit'] = array(
+    $form['actions'] = ['#type' => 'actions'];
+    $form['actions']['submit'] = [
       '#type' => 'submit',
       '#button_type' => 'primary',
-    );
-    $form['actions']['cancel'] = array(
+    ];
+    $form['actions']['cancel'] = [
       '#type' => 'link',
       '#title' => $this->t('Cancel'),
       '#url' => $this->imageStyle->urlInfo('edit-form'),
       '#attributes' => ['class' => ['button']],
-    );
+    ];
     return $form;
   }
 
@@ -107,10 +104,7 @@ abstract class ImageEffectFormBase extends FormBase {
   public function validateForm(array &$form, FormStateInterface $form_state) {
     // The image effect configuration is stored in the 'data' key in the form,
     // pass that through for validation.
-    $effect_data = (new FormState())->setValues($form_state->getValue('data'));
-    $this->imageEffect->validateConfigurationForm($form, $effect_data);
-    // Update the original form values.
-    $form_state->setValue('data', $effect_data->getValues());
+    $this->imageEffect->validateConfigurationForm($form['data'], SubformState::createForSubform($form['data'], $form, $form_state));
   }
 
   /**
@@ -121,10 +115,7 @@ abstract class ImageEffectFormBase extends FormBase {
 
     // The image effect configuration is stored in the 'data' key in the form,
     // pass that through for submission.
-    $effect_data = (new FormState())->setValues($form_state->getValue('data'));
-    $this->imageEffect->submitConfigurationForm($form, $effect_data);
-    // Update the original form values.
-    $form_state->setValue('data', $effect_data->getValues());
+    $this->imageEffect->submitConfigurationForm($form['data'], SubformState::createForSubform($form['data'], $form, $form_state));
 
     $this->imageEffect->setWeight($form_state->getValue('weight'));
     if (!$this->imageEffect->getUuid()) {

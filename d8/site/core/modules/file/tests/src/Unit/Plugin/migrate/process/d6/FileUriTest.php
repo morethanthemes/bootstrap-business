@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\file\Unit\Plugin\migrate\process\d6\FileUriTest.
- */
-
 namespace Drupal\Tests\file\Unit\Plugin\migrate\process\d6;
 
 use Drupal\file\Plugin\migrate\process\d6\FileUri;
@@ -75,7 +70,7 @@ class FileUriTest extends MigrateTestCase {
 
   protected function doTransform(array $value) {
     $executable = new MigrateExecutable($this->getMigration(), new MigrateMessage());
-    $row = new Row([], []);
+    $row = new Row();
 
     return (new FileUri([], 'file_uri', []))
       ->transform($value, $executable, $row, 'foobaz');

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Ajax\RestripeCommand.
- */
-
 namespace Drupal\Core\Ajax;
 
 /**
@@ -45,10 +40,10 @@ class RestripeCommand implements CommandInterface {
    */
   public function render() {
 
-    return array(
+    return [
       'command' => 'restripe',
       'selector' => $this->selector,
-    );
+    ];
   }
 
 }

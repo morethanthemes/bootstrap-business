@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Lock\LockBackendAbstract.
- */
-
 namespace Drupal\Core\Lock;
 
 /**
@@ -26,7 +21,7 @@ abstract class LockBackendAbstract implements LockBackendInterface {
    *
    * @var array
    */
-  protected $locks = array();
+  protected $locks = [];
 
   /**
    * {@inheritdoc}
@@ -76,4 +71,5 @@ abstract class LockBackendAbstract implements LockBackendInterface {
     }
     return $this->lockId;
   }
+
 }

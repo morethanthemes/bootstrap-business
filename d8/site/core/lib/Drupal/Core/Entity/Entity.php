@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\Entity.
- */
-
 namespace Drupal\Core\Entity;
 
 use Drupal\Core\Cache\Cache;
@@ -18,6 +13,7 @@ use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Url;
+use Symfony\Component\Routing\Exception\RouteNotFoundException;
 
 /**
  * Defines a base entity class.
@@ -195,7 +191,7 @@ abstract class Entity implements EntityInterface {
 
     if (isset($link_templates[$rel])) {
       $route_parameters = $this->urlRouteParameters($rel);
-      $route_name = "entity.{$this->entityTypeId}." . str_replace(array('-', 'drupal:'), array('_', ''), $rel);
+      $route_name = "entity.{$this->entityTypeId}." . str_replace(['-', 'drupal:'], ['_', ''], $rel);
       $uri = new Url($route_name, $route_parameters);
     }
     else {
@@ -227,7 +223,9 @@ abstract class Entity implements EntityInterface {
       ->setOption('entity', $this);
 
     // Display links by default based on the current language.
-    if ($rel !== 'collection') {
+    // Link relations that do not require an existing entity should not be
+    // affected by this entity's language, however.
+    if (!in_array($rel, ['collection', 'add-page', 'add-form'], TRUE)) {
       $options += ['language' => $this->language()];
     }
 
@@ -278,7 +276,7 @@ abstract class Entity implements EntityInterface {
   /**
    * {@inheritdoc}
    */
-  public function url($rel = 'canonical', $options = array()) {
+  public function url($rel = 'canonical', $options = []) {
     // While self::toUrl() will throw an exception if the entity has no id,
     // the expected result for a URL is always a string.
     if ($this->id() === NULL || !$this->hasLinkTemplate($rel)) {
@@ -307,11 +305,15 @@ abstract class Entity implements EntityInterface {
   protected function urlRouteParameters($rel) {
     $uri_route_parameters = [];
 
-    if ($rel != 'collection') {
+    if (!in_array($rel, ['collection', 'add-page', 'add-form'], TRUE)) {
       // The entity ID is needed as a route parameter.
       $uri_route_parameters[$this->getEntityTypeId()] = $this->id();
     }
-    if ($rel === 'revision') {
+    if ($rel === 'add-form' && ($this->getEntityType()->hasKey('bundle'))) {
+      $parameter_name = $this->getEntityType()->getBundleEntityType() ?: $this->getEntityType()->getKey('bundle');
+      $uri_route_parameters[$parameter_name] = $this->bundle();
+    }
+    if ($rel === 'revision' && $this instanceof RevisionableInterface) {
       $uri_route_parameters[$this->getEntityTypeId() . '_revision'] = $this->getRevisionId();
     }
 
@@ -322,7 +324,19 @@ abstract class Entity implements EntityInterface {
    * {@inheritdoc}
    */
   public function uriRelationships() {
-    return array_keys($this->linkTemplates());
+    return array_filter(array_keys($this->linkTemplates()), function ($link_relation_type) {
+      // It's not guaranteed that every link relation type also has a
+      // corresponding route. For some, additional modules or configuration may
+      // be necessary. The interface demands that we only return supported URI
+      // relationships.
+      try {
+        $this->toUrl($link_relation_type)->toString(TRUE)->getGeneratedUrl();
+      }
+      catch (RouteNotFoundException $e) {
+        return FALSE;
+      }
+      return TRUE;
+    });
   }
 
   /**
@@ -352,7 +366,7 @@ abstract class Entity implements EntityInterface {
     }
     // Make sure we return a proper language object.
     $langcode = !empty($this->langcode) ? $this->langcode : LanguageInterface::LANGCODE_NOT_SPECIFIED;
-    $language = new Language(array('id' => $langcode));
+    $language = new Language(['id' => $langcode]);
     return $language;
   }
 
@@ -368,7 +382,7 @@ abstract class Entity implements EntityInterface {
    */
   public function delete() {
     if (!$this->isNew()) {
-      $this->entityManager()->getStorage($this->entityTypeId)->delete(array($this->id() => $this));
+      $this->entityManager()->getStorage($this->entityTypeId)->delete([$this->id() => $this]);
     }
   }
 
@@ -451,7 +465,7 @@ abstract class Entity implements EntityInterface {
    * {@inheritdoc}
    */
   public function referencedEntities() {
-    return array();
+    return [];
   }
 
   /**
@@ -509,7 +523,7 @@ abstract class Entity implements EntityInterface {
   /**
    * {@inheritdoc}
    */
-  public static function create(array $values = array()) {
+  public static function create(array $values = []) {
     $entity_manager = \Drupal::entityManager();
     return $entity_manager->getStorage($entity_manager->getEntityTypeFromClass(get_called_class()))->create($values);
   }
@@ -584,7 +598,7 @@ abstract class Entity implements EntityInterface {
    * {@inheritdoc}
    */
   public function toArray() {
-    return array();
+    return [];
   }
 
   /**

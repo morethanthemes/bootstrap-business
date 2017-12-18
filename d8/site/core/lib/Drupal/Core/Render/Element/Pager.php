@@ -1,13 +1,6 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\Element\Pager.
- */
-
 namespace Drupal\Core\Render\Element;
-
-use Drupal\Core\Render\Element;
 
 /**
  * Provides a render element for a pager.
@@ -37,7 +30,7 @@ use Drupal\Core\Render\Element;
  *
  * @RenderElement("pager")
  */
-class Pager extends RenderElement{
+class Pager extends RenderElement {
 
   /**
    * {@inheritdoc}

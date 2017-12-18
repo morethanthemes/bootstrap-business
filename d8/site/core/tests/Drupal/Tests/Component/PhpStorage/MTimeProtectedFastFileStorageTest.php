@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Component\PhpStorage\MTimeProtectedFastFileStorageTest.
- */
-
 namespace Drupal\Tests\Component\PhpStorage;
 
 /**
@@ -24,7 +19,7 @@ class MTimeProtectedFastFileStorageTest extends MTimeProtectedFileStorageBase {
    * include the hacked file on the first try but the second test will change
    * the directory mtime and so on the second try the file will not be included.
    */
-  protected $expected = array(TRUE, FALSE);
+  protected $expected = [TRUE, FALSE];
 
   /**
    * The PHP storage class to test.

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Plugin\views\argument\LanguageArgument.
- */
-
 namespace Drupal\views\Plugin\views\argument;
 
 /**
@@ -31,7 +26,7 @@ class LanguageArgument extends ArgumentPluginBase {
    * Gets the user friendly version of the language name for display as a
    * title placeholder.
    */
-  function title() {
+  public function title() {
     return $this->language($this->argument);
   }
 
@@ -45,7 +40,7 @@ class LanguageArgument extends ArgumentPluginBase {
    *   The translated name for the language, or "Unknown language" if the
    *   language was not found.
    */
-  function language($langcode) {
+  public function language($langcode) {
     $languages = $this->listLanguages();
     return isset($languages[$langcode]) ? $languages[$langcode] : $this->t('Unknown language');
   }

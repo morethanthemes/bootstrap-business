@@ -31,7 +31,7 @@
  * 8 themes.
  *
  * For further information on theming in Drupal 8 see
- * https://www.drupal.org/theme-guide/8
+ * https://www.drupal.org/docs/8/theming
  *
  * For further Twig documentation see
  * http://twig.sensiolabs.org/doc/templates.html
@@ -223,14 +223,9 @@
  * same, which gives users fewer user interface patterns to learn.
  *
  * For further information on the Theme and Render APIs, see:
- * - https://www.drupal.org/documentation/theme
+ * - https://www.drupal.org/docs/8/theming
  * - https://www.drupal.org/developing/api/8/render
- * - https://www.drupal.org/node/722174
- * - https://www.drupal.org/node/933976
- * - https://www.drupal.org/node/930760
- *
- * @todo Check these links. Some are for Drupal 7, and might need updates for
- *   Drupal 8.
+ * - @link themeable Theme system overview @endlink.
  *
  * @section arrays Render arrays
  * The core structure of the Render API is the render array, which is a
@@ -254,13 +249,13 @@
  * form array, which specifies the form elements for an HTML form; see the
  * @link form_api Form generation topic @endlink for more information on forms.
  *
- * Render arrays (at each level in the hierarchy) will usually have one of the
- * following three properties defined:
+ * Render arrays (at any level of the hierarchy) will usually have one of the
+ * following properties defined:
  * - #type: Specifies that the array contains data and options for a particular
- *   type of "render element" (examples: 'form', for an HTML form; 'textfield',
- *   'submit', and other HTML form element types; 'table', for a table with
- *   rows, columns, and headers). See @ref elements below for more on render
- *   element types.
+ *   type of "render element" (for example, 'form', for an HTML form;
+ *   'textfield', 'submit', for HTML form element types; 'table', for a table
+ *   with rows, columns, and headers). See @ref elements below for more on
+ *   render element types.
  * - #theme: Specifies that the array contains data to be themed by a particular
  *   theme hook. Modules define theme hooks by implementing hook_theme(), which
  *   specifies the input "variables" used to provide data and options; if a
@@ -277,30 +272,29 @@
  *   can customize the markup. Note that the value is passed through
  *   \Drupal\Component\Utility\Xss::filterAdmin(), which strips known XSS
  *   vectors while allowing a permissive list of HTML tags that are not XSS
- *   vectors. (I.e, <script> and <style> are not allowed.) See
- *   \Drupal\Component\Utility\Xss::$adminTags for the list of tags that will
- *   be allowed. If your markup needs any of the tags that are not in this
- *   whitelist, then you can implement a theme hook and template file and/or
- *   an asset library. Aternatively, you can use the render array key
- *   #allowed_tags to alter which tags are filtered.
+ *   vectors. (For example, <script> and <style> are not allowed.) See
+ *   \Drupal\Component\Utility\Xss::$adminTags for the list of allowed tags. If
+ *   your markup needs any of the tags not in this whitelist, then you can
+ *   implement a theme hook and/or an asset library. Alternatively, you can use
+ *   the key #allowed_tags to alter which tags are filtered.
  * - #plain_text: Specifies that the array provides text that needs to be
- *   escaped. This value takes precedence over #markup if present.
- * - #allowed_tags: If #markup is supplied this can be used to change which tags
- *   are using to filter the markup. The value should be an array of tags that
- *   Xss::filter() would accept. If #plain_text is set this value is ignored.
+ *   escaped. This value takes precedence over #markup.
+ * - #allowed_tags: If #markup is supplied, this can be used to change which
+ *   tags are allowed in the markup. The value is an array of tags that
+ *   Xss::filter() would accept. If #plain_text is set, this value is ignored.
  *
  *   Usage example:
  *   @code
- *   $output['admin_filtered_string'] = array(
+ *   $output['admin_filtered_string'] = [
  *     '#markup' => '<em>This is filtered using the admin tag list</em>',
- *   );
- *   $output['filtered_string'] = array(
- *     '#markup' => '<em>This is filtered</em>',
- *     '#allowed_tags' => ['strong'],
- *   );
- *   $output['escaped_string'] = array(
+ *   ];
+ *   $output['filtered_string'] = [
+ *     '#markup' => '<video><source src="v.webm" type="video/webm"></video>',
+ *     '#allowed_tags' => ['video', 'source'],
+ *   ];
+ *   $output['escaped_string'] = [
  *     '#plain_text' => '<em>This is escaped</em>',
- *   );
+ *   ];
  *   @endcode
  *
  *   @see core.libraries.yml
@@ -324,8 +318,11 @@
  *   namespace Element, and generally extend the
  *   \Drupal\Core\Render\Element\FormElement base class.
  * See the @link plugin_api Plugin API topic @endlink for general information
- * on plugins, and look for classes with the RenderElement or FormElement
- * annotation to discover what render elements are available.
+ * on plugins. You can search for classes with the RenderElement or FormElement
+ * annotation to discover what render elements are available. API reference
+ * sites (such as https://api.drupal.org) generate lists of all existing
+ * elements from these classes. Look for the Elements link in the API Navigation
+ * block.
  *
  * Modules can define render elements by defining an element plugin.
  *
@@ -367,7 +364,7 @@
  *   '#cache' => [
  *     'keys' => ['entity_view', 'node', $node->id()],
  *     'contexts' => ['languages'],
- *     'tags' => ['node:' . $node->id()],
+ *     'tags' => $node->getCacheTags(),
  *     'max-age' => Cache::PERMANENT,
  *   ],
  * @endcode
@@ -526,12 +523,12 @@
  */
 function hook_form_system_theme_settings_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state) {
   // Add a checkbox to toggle the breadcrumb trail.
-  $form['toggle_breadcrumb'] = array(
+  $form['toggle_breadcrumb'] = [
     '#type' => 'checkbox',
     '#title' => t('Display the breadcrumb'),
     '#default_value' => theme_get_setting('features.breadcrumb'),
     '#description'   => t('Show a trail of links from the homepage to the current page.'),
-  );
+  ];
 }
 
 /**
@@ -552,7 +549,7 @@ function hook_form_system_theme_settings_alter(&$form, \Drupal\Core\Form\FormSta
  *   The name of the theme hook.
  */
 function hook_preprocess(&$variables, $hook) {
- static $hooks;
+  static $hooks;
 
   // Add contextual links to the variables, if the user has permission.
 
@@ -601,7 +598,7 @@ function hook_preprocess(&$variables, $hook) {
 function hook_preprocess_HOOK(&$variables) {
   // This example is from rdf_preprocess_image(). It adds an RDF attribute
   // to the image hook's variables.
-  $variables['attributes']['typeof'] = array('foaf:Image');
+  $variables['attributes']['typeof'] = ['foaf:Image'];
 }
 
 /**
@@ -616,6 +613,10 @@ function hook_preprocess_HOOK(&$variables) {
  * hook called (in this case 'node__article') is available in
  * $variables['theme_hook_original'].
  *
+ * Implementations of this hook must be placed in *.module or *.theme files, or
+ * must otherwise make sure that the hook implementation is available at
+ * any given time.
+ *
  * @todo Add @code sample.
  *
  * @param array $variables
@@ -628,9 +629,9 @@ function hook_preprocess_HOOK(&$variables) {
  * @see hook_theme_suggestions_HOOK_alter()
  */
 function hook_theme_suggestions_HOOK(array $variables) {
-  $suggestions = array();
+  $suggestions = [];
 
-  $suggestions[] = 'node__' . $variables['elements']['#langcode'];
+  $suggestions[] = 'hookname__' . $variables['elements']['#langcode'];
 
   return $suggestions;
 }
@@ -697,6 +698,10 @@ function hook_theme_suggestions_alter(array &$suggestions, array $variables, $ho
  * hook called (in this case 'node__article') is available in
  * $variables['theme_hook_original'].
  *
+ * Implementations of this hook must be placed in *.module or *.theme files, or
+ * must otherwise make sure that the hook implementation is available at
+ * any given time.
+ *
  * @todo Add @code sample.
  *
  * @param array $suggestions
@@ -731,7 +736,7 @@ function hook_themes_installed($theme_list) {
 /**
  * Respond to themes being uninstalled.
  *
- * @param array $theme_list
+ * @param array $themes
  *   Array containing the names of the themes being uninstalled.
  *
  * @see \Drupal\Core\Extension\ThemeHandler::uninstall()
@@ -785,17 +790,17 @@ function hook_render_template($template_file, $variables) {
  * A module may implement this hook in order to alter the element type defaults
  * defined by a module.
  *
- * @param array $types
+ * @param array $info
  *   An associative array with structure identical to that of the return value
  *   of \Drupal\Core\Render\ElementInfoManagerInterface::getInfo().
  *
  * @see \Drupal\Core\Render\ElementInfoManager
  * @see \Drupal\Core\Render\Element\ElementInterface
  */
-function hook_element_info_alter(array &$types) {
+function hook_element_info_alter(array &$info) {
   // Decrease the default size of textfields.
-  if (isset($types['textfield']['#size'])) {
-    $types['textfield']['#size'] = 40;
+  if (isset($info['textfield']['#size'])) {
+    $info['textfield']['#size'] = 40;
   }
 }
 
@@ -960,10 +965,10 @@ function hook_library_info_alter(&$libraries, $extension) {
       // relative to the original extension, specify an absolute path (relative
       // to DRUPAL_ROOT / base_path()) to the new location.
       $new_path = '/' . drupal_get_path('module', 'farbtastic_update') . '/js';
-      $new_js = array();
-      $replacements = array(
+      $new_js = [];
+      $replacements = [
         $old_path . '/farbtastic.js' => $new_path . '/farbtastic-2.0.js',
-      );
+      ];
       foreach ($libraries['jquery.farbtastic']['js'] as $source => $options) {
         if (isset($replacements[$source])) {
           $new_js[$replacements[$source]] = $options;
@@ -1107,7 +1112,8 @@ function hook_page_bottom(array &$page_bottom) {
  *     Template implementations receive each array key as a variable in the
  *     template file (so they must be legal PHP/Twig variable names). Function
  *     implementations are passed the variables in a single $variables function
- *     argument.
+ *     argument. If you are using these variables in a render array, prefix the
+ *     variable names defined here with a #.
  *   - render element: Used for render element items only: the name of the
  *     renderable element or element tree to pass to the theme function. This
  *     name is used as the name of the variable that holds the renderable
@@ -1135,7 +1141,7 @@ function hook_page_bottom(array &$page_bottom) {
  *     Instead of this suggestion's implementation being used directly, the base
  *     hook will be invoked with this implementation as its first suggestion.
  *     The base hook's files will be included and the base hook's preprocess
- *     functions will be called in place of any suggestion's preprocess
+ *     functions will be called in addition to any suggestion's preprocess
  *     functions. If an implementation of hook_theme_suggestions_HOOK() (where
  *     HOOK is the base hook) changes the suggestion order, a different
  *     suggestion may be used in place of this suggestion. If after
@@ -1175,21 +1181,21 @@ function hook_page_bottom(array &$page_bottom) {
  * @see hook_theme_registry_alter()
  */
 function hook_theme($existing, $type, $theme, $path) {
-  return array(
-    'forum_display' => array(
-      'variables' => array('forums' => NULL, 'topics' => NULL, 'parents' => NULL, 'tid' => NULL, 'sortby' => NULL, 'forum_per_page' => NULL),
-    ),
-    'forum_list' => array(
-      'variables' => array('forums' => NULL, 'parents' => NULL, 'tid' => NULL),
-    ),
-    'forum_icon' => array(
-      'variables' => array('new_posts' => NULL, 'num_posts' => 0, 'comment_mode' => 0, 'sticky' => 0),
-    ),
-    'status_report' => array(
+  return [
+    'forum_display' => [
+      'variables' => ['forums' => NULL, 'topics' => NULL, 'parents' => NULL, 'tid' => NULL, 'sortby' => NULL, 'forum_per_page' => NULL],
+    ],
+    'forum_list' => [
+      'variables' => ['forums' => NULL, 'parents' => NULL, 'tid' => NULL],
+    ],
+    'forum_icon' => [
+      'variables' => ['new_posts' => NULL, 'num_posts' => 0, 'comment_mode' => 0, 'sticky' => 0],
+    ],
+    'status_report' => [
       'render element' => 'requirements',
       'file' => 'system.admin.inc',
-    ),
-  );
+    ],
+  ];
 }
 
 /**

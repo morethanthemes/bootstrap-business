@@ -1,16 +1,11 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\aggregator\ItemViewBuilder.
- */
-
 namespace Drupal\aggregator;
 
 use Drupal\Core\Entity\EntityViewBuilder;
 
 /**
- * Render controller for aggregator feed items.
+ * View builder handler for aggregator feed items.
  */
 class ItemViewBuilder extends EntityViewBuilder {
 
@@ -25,12 +20,12 @@ class ItemViewBuilder extends EntityViewBuilder {
       $display = $displays[$bundle];
 
       if ($display->getComponent('description')) {
-        $build[$id]['description'] = array(
+        $build[$id]['description'] = [
           '#markup' => $entity->getDescription(),
           '#allowed_tags' => _aggregator_allowed_tags(),
           '#prefix' => '<div class="item-description">',
           '#suffix' => '</div>',
-        );
+        ];
       }
     }
   }

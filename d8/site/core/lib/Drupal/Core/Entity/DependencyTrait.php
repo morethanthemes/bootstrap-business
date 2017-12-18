@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Entity\DependencyTrait.
- */
-
 namespace Drupal\Core\Entity;
 
 /**
@@ -17,7 +12,7 @@ trait DependencyTrait {
    *
    * @var array
    */
-  protected $dependencies = array();
+  protected $dependencies = [];
 
   /**
    * Adds a dependency.
@@ -35,7 +30,7 @@ trait DependencyTrait {
    */
   protected function addDependency($type, $name) {
     if (empty($this->dependencies[$type])) {
-      $this->dependencies[$type] = array($name);
+      $this->dependencies[$type] = [$name];
       if (count($this->dependencies) > 1) {
         // Ensure a consistent order of type keys.
         ksort($this->dependencies);
@@ -52,7 +47,7 @@ trait DependencyTrait {
   /**
    * Adds multiple dependencies.
    *
-   * @param array $dependencies.
+   * @param array $dependencies
    *   An array of dependencies keyed by the type of dependency. One example:
    *   @code
    *   array(

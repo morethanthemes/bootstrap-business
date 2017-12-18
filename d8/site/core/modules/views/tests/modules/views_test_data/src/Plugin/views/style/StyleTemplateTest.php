@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views_test_data\Plugin\views\style\StyleTemplateTest.
- */
-
 namespace Drupal\views_test_data\Plugin\views\style;
 
 use Drupal\views\Plugin\views\style\StylePluginBase;
@@ -25,9 +20,7 @@ use Drupal\views\Plugin\views\style\StylePluginBase;
 class StyleTemplateTest extends StylePluginBase {
 
   /**
-   * Can the style plugin use row plugins.
-   *
-   * @var bool
+   * {@inheritdoc}
    */
   protected $usesRowPlugin = TRUE;
 

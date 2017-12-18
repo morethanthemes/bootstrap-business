@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\file\Tests\RemoteFileSaveUploadTest.
- */
-
 namespace Drupal\file\Tests;
 
 /**
@@ -19,10 +14,11 @@ class RemoteFileSaveUploadTest extends SaveUploadTest {
    *
    * @var array
    */
-  public static $modules = array('file_test');
+  public static $modules = ['file_test'];
 
   protected function setUp() {
     parent::setUp();
     $this->config('system.file')->set('default_scheme', 'dummy-remote')->save();
   }
+
 }

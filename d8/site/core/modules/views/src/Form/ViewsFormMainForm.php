@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Form\ViewsFormMainForm.
- */
-
 namespace Drupal\views\Form;
 
 use Drupal\Core\Form\FormInterface;
@@ -35,15 +30,15 @@ class ViewsFormMainForm implements FormInterface {
     // (below the exposed widgets).
     $form['output']['#weight'] = 50;
 
-    $form['actions'] = array(
+    $form['actions'] = [
       '#type' => 'actions',
-    );
-    $form['actions']['submit'] = array(
+    ];
+    $form['actions']['submit'] = [
       '#type' => 'submit',
       '#value' => t('Save'),
-    );
+    ];
 
-    $substitutions = array();
+    $substitutions = [];
     foreach ($view->field as $field_name => $field) {
       $form_element_name = $field_name;
       if (method_exists($field, 'form_element_name')) {
@@ -76,11 +71,11 @@ class ViewsFormMainForm implements FormInterface {
             $form_element_row_id = $row_id;
           }
 
-          $substitutions[] = array(
+          $substitutions[] = [
             'placeholder' => '<!--form-item-' . $form_element_name . '--' . $form_element_row_id . '-->',
             'field_name' => $form_element_name,
             'row_id' => $form_element_row_id,
-          );
+          ];
         }
       }
     }
@@ -94,10 +89,10 @@ class ViewsFormMainForm implements FormInterface {
       }
     }
 
-    $form['#substitutions'] = array(
+    $form['#substitutions'] = [
       '#type' => 'value',
       '#value' => $substitutions,
-    );
+    ];
 
     return $form;
   }
@@ -116,7 +111,7 @@ class ViewsFormMainForm implements FormInterface {
     }
 
     // Call the validate method on every area handler that has it.
-    foreach (array('header', 'footer') as $area) {
+    foreach (['header', 'footer'] as $area) {
       foreach ($view->{$area} as $area_handler) {
         if (method_exists($area_handler, 'viewsFormValidate')) {
           $area_handler->viewsFormValidate($form, $form_state);
@@ -139,7 +134,7 @@ class ViewsFormMainForm implements FormInterface {
     }
 
     // Call the submit method on every area handler that has it.
-    foreach (array('header', 'footer') as $area) {
+    foreach (['header', 'footer'] as $area) {
       foreach ($view->{$area} as $area_handler) {
         if (method_exists($area_handler, 'viewsFormSubmit')) {
           $area_handler->viewsFormSubmit($form, $form_state);

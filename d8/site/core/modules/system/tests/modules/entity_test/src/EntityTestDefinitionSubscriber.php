@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\entity_test\EntityTestDefinitionSubscriber.
- */
-
 namespace Drupal\entity_test;
 
 use Drupal\Core\Entity\EntityTypeEvents;
@@ -43,7 +38,7 @@ class EntityTestDefinitionSubscriber implements EventSubscriberInterface, Entity
   /**
    * {@inheritdoc}
    */
-  function __construct(StateInterface $state) {
+  public function __construct(StateInterface $state) {
     $this->state = $state;
   }
 

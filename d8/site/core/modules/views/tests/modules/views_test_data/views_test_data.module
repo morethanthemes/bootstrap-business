@@ -5,6 +5,8 @@
  * Helper module for Views tests.
  */
 
+use Drupal\Core\Form\FormStateInterface;
+
 /**
  * Access callback for the generic handler test.
  *
@@ -64,13 +66,13 @@ function views_test_data_preprocess_views_view_table(&$variables) {
  *   - view: The view object.
  */
 function template_preprocess_views_view_mapping_test(&$variables) {
-  $variables['element'] = array();
+  $variables['element'] = [];
 
   foreach ($variables['rows'] as $delta => $row) {
-    $fields = array();
+    $fields = [];
     foreach ($variables['options']['mapping'] as $type => $field_names) {
       if (!is_array($field_names)) {
-        $field_names = array($field_names);
+        $field_names = [$field_names];
       }
       foreach ($field_names as $field_name) {
         if ($value = $variables['view']->style_plugin->getField($delta, $field_name)) {
@@ -85,26 +87,26 @@ function template_preprocess_views_view_mapping_test(&$variables) {
     }
 
     // Build a container for the row.
-    $variables['element'][$delta] = array(
+    $variables['element'][$delta] = [
       '#type' => 'container',
-      '#attributes' => array(
-        'class' => array(
+      '#attributes' => [
+        'class' => [
           'views-row-mapping-test',
-        ),
-      ),
-    );
+        ],
+      ],
+    ];
 
     // Add each field to the row.
     foreach ($fields as $key => $render) {
-      $variables['element'][$delta][$key] = array(
+      $variables['element'][$delta][$key] = [
         '#children' => $render,
         '#type' => 'container',
-        '#attributes' => array(
-          'class' => array(
+        '#attributes' => [
+          'class' => [
             $key,
-          ),
-        ),
-      );
+          ],
+        ],
+      ];
     }
   }
 }
@@ -121,4 +123,11 @@ function template_preprocess_views_view_mapping_test(&$variables) {
 function views_test_data_test_pre_render_function($element) {
   $element['#markup'] = 'views_test_data_test_pre_render_function executed';
   return $element;
+}
+
+/**
+ * Implements hook_form_BASE_FORM_ID_alter().
+ */
+function views_test_data_form_views_form_test_form_multiple_default_alter(&$form, FormStateInterface $form_state, $form_id) {
+  drupal_set_message(t('Test base form ID with Views forms and arguments.'));
 }

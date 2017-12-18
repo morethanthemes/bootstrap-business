@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\TypedData\TypedDataManagerInterface.
- */
-
 namespace Drupal\Core\TypedData;
 
 use Drupal\Component\Plugin\PluginManagerInterface;
@@ -39,7 +34,7 @@ interface TypedDataManagerInterface extends PluginManagerInterface, CachedDiscov
    *
    * @see \Drupal\Core\TypedData\TypedDataManager::create()
    */
-  public function createInstance($data_type, array $configuration = array());
+  public function createInstance($data_type, array $configuration = []);
 
   /**
    * Creates a new typed data object instance.
@@ -197,7 +192,7 @@ interface TypedDataManagerInterface extends PluginManagerInterface, CachedDiscov
    * The validation constraint manager is used to instantiate validation
    * constraint plugins.
    *
-   * @param \Drupal\Core\Validation\ConstraintManager
+   * @param \Drupal\Core\Validation\ConstraintManager $constraintManager
    *   The constraint manager to set.
    */
   public function setValidationConstraintManager(ConstraintManager $constraintManager);

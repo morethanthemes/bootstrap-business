@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Session\AnonymousUserSessionTest.
- */
-
 namespace Drupal\Tests\Core\Session;
 
 use Drupal\Tests\UnitTestCase;
@@ -25,8 +20,8 @@ class AnonymousUserSessionTest extends UnitTestCase {
    */
   public function testUserGetRoles() {
     $anonymous_user = new AnonymousUserSession();
-    $this->assertEquals(array(RoleInterface::ANONYMOUS_ID), $anonymous_user->getRoles());
-    $this->assertEquals(array(), $anonymous_user->getRoles(TRUE));
+    $this->assertEquals([RoleInterface::ANONYMOUS_ID], $anonymous_user->getRoles());
+    $this->assertEquals([], $anonymous_user->getRoles(TRUE));
   }
 
 }

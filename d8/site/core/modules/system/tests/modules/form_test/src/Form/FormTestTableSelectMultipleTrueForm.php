@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\form_test\Form\FormTestTableSelectMultipleTrueForm.
- */
-
 namespace Drupal\form_test\Form;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -22,7 +17,7 @@ class FormTestTableSelectMultipleTrueForm extends FormTestTableSelectFormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    return $this->tableselectFormBuilder($form, $form_state, array('#multiple' => TRUE));
+    return $this->tableselectFormBuilder($form, $form_state, ['#multiple' => TRUE]);
   }
 
   /**
@@ -31,7 +26,7 @@ class FormTestTableSelectMultipleTrueForm extends FormTestTableSelectFormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $selected = $form_state->getValue('tableselect');
     foreach ($selected as $key => $value) {
-      drupal_set_message(t('Submitted: @key = @value', array('@key' => $key, '@value' => $value)));
+      drupal_set_message(t('Submitted: @key = @value', ['@key' => $key, '@value' => $value]));
     }
   }
 

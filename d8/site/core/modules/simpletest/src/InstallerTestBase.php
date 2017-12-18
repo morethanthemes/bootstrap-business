@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\simpletest\InstallerTestBase.
- */
-
 namespace Drupal\simpletest;
 
 use Drupal\Core\DrupalKernel;
@@ -28,7 +23,7 @@ abstract class InstallerTestBase extends WebTestBase {
    *   An array of settings to write out, in the format expected by
    *   drupal_rewrite_settings().
    */
-  protected $settings = array();
+  protected $settings = [];
 
   /**
    * The language code in which to install Drupal.
@@ -51,7 +46,7 @@ abstract class InstallerTestBase extends WebTestBase {
    *
    * @var array
    */
-  protected $parameters = array();
+  protected $parameters = [];
 
   /**
    * A string translation map used for translated installer screens.
@@ -60,9 +55,9 @@ abstract class InstallerTestBase extends WebTestBase {
    *
    * @var array
    */
-  protected $translations = array(
+  protected $translations = [
     'Save and continue' => 'Save and continue',
-  );
+  ];
 
   /**
    * Whether the installer has completed.
@@ -78,12 +73,12 @@ abstract class InstallerTestBase extends WebTestBase {
     $this->isInstalled = FALSE;
 
     // Define information about the user 1 account.
-    $this->rootUser = new UserSession(array(
+    $this->rootUser = new UserSession([
       'uid' => 1,
       'name' => 'admin',
       'mail' => 'admin@example.com',
       'pass_raw' => $this->randomMachineName(),
-    ));
+    ]);
 
     // If any $settings are defined for this test, copy and prepare an actual
     // settings.php, so as to resemble a regular installation.
@@ -98,9 +93,10 @@ abstract class InstallerTestBase extends WebTestBase {
     // @see WebTestBase::translatePostValues()
     $this->parameters = $this->installParameters();
 
-    // Set up a minimal container (required by WebTestBase).
+    // Set up a minimal container (required by WebTestBase). Set cookie and
+    // server information so that XDebug works.
     // @see install_begin_request()
-    $request = Request::create($GLOBALS['base_url'] . '/core/install.php');
+    $request = Request::create($GLOBALS['base_url'] . '/core/install.php', 'GET', [], $_COOKIE, [], $_SERVER);
     $this->container = new ContainerBuilder();
     $request_stack = new RequestStack();
     $request_stack->push($request);
@@ -118,7 +114,7 @@ abstract class InstallerTestBase extends WebTestBase {
       ->set('app.root', DRUPAL_ROOT);
     \Drupal::setContainer($this->container);
 
-    $this->drupalGet($GLOBALS['base_url'] . '/core/install.php');
+    $this->visitInstaller();
 
     // Select language.
     $this->setUpLanguage();
@@ -165,12 +161,19 @@ abstract class InstallerTestBase extends WebTestBase {
   }
 
   /**
+   * Visits the interactive installer.
+   */
+  protected function visitInstaller() {
+    $this->drupalGet($GLOBALS['base_url'] . '/core/install.php');
+  }
+
+  /**
    * Installer step: Select language.
    */
   protected function setUpLanguage() {
-    $edit = array(
+    $edit = [
       'langcode' => $this->langcode,
-    );
+    ];
     $this->drupalPostForm(NULL, $edit, $this->translations['Save and continue']);
   }
 
@@ -178,9 +181,9 @@ abstract class InstallerTestBase extends WebTestBase {
    * Installer step: Select installation profile.
    */
   protected function setUpProfile() {
-    $edit = array(
+    $edit = [
       'profile' => $this->profile,
-    );
+    ];
     $this->drupalPostForm(NULL, $edit, $this->translations['Save and continue']);
   }
 

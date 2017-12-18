@@ -3,35 +3,44 @@
 use Drupal\Core\Theme\ThemeSettings;
 use Drupal\Core\Template\Attribute;
 
+function bootstrap_business_preprocess_html(&$variables) {
+  $bootstrap_remote_type = theme_get_setting('bootstrap_remote_type');
+  if ($bootstrap_remote_type == 'local') {
+    $variables['#attached']['library'][] = 'bootstrap_business/bootstrap';
+  } else {
+    $variables['#attached']['library'][] = 'bootstrap_business/bootstrap-cdn';
+  }
+}
+
 /**
  * Preprocess variables for page template.
  */
-function bootstrap_business_preprocess_page(&$vars) {
+function bootstrap_business_preprocess_page(&$variables) {
 
-	/**
-	 * insert variables into page template.
-	 */
-	if($vars['page']['sidebar_first'] && $vars['page']['sidebar_second']) { 
-		$vars['sidebar_grid_class'] = 'col-md-3';
-		$vars['main_grid_class'] = 'col-md-6';
-	} elseif ($vars['page']['sidebar_first'] || $vars['page']['sidebar_second']) {
-		$vars['sidebar_grid_class'] = 'col-md-4';
-		$vars['main_grid_class'] = 'col-md-8';		
-	} else {
-		$vars['main_grid_class'] = 'col-md-12';			
-	}
+  /**
+   * insert variables into page template.
+   */
+  if($variables['page']['sidebar_first'] && $variables['page']['sidebar_second']) { 
+    $variables['sidebar_grid_class'] = 'col-md-3';
+    $variables['main_grid_class'] = 'col-md-6';
+  } elseif ($variables['page']['sidebar_first'] || $variables['page']['sidebar_second']) {
+    $variables['sidebar_grid_class'] = 'col-md-4';
+    $variables['main_grid_class'] = 'col-md-8';
+  } else {
+    $variables['main_grid_class'] = 'col-md-12';
+  }
 
-	if($vars['page']['header_top_left'] && $vars['page']['header_top_right']) { 
-		$vars['header_top_left_grid_class'] = 'col-md-8';
-		$vars['header_top_right_grid_class'] = 'col-md-4';
-	} elseif ($vars['page']['header_top_right'] || $vars['page']['header_top_left']) {
-		$vars['header_top_left_grid_class'] = 'col-md-12';
-		$vars['header_top_right_grid_class'] = 'col-md-12';		
-	}
+  if($variables['page']['header_top_left'] && $variables['page']['header_top_right']) { 
+    $variables['header_top_left_grid_class'] = 'col-md-8';
+    $variables['header_top_right_grid_class'] = 'col-md-4';
+  } elseif ($variables['page']['header_top_right'] || $variables['page']['header_top_left']) {
+    $variables['header_top_left_grid_class'] = 'col-md-12';
+    $variables['header_top_right_grid_class'] = 'col-md-12';
+  }
 
-	//Load to-top library
-	$to_top = theme_get_setting('scrolltop_display');
-	if ($to_top) {
-		$vars['#attached']['library'][] = 'bootstrap_business/to-top';
-	}
+  //Load to-top library
+  $to_top = theme_get_setting('scrolltop_display');
+  if ($to_top) {
+    $variables['#attached']['library'][] = 'bootstrap_business/to-top';
+  }
 }

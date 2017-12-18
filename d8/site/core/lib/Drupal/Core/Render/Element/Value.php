@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\Element\Value.
- */
-
 namespace Drupal\Core\Render\Element;
 
 /**
@@ -30,9 +25,9 @@ class Value extends FormElement {
    * {@inheritdoc}
    */
   public function getInfo() {
-    return array(
+    return [
       '#input' => TRUE,
-    );
+    ];
   }
 
 }

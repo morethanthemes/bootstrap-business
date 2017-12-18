@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\shortcut\Unit\Menu\ShortcutLocalTasksTest.
- */
-
 namespace Drupal\Tests\shortcut\Unit\Menu;
 
 use Drupal\Tests\Core\Menu\LocalTaskIntegrationTestBase;
@@ -17,10 +12,10 @@ use Drupal\Tests\Core\Menu\LocalTaskIntegrationTestBase;
 class ShortcutLocalTasksTest extends LocalTaskIntegrationTestBase {
 
   protected function setUp() {
-    $this->directoryList = array(
+    $this->directoryList = [
       'shortcut' => 'core/modules/shortcut',
       'user' => 'core/modules/user',
-    );
+    ];
     parent::setUp();
   }
 
@@ -30,9 +25,9 @@ class ShortcutLocalTasksTest extends LocalTaskIntegrationTestBase {
    * @dataProvider getShortcutPageRoutes
    */
   public function testShortcutPageLocalTasks($route) {
-    $tasks = array(
-      0 => array('shortcut.set_switch', 'entity.user.canonical', 'entity.user.edit_form',),
-    );
+    $tasks = [
+      0 => ['shortcut.set_switch', 'entity.user.canonical', 'entity.user.edit_form'],
+    ];
     $this->assertLocalTasks($route, $tasks);
   }
 
@@ -40,11 +35,11 @@ class ShortcutLocalTasksTest extends LocalTaskIntegrationTestBase {
    * Provides a list of routes to test.
    */
   public function getShortcutPageRoutes() {
-    return array(
-      array('entity.user.canonical'),
-      array('entity.user.edit_form'),
-      array('shortcut.set_switch'),
-    );
+    return [
+      ['entity.user.canonical'],
+      ['entity.user.edit_form'],
+      ['shortcut.set_switch'],
+    ];
   }
 
 }

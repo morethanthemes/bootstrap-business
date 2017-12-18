@@ -1,14 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Tests\AssertViewsCacheTagsTrait.
- */
-
 namespace Drupal\views\Tests;
 
 use Drupal\Core\Cache\Cache;
-use Drupal\system\Tests\Cache\AssertPageCacheContextsAndTagsTrait;
+use Drupal\Tests\system\Functional\Cache\AssertPageCacheContextsAndTagsTrait;
 use Drupal\views\Plugin\views\display\DisplayPluginBase;
 use Drupal\views\ViewExecutable;
 use Symfony\Component\HttpFoundation\Request;

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\toolbar\Menu\ToolbarMenuLinkTree.
- */
-
 namespace Drupal\toolbar\Menu;
 
 use Drupal\Core\Menu\MenuLinkTree;
@@ -20,7 +15,7 @@ class ToolbarMenuLinkTree extends MenuLinkTree {
   public function build(array $tree, $level = 0) {
     if ($level == 0) {
       if (!$tree) {
-        return array();
+        return [];
       }
       $build = parent::build($tree, $level);
 

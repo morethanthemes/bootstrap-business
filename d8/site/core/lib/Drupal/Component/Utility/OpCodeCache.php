@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Component\Utility\OpCodeCache.
- */
-
 namespace Drupal\Component\Utility;
 
 /**
@@ -13,6 +8,16 @@ namespace Drupal\Component\Utility;
  * @ingroup utility
  */
 class OpCodeCache {
+
+  /**
+   * Checks if OpCodeCache is enabled.
+   *
+   * @return bool
+   *   TRUE if opcache is enabled, FALSE otherwise.
+   */
+  public static function isEnabled() {
+    return extension_loaded('Zend OPcache') && ini_get('opcache.enable');
+  }
 
   /**
    * Invalidates a PHP file from a possibly active opcode cache.

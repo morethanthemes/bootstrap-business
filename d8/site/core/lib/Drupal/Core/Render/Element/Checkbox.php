@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\Element\Checkbox.
- */
-
 namespace Drupal\Core\Render\Element;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -20,7 +15,7 @@ use Drupal\Core\Render\Element;
  * @code
  * $form['copy'] = array(
  *   '#type' => 'checkbox',
- *   '#title' => t('Send me a copy'),
+ *   '#title' => $this->t('Send me a copy'),
  * );
  * @endcode
  *
@@ -35,22 +30,22 @@ class Checkbox extends FormElement {
    */
   public function getInfo() {
     $class = get_class($this);
-    return array(
+    return [
       '#input' => TRUE,
       '#return_value' => 1,
-      '#process' => array(
-        array($class, 'processCheckbox'),
-        array($class, 'processAjaxForm'),
-        array($class, 'processGroup'),
-      ),
-      '#pre_render' => array(
-        array($class, 'preRenderCheckbox'),
-        array($class, 'preRenderGroup'),
-      ),
+      '#process' => [
+        [$class, 'processCheckbox'],
+        [$class, 'processAjaxForm'],
+        [$class, 'processGroup'],
+      ],
+      '#pre_render' => [
+        [$class, 'preRenderCheckbox'],
+        [$class, 'preRenderGroup'],
+      ],
       '#theme' => 'input__checkbox',
-      '#theme_wrappers' => array('form_element'),
+      '#theme_wrappers' => ['form_element'],
       '#title_display' => 'after',
-    );
+    ];
   }
 
   /**
@@ -98,13 +93,13 @@ class Checkbox extends FormElement {
    */
   public static function preRenderCheckbox($element) {
     $element['#attributes']['type'] = 'checkbox';
-    Element::setAttributes($element, array('id', 'name', '#return_value' => 'value'));
+    Element::setAttributes($element, ['id', 'name', '#return_value' => 'value']);
 
     // Unchecked checkbox has #value of integer 0.
     if (!empty($element['#checked'])) {
       $element['#attributes']['checked'] = 'checked';
     }
-    static::setAttributes($element, array('form-checkbox'));
+    static::setAttributes($element, ['form-checkbox']);
 
     return $element;
   }

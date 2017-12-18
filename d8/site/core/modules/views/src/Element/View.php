@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Element\View.
- */
-
 namespace Drupal\views\Element;
 
 use Drupal\Core\Render\Element\RenderElement;
@@ -22,16 +17,16 @@ class View extends RenderElement {
    */
   public function getInfo() {
     $class = get_class($this);
-    return array(
-      '#pre_render' => array(
-        array($class, 'preRenderViewElement'),
-      ),
+    return [
+      '#pre_render' => [
+        [$class, 'preRenderViewElement'],
+      ],
       '#name' => NULL,
       '#display_id' => 'default',
-      '#arguments' => array(),
+      '#arguments' => [],
       '#embed' => TRUE,
       '#cache' => [],
-    );
+    ];
   }
 
   /**
@@ -57,7 +52,6 @@ class View extends RenderElement {
     // \Drupal\views\ViewExecutable::setCurrentPage knows that its no longer
     // possible to manipulate the $element.
     $view->element['#pre_rendered'] = TRUE;
-
 
     if (isset($element['#response'])) {
       $view->setResponse($element['#response']);
@@ -97,7 +91,7 @@ class View extends RenderElement {
       }
       if (empty($view->display_handler->getPluginDefinition()['returns_response'])) {
         $element['#attributes']['class'][] = 'views-element-container';
-        $element['#theme_wrappers'] = array('container');
+        $element['#theme_wrappers'] = ['container'];
       }
     }
 

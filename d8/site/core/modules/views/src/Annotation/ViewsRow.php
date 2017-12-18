@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\Annotation\ViewsRow.
- */
-
 namespace Drupal\views\Annotation;
 
 /**
@@ -55,7 +50,7 @@ class ViewsRow extends ViewsPluginAnnotationBase {
   /**
    * The theme function used to render the row output.
    *
-   * @return string
+   * @var string
    */
   public $theme;
 

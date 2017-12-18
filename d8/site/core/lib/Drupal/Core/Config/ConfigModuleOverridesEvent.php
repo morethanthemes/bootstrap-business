@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Config\ConfigModuleOverridesEvent.
- */
-
 namespace Drupal\Core\Config;
 
 use Drupal\Component\Utility\NestedArray;
@@ -42,13 +37,13 @@ class ConfigModuleOverridesEvent extends Event {
    *
    * @param array $names
    *   A list of configuration names.
-   * @param \Drupal\Core\Language\LanguageInterface
+   * @param \Drupal\Core\Language\LanguageInterface $language
    *   (optional) The language for this configuration.
    */
   public function __construct(array $names, LanguageInterface $language = NULL) {
     $this->names = $names;
     $this->language = $language;
-    $this->overrides = array();
+    $this->overrides = [];
   }
 
   /**
@@ -74,7 +69,7 @@ class ConfigModuleOverridesEvent extends Event {
   /**
    * Get configuration overrides.
    *
-   * @return array.
+   * @return array
    *   The array of configuration overrides.
    */
   public function getOverrides() {
@@ -96,7 +91,7 @@ class ConfigModuleOverridesEvent extends Event {
       if (isset($this->overrides[$name])) {
         // Existing overrides take precedence since these will have been added
         // by events with a higher priority.
-        $this->overrides[$name] = NestedArray::mergeDeepArray(array($values, $this->overrides[$name]), TRUE);
+        $this->overrides[$name] = NestedArray::mergeDeepArray([$values, $this->overrides[$name]], TRUE);
       }
       else {
         $this->overrides[$name] = $values;
@@ -104,5 +99,5 @@ class ConfigModuleOverridesEvent extends Event {
     }
     return $this;
   }
-}
 
+}

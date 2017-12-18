@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Test module.
+ */
+
 use Drupal\Core\Extension\Extension;
 
 /**
@@ -55,16 +60,16 @@ function module_test_system_info_alter(&$info, Extension $file, $type) {
  * Implements hook_hook_info().
  */
 function module_test_hook_info() {
-  $hooks['test_hook'] = array(
+  $hooks['test_hook'] = [
     'group' => 'file',
-  );
+  ];
   return $hooks;
 }
 
 /**
  * Load function used by module_test_hook_dynamic_loading_invoke_all_during_load().
  *
- * @see module_test_menu().
+ * @see module_test_menu()
  */
 function module_test_load($param) {
   $result = \Drupal::moduleHandler()->invokeAll('test_hook');

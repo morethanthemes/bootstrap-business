@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\search\Tests\SearchLanguageTest.
- */
-
 namespace Drupal\search\Tests;
 
 use Drupal\field\Entity\FieldStorageConfig;
@@ -22,7 +17,7 @@ class SearchLanguageTest extends SearchTestBase {
    *
    * @var array
    */
-  public static $modules = array('language');
+  public static $modules = ['language'];
 
   /**
    * Array of nodes available to search.
@@ -34,8 +29,8 @@ class SearchLanguageTest extends SearchTestBase {
   protected function setUp() {
     parent::setUp();
 
-    // Create and login user.
-    $test_user = $this->drupalCreateUser(array('access content', 'search content', 'use advanced search', 'administer nodes', 'administer languages', 'access administration pages', 'administer site configuration'));
+    // Create and log in user.
+    $test_user = $this->drupalCreateUser(['access content', 'search content', 'use advanced search', 'administer nodes', 'administer languages', 'access administration pages', 'administer site configuration']);
     $this->drupalLogin($test_user);
 
     // Add a new language.
@@ -50,38 +45,38 @@ class SearchLanguageTest extends SearchTestBase {
 
     // Create a few page nodes with multilingual body values.
     $default_format = filter_default_format();
-    $nodes = array(
-      array(
+    $nodes = [
+      [
         'title' => 'First node en',
         'type' => 'page',
-        'body' => array(array('value' => $this->randomMachineName(32), 'format' => $default_format)),
+        'body' => [['value' => $this->randomMachineName(32), 'format' => $default_format]],
         'langcode' => 'en',
-      ),
-      array(
+      ],
+      [
         'title' => 'Second node this is the Spanish title',
         'type' => 'page',
-        'body' => array(array('value' => $this->randomMachineName(32), 'format' => $default_format)),
+        'body' => [['value' => $this->randomMachineName(32), 'format' => $default_format]],
         'langcode' => 'es',
-      ),
-      array(
+      ],
+      [
         'title' => 'Third node en',
         'type' => 'page',
-        'body' => array(array('value' => $this->randomMachineName(32), 'format' => $default_format)),
+        'body' => [['value' => $this->randomMachineName(32), 'format' => $default_format]],
         'langcode' => 'en',
-      ),
-    );
+      ],
+    ];
     $this->searchableNodes = [];
     foreach ($nodes as $setting) {
       $this->searchableNodes[] = $this->drupalCreateNode($setting);
     }
 
     // Add English translation to the second node.
-    $translation = $this->searchableNodes[1]->addTranslation('en', array('title' => 'Second node en'));
+    $translation = $this->searchableNodes[1]->addTranslation('en', ['title' => 'Second node en']);
     $translation->body->value = $this->randomMachineName(32);
     $this->searchableNodes[1]->save();
 
     // Add Spanish translation to the third node.
-    $translation = $this->searchableNodes[2]->addTranslation('es', array('title' => 'Third node es'));
+    $translation = $this->searchableNodes[2]->addTranslation('es', ['title' => 'Third node es']);
     $translation->body->value = $this->randomMachineName(32);
     $this->searchableNodes[2]->save();
 
@@ -91,9 +86,9 @@ class SearchLanguageTest extends SearchTestBase {
     search_update_totals();
   }
 
-  function testLanguages() {
+  public function testLanguages() {
     // Add predefined language.
-    $edit = array('predefined_langcode' => 'fr');
+    $edit = ['predefined_langcode' => 'fr'];
     $this->drupalPostForm('admin/config/regional/language/add', $edit, t('Add language'));
     $this->assertText('French', 'Language added successfully.');
 
@@ -104,11 +99,11 @@ class SearchLanguageTest extends SearchTestBase {
     $this->assertText(t('French'), 'French is a possible choice.');
 
     // Ensure selecting no language does not make the query different.
-    $this->drupalPostForm('search/node', array(), t('Advanced search'));
+    $this->drupalPostForm('search/node', [], t('Advanced search'));
     $this->assertUrl(\Drupal::url('search.view_node_search', [], ['query' => ['keys' => ''], 'absolute' => TRUE]), [], 'Correct page redirection, no language filtering.');
 
     // Pick French and ensure it is selected.
-    $edit = array('language[fr]' => TRUE);
+    $edit = ['language[fr]' => TRUE];
     $this->drupalPostForm('search/node', $edit, t('Advanced search'));
     // Get the redirected URL.
     $url = $this->getUrl();
@@ -117,25 +112,26 @@ class SearchLanguageTest extends SearchTestBase {
     $this->assertTrue(strpos($query_string, '=language:fr') !== FALSE, 'Language filter language:fr add to the query string.');
 
     // Search for keyword node and language filter as Spanish.
-    $edit = array('keys' => 'node', 'language[es]' => TRUE);
+    $edit = ['keys' => 'node', 'language[es]' => TRUE];
     $this->drupalPostForm('search/node', $edit, t('Advanced search'));
     // Check for Spanish results.
     $this->assertLink('Second node this is the Spanish title', 0, 'Second node Spanish title found in search results');
     $this->assertLink('Third node es', 0, 'Third node Spanish found in search results');
-    // Ensure that results doesn't contain other language nodes.
-    $this->assertNoLink('First node en', 'Search results does not contain first English node');
-    $this->assertNoLink('Second node en', 'Search results does not contain second English node');
-    $this->assertNoLink('Third node en', 'Search results does not contain third English node');
+    // Ensure that results don't contain other language nodes.
+    $this->assertNoLink('First node en', 'Search results do not contain first English node');
+    $this->assertNoLink('Second node en', 'Search results do not contain second English node');
+    $this->assertNoLink('Third node en', 'Search results do not contain third English node');
 
     // Change the default language and delete English.
     $path = 'admin/config/regional/language';
     $this->drupalGet($path);
     $this->assertFieldChecked('edit-site-default-language-en', 'Default language updated.');
-    $edit = array(
+    $edit = [
       'site_default_language' => 'fr',
-    );
+    ];
     $this->drupalPostForm($path, $edit, t('Save configuration'));
     $this->assertNoFieldChecked('edit-site-default-language-en', 'Default language updated.');
-    $this->drupalPostForm('admin/config/regional/language/delete/en', array(), t('Delete'));
+    $this->drupalPostForm('admin/config/regional/language/delete/en', [], t('Delete'));
   }
+
 }

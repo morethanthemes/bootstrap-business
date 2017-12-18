@@ -1,15 +1,11 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Field\BaseFieldDefinitionTestBase.
- */
-
 namespace Drupal\Tests\Core\Field;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Field\FieldTypePluginManager;
+use Drupal\Core\TypedData\TypedDataManagerInterface;
 use Drupal\Tests\UnitTestCase;
 
 /**
@@ -28,6 +24,7 @@ abstract class BaseFieldDefinitionTestBase extends UnitTestCase {
    * {@inheritdoc}
    */
   protected function setUp() {
+    parent::setUp();
 
     // getModuleAndPath() returns an array of the module name and directory.
     list($module_name, $module_dir) = $this->getModuleAndPath();
@@ -40,9 +37,7 @@ abstract class BaseFieldDefinitionTestBase extends UnitTestCase {
       ->method('moduleExists')
       ->with($module_name)
       ->will($this->returnValue(TRUE));
-    $typed_data_manager = $this->getMockBuilder('\Drupal\Core\TypedData\TypedDataManager')
-      ->disableOriginalConstructor()
-      ->getMock();
+    $typed_data_manager = $this->getMock(TypedDataManagerInterface::class);
     $plugin_manager = new FieldTypePluginManager(
       $namespaces,
       $this->getMock('Drupal\Core\Cache\CacheBackendInterface'),

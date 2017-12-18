@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\tour\Entity\Tour.
- */
-
 namespace Drupal\tour\Entity;
 
 use Drupal\Core\Config\Entity\ConfigEntityBase;
@@ -18,8 +13,10 @@ use Drupal\tour\TourInterface;
  *   id = "tour",
  *   label = @Translation("Tour"),
  *   handlers = {
- *     "view_builder" = "Drupal\tour\TourViewBuilder"
+ *     "view_builder" = "Drupal\tour\TourViewBuilder",
+ *     "access" = "Drupal\tour\TourAccessControlHandler",
  *   },
+ *   admin_permission = "administer site configuration",
  *   entity_keys = {
  *     "id" = "id",
  *     "label" = "label"
@@ -64,7 +61,7 @@ class Tour extends ConfigEntityBase implements TourInterface {
    *
    * @var array
    */
-  protected $routes = array();
+  protected $routes = [];
 
   /**
    * The routes on which this tour should be displayed, keyed by route id.
@@ -85,7 +82,7 @@ class Tour extends ConfigEntityBase implements TourInterface {
    *
    * @var array
    */
-  protected $tips = array();
+  protected $tips = [];
 
   /**
    * {@inheritdoc}
@@ -114,7 +111,7 @@ class Tour extends ConfigEntityBase implements TourInterface {
    * {@inheritdoc}
    */
   public function getTips() {
-    $tips = array();
+    $tips = [];
     foreach ($this->tips as $id => $tip) {
       $tips[] = $this->getTip($id);
     }
@@ -141,9 +138,9 @@ class Tour extends ConfigEntityBase implements TourInterface {
    */
   public function hasMatchingRoute($route_name, $route_params) {
     if (!isset($this->keyedRoutes)) {
-      $this->keyedRoutes = array();
+      $this->keyedRoutes = [];
       foreach ($this->getRoutes() as $route) {
-        $this->keyedRoutes[$route['route_name']] = isset($route['route_params']) ? $route['route_params'] : array();
+        $this->keyedRoutes[$route['route_name']] = isset($route['route_params']) ? $route['route_params'] : [];
       }
     }
     if (!isset($this->keyedRoutes[$route_name])) {
@@ -176,7 +173,7 @@ class Tour extends ConfigEntityBase implements TourInterface {
   public function calculateDependencies() {
     parent::calculateDependencies();
 
-    foreach($this->tipsCollection as $instance) {
+    foreach ($this->tipsCollection as $instance) {
       $definition = $instance->getPluginDefinition();
       $this->addDependency('module', $definition['provider']);
     }

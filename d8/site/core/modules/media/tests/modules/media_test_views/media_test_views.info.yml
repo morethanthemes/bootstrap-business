@@ -1,0 +1,15 @@
+name: 'Media test views'
+type: module
+description: 'Provides default views for views media tests.'
+package: Testing
+# version: VERSION
+# core: 8.x
+dependencies:
+  - media
+  - views
+
+# Information added by Drupal.org packaging script on 2017-12-06
+version: '8.4.3'
+core: '8.x'
+project: 'drupal'
+datestamp: 1512600826

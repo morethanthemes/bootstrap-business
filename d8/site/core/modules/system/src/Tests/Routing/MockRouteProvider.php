@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Routing\MockRouteProvider.
- */
-
 namespace Drupal\system\Tests\Routing;
 
 use Symfony\Component\HttpFoundation\Request;
@@ -20,7 +15,7 @@ class MockRouteProvider implements RouteProviderInterface {
   /**
    * A collection of routes for this route provider.
    *
-   * @var RouteCollection
+   * @var \Symfony\Component\Routing\RouteCollection
    */
   protected $routes;
 
@@ -48,7 +43,7 @@ class MockRouteProvider implements RouteProviderInterface {
    * {@inheritdoc}
    */
   public function getRouteByName($name) {
-    $routes = $this->getRoutesByNames(array($name));
+    $routes = $this->getRoutesByNames([$name]);
     if (empty($routes)) {
       throw new RouteNotFoundException(sprintf('Route "%s" does not exist.', $name));
     }
@@ -67,7 +62,7 @@ class MockRouteProvider implements RouteProviderInterface {
    * {@inheritdoc}
    */
   public function getRoutesByNames($names) {
-    $routes = array();
+    $routes = [];
     foreach ($names as $name) {
       $routes[] = $this->routes->get($name);
     }
@@ -93,7 +88,7 @@ class MockRouteProvider implements RouteProviderInterface {
    * {@inheritdoc}
    */
   public function reset() {
-    $this->routes = array();
+    $this->routes = [];
   }
 
 }

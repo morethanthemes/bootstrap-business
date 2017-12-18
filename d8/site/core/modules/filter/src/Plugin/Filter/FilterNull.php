@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\filter\Plugin\Filter\FilterNull.
- */
-
 namespace Drupal\filter\Plugin\Filter;
 
 use Drupal\filter\FilterProcessResult;
@@ -40,7 +35,7 @@ class FilterNull extends FilterBase {
     // Once per filter, log that a filter plugin was missing.
     if (!$this->logged) {
       $this->logged = TRUE;
-      \Drupal::logger('filter')->alert('Missing filter plugin: %filter.', array('%filter' => $plugin_id));
+      \Drupal::logger('filter')->alert('Missing filter plugin: %filter.', ['%filter' => $plugin_id]);
     }
     parent::__construct($configuration, $plugin_id, $plugin_definition);
   }
@@ -57,7 +52,7 @@ class FilterNull extends FilterBase {
    */
   public function getHTMLRestrictions() {
     // Nothing is allowed.
-    return array('allowed' => array());
+    return ['allowed' => []];
   }
 
   /**

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\Element\Operations.
- */
-
 namespace Drupal\Core\Render\Element;
 
 /**
@@ -24,9 +19,9 @@ class Operations extends Dropbutton {
    * {@inheritdoc}
    */
   public function getInfo() {
-    return array(
+    return [
       '#theme' => 'links__dropbutton__operations',
-    ) + parent::getInfo();
+    ] + parent::getInfo();
   }
 
 }

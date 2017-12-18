@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Menu\MenuTreeParameters.
- */
-
 namespace Drupal\Core\Menu;
 
 /**
@@ -55,7 +50,7 @@ class MenuTreeParameters {
    *
    * @var string[]
    */
-  public $expandedParents = array();
+  public $expandedParents = [];
 
   /**
    * The IDs from the currently active menu link to the root of the whole tree.
@@ -67,7 +62,7 @@ class MenuTreeParameters {
    *
    * @var string[]
    */
-  public $activeTrail = array();
+  public $activeTrail = [];
 
   /**
    * The conditions used to restrict which links are loaded.
@@ -76,7 +71,7 @@ class MenuTreeParameters {
    *
    * @var array
    */
-  public $conditions = array();
+  public $conditions = [];
 
   /**
    * Sets a root for menu tree loading.
@@ -175,7 +170,7 @@ class MenuTreeParameters {
       $this->conditions[$definition_field] = $value;
     }
     else {
-      $this->conditions[$definition_field] = array($value, $operator);
+      $this->conditions[$definition_field] = [$value, $operator];
     }
     return $this;
   }

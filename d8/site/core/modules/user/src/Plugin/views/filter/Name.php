@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\Plugin\views\filter\Name.
- */
-
 namespace Drupal\user\Plugin\views\filter;
 
 use Drupal\Core\Entity\Element\EntityAutocomplete;
@@ -24,17 +19,17 @@ class Name extends InOperator {
   protected $alwaysMultiple = TRUE;
 
   protected function valueForm(&$form, FormStateInterface $form_state) {
-    $users = $this->value ? User::loadMultiple($this->value) : array();
+    $users = $this->value ? User::loadMultiple($this->value) : [];
     $default_value = EntityAutocomplete::getEntityLabels($users);
-    $form['value'] = array(
+    $form['value'] = [
       '#type' => 'entity_autocomplete',
       '#title' => $this->t('Usernames'),
       '#description' => $this->t('Enter a comma separated list of user names.'),
       '#target_type' => 'user',
       '#tags' => TRUE,
       '#default_value' => $default_value,
-      '#process_default_value' => FALSE,
-    );
+      '#process_default_value' => $this->isExposed(),
+    ];
 
     $user_input = $form_state->getUserInput();
     if ($form_state->get('exposed') && !isset($user_input[$this->options['expose']['identifier']])) {
@@ -45,13 +40,13 @@ class Name extends InOperator {
 
   protected function valueValidate($form, FormStateInterface $form_state) {
     $uids = [];
-    if ($values = $form_state->getValue(array('options', 'value'))) {
+    if ($values = $form_state->getValue(['options', 'value'])) {
       foreach ($values as $value) {
         $uids[] = $value['target_id'];
       }
       sort($uids);
     }
-    $form_state->setValue(array('options', 'value'), $uids);
+    $form_state->setValue(['options', 'value'], $uids);
   }
 
   public function acceptExposedInput($input) {
@@ -101,25 +96,27 @@ class Name extends InOperator {
     // prevent array filter from removing our anonymous user.
   }
 
-/**
- * {@inheritdoc}
- */
+  /**
+   * {@inheritdoc}
+   */
   public function getValueOptions() {
     return $this->valueOptions;
   }
 
   public function adminSummary() {
     // set up $this->valueOptions for the parent summary
-    $this->valueOptions = array();
+    $this->valueOptions = [];
 
     if ($this->value) {
-      $result = entity_load_multiple_by_properties('user', array('uid' => $this->value));
+      $result = \Drupal::entityTypeManager()->getStorage('user')
+        ->loadByProperties(['uid' => $this->value]);
       foreach ($result as $account) {
         if ($account->id()) {
           $this->valueOptions[$account->id()] = $account->label();
         }
         else {
-          $this->valueOptions[$account->id()] = 'Anonymous'; // Intentionally NOT translated.
+          // Intentionally NOT translated.
+          $this->valueOptions[$account->id()] = 'Anonymous';
         }
       }
     }

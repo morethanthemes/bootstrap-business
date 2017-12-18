@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Module\HookRequirementsTest.
- */
-
 namespace Drupal\system\Tests\Module;
 
 /**
@@ -16,16 +11,17 @@ class HookRequirementsTest extends ModuleTestBase {
   /**
    * Assert that a module cannot be installed if it fails hook_requirements().
    */
-  function testHookRequirementsFailure() {
-    $this->assertModules(array('requirements1_test'), FALSE);
+  public function testHookRequirementsFailure() {
+    $this->assertModules(['requirements1_test'], FALSE);
 
     // Attempt to install the requirements1_test module.
-    $edit = array();
-    $edit['modules[Testing][requirements1_test][enable]'] = 'requirements1_test';
+    $edit = [];
+    $edit['modules[requirements1_test][enable]'] = 'requirements1_test';
     $this->drupalPostForm('admin/modules', $edit, t('Install'));
 
     // Makes sure the module was NOT installed.
     $this->assertText(t('Requirements 1 Test failed requirements'), 'Modules status has been updated.');
-    $this->assertModules(array('requirements1_test'), FALSE);
+    $this->assertModules(['requirements1_test'], FALSE);
   }
+
 }

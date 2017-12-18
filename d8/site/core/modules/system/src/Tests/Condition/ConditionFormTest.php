@@ -1,12 +1,8 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\system\Tests\Condition\ConditionFormTest.
- */
-
 namespace Drupal\system\Tests\Condition;
 
+use Drupal\node\Entity\Node;
 use Drupal\simpletest\WebTestBase;
 
 /**
@@ -20,20 +16,25 @@ use Drupal\simpletest\WebTestBase;
  */
 class ConditionFormTest extends WebTestBase {
 
-  public static $modules = array('node', 'condition_test');
+  public static $modules = ['node', 'condition_test'];
 
   /**
    * Submit the condition_node_type_test_form to test condition forms.
    */
-  function testConfigForm() {
-    $this->drupalCreateContentType(array('type' => 'page', 'name' => 'Page'));
-    $this->drupalCreateContentType(array('type' => 'article', 'name' => 'Article'));
-    $article = entity_create('node', array('type' => 'article', 'title' => $this->randomMachineName()));
+  public function testConfigForm() {
+    $this->drupalCreateContentType(['type' => 'page', 'name' => 'Page']);
+    $this->drupalCreateContentType(['type' => 'article', 'name' => 'Article']);
+
+    $article = Node::create([
+      'type' => 'article',
+      'title' => $this->randomMachineName(),
+    ]);
     $article->save();
+
     $this->drupalGet('condition_test');
     $this->assertField('bundles[article]', 'There is an article bundle selector.');
     $this->assertField('bundles[page]', 'There is a page bundle selector.');
-    $this->drupalPostForm(NULL, array('bundles[page]' => 'page', 'bundles[article]' => 'article'), t('Submit'));
+    $this->drupalPostForm(NULL, ['bundles[page]' => 'page', 'bundles[article]' => 'article'], t('Submit'));
     // @see \Drupal\condition_test\FormController::submitForm()
     $this->assertText('Bundle: page');
     $this->assertText('Bundle: article');

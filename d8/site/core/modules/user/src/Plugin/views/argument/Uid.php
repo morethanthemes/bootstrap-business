@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\user\Plugin\views\argument\Uid.
- */
-
 namespace Drupal\user\Plugin\views\argument;
 
 use Drupal\Core\Entity\EntityStorageInterface;
@@ -56,10 +51,10 @@ class Uid extends NumericArgument {
    * Override the behavior of title(). Get the name of the user.
    *
    * @return array
-   *    A list of usernames.
+   *   A list of usernames.
    */
   public function titleQuery() {
-    return array_map(function($account) {
+    return array_map(function ($account) {
       return $account->label();
     }, $this->storage->loadMultiple($this->value));
   }

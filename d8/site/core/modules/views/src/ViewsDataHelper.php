@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\views\ViewsDataHelper.
- */
-
 namespace Drupal\views;
 
 use Drupal\Component\Utility\Unicode;
@@ -25,7 +20,7 @@ class ViewsDataHelper {
   /**
    * A prepared list of all fields, keyed by base_table and handler type.
    *
-   * @param array
+   * @var array
    */
   protected $fields;
 
@@ -42,7 +37,7 @@ class ViewsDataHelper {
   /**
    * Fetches a list of all fields available for a given base type.
    *
-   * @param (array|string) $base
+   * @param array|string $base
    *   A list or a single base_table, for example node.
    * @param string $type
    *   The handler type, for example field or filter.
@@ -69,9 +64,9 @@ class ViewsDataHelper {
       // each field have a cheap kind of inheritance.
 
       foreach ($data as $table => $table_data) {
-        $bases = array();
-        $strings = array();
-        $skip_bases = array();
+        $bases = [];
+        $strings = [];
+        $skip_bases = [];
         foreach ($table_data as $field => $info) {
           // Collect table data from this table
           if ($field == 'table') {
@@ -83,7 +78,7 @@ class ViewsDataHelper {
             $bases[] = $table;
             continue;
           }
-          foreach (array('field', 'sort', 'filter', 'argument', 'relationship', 'area') as $key) {
+          foreach (['field', 'sort', 'filter', 'argument', 'relationship', 'area'] as $key) {
             if (!empty($info[$key])) {
               if ($grouping && !empty($info[$key]['no group by'])) {
                 continue;
@@ -101,7 +96,7 @@ class ViewsDataHelper {
                   $skip_bases[$field][$key][$base_name] = TRUE;
                 }
               }
-              foreach (array('title', 'group', 'help', 'base', 'aliases') as $string) {
+              foreach (['title', 'group', 'help', 'base', 'aliases'] as $string) {
                 // First, try the lowest possible level
                 if (!empty($info[$key][$string])) {
                   $strings[$field][$key][$string] = $info[$key][$string];
@@ -114,9 +109,18 @@ class ViewsDataHelper {
                 elseif (!empty($table_data['table'][$string])) {
                   $strings[$field][$key][$string] = $table_data['table'][$string];
                 }
+                // We don't have any help provided for this field. If a better
+                // description should be used for the Views UI you use
+                // hook_views_data_alter() in module.views.inc or implement a
+                // custom entity views_data handler.
+                // @see hook_views_data_alter()
+                // @see \Drupal\node\NodeViewsData
+                elseif ($string == 'help') {
+                  $strings[$field][$key][$string] = '';
+                }
                 else {
-                  if ($string != 'base' && $string != 'base') {
-                    $strings[$field][$key][$string] = SafeMarkup::format("Error: missing @component", array('@component' => $string));
+                  if ($string != 'base') {
+                    $strings[$field][$key][$string] = SafeMarkup::format("Error: missing @component", ['@component' => $string]);
                   }
                 }
               }
@@ -139,21 +143,21 @@ class ViewsDataHelper {
     // all and add them together. Duplicate keys will be lost and that's
     // Just Fine.
     if (is_array($base)) {
-      $strings = array();
+      $strings = [];
       foreach ($base as $base_table) {
         if (isset($this->fields[$base_table][$type])) {
           $strings += $this->fields[$base_table][$type];
         }
       }
-      uasort($strings, array('self', 'fetchedFieldSort'));
+      uasort($strings, ['self', 'fetchedFieldSort']);
       return $strings;
     }
 
     if (isset($this->fields[$base][$type])) {
-      uasort($this->fields[$base][$type], array($this, 'fetchedFieldSort'));
+      uasort($this->fields[$base][$type], [$this, 'fetchedFieldSort']);
       return $this->fields[$base][$type];
     }
-    return array();
+    return [];
   }
 
   /**
@@ -186,4 +190,3 @@ class ViewsDataHelper {
   }
 
 }
-

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Menu\ContextualLinkManager.
- */
-
 namespace Drupal\Core\Menu;
 
 use Drupal\Component\Plugin\Exception\PluginException;
@@ -32,7 +27,7 @@ class ContextualLinkManager extends DefaultPluginManager implements ContextualLi
    *
    * @var array
    */
-  protected $defaults = array(
+  protected $defaults = [
     // (required) The name of the route to link to.
     'route_name' => '',
     // (required) The contextual links group.
@@ -40,14 +35,14 @@ class ContextualLinkManager extends DefaultPluginManager implements ContextualLi
     // The static title text for the link.
     'title' => '',
     // The default link options.
-    'options' => array(),
+    'options' => [],
     // The weight of the link.
     'weight' => NULL,
     // Default class for contextual link implementations.
     'class' => '\Drupal\Core\Menu\ContextualLinkDefault',
     // The plugin id. Set by the plugin system based on the top-level YAML key.
     'id' => '',
-  );
+  ];
 
   /**
    * A controller resolver object.
@@ -110,7 +105,7 @@ class ContextualLinkManager extends DefaultPluginManager implements ContextualLi
     $this->moduleHandler = $module_handler;
     $this->requestStack = $request_stack;
     $this->alterInfo('contextual_links_plugins');
-    $this->setCacheBackend($cache_backend, 'contextual_links_plugins:' . $language_manager->getCurrentLanguage()->getId(), array('contextual_links_plugins'));
+    $this->setCacheBackend($cache_backend, 'contextual_links_plugins:' . $language_manager->getCurrentLanguage()->getId(), ['contextual_links_plugins']);
   }
 
   /**
@@ -131,11 +126,11 @@ class ContextualLinkManager extends DefaultPluginManager implements ContextualLi
   public function processDefinition(&$definition, $plugin_id) {
     parent::processDefinition($definition, $plugin_id);
 
-     // If there is no route name, this is a broken definition.
+    // If there is no route name, this is a broken definition.
     if (empty($definition['route_name'])) {
       throw new PluginException(sprintf('Contextual link plugin (%s) definition must include "route_name".', $plugin_id));
     }
-     // If there is no group name, this is a broken definition.
+    // If there is no group name, this is a broken definition.
     if (empty($definition['group'])) {
       throw new PluginException(sprintf('Contextual link plugin (%s) definition must include "group".', $plugin_id));
     }
@@ -153,7 +148,7 @@ class ContextualLinkManager extends DefaultPluginManager implements ContextualLi
       $this->pluginsByGroup[$group_name] = $contextual_links;
     }
     else {
-      $contextual_links = array();
+      $contextual_links = [];
       foreach ($this->getDefinitions() as $plugin_id => $plugin_definition) {
         if ($plugin_definition['group'] == $group_name) {
           $contextual_links[$plugin_id] = $plugin_definition;
@@ -168,8 +163,8 @@ class ContextualLinkManager extends DefaultPluginManager implements ContextualLi
   /**
    * {@inheritdoc}
    */
-  public function getContextualLinksArrayByGroup($group_name, array $route_parameters, array $metadata = array()) {
-    $links = array();
+  public function getContextualLinksArrayByGroup($group_name, array $route_parameters, array $metadata = []) {
+    $links = [];
     $request = $this->requestStack->getCurrentRequest();
     foreach ($this->getContextualLinkPluginsByGroup($group_name) as $plugin_id => $plugin_definition) {
       /** @var $plugin \Drupal\Core\Menu\ContextualLinkInterface */
@@ -181,14 +176,14 @@ class ContextualLinkManager extends DefaultPluginManager implements ContextualLi
         continue;
       }
 
-      $links[$plugin_id] = array(
+      $links[$plugin_id] = [
         'route_name' => $route_name,
         'route_parameters' => $route_parameters,
         'title' => $plugin->getTitle($request),
         'weight' => $plugin->getWeight(),
         'localized_options' => $plugin->getOptions(),
         'metadata' => $metadata,
-      );
+      ];
     }
 
     $this->moduleHandler->alter('contextual_links', $links, $group_name, $route_parameters);

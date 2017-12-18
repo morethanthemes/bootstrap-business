@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Access\CheckProviderInterface.
- */
-
 namespace Drupal\Core\Access;
 
 use Symfony\Component\Routing\RouteCollection;
@@ -42,7 +37,7 @@ interface CheckProviderInterface {
    * @param bool $needs_incoming_request
    *   (optional) True if access-check method only acts on an incoming request.
    */
-  public function addCheckService($service_id, $service_method, array $applies_checks = array(), $needs_incoming_request = FALSE);
+  public function addCheckService($service_id, $service_method, array $applies_checks = [], $needs_incoming_request = FALSE);
 
   /**
    * Lazy-loads access check services.
@@ -66,4 +61,5 @@ interface CheckProviderInterface {
    * @return array
    */
   public function getChecksNeedRequest();
+
 }

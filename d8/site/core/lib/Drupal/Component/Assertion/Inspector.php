@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\Component\Assertion\Inspector.
- */
 
 namespace Drupal\Component\Assertion;
 
@@ -112,7 +108,7 @@ class Inspector {
    * Use this instead of is_string() alone unless the argument being an object
    * in any way will cause a problem.
    *
-   * @param mixed string
+   * @param mixed $string
    *   Variable to be examined
    *
    * @return bool
@@ -209,9 +205,9 @@ class Inspector {
    * @return bool
    *   TRUE if $traversable can be traversed and all members have all keys.
    */
-  public static function assertAllHaveKey() {
+  public static function assertAllHaveKey($traversable) {
     $args = func_get_args();
-    $traversable = array_shift($args);
+    unset($args[0]);
 
     if (static::assertTraversable($traversable)) {
       foreach ($traversable as $member) {
@@ -400,9 +396,9 @@ class Inspector {
    *   TRUE if $traversable can be traversed and all members are objects with
    *   at least one of the listed classes or interfaces.
    */
-  public static function assertAllObjects() {
+  public static function assertAllObjects($traversable) {
     $args = func_get_args();
-    $traversable = array_shift($args);
+    unset($args[0]);
 
     if (static::assertTraversable($traversable)) {
       foreach ($traversable as $member) {

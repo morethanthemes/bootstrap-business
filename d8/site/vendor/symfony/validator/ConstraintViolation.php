@@ -105,7 +105,7 @@ class ConstraintViolation implements ConstraintViolationInterface
     /**
      * Converts the violation into a string for debugging purposes.
      *
-     * @return string The violation as string.
+     * @return string The violation as string
      */
     public function __toString()
     {
@@ -141,19 +141,6 @@ class ConstraintViolation implements ConstraintViolationInterface
 
     /**
      * {@inheritdoc}
-     *
-     * @deprecated since version 2.7, to be removed in 3.0.
-     *             Use getParameters() instead
-     */
-    public function getMessageParameters()
-    {
-        @trigger_error('The '.__METHOD__.' method is deprecated since version 2.7, to be removed in 3.0. Use the ConstraintViolation::getParameters() method instead.', E_USER_DEPRECATED);
-
-        return $this->parameters;
-    }
-
-    /**
-     * Alias of {@link getMessageParameters()}.
      */
     public function getParameters()
     {
@@ -162,19 +149,6 @@ class ConstraintViolation implements ConstraintViolationInterface
 
     /**
      * {@inheritdoc}
-     *
-     * @deprecated since version 2.7, to be removed in 3.0.
-     *             Use getPlural() instead
-     */
-    public function getMessagePluralization()
-    {
-        @trigger_error('The '.__METHOD__.' method is deprecated since version 2.7, to be removed in 3.0. Use the ConstraintViolation::getPlural() method instead.', E_USER_DEPRECATED);
-
-        return $this->plural;
-    }
-
-    /**
-     * Alias of {@link getMessagePluralization()}.
      */
     public function getPlural()
     {

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\locale\LocaleEvent.
- */
-
 namespace Drupal\locale;
 
 use Symfony\Component\EventDispatcher\Event;
@@ -36,7 +31,7 @@ class LocaleEvent extends Event {
    * @param array $lids
    *   (optional) List of string identifiers that have been updated / created.
    */
-  public function __construct(array $lang_codes, array $lids = array()) {
+  public function __construct(array $lang_codes, array $lids = []) {
     $this->langCodes = $lang_codes;
     $this->lids = $lids;
   }

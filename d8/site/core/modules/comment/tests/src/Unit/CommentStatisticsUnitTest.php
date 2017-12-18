@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\comment\Unit\CommentStatisticsUnitTest.
- */
-
 namespace Drupal\Tests\comment\Unit;
 
 use Drupal\comment\CommentStatistics;
@@ -61,7 +56,7 @@ class CommentStatisticsUnitTest extends UnitTestCase {
 
     $this->statement->expects($this->any())
       ->method('fetchObject')
-      ->will($this->returnCallback(array($this, 'fetchObjectCallback')));
+      ->will($this->returnCallback([$this, 'fetchObjectCallback']));
 
     $this->select = $this->getMockBuilder('Drupal\Core\Database\Query\Select')
       ->disableOriginalConstructor()
@@ -100,8 +95,8 @@ class CommentStatisticsUnitTest extends UnitTestCase {
    */
   public function testRead() {
     $this->calls_to_fetch = 0;
-    $results = $this->commentStatistics->read(array('1' => 'boo', '2' => 'foo'), 'snafoos');
-    $this->assertEquals($results, array('something', 'something-else'));
+    $results = $this->commentStatistics->read(['1' => 'boo', '2' => 'foo'], 'snafoos');
+    $this->assertEquals($results, ['something', 'something-else']);
   }
 
   /**
@@ -116,13 +111,13 @@ class CommentStatisticsUnitTest extends UnitTestCase {
     switch ($this->calls_to_fetch) {
       case 1:
         return 'something';
-        break;
+
       case 2:
         return 'something-else';
-        break;
+
       default:
         return FALSE;
-        break;
     }
   }
+
 }

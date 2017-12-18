@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\entity_reference\ConfigurableEntityReferenceItem.
- */
-
 namespace Drupal\entity_reference;
 
 use Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem;
@@ -17,4 +12,4 @@ use Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem;
  *
  * @see \Drupal\Core\Field\Plugin\Field\FieldType\EntityReferenceItem
  */
-class ConfigurableEntityReferenceItem extends EntityReferenceItem { }
+class ConfigurableEntityReferenceItem extends EntityReferenceItem {}

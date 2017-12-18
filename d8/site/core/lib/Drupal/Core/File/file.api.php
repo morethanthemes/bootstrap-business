@@ -26,16 +26,16 @@
  *   file is not controlled by the current module, the return value should be
  *   NULL.
  *
- * @see file_download()
+ * @see \Drupal\system\FileDownloadController::download()
  */
 function hook_file_download($uri) {
   // Check to see if this is a config download.
   $scheme = file_uri_scheme($uri);
   $target = file_uri_target($uri);
   if ($scheme == 'temporary' && $target == 'config.tar.gz') {
-    return array(
+    return [
       'Content-disposition' => 'attachment; filename="config.tar.gz"',
-    );
+    ];
   }
 }
 
@@ -64,11 +64,11 @@ function hook_file_url_alter(&$uri) {
 
   $cdn1 = 'http://cdn1.example.com';
   $cdn2 = 'http://cdn2.example.com';
-  $cdn_extensions = array('css', 'js', 'gif', 'jpg', 'jpeg', 'png');
+  $cdn_extensions = ['css', 'js', 'gif', 'jpg', 'jpeg', 'png'];
 
   // Most CDNs don't support private file transfers without a lot of hassle,
   // so don't support this in the common case.
-  $schemes = array('public');
+  $schemes = ['public'];
 
   $scheme = file_uri_scheme($uri);
 
@@ -157,12 +157,6 @@ function hook_archiver_info_alter(&$info) {
  *     will always be passed the full path to the root of the site that should
  *     be used to restrict where file transfer operations can occur (the $jail)
  *     and an array of settings values returned by the settings form.
- *   - 'file': Required. The include file containing the FileTransfer class.
- *     This should be a separate .inc file, not just the .module file, so that
- *     the minimum possible code is loaded when authorize.php is running.
- *   - 'file path': Optional. The directory (relative to the Drupal root)
- *     where the include file lives. If not defined, defaults to the base
- *     directory of the module implementing the hook.
  *   - 'weight': Optional. Integer weight used for sorting connection types on
  *     the authorize.php form.
  *
@@ -172,11 +166,11 @@ function hook_archiver_info_alter(&$info) {
  * @see drupal_get_filetransfer_info()
  */
 function hook_filetransfer_info() {
-  $info['sftp'] = array(
+  $info['sftp'] = [
     'title' => t('SFTP (Secure FTP)'),
     'class' => 'Drupal\Core\FileTransfer\SFTP',
     'weight' => 10,
-  );
+  ];
   return $info;
 }
 

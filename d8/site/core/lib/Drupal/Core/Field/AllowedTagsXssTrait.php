@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\Core\Field\AllowedTagsXssTrait.
- */
 
 namespace Drupal\Core\Field;
 
@@ -29,12 +25,12 @@ trait AllowedTagsXssTrait {
    * @param string $string
    *   The string with raw HTML in it.
    *
-   * @return \Drupal\Component\Utility\SafeMarkup
+   * @return \Drupal\Core\Field\FieldFilteredMarkup
    *   An XSS safe version of $string, or an empty string if $string is not
    *   valid UTF-8.
    */
   public function fieldFilterXss($string) {
-   return FieldFilteredMarkup::create($string);
+    return FieldFilteredMarkup::create($string);
   }
 
   /**

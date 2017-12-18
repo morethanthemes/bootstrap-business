@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Routing\UrlGeneratorInterface.
- */
-
 namespace Drupal\Core\Routing;
 
 use Symfony\Cmf\Component\Routing\VersatileGeneratorInterface;
@@ -20,15 +15,16 @@ interface UrlGeneratorInterface extends VersatileGeneratorInterface {
    * Gets the internal path (system path) for a route.
    *
    * @param string|\Symfony\Component\Routing\Route $name
-   *  The route name or a route object.
+   *   The route name or a route object.
    * @param array $parameters
-   *  An array of parameters as passed to
-   *  \Symfony\Component\Routing\Generator\UrlGeneratorInterface::generate().
+   *   An array of parameters as passed to
+   *   \Symfony\Component\Routing\Generator\UrlGeneratorInterface::generate().
    *
    * @return string
-   *  The internal Drupal path corresponding to the route.
+   *   The internal Drupal path corresponding to the route. This string is
+   *   not urlencoded and will be an empty string for the front page.
    */
-  public function getPathFromRoute($name, $parameters = array());
+  public function getPathFromRoute($name, $parameters = []);
 
   /**
    * Generates a URL or path for a specific route based on the given parameters.
@@ -39,7 +35,7 @@ interface UrlGeneratorInterface extends VersatileGeneratorInterface {
    *
    * @param string|\Symfony\Component\Routing\Route $name
    *   The route name or a route object.
-   * @param array  $parameters
+   * @param array $parameters
    *   An associative array of parameter names and values.
    * @param array $options
    *   (optional) An associative array of additional options, with the following
@@ -82,6 +78,6 @@ interface UrlGeneratorInterface extends VersatileGeneratorInterface {
    *   Should not be used in user code.
    *   Use \Drupal\Core\Url instead.
    */
-  public function generateFromRoute($name, $parameters = array(), $options = array(), $collect_bubbleable_metadata = FALSE);
+  public function generateFromRoute($name, $parameters = [], $options = [], $collect_bubbleable_metadata = FALSE);
 
 }
