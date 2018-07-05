@@ -21,6 +21,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Construct the storage changes in a configuration synchronization form.
+ *
+ * @internal
  */
 class ConfigSync extends FormBase {
 
@@ -340,7 +342,6 @@ class ConfigSync extends FormBase {
           'init_message' => t('Starting configuration synchronization.'),
           'progress_message' => t('Completed step @current of @total.'),
           'error_message' => t('Configuration synchronization has encountered an error.'),
-          'file' => __DIR__ . '/../../config.admin.inc',
         ];
         foreach ($sync_steps as $sync_step) {
           $batch['operations'][] = [[get_class($this), 'processBatch'], [$config_importer, $sync_step]];

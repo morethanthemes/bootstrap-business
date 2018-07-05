@@ -81,13 +81,25 @@ function taxonomy_help($route_name, RouteMatchInterface $route_match) {
 
     case 'entity.taxonomy_vocabulary.overview_form':
       $vocabulary = $route_match->getParameter('taxonomy_vocabulary');
-      switch ($vocabulary->getHierarchy()) {
-        case VocabularyInterface::HIERARCHY_DISABLED:
-          return '<p>' . t('You can reorganize the terms in %capital_name using their drag-and-drop handles, and group terms under a parent term by sliding them under and to the right of the parent.', ['%capital_name' => Unicode::ucfirst($vocabulary->label()), '%name' => $vocabulary->label()]) . '</p>';
-        case VocabularyInterface::HIERARCHY_SINGLE:
-          return '<p>' . t('%capital_name contains terms grouped under parent terms. You can reorganize the terms in %capital_name using their drag-and-drop handles.', ['%capital_name' => Unicode::ucfirst($vocabulary->label()), '%name' => $vocabulary->label()]) . '</p>';
-        case VocabularyInterface::HIERARCHY_MULTIPLE:
-          return '<p>' . t('%capital_name contains terms with multiple parents. Drag and drop of terms with multiple parents is not supported, but you can re-enable drag-and-drop support by editing each term to include only a single parent.', ['%capital_name' => Unicode::ucfirst($vocabulary->label())]) . '</p>';
+      if (\Drupal::currentUser()->hasPermission('administer taxonomy') || \Drupal::currentUser()->hasPermission('edit terms in ' . $vocabulary->id())) {
+        switch ($vocabulary->getHierarchy()) {
+          case VocabularyInterface::HIERARCHY_DISABLED:
+            return '<p>' . t('You can reorganize the terms in %capital_name using their drag-and-drop handles, and group terms under a parent term by sliding them under and to the right of the parent.', ['%capital_name' => Unicode::ucfirst($vocabulary->label()), '%name' => $vocabulary->label()]) . '</p>';
+          case VocabularyInterface::HIERARCHY_SINGLE:
+            return '<p>' . t('%capital_name contains terms grouped under parent terms. You can reorganize the terms in %capital_name using their drag-and-drop handles.', ['%capital_name' => Unicode::ucfirst($vocabulary->label()), '%name' => $vocabulary->label()]) . '</p>';
+          case VocabularyInterface::HIERARCHY_MULTIPLE:
+            return '<p>' . t('%capital_name contains terms with multiple parents. Drag and drop of terms with multiple parents is not supported, but you can re-enable drag-and-drop support by editing each term to include only a single parent.', ['%capital_name' => Unicode::ucfirst($vocabulary->label())]) . '</p>';
+        }
+      }
+      else {
+        switch ($vocabulary->getHierarchy()) {
+          case VocabularyInterface::HIERARCHY_DISABLED:
+            return '<p>' . t('%capital_name contains the following terms.', ['%capital_name' => Unicode::ucfirst($vocabulary->label())]) . '</p>';
+          case VocabularyInterface::HIERARCHY_SINGLE:
+            return '<p>' . t('%capital_name contains terms grouped under parent terms', ['%capital_name' => Unicode::ucfirst($vocabulary->label())]) . '</p>';
+          case VocabularyInterface::HIERARCHY_MULTIPLE:
+            return '<p>' . t('%capital_name contains terms with multiple parents.', ['%capital_name' => Unicode::ucfirst($vocabulary->label())]) . '</p>';
+        }
       }
   }
 }
@@ -201,7 +213,8 @@ function taxonomy_check_vocabulary_hierarchy(VocabularyInterface $vocabulary, $c
  *   content language of the current request.
  *
  * @return array
- *   A $page element suitable for use by drupal_render().
+ *   A $page element suitable for use by
+ *   \Drupal\Core\Render\RendererInterface::render().
  */
 function taxonomy_term_view(Term $term, $view_mode = 'full', $langcode = NULL) {
   return entity_view($term, $view_mode, $langcode);
@@ -219,7 +232,8 @@ function taxonomy_term_view(Term $term, $view_mode = 'full', $langcode = NULL) {
  *   content language of the current request.
  *
  * @return array
- *   An array in the format expected by drupal_render().
+ *   An array in the format expected by
+ *   \Drupal\Core\Render\RendererInterface::render().
  */
 function taxonomy_term_view_multiple(array $terms, $view_mode = 'full', $langcode = NULL) {
   return entity_view_multiple($terms, $view_mode, $langcode);

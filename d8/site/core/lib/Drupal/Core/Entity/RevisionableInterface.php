@@ -4,6 +4,21 @@ namespace Drupal\Core\Entity;
 
 /**
  * Provides methods for an entity to support revisions.
+ *
+ * Classes implementing this interface do not necessarily support revisions.
+ *
+ * To detect whether an entity type supports revisions, call
+ * EntityTypeInterface::isRevisionable().
+ *
+ * Many entity interfaces are composed of numerous other interfaces such as this
+ * one, which allow implementations to pick and choose which features to.
+ * support through stub implementations of various interface methods. This means
+ * that even if an entity class implements RevisionableInterface, it might only
+ * have a stub implementation and not a functional one.
+ *
+ * @see \Drupal\Core\Entity\EntityTypeInterface::isRevisionable()
+ * @see https://www.drupal.org/docs/8/api/entity-api/structure-of-an-entity-annotation
+ * @see https://www.drupal.org/docs/8/api/entity-api/making-an-entity-revisionable
  */
 interface RevisionableInterface {
 
@@ -50,6 +65,22 @@ interface RevisionableInterface {
    *   $new_value was passed, the previous value is returned.
    */
   public function isDefaultRevision($new_value = NULL);
+
+  /**
+   * Checks whether the entity object was a default revision when it was saved.
+   *
+   * @return bool
+   *   TRUE if the entity object was a revision, FALSE otherwise.
+   */
+  public function wasDefaultRevision();
+
+  /**
+   * Checks if this entity is the latest revision.
+   *
+   * @return bool
+   *   TRUE if the entity is the latest revision, FALSE otherwise.
+   */
+  public function isLatestRevision();
 
   /**
    * Acts on a revision before it gets saved.

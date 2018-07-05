@@ -333,8 +333,16 @@ class Schema extends DatabaseSchema {
           ->execute();
       }
       if (isset($specification['initial_from_field'])) {
+        if (isset($specification['initial'])) {
+          $expression = 'COALESCE(' . $specification['initial_from_field'] . ', :default_initial_value)';
+          $arguments = [':default_initial_value' => $specification['initial']];
+        }
+        else {
+          $expression = $specification['initial_from_field'];
+          $arguments = [];
+        }
         $this->connection->update($table)
-          ->expression($field, $specification['initial_from_field'])
+          ->expression($field, $expression, $arguments)
           ->execute();
       }
     }
@@ -358,9 +366,17 @@ class Schema extends DatabaseSchema {
       }
       elseif (isset($specification['initial_from_field'])) {
         // If we have a initial value, copy it over.
+        if (isset($specification['initial'])) {
+          $expression = 'COALESCE(' . $specification['initial_from_field'] . ', :default_initial_value)';
+          $arguments = [':default_initial_value' => $specification['initial']];
+        }
+        else {
+          $expression = $specification['initial_from_field'];
+          $arguments = [];
+        }
         $mapping[$field] = [
-          'expression' => $specification['initial_from_field'],
-          'arguments' => [],
+          'expression' => $expression,
+          'arguments' => $arguments,
         ];
       }
       else {
@@ -413,7 +429,7 @@ class Schema extends DatabaseSchema {
 
     // Now add the fields.
     foreach ($mapping as $field_alias => $field_source) {
-      // Just ignore this field (ie. use it's default value).
+      // Just ignore this field (ie. use its default value).
       if (!isset($field_source)) {
         continue;
       }
@@ -450,7 +466,7 @@ class Schema extends DatabaseSchema {
    *   Name of the table.
    *
    * @return
-   *   An array representing the schema, from drupal_get_schema().
+   *   An array representing the schema.
    *
    * @throws \Exception
    *   If a column of the table could not be parsed.

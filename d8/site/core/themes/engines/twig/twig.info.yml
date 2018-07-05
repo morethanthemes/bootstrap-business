@@ -4,8 +4,8 @@ name: Twig
 # version: VERSION
 package: Core
 
-# Information added by Drupal.org packaging script on 2017-12-06
-version: '8.4.3'
+# Information added by Drupal.org packaging script on 2018-07-04
+version: '8.5.5'
 core: '8.x'
 project: 'drupal'
-datestamp: 1512600826
+datestamp: 1530738955

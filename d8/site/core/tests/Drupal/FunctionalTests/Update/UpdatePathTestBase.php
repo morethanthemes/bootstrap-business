@@ -374,14 +374,16 @@ abstract class UpdatePathTestBase extends BrowserTestBase {
 
       // Ensure that the update hooks updated all entity schema.
       $needs_updates = \Drupal::entityDefinitionUpdateManager()->needsUpdates();
-      $this->assertFalse($needs_updates, 'After all updates ran, entity schema is up to date.');
       if ($needs_updates) {
-        foreach (\Drupal::entityDefinitionUpdateManager()
-          ->getChangeSummary() as $entity_type_id => $summary) {
+        foreach (\Drupal::entityDefinitionUpdateManager()->getChangeSummary() as $entity_type_id => $summary) {
+          $entity_type_label = \Drupal::entityTypeManager()->getDefinition($entity_type_id)->getLabel();
           foreach ($summary as $message) {
-            $this->fail($message);
+            $this->fail("$entity_type_label: $message");
           }
         }
+        // The above calls to `fail()` should prevent this from ever being
+        // called, but it is here in case something goes really wrong.
+        $this->assertFalse($needs_updates, 'After all updates ran, entity schema is up to date.');
       }
     }
   }

@@ -68,7 +68,7 @@ class MigrateUrlAliasTest extends MigrateDrupal6TestBase {
     ];
     $path = \Drupal::service('path.alias_storage')->load($conditions);
     $this->assertPath('1', $conditions, $path);
-    $this->assertIdentical($id_map->lookupDestinationID([$path['pid']]), ['1'], "Test IdMap");
+    $this->assertIdentical($id_map->lookupDestinationId([$path['pid']]), ['1'], "Test IdMap");
 
     $conditions = [
       'source' => '/node/2',
@@ -103,6 +103,14 @@ class MigrateUrlAliasTest extends MigrateDrupal6TestBase {
     ];
     $path = \Drupal::service('path.alias_storage')->load($conditions);
     $this->assertPath('3', $conditions, $path);
+
+    $path = \Drupal::service('path.alias_storage')->load(['alias' => '/source-noslash']);
+    $conditions = [
+      'source' => '/admin',
+      'alias' => '/source-noslash',
+      'langcode' => 'und',
+    ];
+    $this->assertPath('2', $conditions, $path);
   }
 
   /**

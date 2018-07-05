@@ -608,7 +608,7 @@ function drupal_process_states(&$elements) {
  *     'id' => 'my-module-table',
  *   ),
  * );
- * return drupal_render($table);
+ * return \Drupal::service('renderer')->render($table);
  * @endcode
  *
  * In the theme function for the form, a special class must be added to each
@@ -899,7 +899,7 @@ function drupal_render(&$elements, $is_recursive_call = FALSE) {
  *   rendering when possible or loop through the elements and render them as
  *   they are available.
  *
- * @see drupal_render()
+ * @see \Drupal\Core\Render\RendererInterface::render()
  * @see https://www.drupal.org/node/2912757
  */
 function drupal_render_children(&$element, $children_keys = NULL) {
@@ -1260,7 +1260,7 @@ function archiver_get_extensions() {
  */
 function archiver_get_archiver($file) {
   // Archivers can only work on local paths
-  $filepath = drupal_realpath($file);
+  $filepath = \Drupal::service('file_system')->realpath($file);
   if (!is_file($filepath)) {
     throw new Exception(t('Archivers can only operate on local files: %file not supported', ['%file' => $file]));
   }

@@ -89,6 +89,26 @@ class RendererTest extends RendererTestBase {
       ['#markup' => 'foo'],
       'foo',
     ];
+    // Basic #markup based renderable array with value '0'.
+    $data[] = [
+      ['#markup' => '0'],
+      '0',
+    ];
+    // Basic #markup based renderable array with value 0.
+    $data[] = [
+      ['#markup' => 0],
+      '0',
+    ];
+    // Basic #markup based renderable array with value ''.
+    $data[] = [
+      ['#markup' => ''],
+      '',
+    ];
+    // Basic #markup based renderable array with value NULL.
+    $data[] = [
+      ['#markup' => NULL],
+      '',
+    ];
     // Basic #plain_text based renderable array.
     $data[] = [
       ['#plain_text' => 'foo'],
@@ -103,6 +123,26 @@ class RendererTest extends RendererTestBase {
     $data[] = [
       ['#plain_text' => Markup::create('<em>foo</em>')],
       '&lt;em&gt;foo&lt;/em&gt;',
+    ];
+    // #plain_text based renderable array with value '0'.
+    $data[] = [
+      ['#plain_text' => '0'],
+      '0',
+    ];
+    // #plain_text based renderable array with value 0.
+    $data[] = [
+      ['#plain_text' => 0],
+      '0',
+    ];
+    // #plain_text based renderable array with value ''.
+    $data[] = [
+      ['#plain_text' => ''],
+      '',
+    ];
+    // #plain_text based renderable array with value NULL.
+    $data[] = [
+      ['#plain_text' => NULL],
+      '',
     ];
     // Renderable child element.
     $data[] = [
@@ -403,6 +443,25 @@ class RendererTest extends RendererTestBase {
     };
     $data[] = [$build, 'baz', $setup_code];
 
+    // #theme is implemented but #render_children is TRUE. In this case the
+    // calling code is expecting only the children to be rendered. #prefix and
+    // #suffix should not be inherited for the children.
+    $build = [
+      '#theme' => 'common_test_foo',
+      '#children' => '',
+      '#prefix' => 'kangaroo',
+      '#suffix' => 'unicorn',
+      '#render_children' => TRUE,
+      'child' => [
+        '#markup' => 'kitten',
+      ],
+    ];
+    $setup_code = function () {
+      $this->themeManager->expects($this->never())
+        ->method('render');
+    };
+    $data[] = [$build, 'kitten', $setup_code];
+
     return $data;
   }
 
@@ -562,22 +621,78 @@ class RendererTest extends RendererTestBase {
   }
 
   /**
-   * Tests that a first render returns the rendered output and a second doesn't.
+   * Tests rendering same render array twice.
    *
-   * (Because of the #printed property.)
+   * Tests that a first render returns the rendered output and a second doesn't
+   * because of the #printed property. Also tests that correct metadata has been
+   * set for re-rendering.
    *
    * @covers ::render
    * @covers ::doRender
+   *
+   * @dataProvider providerRenderTwice
    */
-  public function testRenderTwice() {
-    $build = [
-      '#markup' => 'test',
-    ];
-
-    $this->assertEquals('test', $this->renderer->renderRoot($build));
+  public function testRenderTwice($build) {
+    $this->assertEquals('kittens', $this->renderer->renderRoot($build));
+    $this->assertEquals('kittens', $build['#markup']);
+    $this->assertEquals(['kittens-147'], $build['#cache']['tags']);
     $this->assertTrue($build['#printed']);
 
     // We don't want to reprint already printed render arrays.
+    $this->assertEquals('', $this->renderer->renderRoot($build));
+  }
+
+  /**
+   * Provides a list of render array iterations.
+   *
+   * @return array
+   */
+  public function providerRenderTwice() {
+    return [
+      [
+        [
+          '#markup' => 'kittens',
+          '#cache' => [
+            'tags' => ['kittens-147']
+          ],
+        ],
+      ],
+      [
+        [
+          'child' => [
+            '#markup' => 'kittens',
+            '#cache' => [
+              'tags' => ['kittens-147'],
+            ],
+          ],
+        ],
+      ],
+      [
+        [
+          '#render_children' => TRUE,
+          'child' => [
+            '#markup' => 'kittens',
+            '#cache' => [
+              'tags' => ['kittens-147'],
+            ],
+          ],
+        ],
+      ],
+    ];
+  }
+
+  /**
+   * Ensures that #access is taken in account when rendering #render_children.
+   */
+  public function testRenderChildrenAccess() {
+    $build = [
+      '#access' => FALSE,
+      '#render_children' => TRUE,
+      'child' => [
+        '#markup' => 'kittens',
+      ],
+    ];
+
     $this->assertEquals('', $this->renderer->renderRoot($build));
   }
 

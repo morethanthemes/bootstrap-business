@@ -22,8 +22,12 @@ class FileAccessControlHandler extends EntityAccessControlHandler {
     /** @var \Drupal\file\FileInterface $entity */
     if ($operation == 'download' || $operation == 'view') {
       if (\Drupal::service('file_system')->uriScheme($entity->getFileUri()) === 'public') {
-        // Always allow access to file in public file system.
-        return AccessResult::allowed();
+        if ($operation === 'download') {
+          return AccessResult::allowed();
+        }
+        else {
+          return AccessResult::allowedIfHasPermission($account, 'access content');
+        }
       }
       elseif ($references = $this->getFileReferences($entity)) {
         foreach ($references as $field_name => $entity_map) {
@@ -48,11 +52,11 @@ class FileAccessControlHandler extends EntityAccessControlHandler {
           //   services can be more properly injected.
           $allowed_fids = \Drupal::service('session')->get('anonymous_allowed_file_ids', []);
           if (!empty($allowed_fids[$entity->id()])) {
-            return AccessResult::allowed();
+            return AccessResult::allowed()->addCacheContexts(['session', 'user']);
           }
         }
         else {
-          return AccessResult::allowed();
+          return AccessResult::allowed()->addCacheContexts(['user']);
         }
       }
     }

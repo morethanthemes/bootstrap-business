@@ -20,6 +20,7 @@ use Drupal\Core\File\MimeType\MimeTypeGuesser;
 use Drupal\Core\Http\TrustedHostsRequestFactory;
 use Drupal\Core\Installer\InstallerRedirectTrait;
 use Drupal\Core\Language\Language;
+use Drupal\Core\Security\RequestSanitizer;
 use Drupal\Core\Site\Settings;
 use Drupal\Core\Test\TestDatabase;
 use Symfony\Cmf\Component\Routing\RouteObjectInterface;
@@ -317,6 +318,9 @@ class DrupalKernel implements DrupalKernelInterface, TerminableInterface {
    * for bootstrap level configuration, file configuration stores, public file
    * storage and site specific modules and themes.
    *
+   * A file named sites.php must be present in the sites directory for
+   * multisite. If it doesn't exist, then 'sites/default' will be used.
+   *
    * Finds a matching site directory file by stripping the website's hostname
    * from left to right and pathname from right to left. By default, the
    * directory must contain a 'settings.php' file for it to match. If the
@@ -327,9 +331,8 @@ class DrupalKernel implements DrupalKernelInterface, TerminableInterface {
    * default.settings.php for examples on how the URL is converted to a
    * directory.
    *
-   * If a file named sites.php is present in the sites directory, it will be
-   * loaded prior to scanning for directories. That file can define aliases in
-   * an associative array named $sites. The array is written in the format
+   * The sites.php file in the sites directory can define aliases in an
+   * associative array named $sites. The array is written in the format
    * '<port>.<domain>.<path>' => 'directory'. As an example, to create a
    * directory alias for https://www.drupal.org:8080/mysite/test whose
    * configuration file is in sites/example.com, the array should be defined as:
@@ -542,6 +545,12 @@ class DrupalKernel implements DrupalKernelInterface, TerminableInterface {
    * {@inheritdoc}
    */
   public function preHandle(Request $request) {
+    // Sanitize the request.
+    $request = RequestSanitizer::sanitize(
+      $request,
+      (array) Settings::get(RequestSanitizer::SANITIZE_WHITELIST, []),
+      (bool) Settings::get(RequestSanitizer::SANITIZE_LOG, FALSE)
+    );
 
     $this->loadLegacyIncludes();
 
@@ -974,16 +983,18 @@ class DrupalKernel implements DrupalKernelInterface, TerminableInterface {
     // sites/default/default.settings.php contains more runtime settings.
     // The .htaccess file contains settings that cannot be changed at runtime.
 
-    // Use session cookies, not transparent sessions that puts the session id in
-    // the query string.
-    ini_set('session.use_cookies', '1');
-    ini_set('session.use_only_cookies', '1');
-    ini_set('session.use_trans_sid', '0');
-    // Don't send HTTP headers using PHP's session handler.
-    // Send an empty string to disable the cache limiter.
-    ini_set('session.cache_limiter', '');
-    // Use httponly session cookies.
-    ini_set('session.cookie_httponly', '1');
+    if (PHP_SAPI !== 'cli') {
+      // Use session cookies, not transparent sessions that puts the session id
+      // in the query string.
+      ini_set('session.use_cookies', '1');
+      ini_set('session.use_only_cookies', '1');
+      ini_set('session.use_trans_sid', '0');
+      // Don't send HTTP headers using PHP's session handler.
+      // Send an empty string to disable the cache limiter.
+      ini_set('session.cache_limiter', '');
+      // Use httponly session cookies.
+      ini_set('session.cookie_httponly', '1');
+    }
 
     // Set sane locale settings, to ensure consistent string, dates, times and
     // numbers handling.
