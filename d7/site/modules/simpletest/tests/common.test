@@ -76,7 +76,7 @@ class DrupalAlterTestCase extends DrupalWebTestCase {
 class CommonURLUnitTest extends DrupalWebTestCase {
   public static function getInfo() {
     return array(
-      'name' => 'URL generation tests',
+      'name' => 'URL generation unit tests',
       'description' => 'Confirm that url(), drupal_get_query_parameters(), drupal_http_build_query(), and l() work correctly with various input.',
       'group' => 'System',
     );
@@ -169,7 +169,7 @@ class CommonURLUnitTest extends DrupalWebTestCase {
     $this->assertEqual(drupal_http_build_query(array('a' => ' &#//+%20@۞')), 'a=%20%26%23//%2B%2520%40%DB%9E', 'Value was properly encoded.');
     $this->assertEqual(drupal_http_build_query(array(' &#//+%20@۞' => 'a')), '%20%26%23%2F%2F%2B%2520%40%DB%9E=a', 'Key was properly encoded.');
     $this->assertEqual(drupal_http_build_query(array('a' => '1', 'b' => '2', 'c' => '3')), 'a=1&b=2&c=3', 'Multiple values were properly concatenated.');
-    $this->assertEqual(drupal_http_build_query(array('a' => array('b' => '2', 'c' => '3'), 'd' => 'foo')), 'a[b]=2&a[c]=3&d=foo', 'Nested array was properly encoded.');
+    $this->assertEqual(drupal_http_build_query(array('a' => array('b' => '2', 'c' => '3'), 'd' => 'foo')), 'a%5Bb%5D=2&a%5Bc%5D=3&d=foo', 'Nested array was properly encoded.');
   }
 
   /**
@@ -369,6 +369,97 @@ class CommonURLUnitTest extends DrupalWebTestCase {
     $url = '//drupal.org';
     $result = url($url);
     $this->assertEqual($url, $result, 'External URL without protocol is not altered.');
+  }
+}
+
+/**
+ * Web tests for URL generation functions.
+ */
+class CommonURLWebTest extends DrupalWebTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'URL generation web tests',
+      'description' => 'Confirm that URL-generating functions work correctly on specific site paths.',
+      'group' => 'System',
+    );
+  }
+
+  function setUp() {
+    parent::setUp('common_test');
+  }
+
+  /**
+   * Tests the url() function on internal paths which mimic external URLs.
+   */
+  function testInternalPathMimicsExternal() {
+    // Ensure that calling url(current_path()) on "/http://example.com" (an
+    // internal path which mimics an external URL) always links to the internal
+    // path, not the external URL. This helps protect against external URL link
+    // injection vulnerabilities.
+    variable_set('common_test_link_to_current_path', TRUE);
+    $this->drupalGet('/http://example.com');
+    $this->clickLink('link which should point to the current path');
+    $this->assertUrl('/http://example.com');
+    $this->assertText('link which should point to the current path');
+  }
+}
+
+/**
+ * Tests url_is_external().
+ */
+class UrlIsExternalUnitTest extends DrupalUnitTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'External URL checking',
+      'description' => 'Performs tests on url_is_external().',
+      'group' => 'System',
+    );
+  }
+
+  /**
+   * Tests if each URL is external or not.
+   */
+  function testUrlIsExternal() {
+    foreach ($this->examples() as $path => $expected) {
+      $this->assertIdentical(url_is_external($path), $expected, $path);
+    }
+  }
+
+  /**
+   * Provides data for testUrlIsExternal().
+   *
+   * @return array
+   *   An array of test data, keyed by a path, with the expected value where
+   *   TRUE is external, and FALSE is not external.
+   */
+  protected function examples() {
+    return array(
+      // Simple external URLs.
+      'http://example.com' => TRUE,
+      'https://example.com' => TRUE,
+      'http://drupal.org/foo/bar?foo=bar&bar=baz&baz#foo' => TRUE,
+      '//drupal.org' => TRUE,
+      // Some browsers ignore or strip leading control characters.
+      "\x00//www.example.com" => TRUE,
+      "\x08//www.example.com" => TRUE,
+      "\x1F//www.example.com" => TRUE,
+      "\n//www.example.com" => TRUE,
+      // JSON supports decoding directly from UTF-8 code points.
+      json_decode('"\u00AD"') . "//www.example.com" => TRUE,
+      json_decode('"\u200E"') . "//www.example.com" => TRUE,
+      json_decode('"\uE0020"') . "//www.example.com" => TRUE,
+      json_decode('"\uE000"')  . "//www.example.com" => TRUE,
+      // Backslashes should be normalized to forward.
+      '\\\\example.com' => TRUE,
+      // Local URLs.
+      'node' => FALSE,
+      '/system/ajax' => FALSE,
+      '?q=foo:bar' => FALSE,
+      'node/edit:me' => FALSE,
+      '/drupal.org' => FALSE,
+      '<front>' => FALSE,
+    );
   }
 }
 
@@ -888,6 +979,31 @@ class DrupalHTMLIdentifierTestCase extends DrupalUnitTestCase {
 
     // Verify that invalid characters (including non-breaking space) are stripped from the identifier.
     $this->assertIdentical(drupal_clean_css_identifier('invalid !"#$%&\'()*+,./:;<=>?@[\\]^`{|}~ identifier', array()), 'invalididentifier', 'Strip invalid characters.');
+
+    // Verify that double underscores are replaced in the identifier by default.
+    $identifier = 'css__identifier__with__double__underscores';
+    $expected = 'css--identifier--with--double--underscores';
+    $this->assertIdentical(drupal_clean_css_identifier($identifier), $expected, 'Verify double underscores are replaced with double hyphens by default.');
+
+    // Verify that double underscores are preserved in the identifier if the
+    // variable allow_css_double_underscores is set to TRUE.
+    $this->setAllowCSSDoubleUnderscores(TRUE);
+    $this->assertIdentical(drupal_clean_css_identifier($identifier), $identifier, 'Verify double underscores are preserved if the allow_css_double_underscores set to TRUE.');
+
+    // To avoid affecting other test cases, set the variable
+    // allow_css_double_underscores to FALSE which is the default value.
+    $this->setAllowCSSDoubleUnderscores(FALSE);
+  }
+
+  /**
+   * Set the variable allow_css_double_underscores and reset the cache.
+   *
+   * @param $value bool
+   *   A new value to be set to allow_css_double_underscores.
+   */
+  function setAllowCSSDoubleUnderscores($value) {
+    $GLOBALS['conf']['allow_css_double_underscores'] = $value;
+    drupal_static_reset('drupal_clean_css_identifier:allow_css_double_underscores');
   }
 
   /**
@@ -1195,7 +1311,7 @@ class DrupalSetContentTestCase extends DrupalWebTestCase {
   function testRegions() {
     global $theme_key;
 
-    $block_regions = array_keys(system_region_list($theme_key));
+    $block_regions = system_region_list($theme_key, REGIONS_ALL, FALSE);
     $delimiter = $this->randomName(32);
     $values = array();
     // Set some random content for each region available.
@@ -1256,6 +1372,15 @@ class DrupalGotoTest extends DrupalWebTestCase {
     $this->assertText('drupal_goto', 'Drupal goto redirect succeeded.');
     $this->assertEqual($this->getUrl(), url('common-test/drupal_goto', array('query' => array('foo' => '123'), 'absolute' => TRUE)), 'Drupal goto redirected to expected URL.');
 
+    // Test that calling drupal_goto() on the current path is not dangerous.
+    variable_set('common_test_redirect_current_path', TRUE);
+    $this->drupalGet('', array('query' => array('q' => 'http://www.example.com/')));
+    $headers = $this->drupalGetHeaders(TRUE);
+    list(, $status) = explode(' ', $headers[0][':status'], 3);
+    $this->assertEqual($status, 302, 'Expected response code was sent.');
+    $this->assertNotEqual($this->getUrl(), 'http://www.example.com/', 'Drupal goto did not redirect to external URL.');
+    $this->assertTrue(strpos($this->getUrl(), url('<front>', array('absolute' => TRUE))) === 0, 'Drupal redirected to itself.');
+    variable_del('common_test_redirect_current_path');
     // Test that drupal_goto() respects ?destination=xxx. Use an complicated URL
     // to test that the path is encoded and decoded properly.
     $destination = 'common-test/drupal_goto/destination?foo=%2525&bar=123';
