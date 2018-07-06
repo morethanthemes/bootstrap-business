@@ -13,6 +13,13 @@ use Drupal\migrate\Plugin\RequirementsInterface;
 trait MigrationConfigurationTrait {
 
   /**
+   * The follow-up migration tags.
+   *
+   * @var string[]
+   */
+  protected $followUpMigrationTags;
+
+  /**
    * Gets the database connection for the source Drupal database.
    *
    * @param array $database
@@ -96,6 +103,13 @@ trait MigrationConfigurationTrait {
     $all_migrations = $plugin_manager->createInstancesByTag($version_tag);
     $migrations = [];
     foreach ($all_migrations as $migration) {
+      // Skip migrations tagged with any of the follow-up migration tags. They
+      // will be derived and executed after the migrations on which they depend
+      // have been successfully executed.
+      // @see Drupal\migrate_drupal\Plugin\MigrationWithFollowUpInterface
+      if (!empty(array_intersect($migration->getMigrationTags(), $this->getFollowUpMigrationTags()))) {
+        continue;
+      }
       try {
         // @todo https://drupal.org/node/2681867 We should be able to validate
         //   the entire migration at this point.
@@ -120,13 +134,27 @@ trait MigrationConfigurationTrait {
   }
 
   /**
+   * Returns the follow-up migration tags.
+   *
+   * @return string[]
+   */
+  protected function getFollowUpMigrationTags() {
+    if ($this->followUpMigrationTags === NULL) {
+      $this->followUpMigrationTags = \Drupal::configFactory()
+        ->get('migrate_drupal.settings')
+        ->get('follow_up_migration_tags') ?: [];
+    }
+    return $this->followUpMigrationTags;
+  }
+
+  /**
    * Determines what version of Drupal the source database contains.
    *
    * @param \Drupal\Core\Database\Connection $connection
    *   The database connection object.
    *
-   * @return int|false
-   *   An integer representing the major branch of Drupal core (e.g. '6' for
+   * @return string|false
+   *   A string representing the major branch of Drupal core (e.g. '6' for
    *   Drupal 6.x), or FALSE if no valid version is matched.
    */
   protected function getLegacyDrupalVersion(Connection $connection) {

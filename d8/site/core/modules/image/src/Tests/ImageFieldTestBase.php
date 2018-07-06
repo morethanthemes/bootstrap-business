@@ -2,6 +2,8 @@
 
 namespace Drupal\image\Tests;
 
+@trigger_error('The ' . __NAMESPACE__ . '\ImageFieldTestBase class is deprecated in Drupal 8.5.x and will be removed before Drupal 9.0.0. Use \Drupal\Tests\image\Functional\ImageFieldTestBase instead. See https://www.drupal.org/node/2863626.', E_USER_DEPRECATED);
+
 use Drupal\Tests\image\Kernel\ImageFieldCreationTrait;
 use Drupal\simpletest\WebTestBase;
 
@@ -69,7 +71,7 @@ abstract class ImageFieldTestBase extends WebTestBase {
     $edit = [
       'title[0][value]' => $this->randomMachineName(),
     ];
-    $edit['files[' . $field_name . '_0]'] = drupal_realpath($image->uri);
+    $edit['files[' . $field_name . '_0]'] = \Drupal::service('file_system')->realpath($image->uri);
     $this->drupalPostForm('node/add/' . $type, $edit, t('Preview'));
   }
 
@@ -89,7 +91,7 @@ abstract class ImageFieldTestBase extends WebTestBase {
     $edit = [
       'title[0][value]' => $this->randomMachineName(),
     ];
-    $edit['files[' . $field_name . '_0]'] = drupal_realpath($image->uri);
+    $edit['files[' . $field_name . '_0]'] = \Drupal::service('file_system')->realpath($image->uri);
     $this->drupalPostForm('node/add/' . $type, $edit, t('Save'));
     if ($alt) {
       // Add alt text.

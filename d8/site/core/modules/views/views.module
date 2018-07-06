@@ -13,6 +13,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Url;
 use Drupal\views\Plugin\Derivative\ViewsLocalTask;
+use Drupal\views\ViewEntityInterface;
 use Drupal\views\ViewExecutable;
 use Drupal\views\Entity\View;
 use Drupal\views\Render\ViewsRenderPipelineMarkup;
@@ -325,9 +326,10 @@ function views_theme_suggestions_container_alter(array &$suggestions, array $var
  *
  * @param $render_element
  *   The renderable array to which contextual links will be added. This array
- *   should be suitable for passing in to drupal_render() and will normally
- *   contain a representation of the view display whose contextual links are
- *   being requested.
+ *   should be suitable for passing in to
+ *   \Drupal\Core\Render\RendererInterface::render() and will normally contain a
+ *   representation of the view display whose contextual links are being
+ *   requested.
  * @param $location
  *   The location in which the calling function intends to render the view and
  *   its contextual links. The core system supports three options for this
@@ -357,7 +359,6 @@ function views_theme_suggestions_container_alter(array &$suggestions, array $var
  *     - #view_display_plugin_id: The plugin ID of the display.
  *
  * @see \Drupal\views\Plugin\Block\ViewsBlock::addContextualLinks()
- * @see views_preprocess_page()
  * @see template_preprocess_views_view()
  */
 function views_add_contextual_links(&$render_element, $location, $display_id, array $view_element = NULL) {
@@ -859,5 +860,42 @@ function views_view_delete(EntityInterface $entity) {
       \Drupal::service('router.builder')->setRebuildNeeded();
       break;
     }
+  }
+}
+
+/**
+ * Implements hook_view_presave().
+ *
+ * Provides a BC layer for modules providing old configurations.
+ */
+function views_view_presave(ViewEntityInterface $view) {
+  $displays = $view->get('display');
+  $changed = FALSE;
+  foreach ($displays as $display_name => &$display) {
+    if (isset($display['display_options']['fields'])) {
+      foreach ($display['display_options']['fields'] as $field_name => &$field) {
+        if (isset($field['plugin_id']) && $field['plugin_id'] === 'entity_link') {
+          // Add any missing settings for entity_link.
+          if (!isset($field['output_url_as_text'])) {
+            $field['output_url_as_text'] = FALSE;
+            $changed = TRUE;
+          }
+          if (!isset($field['absolute'])) {
+            $field['absolute'] = FALSE;
+            $changed = TRUE;
+          }
+        }
+        elseif (isset($field['plugin_id']) && $field['plugin_id'] === 'node_path') {
+          // Convert the use of node_path to entity_link.
+          $field['plugin_id'] = 'entity_link';
+          $field['field'] = 'view_node';
+          $field['output_url_as_text'] = TRUE;
+          $changed = TRUE;
+        }
+      }
+    }
+  }
+  if ($changed) {
+    $view->set('display', $displays);
   }
 }

@@ -63,6 +63,7 @@ abstract class LocaleUpdateBase extends BrowserTestBase {
     // tests.
     $this->config('locale.settings')
       ->set('translation.import_enabled', TRUE)
+      ->set('translation.use_source', LOCALE_TRANSLATION_USE_SOURCE_LOCAL)
       ->save();
   }
 
@@ -138,7 +139,7 @@ EOF;
       'status' => FILE_STATUS_PERMANENT,
     ]);
     file_put_contents($file->getFileUri(), $po_header . $text);
-    touch(drupal_realpath($file->getFileUri()), $timestamp);
+    touch(\Drupal::service('file_system')->realpath($file->getFileUri()), $timestamp);
     $file->save();
   }
 

@@ -166,7 +166,7 @@ class MigrateSqlIdMapTest extends MigrateTestCase {
     $expected_result = [
       [
         'sourceid1' => 'source_value',
-        'source_ids_hash' => $this->getIdMap()->getSourceIDsHash($source),
+        'source_ids_hash' => $this->getIdMap()->getSourceIdsHash($source),
         'destid1' => 2,
       ] + $this->idMapDefaults(),
     ];
@@ -178,7 +178,7 @@ class MigrateSqlIdMapTest extends MigrateTestCase {
     $id_map->saveIdMapping($row, ['destination_id_property' => 3]);
     $expected_result[] = [
       'sourceid1' => 'source_value_1',
-      'source_ids_hash' => $this->getIdMap()->getSourceIDsHash($source),
+      'source_ids_hash' => $this->getIdMap()->getSourceIdsHash($source),
       'destid1' => 3,
     ] + $this->idMapDefaults();
     $this->queryResultTest($this->getIdMapContents(), $expected_result);
@@ -211,10 +211,10 @@ class MigrateSqlIdMapTest extends MigrateTestCase {
     }
 
     // Truncate and check that 4 messages were deleted.
-    $this->assertEquals($id_map->messageCount(), 4);
+    $this->assertSame($id_map->messageCount(), 4);
     $id_map->clearMessages();
     $count = $id_map->messageCount();
-    $this->assertEquals($count, 0);
+    $this->assertSame($count, 0);
   }
 
   /**
@@ -236,7 +236,7 @@ class MigrateSqlIdMapTest extends MigrateTestCase {
       $id_map->saveIdMapping($row, $destination, $status);
       $expected_results[] = [
         'sourceid1' => 'source_value_' . $status,
-        'source_ids_hash' => $this->getIdMap()->getSourceIDsHash($source),
+        'source_ids_hash' => $this->getIdMap()->getSourceIdsHash($source),
         'destid1' => 'destination_value_' . $status,
         'source_row_status' => $status,
         'rollback_action' => MigrateIdMapInterface::ROLLBACK_DELETE,
@@ -284,7 +284,7 @@ class MigrateSqlIdMapTest extends MigrateTestCase {
     // Test count message multiple times starting from 0.
     foreach ($expected_results as $key => $expected_result) {
       $count = $id_map->messageCount();
-      $this->assertEquals($expected_result, $count);
+      $this->assertSame($expected_result, $count);
       $id_map->saveMessage(['source_id_property' => $key], $message);
     }
   }
@@ -348,14 +348,14 @@ class MigrateSqlIdMapTest extends MigrateTestCase {
     $row = [
       'sourceid1' => 'source_id_value_1',
       'sourceid2' => 'source_id_value_2',
-      'source_ids_hash' => $this->getIdMap()->getSourceIDsHash(['source_id_property' => 'source_id_value_1']),
+      'source_ids_hash' => $this->getIdMap()->getSourceIdsHash(['source_id_property' => 'source_id_value_1']),
       'destid1' => 'destination_id_value_1',
     ] + $this->idMapDefaults();
     $this->saveMap($row);
     $row = [
       'sourceid1' => 'source_id_value_3',
       'sourceid2' => 'source_id_value_4',
-      'source_ids_hash' => $this->getIdMap()->getSourceIDsHash(['source_id_property' => 'source_id_value_3', 'sourceid2' => 'source_id_value_4']),
+      'source_ids_hash' => $this->getIdMap()->getSourceIdsHash(['source_id_property' => 'source_id_value_3', 'sourceid2' => 'source_id_value_4']),
       'destid1' => 'destination_id_value_2',
     ] + $this->idMapDefaults();
     $this->saveMap($row);
@@ -419,7 +419,7 @@ class MigrateSqlIdMapTest extends MigrateTestCase {
       $expected_result[] = "destination_id_value_$i";
       $this->destinationIds["destination_id_property_$i"] = [];
     }
-    $row['source_ids_hash'] = $this->getIdMap()->getSourceIDsHash($source_id_values);
+    $row['source_ids_hash'] = $this->getIdMap()->getSourceIdsHash($source_id_values);
     $this->saveMap($row);
     $id_map = $this->getIdMap();
     // Test for a valid hit.
@@ -458,7 +458,7 @@ class MigrateSqlIdMapTest extends MigrateTestCase {
     foreach ($rows as $row) {
       $values = array_combine($db_keys, $row);
       $source_values = array_slice($row, 0, count($source_keys));
-      $values['source_ids_hash'] = $this->getIdMap()->getSourceIDsHash($source_values);
+      $values['source_ids_hash'] = $this->getIdMap()->getSourceIdsHash($source_values);
       $this->saveMap($values);
     }
 
@@ -517,6 +517,8 @@ class MigrateSqlIdMapTest extends MigrateTestCase {
     $this->assertEquals([[101, 'en'], [101, 'fr'], [101, 'de']], $id_map->lookupDestinationIds(['nid' => 1]));
     $this->assertEquals([[102, 'en']], $id_map->lookupDestinationIds(['nid' => 2]));
     $this->assertEquals([], $id_map->lookupDestinationIds(['nid' => 99]));
+    $this->assertEquals([[101, 'en'], [101, 'fr'], [101, 'de']], $id_map->lookupDestinationIds(['nid' => 1, 'language' => NULL]));
+    $this->assertEquals([[102, 'en']], $id_map->lookupDestinationIds(['nid' => 2, 'language' => NULL]));
     // Out-of-order partial associative list.
     $this->assertEquals([[101, 'en'], [102, 'en']], $id_map->lookupDestinationIds(['language' => 'en']));
     $this->assertEquals([[101, 'fr']], $id_map->lookupDestinationIds(['language' => 'fr']));
@@ -527,14 +529,14 @@ class MigrateSqlIdMapTest extends MigrateTestCase {
       $this->fail('Too many source IDs should throw');
     }
     catch (MigrateException $e) {
-      $this->assertEquals("Extra unknown items in source IDs", $e->getMessage());
+      $this->assertEquals("Extra unknown items in source IDs: array (\n  0 => 3,\n)", $e->getMessage());
     }
     try {
       $id_map->lookupDestinationIds(['nid' => 1, 'aaa' => '2']);
       $this->fail('Unknown source ID key should throw');
     }
     catch (MigrateException $e) {
-      $this->assertEquals("Extra unknown items in source IDs", $e->getMessage());
+      $this->assertEquals("Extra unknown items in source IDs: array (\n  'aaa' => '2',\n)", $e->getMessage());
     }
 
     // Verify that we are looking up by source_id_hash when all source IDs are
@@ -554,14 +556,14 @@ class MigrateSqlIdMapTest extends MigrateTestCase {
     $row = [
       'sourceid1' => 'source_id_value_1',
       'sourceid2' => 'source_id_value_2',
-      'source_ids_hash' => $this->getIdMap()->getSourceIDsHash(['source_id_property' => 'source_id_value_1']),
+      'source_ids_hash' => $this->getIdMap()->getSourceIdsHash(['source_id_property' => 'source_id_value_1']),
       'destid1' => 'destination_id_value_1',
     ] + $this->idMapDefaults();
     $this->saveMap($row);
     $row = [
       'sourceid1' => 'source_id_value_3',
       'sourceid2' => 'source_id_value_4',
-      'source_ids_hash' => $this->getIdMap()->getSourceIDsHash(['source_id_property' => 'source_id_value_3']),
+      'source_ids_hash' => $this->getIdMap()->getSourceIdsHash(['source_id_property' => 'source_id_value_3']),
       'destid1' => 'destination_id_value_2',
     ] + $this->idMapDefaults();
     $this->saveMap($row);
@@ -577,7 +579,7 @@ class MigrateSqlIdMapTest extends MigrateTestCase {
   }
 
   /**
-   * Data provider for testLookupSourceIDMapping().
+   * Data provider for testLookupSourceIdMapping().
    *
    * Scenarios to test (for both hits and misses) are:
    * - Single-value destination ID to single-value source ID.
@@ -588,7 +590,7 @@ class MigrateSqlIdMapTest extends MigrateTestCase {
    * @return array
    *   An array of data values.
    */
-  public function lookupSourceIDMappingDataProvider() {
+  public function lookupSourceIdMappingDataProvider() {
     return [
       [1, 1],
       [2, 2],
@@ -605,9 +607,9 @@ class MigrateSqlIdMapTest extends MigrateTestCase {
    * @param int $num_destination_fields
    *   Number of destination fields to test.
    *
-   * @dataProvider lookupSourceIDMappingDataProvider
+   * @dataProvider lookupSourceIdMappingDataProvider
    */
-  public function testLookupSourceIDMapping($num_source_fields, $num_destination_fields) {
+  public function testLookupSourceIdMapping($num_source_fields, $num_destination_fields) {
     // Adjust the migration configuration according to the number of source and
     // destination fields.
     $this->sourceIds = [];
@@ -629,14 +631,14 @@ class MigrateSqlIdMapTest extends MigrateTestCase {
       $nonexistent_id_values["destination_id_property_$i"] = "nonexistent_destination_id_value_$i";
       $this->destinationIds["destination_id_property_$i"] = [];
     }
-    $row['source_ids_hash'] = $this->getIdMap()->getSourceIDsHash($source_ids_values);
+    $row['source_ids_hash'] = $this->getIdMap()->getSourceIdsHash($source_ids_values);
     $this->saveMap($row);
     $id_map = $this->getIdMap();
     // Test for a valid hit.
-    $source_id = $id_map->lookupSourceID($destination_id_values);
+    $source_id = $id_map->lookupSourceId($destination_id_values);
     $this->assertSame($expected_result, $source_id);
     // Test for a miss.
-    $source_id = $id_map->lookupSourceID($nonexistent_id_values);
+    $source_id = $id_map->lookupSourceId($nonexistent_id_values);
     $this->assertSame(0, count($source_id));
   }
 
@@ -684,21 +686,21 @@ class MigrateSqlIdMapTest extends MigrateTestCase {
     $row = new Row($source, ['source_id_property' => []]);
     $destination = ['destination_id_property' => 'destination_value_failed'];
     $id_map->saveIdMapping($row, $destination, MigrateIdMapInterface::STATUS_FAILED);
-    $this->assertSame(0, (int) $id_map->importedCount());
+    $this->assertSame(0, $id_map->importedCount());
 
     // Add an imported row and assert single count.
     $source = ['source_id_property' => 'source_value_imported'];
     $row = new Row($source, ['source_id_property' => []]);
     $destination = ['destination_id_property' => 'destination_value_imported'];
     $id_map->saveIdMapping($row, $destination, MigrateIdMapInterface::STATUS_IMPORTED);
-    $this->assertSame(1, (int) $id_map->importedCount());
+    $this->assertSame(1, $id_map->importedCount());
 
     // Add a row needing update and assert multiple imported rows.
     $source = ['source_id_property' => 'source_value_update'];
     $row = new Row($source, ['source_id_property' => []]);
     $destination = ['destination_id_property' => 'destination_value_update'];
     $id_map->saveIdMapping($row, $destination, MigrateIdMapInterface::STATUS_NEEDS_UPDATE);
-    $this->assertSame(2, (int) $id_map->importedCount());
+    $this->assertSame(2, $id_map->importedCount());
   }
 
   /**
@@ -712,7 +714,7 @@ class MigrateSqlIdMapTest extends MigrateTestCase {
   public function testProcessedCount() {
     $id_map = $this->getIdMap();
     // Assert zero rows have been processed before adding rows.
-    $this->assertSame(0, (int) $id_map->processedCount());
+    $this->assertSame(0, $id_map->processedCount());
     $row_statuses = [
       MigrateIdMapInterface::STATUS_IMPORTED,
       MigrateIdMapInterface::STATUS_NEEDS_UPDATE,
@@ -727,11 +729,11 @@ class MigrateSqlIdMapTest extends MigrateTestCase {
       $id_map->saveIdMapping($row, $destination, $status);
       if ($status == MigrateIdMapInterface::STATUS_IMPORTED) {
         // Assert a single row has been processed.
-        $this->assertSame(1, (int) $id_map->processedCount());
+        $this->assertSame(1, $id_map->processedCount());
       }
     }
     // Assert multiple rows have been processed.
-    $this->assertSame(count($row_statuses), (int) $id_map->processedCount());
+    $this->assertSame(count($row_statuses), $id_map->processedCount());
   }
 
   /**
@@ -765,7 +767,7 @@ class MigrateSqlIdMapTest extends MigrateTestCase {
     for ($i = 0; $i < 5; $i++) {
       $row = $this->idMapDefaults();
       $row['sourceid1'] = "source_id_value_$i";
-      $row['source_ids_hash'] = $this->getIdMap()->getSourceIDsHash(['source_id_property' => $row['sourceid1']]);
+      $row['source_ids_hash'] = $this->getIdMap()->getSourceIdsHash(['source_id_property' => $row['sourceid1']]);
       $row['destid1'] = "destination_id_value_$i";
       $row['source_row_status'] = MigrateIdMapInterface::STATUS_IMPORTED;
       $this->saveMap($row);
@@ -773,13 +775,13 @@ class MigrateSqlIdMapTest extends MigrateTestCase {
     for (; $i < 5 + $num_update_rows; $i++) {
       $row = $this->idMapDefaults();
       $row['sourceid1'] = "source_id_value_$i";
-      $row['source_ids_hash'] = $this->getIdMap()->getSourceIDsHash(['source_id_property' => $row['sourceid1']]);
+      $row['source_ids_hash'] = $this->getIdMap()->getSourceIdsHash(['source_id_property' => $row['sourceid1']]);
       $row['destid1'] = "destination_id_value_$i";
       $row['source_row_status'] = MigrateIdMapInterface::STATUS_NEEDS_UPDATE;
       $this->saveMap($row);
     }
     $id_map = $this->getIdMap();
-    $this->assertSame($num_update_rows, (int) $id_map->updateCount());
+    $this->assertSame($num_update_rows, $id_map->updateCount());
   }
 
   /**
@@ -813,7 +815,7 @@ class MigrateSqlIdMapTest extends MigrateTestCase {
     for ($i = 0; $i < 5; $i++) {
       $row = $this->idMapDefaults();
       $row['sourceid1'] = "source_id_value_$i";
-      $row['source_ids_hash'] = $this->getIdMap()->getSourceIDsHash(['source_id_property' => $row['sourceid1']]);
+      $row['source_ids_hash'] = $this->getIdMap()->getSourceIdsHash(['source_id_property' => $row['sourceid1']]);
       $row['destid1'] = "destination_id_value_$i";
       $row['source_row_status'] = MigrateIdMapInterface::STATUS_IMPORTED;
       $this->saveMap($row);
@@ -821,13 +823,13 @@ class MigrateSqlIdMapTest extends MigrateTestCase {
     for (; $i < 5 + $num_error_rows; $i++) {
       $row = $this->idMapDefaults();
       $row['sourceid1'] = "source_id_value_$i";
-      $row['source_ids_hash'] = $this->getIdMap()->getSourceIDsHash(['source_id_property' => $row['sourceid1']]);
+      $row['source_ids_hash'] = $this->getIdMap()->getSourceIdsHash(['source_id_property' => $row['sourceid1']]);
       $row['destid1'] = "destination_id_value_$i";
       $row['source_row_status'] = MigrateIdMapInterface::STATUS_FAILED;
       $this->saveMap($row);
     }
 
-    $this->assertSame($num_error_rows, (int) $this->getIdMap()->errorCount());
+    $this->assertSame($num_error_rows, $this->getIdMap()->errorCount());
   }
 
   /**
@@ -849,7 +851,7 @@ class MigrateSqlIdMapTest extends MigrateTestCase {
       $id_map->saveIdMapping($row, $destination, $status);
       $expected_results[] = [
         'sourceid1' => 'source_value_' . $status,
-        'source_ids_hash' => $this->getIdMap()->getSourceIDsHash($source),
+        'source_ids_hash' => $this->getIdMap()->getSourceIdsHash($source),
         'destid1' => 'destination_value_' . $status,
         'source_row_status' => $status,
         'rollback_action' => MigrateIdMapInterface::ROLLBACK_DELETE,
@@ -978,7 +980,7 @@ class MigrateSqlIdMapTest extends MigrateTestCase {
     for ($i = 0; $i < 3; $i++) {
       $row = $this->idMapDefaults();
       $row['sourceid1'] = "source_id_value_$i";
-      $row['source_ids_hash'] = $this->getIdMap()->getSourceIDsHash(['source_id_property' => $row['sourceid1']]);
+      $row['source_ids_hash'] = $this->getIdMap()->getSourceIdsHash(['source_id_property' => $row['sourceid1']]);
       $row['destid1'] = "destination_id_value_$i";
       $row['source_row_status'] = MigrateIdMapInterface::STATUS_IMPORTED;
       $expected_results[serialize(['sourceid1' => $row['sourceid1']])] = ['destid1' => $row['destid1']];

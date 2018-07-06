@@ -9,6 +9,7 @@ use Drupal\Core\Routing\RedirectDestinationTrait;
 use Drupal\Core\Routing\UrlGeneratorTrait;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Messenger\MessengerTrait;
 
 /**
  * Utility base class for thin controllers.
@@ -35,6 +36,7 @@ abstract class ControllerBase implements ContainerInjectionInterface {
 
   use LinkGeneratorTrait;
   use LoggerChannelTrait;
+  use MessengerTrait;
   use RedirectDestinationTrait;
   use StringTranslationTrait;
   use UrlGeneratorTrait;
@@ -91,7 +93,7 @@ abstract class ControllerBase implements ContainerInjectionInterface {
   /**
    * The state service.
    *
-   * @var \Drupal\Core\KeyValueStore\KeyValueStoreInterface
+   * @var \Drupal\Core\State\StateInterface
    */
   protected $stateService;
 
@@ -220,7 +222,7 @@ abstract class ControllerBase implements ContainerInjectionInterface {
    * needs to be the same across development, production, etc. environments
    * (for example, the system maintenance message) should use config() instead.
    *
-   * @return \Drupal\Core\KeyValueStore\KeyValueStoreInterface
+   * @return \Drupal\Core\State\StateInterface
    */
   protected function state() {
     if (!$this->stateService) {

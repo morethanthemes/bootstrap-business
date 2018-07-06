@@ -15,6 +15,9 @@ abstract class JavascriptTestBase extends BrowserTestBase {
 
   /**
    * {@inheritdoc}
+   *
+   * To use a webdriver based approach, please use DrupalSelenium2Driver::class.
+   * We will switch the default later.
    */
   protected $minkDefaultDriverClass = PhantomJSDriver::class;
 
@@ -22,14 +25,19 @@ abstract class JavascriptTestBase extends BrowserTestBase {
    * {@inheritdoc}
    */
   protected function initMink() {
-    // Set up the template cache used by the PhantomJS mink driver.
-    $path = $this->tempFilesDirectory . DIRECTORY_SEPARATOR . 'browsertestbase-templatecache';
-    $this->minkDefaultDriverArgs = [
-      'http://127.0.0.1:8510',
-      $path,
-    ];
-    if (!file_exists($path)) {
-      mkdir($path);
+    if ($this->minkDefaultDriverClass === DrupalSelenium2Driver::class) {
+      $this->minkDefaultDriverArgs = ['chrome', NULL, 'http://localhost:4444/'];
+    }
+    elseif ($this->minkDefaultDriverClass === PhantomJSDriver::class) {
+      // Set up the template cache used by the PhantomJS mink driver.
+      $path = $this->tempFilesDirectory . DIRECTORY_SEPARATOR . 'browsertestbase-templatecache';
+      $this->minkDefaultDriverArgs = [
+        'http://127.0.0.1:8510',
+        $path,
+      ];
+      if (!file_exists($path)) {
+        mkdir($path);
+      }
     }
 
     try {
@@ -64,6 +72,19 @@ abstract class JavascriptTestBase extends BrowserTestBase {
   }
 
   /**
+    * {@inheritdoc}
+    */
+  protected function getMinkDriverArgs() {
+    if ($this->minkDefaultDriverClass === DrupalSelenium2Driver::class) {
+      return getenv('MINK_DRIVER_ARGS_WEBDRIVER') ?: getenv('MINK_DRIVER_ARGS_PHANTOMJS') ?: parent::getMinkDriverArgs();
+    }
+    elseif ($this->minkDefaultDriverClass === PhantomJSDriver::class) {
+      return getenv('MINK_DRIVER_ARGS_PHANTOMJS') ?: parent::getMinkDriverArgs();
+    }
+    return parent::getMinkDriverArgs();
+  }
+
+  /**
    * Asserts that the element with the given CSS selector is visible.
    *
    * @param string $css_selector
@@ -71,11 +92,12 @@ abstract class JavascriptTestBase extends BrowserTestBase {
    * @param string $message
    *   Optional message to show alongside the assertion.
    *
-   * @deprecated in Drupal 8.1.x, will be removed before Drupal 8.3.x. Use
+   * @deprecated in Drupal 8.1.0, will be removed before Drupal 9.0.0. Use
    *   \Behat\Mink\Element\NodeElement::isVisible() instead.
    */
   protected function assertElementVisible($css_selector, $message = '') {
     $this->assertTrue($this->getSession()->getDriver()->isVisible($this->cssSelectToXpath($css_selector)), $message);
+    @trigger_error('The ' . __METHOD__ . ' method is deprecated since version 8.1.0 and will be removed in 9.0.0. Use \Behat\Mink\Element\NodeElement::isVisible() instead.', E_USER_DEPRECATED);
   }
 
   /**
@@ -86,11 +108,12 @@ abstract class JavascriptTestBase extends BrowserTestBase {
    * @param string $message
    *   Optional message to show alongside the assertion.
    *
-   * @deprecated in Drupal 8.1.x, will be removed before Drupal 8.3.x. Use
+   * @deprecated in Drupal 8.1.0, will be removed before Drupal 9.0.0. Use
    *   \Behat\Mink\Element\NodeElement::isVisible() instead.
    */
   protected function assertElementNotVisible($css_selector, $message = '') {
     $this->assertFalse($this->getSession()->getDriver()->isVisible($this->cssSelectToXpath($css_selector)), $message);
+    @trigger_error('The ' . __METHOD__ . ' method is deprecated since version 8.1.0 and will be removed in 9.0.0. Use \Behat\Mink\Element\NodeElement::isVisible() instead.', E_USER_DEPRECATED);
   }
 
   /**
@@ -167,6 +190,14 @@ abstract class JavascriptTestBase extends BrowserTestBase {
 EndOfScript;
 
     return $this->getSession()->evaluateScript($script) ?: [];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function getHtmlOutputHeaders() {
+    // The webdriver API does not support fetching headers.
+    return '';
   }
 
 }

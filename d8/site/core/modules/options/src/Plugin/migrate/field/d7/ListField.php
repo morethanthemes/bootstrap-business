@@ -11,8 +11,11 @@ use Drupal\migrate_drupal\Plugin\migrate\field\FieldPluginBase;
  *     "list_boolean" = "boolean",
  *     "list_integer" = "list_integer",
  *     "list_text" = "list_string",
+ *     "list_float" = "list_float",
  *   },
- *   core = {7}
+ *   core = {7},
+ *   source_module = "list",
+ *   destination_module = "options"
  * )
  */
 class ListField extends FieldPluginBase {}

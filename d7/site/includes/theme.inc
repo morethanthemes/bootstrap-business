@@ -1248,6 +1248,7 @@ function path_to_theme() {
 function drupal_find_theme_functions($cache, $prefixes) {
   $implementations = array();
   $functions = get_defined_functions();
+  $theme_functions = preg_grep('/^(' . implode(')|(', $prefixes) . ')_/', $functions['user']);
 
   foreach ($cache as $hook => $info) {
     foreach ($prefixes as $prefix) {
@@ -1264,7 +1265,7 @@ function drupal_find_theme_functions($cache, $prefixes) {
       // intermediary suggestion.
       $pattern = isset($info['pattern']) ? $info['pattern'] : ($hook . '__');
       if (!isset($info['base hook']) && !empty($pattern)) {
-        $matches = preg_grep('/^' . $prefix . '_' . $pattern . '/', $functions['user']);
+        $matches = preg_grep('/^' . $prefix . '_' . $pattern . '/', $theme_functions);
         if ($matches) {
           foreach ($matches as $match) {
             $new_hook = substr($match, strlen($prefix) + 1);
@@ -1809,7 +1810,8 @@ function theme_links($variables) {
     foreach ($links as $key => $link) {
       $class = array($key);
 
-      // Add first, last and active classes to the list of links to help out themers.
+      // Add first, last and active classes to the list of links to help out
+      // themers.
       if ($i == 1) {
         $class[] = 'first';
       }
@@ -1827,7 +1829,8 @@ function theme_links($variables) {
         $output .= l($link['title'], $link['href'], $link);
       }
       elseif (!empty($link['title'])) {
-        // Some links are actually not links, but we wrap these in <span> for adding title and class attributes.
+        // Some links are actually not links, but we wrap these in <span> for
+        // adding title and class attributes.
         if (empty($link['html'])) {
           $link['title'] = check_plain($link['title']);
         }
@@ -2636,7 +2639,7 @@ function template_preprocess_page(&$variables) {
   // Move some variables to the top level for themer convenience and template cleanliness.
   $variables['show_messages'] = $variables['page']['#show_messages'];
 
-  foreach (system_region_list($GLOBALS['theme']) as $region_key => $region_name) {
+  foreach (system_region_list($GLOBALS['theme'], REGIONS_ALL, FALSE) as $region_key) {
     if (!isset($variables['page'][$region_key])) {
       $variables['page'][$region_key] = array();
     }

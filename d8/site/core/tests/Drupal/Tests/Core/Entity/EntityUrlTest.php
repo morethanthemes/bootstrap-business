@@ -2,14 +2,18 @@
 
 namespace Drupal\Tests\Core\Entity;
 
+use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Entity\Entity;
 use Drupal\Core\Entity\EntityMalformedException;
-use Drupal\Core\Entity\EntityManagerInterface;
+use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\Exception\UndefinedLinkTemplateException;
 use Drupal\Core\Entity\RevisionableInterface;
+use Drupal\Core\GeneratedUrl;
+use Drupal\Core\Routing\UrlGeneratorInterface;
 use Drupal\Core\Url;
 use Drupal\Tests\UnitTestCase;
+use Symfony\Component\Routing\Exception\MissingMandatoryParametersException;
 
 /**
  * Tests URL handling of the \Drupal\Core\Entity\Entity class.
@@ -21,11 +25,11 @@ use Drupal\Tests\UnitTestCase;
 class EntityUrlTest extends UnitTestCase {
 
   /**
-   * The entity manager mock used in this test.
+   * The entity type bundle info service mock used in this test.
    *
-   * @var \Prophecy\Prophecy\ProphecyInterface|\Drupal\Core\Entity\EntityManagerInterface
+   * @var \Prophecy\Prophecy\ProphecyInterface|\Drupal\Core\Entity\EntityTypeBundleInfoInterface
    */
-  protected $entityManager;
+  protected $entityTypeBundleInfo;
 
   /**
    * The ID of the entity type used in this test.
@@ -497,6 +501,38 @@ class EntityUrlTest extends UnitTestCase {
   }
 
   /**
+   * Tests the uriRelationships() method.
+   *
+   * @covers ::uriRelationships
+   */
+  public function testUriRelationships() {
+    $entity = $this->getEntity(Entity::class, ['id' => $this->entityId]);
+
+    $container_builder = new ContainerBuilder();
+    $url_generator = $this->createMock(UrlGeneratorInterface::class);
+    $container_builder->set('url_generator', $url_generator);
+    \Drupal::setContainer($container_builder);
+
+    // Test route with no mandatory parameters.
+    $this->registerLinkTemplate('canonical');
+    $route_name_0 = 'entity.' . $this->entityTypeId . '.canonical';
+    $url_generator->expects($this->at(0))
+      ->method('generateFromRoute')
+      ->with($route_name_0)
+      ->willReturn((new GeneratedUrl())->setGeneratedUrl('/entity_test'));
+    $this->assertEquals(['canonical'], $entity->uriRelationships());
+
+    // Test route with non-default mandatory parameters.
+    $this->registerLinkTemplate('{non_default_parameter}');
+    $route_name_1 = 'entity.' . $this->entityTypeId . '.{non_default_parameter}';
+    $url_generator->expects($this->at(0))
+      ->method('generateFromRoute')
+      ->with($route_name_1)
+      ->willThrowException(new MissingMandatoryParametersException());
+    $this->assertEquals([], $entity->uriRelationships());
+  }
+
+  /**
    * Returns a mock entity for testing.
    *
    * @param string $class
@@ -511,7 +547,7 @@ class EntityUrlTest extends UnitTestCase {
    * @return \Drupal\Core\Entity\Entity|\PHPUnit_Framework_MockObject_MockObject
    */
   protected function getEntity($class, array $values, array $methods = []) {
-    $methods = array_merge($methods, ['getEntityType', 'entityManager']);
+    $methods = array_merge($methods, ['getEntityType', 'entityManager', 'entityTypeBundleInfo']);
 
     // Prophecy does not allow prophesizing abstract classes while actually
     // calling their code. We use Prophecy below because that allows us to
@@ -526,8 +562,8 @@ class EntityUrlTest extends UnitTestCase {
     $this->entityType->getKey('langcode')->willReturn(FALSE);
     $entity->method('getEntityType')->willReturn($this->entityType->reveal());
 
-    $this->entityManager = $this->prophesize(EntityManagerInterface::class);
-    $entity->method('entityManager')->willReturn($this->entityManager->reveal());
+    $this->entityTypeBundleInfo = $this->prophesize(EntityTypeBundleInfoInterface::class);
+    $entity->method('entityTypeBundleInfo')->willReturn($this->entityTypeBundleInfo->reveal());
 
     return $entity;
   }
@@ -581,7 +617,7 @@ class EntityUrlTest extends UnitTestCase {
    *   The bundle information to register.
    */
   protected function registerBundleInfo($bundle_info) {
-    $this->entityManager
+    $this->entityTypeBundleInfo
       ->getBundleInfo($this->entityTypeId)
       ->willReturn([$this->entityTypeId => $bundle_info]);
   }

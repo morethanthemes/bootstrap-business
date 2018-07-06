@@ -8,14 +8,14 @@ body {
 #main-wrapper,
 .region-primary-menu .menu-item a.is-active,
 .region-primary-menu .menu-item--active-trail a {
-  background: #ffffff;
+  background: #fff;
 }
 .tabs ul.primary li a.is-active {
-  background-color: #ffffff;
+  background-color: #fff;
 }
 .tabs ul.primary li.is-active a {
-  background-color: #ffffff;
-  border-bottom-color: #ffffff;
+  background-color: #fff;
+  border-bottom-color: #fff;
 }
 #header {
   background-color: #1d84c3;
@@ -46,10 +46,10 @@ a:active,
 .region-header,
 .region-header a,
 .region-header li a.is-active,
-.site-branding__text,
-.site-branding,
-.site-branding__text a,
-.site-branding a,
+.region-header .site-branding__text,
+.region-header .site-branding,
+.region-header .site-branding__text a,
+.region-header .site-branding a,
 .region-secondary-menu .menu-item a,
 .region-secondary-menu .menu-item a.is-active {
   color: #fffeff;

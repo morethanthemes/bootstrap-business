@@ -183,6 +183,13 @@ class EntityViewsData implements EntityHandlerInterface, EntityViewsDataInterfac
           'id' => 'entity_operations',
         ],
       ];
+      $data[$revision_table]['operations'] = [
+        'field' => [
+          'title' => $this->t('Operations links'),
+          'help' => $this->t('Provides links to perform entity operations.'),
+          'id' => 'entity_operations',
+        ],
+      ];
     }
 
     if ($this->entityType->hasViewBuilderClass()) {
@@ -246,6 +253,9 @@ class EntityViewsData implements EntityHandlerInterface, EntityViewsDataInterfac
     }
 
     $this->addEntityLinks($data[$base_table]);
+    if ($views_revision_base_table) {
+      $this->addEntityLinks($data[$views_revision_base_table]);
+    }
 
     // Load all typed data definitions of all fields. This should cover each of
     // the entity base, revision, data tables.
@@ -378,13 +388,10 @@ class EntityViewsData implements EntityHandlerInterface, EntityViewsDataInterfac
     // @todo Introduce concept of the "main" column for a field, rather than
     //   assuming the first one is the main column. See also what the
     //   mapSingleFieldViewsData() method does with $first.
-    $multiple = (count($field_column_mapping) > 1);
     $first = TRUE;
     foreach ($field_column_mapping as $field_column_name => $schema_field_name) {
-      $views_field_name = ($multiple) ? $field_name . '__' . $field_column_name : $field_name;
-      $table_data[$views_field_name] = $this->mapSingleFieldViewsData($table, $field_name, $field_definition_type, $field_column_name, $field_schema['columns'][$field_column_name]['type'], $first, $field_definition);
-
-      $table_data[$views_field_name]['entity field'] = $field_name;
+      $table_data[$schema_field_name] = $this->mapSingleFieldViewsData($table, $field_name, $field_definition_type, $field_column_name, $field_schema['columns'][$field_column_name]['type'], $first, $field_definition);
+      $table_data[$schema_field_name]['entity field'] = $field_name;
       $first = FALSE;
     }
   }

@@ -4,6 +4,7 @@ namespace Drupal\Core\Field\Plugin\Field\FieldType;
 
 use Drupal\Component\Utility\Html;
 use Drupal\Component\Utility\NestedArray;
+use Drupal\Core\Entity\ContentEntityStorageInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
@@ -271,6 +272,10 @@ class EntityReferenceItem extends FieldItemBase implements OptionsProviderInterf
    * {@inheritdoc}
    */
   public static function generateSampleValue(FieldDefinitionInterface $field_definition) {
+    // An associative array keyed by the reference type, target type, and
+    // bundle.
+    static $recursion_tracker = [];
+
     $manager = \Drupal::service('plugin.manager.entity_reference_selection');
 
     // Instead of calling $manager->getSelectionHandler($field_definition)
@@ -295,6 +300,53 @@ class EntityReferenceItem extends FieldItemBase implements OptionsProviderInterf
       $group = array_rand($referenceable);
       $values['target_id'] = array_rand($referenceable[$group]);
       return $values;
+    }
+
+    // Attempt to create a sample entity, avoiding recursion.
+    $entity_storage = \Drupal::entityTypeManager()->getStorage($options['target_type']);
+    if ($entity_storage instanceof ContentEntityStorageInterface) {
+      $bundle = static::getRandomBundle($entity_type, $options['handler_settings']);
+
+      // Track the generated entity by reference type, target type, and bundle.
+      $key = $field_definition->getTargetEntityTypeId() . ':' . $options['target_type'] . ':' . $bundle;
+
+      // If entity generation was attempted but did not finish, do not continue.
+      if (isset($recursion_tracker[$key])) {
+        return [];
+      }
+
+      // Mark this as an attempt at generation.
+      $recursion_tracker[$key] = TRUE;
+
+      // Mark the sample entity as being a preview.
+      $values['entity'] = $entity_storage->createWithSampleValues($bundle, ['in_preview' => TRUE]);
+
+      // Remove the indicator once the entity is successfully generated.
+      unset($recursion_tracker[$key]);
+      return $values;
+    }
+  }
+
+  /**
+   * Gets a bundle for a given entity type and selection options.
+   *
+   * @param \Drupal\Core\Entity\EntityTypeInterface $entity_type
+   *   The entity type.
+   * @param array $selection_settings
+   *   An array of selection settings.
+   *
+   * @return string|null
+   *   Either the bundle string, or NULL if there is no bundle.
+   */
+  protected static function getRandomBundle(EntityTypeInterface $entity_type, array $selection_settings) {
+    if ($bundle_key = $entity_type->getKey('bundle')) {
+      if (!empty($selection_settings['target_bundles'])) {
+        $bundle_ids = $selection_settings['target_bundles'];
+      }
+      else {
+        $bundle_ids = \Drupal::service('entity_type.bundle.info')->getBundleInfo($entity_type->id());
+      }
+      return array_rand($bundle_ids);
     }
   }
 

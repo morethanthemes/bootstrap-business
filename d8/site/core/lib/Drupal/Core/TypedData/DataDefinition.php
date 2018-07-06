@@ -273,7 +273,14 @@ class DataDefinition implements DataDefinitionInterface, \ArrayAccess {
   }
 
   /**
-   * {@inheritdoc}
+   * Sets an array of validation constraints.
+   *
+   * @param array $constraints
+   *   An array of validation constraint definitions, keyed by constraint name.
+   *   Each constraint definition can be used for instantiating
+   *   \Symfony\Component\Validator\Constraint objects.
+   *
+   * @return $this
    */
   public function setConstraints(array $constraints) {
     $this->definition['constraints'] = $constraints;
@@ -350,6 +357,30 @@ class DataDefinition implements DataDefinitionInterface, \ArrayAccess {
     $vars = get_object_vars($this);
     unset($vars['typedDataManager']);
     return array_keys($vars);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function isInternal() {
+    // Respect the definition, otherwise default to TRUE for computed fields.
+    if (isset($this->definition['internal'])) {
+      return $this->definition['internal'];
+    }
+    return $this->isComputed();
+  }
+
+  /**
+   * Sets the whether the data value should be internal.
+   *
+   * @param bool $internal
+   *   Whether the data value should be internal.
+   *
+   * @return $this
+   */
+  public function setInternal($internal) {
+    $this->definition['internal'] = $internal;
+    return $this;
   }
 
 }

@@ -1,0 +1,12 @@
+name: 'JS Ajax test'
+description: 'Provides custom ajax commands used for tests'
+type: module
+package: Testing
+# version: VERSION
+# core: 8.x
+
+# Information added by Drupal.org packaging script on 2018-07-04
+version: '8.5.5'
+core: '8.x'
+project: 'drupal'
+datestamp: 1530738955

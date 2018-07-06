@@ -129,11 +129,14 @@ class MigrateFieldFormatterSettingsTest extends MigrateDrupal6TestBase {
     // Test the file field formatter settings.
     $expected['weight'] = 8;
     $expected['type'] = 'file_default';
-    $expected['settings'] = [];
+    $expected['settings'] = [
+      'use_description_as_link_text' => TRUE
+    ];
     $component = $display->getComponent('field_test_filefield');
     $this->assertIdentical($expected, $component);
     $display = EntityViewDisplay::load('node.story.default');
     $expected['type'] = 'file_url_plain';
+    $expected['settings'] = [];
     $component = $display->getComponent('field_test_filefield');
     $this->assertIdentical($expected, $component);
 
@@ -194,7 +197,7 @@ class MigrateFieldFormatterSettingsTest extends MigrateDrupal6TestBase {
     $component = $display->getComponent('field_test_datetime');
     $this->assertIdentical($expected, $component);
     // Test that our Id map has the correct data.
-    $this->assertIdentical(['node', 'story', 'teaser', 'field_test'], $this->getMigration('d6_field_formatter_settings')->getIdMap()->lookupDestinationID(['story', 'teaser', 'node', 'field_test']));
+    $this->assertIdentical(['node', 'story', 'teaser', 'field_test'], $this->getMigration('d6_field_formatter_settings')->getIdMap()->lookupDestinationId(['story', 'teaser', 'node', 'field_test']));
 
     // Test hidden field.
     $this->assertComponentNotExists('node.test_planet.teaser', 'field_test_text_single_checkbox');
