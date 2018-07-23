@@ -3,7 +3,7 @@ Bootstrap Business
 
 This repository contains the Drupal installation that runs at [drupalizing.com](http://drupalizing.com) and demonstrates the [“Bootstrap Business”](https://drupal.org/project/bootstrap-business) Drupal theme. We use this repository in order to maintain the above mentioned site and develop the corresponding theme. 
 
-You are welcome however to grab this code and have the demonstration site running on your end. By doing this you have the chance to see the ["Bootstrap Business" theme in action](http://demo.drupalizing.com/?theme=bootstrap-business) exactly the way it looks like on our demo.
+You are welcome however to grab this code and have the demonstration site running on your end. By doing this you have the chance to see the ["Bootstrap Business" theme in action](http://demo.drupalizing.com/bootstrap-business) exactly the way it looks like on our demo.
 
 Installation instructions
 --------------
