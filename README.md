@@ -1,20 +1,31 @@
-Bootstrap Business
-==================
+# Bootstrap Business Theme
 
-This repository contains the Drupal installation that runs at [drupalizing.com](http://drupalizing.com) and demonstrates the [“Bootstrap Business”](https://drupal.org/project/bootstrap-business) Drupal theme. We use this repository in order to maintain the above mentioned site and develop the corresponding theme. 
+Bootstrap Business is a responsive and modern theme for Drupal CMS. It is designed to provide a clean and professional look for corporate websites.
 
-You are welcome however to grab this code and have the demonstration site running on your end. By doing this you have the chance to see the ["Bootstrap Business" theme in action](http://demo.drupalizing.com/bootstrap-business) exactly the way it looks like on our demo.
+## Features
 
-Installation instructions
---------------
-+ Checkout this repository and place the “site” folder under your apache path.
-+ Create an empty MySQL database and import there the “db_instances/db_instance.sql” file. 
-+ Start the Drupal installation wizard by pointing your browser to the recently created folder.
- + Continue the installation by selection "Standard" installation profile.
- + In the 4th step enter your recently created database information.
- + In the next step, the installation wizard will recognize that you are using an already populated database and will inform you accordingly. At the same time the wizard should create all the necessary files you Drupal site needs in order to work properly on your server.
- + You are done. Click on "existing site" link and visit your site.
+- Fully responsive design
+- Customizable color schemes
+- Multiple layout options
 
-Login to this site by using the following credentials:
-- u: admin
-- p: password
+## Installation
+
+1. Download the CorporateClean theme from the Drupal repository.
+2. Extract the downloaded file and place it in the `themes/contrib` directory of your Drupal installation.
+3. Navigate to the Appearance section in your Drupal admin panel.
+4. Enable the CorporateClean theme.
+5. Customize the theme settings as per your requirements.
+
+## Customization
+
+To customize the CorporateClean theme, you can:
+
+- Modify the local-\* CSS files located in the `css` directory.
+- Override the template files in the `templates` directory.
+- Use the theme settings page in the Drupal admin panel to change colors, fonts, and other options.
+
+## Dependecies
+
+Bootstrap Business is a sub-theme of the BaseCore theme.
+
+For support and questions, please open an issue in the repository.
