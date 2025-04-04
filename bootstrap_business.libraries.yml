@@ -1,0 +1,131 @@
+# Main theme library.
+global-styling:
+  version: VERSION
+  css:
+    base:
+      css/base/elements.css: {}
+    component:
+      css/components/buttons.css: {}
+    layout:
+      css/layout/layout.css: {}
+    theme:
+      css/theme/print.css: { media: print }
+
+local-stylesheets:
+  version: VERSION
+  css:
+    base:
+      css/base/local-base.css: { weight: 100 }
+    component:
+      css/components/local-components.css: { weight: 100 }
+    theme:
+      css/theme/button-shapes.css: { weight: 100 }
+      css/theme/form-shapes.css: { weight: 100 }
+      css/theme/utility.css: { weight: 100 }
+      css/theme/image-shapes.css: { weight: 100 }
+      css/theme/local-theme.css: { weight: 150 }
+
+node-view-mode-card:
+  version: VERSION
+  css:
+    component:
+      css/components/node-view-mode-card.css: {}
+
+#####################
+#   Color Schemes   #
+#####################
+base-color:
+  version: VERSION
+  css:
+    theme:
+      css/theme/base-color.css: { weight: 90 }
+
+color-blue:
+  version: VERSION
+  css:
+    theme:
+      css/theme/color-blue.css: { weight: 100 }
+  dependencies:
+    - bootstrap_business/base-color
+    - basecore/base-color
+
+color-gray:
+  version: VERSION
+  css:
+    theme:
+      css/theme/color-gray.css: { weight: 100 }
+  dependencies:
+    - bootstrap_business/base-color
+    - basecore/base-color
+
+color-green:
+  version: VERSION
+  css:
+    theme:
+      css/theme/color-green.css: { weight: 100 }
+  dependencies:
+    - bootstrap_business/base-color
+    - basecore/base-color
+
+color-orange:
+  version: VERSION
+  css:
+    theme:
+      css/theme/color-orange.css: { weight: 100 }
+  dependencies:
+    - bootstrap_business/base-color
+    - basecore/base-color
+
+color-pink:
+  version: VERSION
+  css:
+    theme:
+      css/theme/color-pink.css: { weight: 100 }
+  dependencies:
+    - bootstrap_business/base-color
+    - basecore/base-color
+
+color-purple:
+  version: VERSION
+  css:
+    theme:
+      css/theme/color-purple.css: { weight: 100 }
+  dependencies:
+    - bootstrap_business/base-color
+    - basecore/base-color
+
+color-red:
+  version: VERSION
+  css:
+    theme:
+      css/theme/color-red.css: { weight: 100 }
+  dependencies:
+    - bootstrap_business/base-color
+    - basecore/base-color
+
+color-turquoise:
+  version: VERSION
+  css:
+    theme:
+      css/theme/color-turquoise.css: { weight: 100 }
+  dependencies:
+    - bootstrap_business/base-color
+    - basecore/base-color
+
+color-yellow:
+  version: VERSION
+  css:
+    theme:
+      css/theme/color-yellow.css: { weight: 100 }
+  dependencies:
+    - bootstrap_business/base-color
+    - basecore/base-color
+
+color-local:
+  version: VERSION
+  css:
+    theme:
+      css/theme/color-local.css: { weight: 100 }
+  dependencies:
+    - bootstrap_business/base-color
+    - basecore/base-color

@@ -1,0 +1,75 @@
+/**
+ * @file
+ * utility classes for Bootstrap Business's .
+ */
+.mt-style-sharp,
+:root .mt-style-custom-sharp {
+  --mt-custom-element-border-radius: 0px;
+  --mt-custom-element-border-radius-large: 0px;
+}
+.mt-style-oval,
+:root .mt-style-custom-oval {
+  --mt-custom-element-border-radius: 20px;
+  --mt-custom-element-border-radius-large: 100px;
+}
+.mt-style-rounded,
+:root .mt-style-custom-rounded {
+  --mt-custom-element-border-radius: 0.25rem;
+  --mt-custom-element-border-radius-large: 15px;
+}
+
+/*global styles*/
+.mt-style-custom-all {
+  -webkit-border-radius: var(--mt-custom-element-border-radius);
+  -moz-border-radius: var(--mt-custom-element-border-radius);
+  border-radius: var(--mt-custom-element-border-radius);
+}
+.mt-style-custom-tl {
+  -webkit-border-top-left-radius: var(--mt-custom-element-border-radius);
+  -moz-border-top-left-radius: var(--mt-custom-element-border-radius);
+  border-top-left-radius: var(--mt-custom-element-border-radius);
+}
+.mt-style-custom-tr {
+  -webkit-border-top-right-radius: var(--mt-custom-element-border-radius);
+  -moz-border-top-right-radius: var(--mt-custom-element-border-radius);
+  border-top-right-radius: var(--mt-custom-element-border-radius);
+}
+.mt-style-custom-bl {
+  -webkit-border-bottom-left-radius: var(--mt-custom-element-border-radius);
+  -moz-border-bottom-left-radius: var(--mt-custom-element-border-radius);
+  border-bottom-left-radius: var(--mt-custom-element-border-radius);
+}
+.mt-style-custom-br {
+  -webkit-border-bottom-right-radius: var(--mt-custom-element-border-radius);
+  -moz-border-bottom-right-radius: var(--mt-custom-element-border-radius);
+  border-bottom-right-radius: var(--mt-custom-element-border-radius);
+}
+.mt-style-custom-all-large {
+  -webkit-border-radius: var(--mt-custom-element-border-radius-large);
+  -moz-border-radius: var(--mt-custom-element-border-radius-large);
+  border-radius: var(--mt-custom-element-border-radius-large);
+}
+.mt-style-custom-tl-large {
+  -webkit-border-top-left-radius: var(--mt-custom-element-border-radius-large);
+  -moz-border-top-left-radius: var(--mt-custom-element-border-radius-large);
+  border-top-left-radius: var(--mt-custom-element-border-radius-large);
+}
+.mt-style-custom-tr-large {
+  -webkit-border-top-right-radius: var(--mt-custom-element-border-radius-large);
+  -moz-border-top-right-radius: var(--mt-custom-element-border-radius-large);
+  border-top-right-radius: var(--mt-custom-element-border-radius-large);
+}
+.mt-style-custom-bl-large {
+  -webkit-border-bottom-left-radius: var(
+    --mt-custom-element-border-radius-large
+  );
+  -moz-border-bottom-left-radius: var(--mt-custom-element-border-radius-large);
+  border-bottom-left-radius: var(--mt-custom-element-border-radius-large);
+}
+.mt-style-custom-br-large {
+  -webkit-border-bottom-right-radius: var(
+    --mt-custom-element-border-radius-large
+  );
+  -moz-border-bottom-right-radius: var(--mt-custom-element-border-radius-large);
+  border-bottom-right-radius: var(--mt-custom-element-border-radius-large);
+}

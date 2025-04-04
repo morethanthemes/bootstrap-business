@@ -1,0 +1,7 @@
+/**
+ * @file
+ * Visual styles for Bootstrap Business's node in teaser tile view.
+ */
+.node--view-mode-card.region--default-background {
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+}

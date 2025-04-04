@@ -1,0 +1,78 @@
+/**
+ * @file
+ * Styles for Bootstrap Business's buttons.
+ */
+.mt-style-sharp,
+:root .mt-style-button-sharp {
+  --mt-button-border-radius: 0;
+  --mt-button-collapsible-border-radius: 0;
+  --mt-button-card-border-radius: 0;
+  --mt-button-icon-border-radius: 0;
+  --mt-button-overlay-icon-border-radius: 0;
+  --mt-button-to-top-border-radius: 0;
+}
+.mt-style-oval,
+:root .mt-style-button-oval {
+  --mt-button-border-radius: 50px;
+  --mt-button-collapsible-border-radius: 4px 4px 0 0;
+  --mt-button-card-border-radius: 25px;
+  --mt-button-icon-border-radius: 4px;
+  --mt-button-overlay-icon-border-radius: 100px;
+  --mt-button-to-top-border-radius: 100px;
+}
+.mt-style-rounded,
+:root .mt-style-button-rounded {
+  --mt-button-border-radius: 0.25rem;
+  --mt-button-collapsible-border-radius: 0.25rem 0.25rem 0 0;
+  --mt-button-card-border-radius: 0.25rem;
+  --mt-button-icon-border-radius: 0.25rem;
+  --mt-button-overlay-icon-border-radius: 100px;
+  --mt-button-to-top-border-radius: 0.25rem;
+}
+
+/*global styles*/
+a.mt-button,
+.mt-button > a,
+button.mt-button,
+input[type='submit'],
+input[type='reset'],
+input[type='button'],
+.mt-count-down__button,
+.col-12 .view > .more-link a,
+.product-content .flag-anon-message > span,
+.menu.cta-active > li:last-child > a,
+.mt-collapse-button,
+a.mt-button:before,
+.mt-button > a:before,
+button.mt-button:before,
+.menu.cta-active > li:last-child > a:before {
+  -webkit-border-radius: var(--mt-button-border-radius);
+  -moz-border-radius: var(--mt-button-border-radius);
+  border-radius: var(--mt-button-border-radius);
+}
+.mt-collapse .card {
+  -webkit-border-radius: var(--mt-button-card-border-radius);
+  -moz-border-radius: var(--mt-button-card-border-radius);
+  border-radius: var(--mt-button-card-border-radius);
+}
+.collapsible-sticky-footer-trigger .mt-button,
+.collapsible-block__trigger a {
+  -webkit-border-radius: var(--mt-button-collapsible-border-radius);
+  -moz-border-radius: var(--mt-button-collapsible-border-radius);
+  border-radius: var(--mt-button-collapsible-border-radius);
+}
+.overlay-icon {
+  -webkit-border-radius: var(--mt-button-overlay-icon-border-radius);
+  -moz-border-radius: var(--mt-button-overlay-icon-border-radius);
+  border-radius: var(--mt-button-overlay-icon-border-radius);
+}
+ul.icons-list.icons-list--bordered li a {
+  -webkit-border-radius: var(--mt-button-icon-border-radius);
+  -moz-border-radius: var(--mt-button-icon-border-radius);
+  border-radius: var(--mt-button-icon-border-radius);
+}
+.to-top {
+  -webkit-border-radius: var(--mt-button-to-top-border-radius);
+  -moz-border-radius: var(--mt-button-to-top-border-radius);
+  border-radius: var(--mt-button-to-top-border-radius);
+}

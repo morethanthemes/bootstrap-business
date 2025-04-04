@@ -1,0 +1,41 @@
+/**
+ * @file
+ * Styles for Bootstrap Business's images.
+ */
+/*global styles*/
+.mt-style-sharp,
+:root .mt-style-image-sharp {
+  --mt-image-border-radius: 0;
+}
+.mt-style-oval,
+:root .mt-style-image-oval {
+  --mt-image-border-radius: 10px;
+}
+.mt-style-rounded,
+:root .mt-style-image-rounded {
+  --mt-image-border-radius: 4px;
+}
+
+/*global styles*/
+img,
+.overlay,
+.in-page-images-carousel .slides li a:after,
+.video-item > a:before,
+.slider-revolution-video-gallery .tp-revslider-slidesli,
+.tp-thumbs .tp-thumb-image,
+.tp-thumbs .tp-thumb-over,
+.field--name-field-mt-hft-feature .field--name-field-mt-highlight-image,
+.field--name-field-mt-hft-feature .field--name-field-mt-highlight-image img,
+.field--name-field-mt-hft-feature
+  .field--name-field-mt-highlight-image
+  .overlay,
+.node--view-mode-mt-teaser-tile-image,
+.node--view-mode-mt-featured-teaser {
+  -webkit-border-radius: var(--mt-image-border-radius);
+  -moz-border-radius: var(--mt-image-border-radius);
+  border-radius: var(--mt-image-border-radius);
+}
+.feature-item__image .overlay-inner {
+  border-bottom-right-radius: var(--mt-image-border-radius);
+  border-bottom-left-radius: var(--mt-image-border-radius);
+}
