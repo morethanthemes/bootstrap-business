@@ -1151,7 +1151,10 @@ li.pager__item a:not(.mt-button):focus {
 
 /* components: site branding */
 .site-name a {
-  color: var(--mt-color-primary);
+  color: var(--mt-color-base);
+}
+.site-slogan {
+  color: var(--mt-color-base-light);
 }
 
 /* components: slideout */

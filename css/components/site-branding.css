@@ -1,0 +1,12 @@
+.col-12 .header-top-first .site-name a {
+  font-size: 38px;
+  font-weight: 700;
+  line-height: 1em;
+  margin: 0 0 10px;
+}
+.site-slogan {
+  font-size: 13px;
+  font-weight: 300;
+  line-height: 150%;
+  margin: 10px 0 10px 0;
+}
