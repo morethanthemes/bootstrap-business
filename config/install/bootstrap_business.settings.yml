@@ -10,7 +10,7 @@ bootstrap_remote_type: local
 breadcrumb_separator: fa-angle-right
 breaking_effect: fade
 breaking_effect_time: '5'
-color_scheme: gray
+color_scheme: red
 global_corner_style: mt-style-rounded
 button_corner_style: mt-style-button-global
 form_corner_style: mt-style-form-global
