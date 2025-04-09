@@ -70,7 +70,7 @@ fixed_header: 1
 fixed_header_behavior: fixed-header-enabled--scroll-up
 font_resize: 1
 footer_animation_effect: no-animation
-footer_background_color: region--tint-background
+footer_background_color: region--accent-background
 footer_blocks_paddings: 0
 footer_bottom_background_color: region--tint-background
 footer_bottom_blocks_paddings: 0
@@ -107,16 +107,16 @@ sticky_footer_blocks_paddings: 0
 sticky_footer_region_paddings: 0
 sticky_footer_trigger_text: ''
 google_maps_key: your_google_maps_key
-header_background_color: region--bright-background
+header_background_color: region--accent-background
 header_background_image_state: 0
 header_blocks_paddings: 0
 header_layout_container: container
 header_region_paddings: 1
 header_top_animation_effect: no-animation
-header_top_background_color: region--bright-background
+header_top_background_color: region--accent-background
 header_top_blocks_paddings: 0
 header_top_highlighted_animation_effect: fadeIn
-header_top_highlighted_background_color: region--bright-background
+header_top_highlighted_background_color: region--accent-background
 header_top_highlighted_blocks_paddings: 0
 header_top_highlighted_layout_container: container
 header_top_highlighted_region_paddings: 1
@@ -152,7 +152,7 @@ main_content_blocks_paddings: 0
 main_content_id: main-content
 main_content_region_paddings: 0
 main_content_separator: region--no-separator
-main_content_background_color: region--bright-background
+main_content_background_color: region--tint-background
 owl_albums_autoplay: 1
 owl_albums_effect_time: '5'
 owl_articles_autoplay: 1
@@ -233,7 +233,7 @@ sub_featured_id: sub-featured
 sub_featured_layout_container: container
 sub_featured_region_paddings: 0
 sub_featured_separator: region--no-separator
-subfooter_background_color: region--colored-background
+subfooter_background_color: region--accent-background
 subfooter_blocks_paddings: 0
 subfooter_bottom_blocks_paddings: false
 subfooter_bottom_region_paddings: false

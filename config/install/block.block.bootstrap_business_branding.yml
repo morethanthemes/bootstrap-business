@@ -7,7 +7,7 @@ dependencies:
     - bootstrap_business
 id: bootstrap_business_branding
 theme: bootstrap_business
-region: header_first
+region: header_top_first
 weight: -6
 provider: null
 plugin: system_branding_block

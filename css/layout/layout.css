@@ -1,0 +1,25 @@
+.region--accent-background.header-top-highlighted {
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-color: var(--mt-color-accent-dark);
+}
+.header-top__container {
+  padding: 40px 0;
+}
+.subfooter {
+  border-top-width: 2px;
+}
+.region--accent-background.subfooter {
+  border-color: var(--mt-color-accent-dark);
+}
+.subfooter__container {
+  padding: 40px 0;
+}
+.header.region--accent-background,
+.header.region--bright-background,
+.header.region--default-background {
+  -webkit-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.075),
+    0 10px 0 rgba(0, 0, 0, 0.01);
+  -moz-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.075), 0 10px 0 rgba(0, 0, 0, 0.01);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.075), 0 10px 0 rgba(0, 0, 0, 0.01);
+}
