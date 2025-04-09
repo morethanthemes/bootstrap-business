@@ -4,52 +4,53 @@
  */
 :root {
   /*base color*/
-  --mt-color-base: #555;
+  --mt-color-base: #444;
   --mt-color-base-dark: #323232;
-  --mt-color-base-light: #555;
-  --mt-color-base-contrast: #F6F9FC;
-  --mt-color-base-value: 50, 50, 50;
+  --mt-color-base-light: #999;
+  --mt-color-base-contrast: #f6f9fc;
+  --mt-color-base-value: 68, 68, 68;
   --mt-color-base-contrast-value: 246, 249, 252;
 
   /*primary color*/
-  --mt-color-primary: hsl(0, 65%, 40%);
-  --mt-color-primary-dark: hsl(0, 65%, 30%);
-  --mt-color-primary-light: hsl(0, 65%, 45%);
+  --mt-color-primary: hsl(6, 78%, 57%);
+  --mt-color-primary-dark: hsl(6, 78%, 30%);
+  --mt-color-primary-light: hsl(6, 78%, 65%);
   --mt-color-primary-contrast: var(--mt-color-base-contrast);
-  --mt-color-primary-value: 0, 65%, 40%;
-  --mt-color-primary-dark-value: 0, 65%, 30%;
-  --mt-color-primary-light-value: 0, 65%, 45%;
+  --mt-color-primary-value: 6, 78%, 40%;
+  --mt-color-primary-dark-value: 6, 78%, 30%;
+  --mt-color-primary-light-value: 6, 78%, 65%;
   --mt-color-primary-contrast-value: var(--mt-color-base-contrast-value);
-  --mt-color-primary-filter: invert(15%) sepia(70%) saturate(5183%) hue-rotate(354deg) brightness(73%) contrast(81%);
+  --mt-color-primary-filter: invert(57%) sepia(74%) saturate(6357%)
+    hue-rotate(342deg) brightness(98%) contrast(85%);
 
   /*accent color*/
-  --mt-color-accent: #eee;
-  --mt-color-accent-dark: #f8f9fb;
+  --mt-color-accent: #fcfcfc;
+  --mt-color-accent-dark: #eaeaea;
   --mt-color-accent-light: #f8f9fb;
   --mt-color-accent-contrast: var(--mt-color-base);
   --mt-color-accent-contrast-value: var(--mt-color-base-value);
 
   /*secondary color*/
-  --mt-color-secondary: hsl(0, 65%, 40%);
-  --mt-color-secondary-dark: hsl(0, 65%, 30%);
-  --mt-color-secondary-light: hsl(0, 65%, 80%);
+  --mt-color-secondary: hsl(6, 78%, 57%);
+  --mt-color-secondary-dark: hsl(6, 78%, 30%);
+  --mt-color-secondary-light: hsl(6, 78%, 80%);
   --mt-color-secondary-contrast: var(--mt-color-base-contrast);
-  --mt-color-secondary-value: 0, 65%, 40%;
+  --mt-color-secondary-value: 6, 78%, 57%;
 
   /*tint background*/
-  --mt-color-tint: #f6f6f6;
+  --mt-color-tint: #f5f5f5;
   --mt-color-tint-contrast: var(--mt-color-base);
   --mt-color-tint-contrast-value: var(--mt-color-base-value);
 
   /*shade background*/
-  --mt-color-shade: hsl(225, 6%, 13%);
+  --mt-color-shade: hsl(0, 0%, 13%);
   --mt-color-shade-contrast: var(--mt-color-base-contrast);
   --mt-color-shade-contrast-value: var(--mt-color-base-contrast-value);
 
   /*dark colored background*/
-  --mt-color-dark-colored: hsl(0, 65%, 30%);
+  --mt-color-dark-colored: hsl(6, 78%, 30%);
   --mt-color-dark-colored-contrast: var(--mt-color-base-contrast);
-  --mt-color-dark-colored-value: 0, 65%, 30%;
+  --mt-color-dark-colored-value: 6, 78%, 30%;
   --mt-color-dark-colored-contrast-value: var(--mt-color-base-contrast-value);
 
   /*colored background*/
@@ -79,21 +80,21 @@
   --mt-color-default: #ffffff;
   --mt-color-default-light: #ffffff;
   --mt-color-default-contrast: var(--mt-color-base);
-  --mt-color-default-value: 252, 242, 242;
+  --mt-color-default-value: 255, 255, 255;
   --mt-color-default-contrast-value: var(--mt-color-base-value);
 
   /*success*/
-  --mt-color-success: #3E9300;
+  --mt-color-success: #3e9300;
   --mt-color-success-dark: #547f1f;
   --mt-color-success-contrast: #ffffff;
 
   /*danger*/
-  --mt-color-danger: #CC0000;
+  --mt-color-danger: #cc0000;
   --mt-color-danger-dark: #980a00;
   --mt-color-danger-contrast: #ffffff;
 
   /*warning*/
-  --mt-color-warning: #EA9900;
+  --mt-color-warning: #ea9900;
   --mt-color-warning-dark: #e2630b;
   --mt-color-warning-contrast: #ffffff;
 
@@ -106,6 +107,9 @@
   --mt-form-color-contrast: var(--mt-color-base-contrast);
   --mt-form-label-color: rgba(var(--mt-color-base-value), 0.9);
   --mt-form-placeholder: rgba(var(--mt-color-base-value), 0.5);
-  --mt-form-placeholder-contrast: rgba(var(--mt-color-base-contrast-value), 0.5);
+  --mt-form-placeholder-contrast: rgba(
+    var(--mt-color-base-contrast-value),
+    0.5
+  );
   --mt-active-cell: hsla(var(--mt-color-primary-value), 0.12);
 }
