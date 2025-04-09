@@ -773,7 +773,7 @@ select:focus {
 
 /* components: menu */
 ul.menu a.is-active {
-  color: var(--mt-color-primary);
+  color: var(--mt-color-bright-contrast);
 }
 
 /* components: header menu */
@@ -806,7 +806,7 @@ ul.menu a.is-active {
   --mt-submenu-background-color: var(--mt-color-dark);
 }
 .region--accent-background {
-  --mt-menu-item-color: var(--mt-color-accent-contrast);
+  --mt-menu-item-color: var(--mt-color-base-light);
   --mt-submenu-background-color: var(--mt-color-accent);
 }
 .region--pattern {
@@ -819,6 +819,15 @@ ul.menu a.is-active {
 ul.menu li a,
 ul.menu li > span {
   color: var(--mt-menu-item-color);
+}
+.header-container .sf-menu > li.sfHover > a,
+.header-container .sf-menu > li > a:hover,
+.header-container .sf-menu > li > a:focus,
+.header-container .sf-menu > li.active-trail > a,
+.header-container .sf-menu > li > a.is-active,
+.header-container ul.menu li a:hover,
+.header-container ul.menu li > span:hover {
+  color: var(--mt-color-primary);
 }
 .header-container .sf-menu ul li.sfHover > a,
 .header-container .sf-menu ul li a:hover,
