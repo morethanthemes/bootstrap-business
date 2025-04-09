@@ -6,6 +6,8 @@ global-styling:
       css/base/elements.css: {}
     component:
       css/components/buttons.css: {}
+      css/components/menu.css: {}
+      css/components/site-branding.css: {}
     layout:
       css/layout/layout.css: {}
     theme:

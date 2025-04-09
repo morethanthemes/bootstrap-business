@@ -1,0 +1,13 @@
+@media (min-width: 1440px) {
+  .header-container .col-12 ul.menu > li {
+    padding: 0 5px;
+  }
+}
+.header-container ul.menu > li > a,
+.header-container ul.menu > li > span {
+  font-weight: 700;
+  padding: 20px 10px;
+  margin: 0px 10px;
+  text-transform: uppercase;
+  line-height: 1.5;
+}

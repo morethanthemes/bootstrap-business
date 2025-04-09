@@ -9,7 +9,7 @@ dependencies:
     - bootstrap_business
 id: bootstrap_business_main_menu
 theme: bootstrap_business
-region: header
+region: header_first
 weight: -22
 provider: null
 plugin: 'system_menu_block:main'
