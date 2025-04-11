@@ -14,7 +14,7 @@
 }
 .mt-style-rounded,
 :root .mt-style-custom-rounded {
-  --mt-custom-element-border-radius: 0.25rem;
+  --mt-custom-element-border-radius: 0.45rem;
   --mt-custom-element-border-radius-large: 15px;
 }
 

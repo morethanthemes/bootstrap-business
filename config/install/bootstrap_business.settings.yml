@@ -7,7 +7,7 @@ banner_id: banner
 banner_layout_container: container-fluid
 banner_region_paddings: 1
 bootstrap_remote_type: local
-breadcrumb_separator: fa-angle-right
+breadcrumb_separator: fa-angle-double-right
 breaking_effect: fade
 breaking_effect_time: '5'
 color_scheme: red

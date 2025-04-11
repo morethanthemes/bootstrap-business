@@ -1,0 +1,12 @@
+.block-system-breadcrumb-block .breadcrumb ol {
+  border-width: 1px;
+  border-color: var(--mt-color-accent-dark);
+  border-style: solid;
+  width: 100%;
+}
+.block-system-breadcrumb-block .breadcrumb__item {
+  color: var(--mt-color-base);
+}
+.block-system-breadcrumb-block .breadcrumb__item .breadcrumb__item-separator {
+  font-size: 10px;
+}

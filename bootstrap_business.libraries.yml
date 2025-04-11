@@ -27,6 +27,12 @@ local-stylesheets:
       css/theme/image-shapes.css: { weight: 100 }
       css/theme/local-theme.css: { weight: 150 }
 
+breadcrumb:
+  version: VERSION
+  css:
+    component:
+      css/components/breadcrumb.css: {}
+
 node-view-mode-card:
   version: VERSION
   css:
