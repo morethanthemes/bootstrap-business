@@ -1,0 +1,63 @@
+:root {
+  --mt-text-size: 14px;
+  --mt-blockquote-text-size: clamp(1rem, 1.8vw, 1rem);
+}
+
+/* body, p tag */
+body,
+html {
+  font-size: var(--mt-text-size);
+}
+p {
+  font-size: 1rem;
+}
+
+/* headings */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin-top: 1.4rem;
+  margin-bottom: 0.7rem;
+}
+h6 {
+  font-size: 1.14rem;
+}
+h5 {
+  font-size: 1.28rem;
+}
+h4 {
+  font-size: 1.42rem;
+}
+h3 {
+  font-size: 1.71rem;
+}
+h2 {
+  font-size: 2.14rem;
+}
+h1 {
+  font-size: 2.57rem;
+}
+
+/* blockquotes */
+blockquote {
+  margin: 40px 40px 24px;
+  color: var(--mt-color-base-light);
+  max-width: 65ch;
+  padding: 0;
+}
+blockquote::before {
+  content: '\201C';
+  font-size: calc(var(--mt-blockquote-text-size) * 2);
+  top: 0px;
+  width: 65px;
+  left: -50px;
+}
+
+/* lists */
+ol,
+ul {
+  font-size: 1rem;
+}

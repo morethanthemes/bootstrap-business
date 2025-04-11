@@ -3,7 +3,7 @@ global-styling:
   version: VERSION
   css:
     base:
-      css/base/elements.css: {}
+      css/base/elements.css: { weight: 1 }
     component:
       css/components/buttons.css: {}
       css/components/menu.css: {}

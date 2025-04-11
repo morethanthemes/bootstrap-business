@@ -84,19 +84,19 @@
   --mt-color-default-contrast-value: var(--mt-color-base-value);
 
   /*success*/
-  --mt-color-success: #3e9300;
-  --mt-color-success-dark: #547f1f;
-  --mt-color-success-contrast: #ffffff;
+  --mt-color-success: #dff0d8;
+  --mt-color-success-dark: #cde0c6;
+  --mt-color-success-contrast: #468847;
 
   /*danger*/
-  --mt-color-danger: #cc0000;
-  --mt-color-danger-dark: #980a00;
-  --mt-color-danger-contrast: #ffffff;
+  --mt-color-danger: #f2dede;
+  --mt-color-danger-dark: #e8d3d3;
+  --mt-color-danger-contrast: #b94a48;
 
   /*warning*/
-  --mt-color-warning: #ea9900;
-  --mt-color-warning-dark: #e2630b;
-  --mt-color-warning-contrast: #ffffff;
+  --mt-color-warning: #fcf8e3;
+  --mt-color-warning-dark: #e6e2cd;
+  --mt-color-warning-contrast: #c09853;
 
   /*forms*/
   --mt-form-border: rgba(var(--mt-color-base-value), 0.2);
