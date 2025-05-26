@@ -385,7 +385,12 @@ a.mt-button,
 button.mt-button,
 input[type='submit'],
 input[type='reset'],
-input[type='button'] {
+input[type='button'],
+.btn.btn-primary,
+a.button,
+a.mt-button.mt-button--link,
+.mt-button.mt-button--link > a,
+button.mt-button.mt-button--link {
   border-color: var(--mt-color-primary);
   background-color: var(--mt-color-primary);
   color: var(--mt-color-primary-contrast);
@@ -395,7 +400,12 @@ a.mt-button:hover,
 button.mt-button:hover,
 input[type='submit']:hover,
 input[type='reset']:hover,
-input[type='button']:hover {
+input[type='button']:hover,
+a.mt-button.mt-button--link:hover,
+.mt-button.mt-button--link > a:hover,
+button.mt-button.mt-button--link:hover,
+.btn.btn-primary:hover,
+a.button:hover {
   background-color: var(--mt-color-primary-light);
   border-color: var(--mt-color-primary-light);
 }
@@ -405,6 +415,8 @@ button.mt-button:active,
 input[type='submit']:active,
 input[type='reset']:active,
 input[type='button']:active,
+.btn.btn-primary:active,
+a.button.active,
 a.mt-button.mt-button--outline:active,
 .mt-button.mt-button--outline > a:active,
 input[type='submit'].mt-button--outline:active,
@@ -412,6 +424,10 @@ input[type='reset'].mt-button--outline:active,
 input[type='button'].mt-button--outline:active {
   background-color: var(--mt-color-primary);
   border-color: var(--mt-color-primary);
+}
+a.mt-button.mt-button--outline:hover,
+.mt-button.mt-button--outline > a:hover {
+  border-color: var(--mt-color-base);
 }
 a.mt-button:before,
 .mt-button > a:before,
@@ -424,13 +440,25 @@ button.mt-button:before {
 .region--colored-background input[type='submit']:hover,
 .region--colored-background input[type='reset']:hover,
 .region--colored-background input[type='button']:hover,
+.region--colored-background a.mt-button.mt-button--link:hover,
+.region--colored-background .mt-button.mt-button--link > a:hover,
+.region--colored-background button.mt-button.mt-button--link:hover,
+.region--colored-background .btn.btn-primary:hover,
+.region--colored-background a.button:hover,
 .region--colored-background a.mt-button:active,
 .region--colored-background .mt-button > a:active,
 .region--colored-background button.mt-button:active,
 .region--colored-background input[type='submit']:active,
 .region--colored-background input[type='reset']:active,
-.region--colored-background input[type='button']:active {
-  color: var(--mt-color-colored);
+.region--colored-background input[type='button']:active,
+.region--colored-background a.mt-button.mt-button--link:active,
+.region--colored-background .mt-button.mt-button--link > a:active,
+.region--colored-background button.mt-button.mt-button--link:active,
+.region--colored-background .btn.btn-primary:active,
+.region--colored-background a.button:active {
+  color: var(--mt-color-colored-contrast);
+  background-color: var(--mt-color-base);
+  border-color: var(--mt-color-base);
 }
 .region--dark-colored-background a.mt-button:hover,
 .region--dark-colored-background .mt-button > a:hover,
@@ -438,13 +466,25 @@ button.mt-button:before {
 .region--dark-colored-background input[type='submit']:hover,
 .region--dark-colored-background input[type='reset']:hover,
 .region--dark-colored-background input[type='button']:hover,
+.region--dark-colored-background a.mt-button.mt-button--link:hover,
+.region--dark-colored-background .mt-button.mt-button--link > a:hover,
+.region--dark-colored-background button.mt-button.mt-button--link:hover,
+.region--dark-colored-background .btn.btn-primary:hover,
+.region--dark-colored-background a.button:hover,
 .region--dark-colored-background a.mt-button:active,
 .region--dark-colored-background .mt-button > a:active,
 .region--dark-colored-background button.mt-button:active,
 .region--dark-colored-background input[type='submit']:active,
 .region--dark-colored-background input[type='reset']:active,
-.region--dark-colored-background input[type='button']:active {
-  color: var(--mt-color-dark-colored);
+.region--dark-colored-background input[type='button']:active,
+.region--dark-colored-background a.mt-button.mt-button--link:active,
+.region--dark-colored-background .mt-button.mt-button--link > a:active,
+.region--dark-colored-background button.mt-button.mt-button--link:active,
+.region--dark-colored-background .btn.btn-primary:active,
+.region--dark-colored-background a.button:active {
+  color: var(--mt-color-dark-colored-contrast);
+  background-color: var(--mt-color-base);
+  border-color: var(--mt-color-base);
 }
 .region--default-background a.mt-button.mt-button--hover-style-2:before,
 .region--default-background .mt-button.mt-button--hover-style-2 > a:before {

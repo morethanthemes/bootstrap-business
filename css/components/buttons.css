@@ -1,0 +1,39 @@
+a.mt-button,
+.mt-button > a,
+button.mt-button,
+input[type='submit'],
+input[type='reset'],
+input[type='button'],
+.btn,
+a.button,
+a.mt-button.mt-button--link,
+.mt-button.mt-button--link > a,
+button.mt-button.mt-button--link {
+  padding: 15px 24px;
+  text-transform: uppercase;
+  font-size: inherit;
+}
+a.mt-button:hover,
+.mt-button > a:hover,
+button.mt-button:hover,
+.btn:hover,
+a.button:hover {
+  padding: 15px 24px;
+}
+a.mt-button:after,
+.mt-button > a:after,
+button.mt-button:after {
+  opacity: 0;
+  content: '';
+}
+a.mt-button.mt-button--outline,
+.mt-button.mt-button--outline > a,
+input[type='submit'].mt-button--outline,
+input[type='reset'].mt-button--outline,
+input[type='button'].mt-button--outline,
+a.mt-button.mt-button--external-link,
+.mt-button.mt-button.mt-button--external-link > a,
+button.mt-button.mt-button.mt-button--external-link {
+  position: relative;
+  padding: 15px 24px;
+}
