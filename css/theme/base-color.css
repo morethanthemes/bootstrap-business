@@ -3,7 +3,15 @@
  * Color styling rules for Bootstrap Business.
  *
  */
-
+:root {
+  --mt-link-color: var(--mt-color-secondary);
+  --mt-dark-link-color: var(--mt-color-primary-dark);
+  --mt-link-border-color: var(--mt-color-default-contrast);
+  --mt-link-outline-color: var(--mt-color-default-contrast);
+  --mt-link-color-hover: var(--mt-color-secondary);
+  --mt-dark-link-color-hover: var(--mt-color-primary);
+  --mt-border-color: rgba(var(--mt-color-default-contrast-value), 0.2);
+}
 /* base: elements */
 body {
   background-color: var(--mt-color-bright);
@@ -73,7 +81,7 @@ a.link--bordered,
   --mt-dark-link-color: var(--mt-color-primary-dark);
   --mt-link-border-color: var(--mt-color-default-contrast);
   --mt-link-outline-color: var(--mt-color-default-contrast);
-  --mt-link-color-hover: var(--mt-color-secondary-dark);
+  --mt-link-color-hover: var(--mt-color-secondary);
   --mt-dark-link-color-hover: var(--mt-color-primary);
   --mt-border-color: rgba(var(--mt-color-default-contrast-value), 0.2);
 }
@@ -100,7 +108,7 @@ a.link--bordered,
   --mt-dark-link-color: var(--mt-color-primary-dark);
   --mt-link-border-color: var(--mt-color-accent-contrast);
   --mt-link-outline-color: var(--mt-color-accent-contrast);
-  --mt-link-color-hover: var(--mt-color-secondary-dark);
+  --mt-link-color-hover: var(--mt-color-secondary);
   --mt-dark-link-color-hover: var(--mt-color-primary);
   --mt-border-color: rgba(var(--mt-color-accent-contrast-value), 0.2);
 }
@@ -109,7 +117,7 @@ a.link--bordered,
   --mt-dark-link-color: var(--mt-color-primary-dark);
   --mt-link-border-color: var(--mt-color-tint-contrast);
   --mt-link-outline-color: var(--mt-color-tint-contrast);
-  --mt-link-color-hover: var(--mt-color-secondary-dark);
+  --mt-link-color-hover: var(--mt-color-secondary);
   --mt-dark-link-color-hover: var(--mt-color-primary);
   --mt-border-color: rgba(var(--mt-color-tint-contrast-value), 0.2);
 }
@@ -127,7 +135,7 @@ a.link--bordered,
   --mt-dark-link-color: var(--mt-color-primary-dark);
   --mt-link-border-color: var(--mt-color-bright-contrast);
   --mt-link-outline-color: var(--mt-color-bright-contrast);
-  --mt-link-color-hover: var(--mt-color-secondary-dark);
+  --mt-link-color-hover: var(--mt-color-secondary);
   --mt-dark-link-color-hover: var(--mt-color-primary);
   --mt-border-color: rgba(var(--mt-color-bright-contrast-value), 0.2);
 }
@@ -136,7 +144,7 @@ a.link--bordered,
   --mt-dark-link-color: var(--mt-color-primary-dark);
   --mt-link-border-color: var(--mt-color-pattern-contrast);
   --mt-link-outline-color: var(--mt-color-pattern-contrast);
-  --mt-link-color-hover: var(--mt-color-secondary-dark);
+  --mt-link-color-hover: var(--mt-color-secondary);
   --mt-dark-link-color-hover: var(--mt-color-primary);
   --mt-border-color: rgba(var(--mt-color-pattern-contrast-value), 0.2);
 }
