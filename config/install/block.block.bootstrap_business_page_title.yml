@@ -8,7 +8,7 @@ dependencies:
 id: bootstrap_business_page_title
 theme: bootstrap_business
 region: content
-weight: -16
+weight: -15
 provider: null
 plugin: page_title_block
 settings:
