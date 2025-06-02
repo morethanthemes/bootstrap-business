@@ -1,0 +1,61 @@
+{#
+/**
+ * @file
+ * Directory+s's theme implementation to display internal banner slider of Blog Item node.
+ */
+#}
+
+{%
+  set classes = [
+    'node',
+    'node--type-' ~ node.bundle|clean_class,
+    node.isPromoted() ? 'node--promoted',
+    node.isSticky() ? 'node--sticky',
+    not node.isPublished() ? 'node--unpublished',
+    view_mode ? 'node--view-mode-' ~ view_mode|clean_class,
+    display_submitted ? 'node--display-submitted',
+    'clearfix',
+    'region--accent-background mt-style-custom-br mt-style-custom-bl px-5 pb-4'
+  ]
+%}
+{{ attach_library('basecore/node') }}
+{{ attach_library('bootstrap_business/node-blog') }}
+{{ attach_library('basecore/node-field') }}
+<article{{ attributes.addClass(classes) }}>
+  <div class="node__container">
+    <div{{ content_attributes.addClass('node__main-content', 'clearfix') }}>
+      <header class="node__header">
+        {% block meta_area %}
+          {{ title_prefix }}
+          {% if not page %}
+            <h2{{ title_attributes.addClass('node__title') }}>
+              <a href="{{ url }}" rel="bookmark">{{ label }}</a>
+            </h2>
+          {% endif %}
+          {{ title_suffix }}
+          {% if display_submitted %}
+            <div class="node__meta">
+              {{ author_picture }}
+              <span{{ author_attributes.addClass('node__submitted-info') }}>
+                {% trans %}
+                  <span class="node__submitted-info-text">By</span> {{ author_name }} on
+                  <span class="node__submitted-date">
+                    {{ date }}
+                  </span>
+                {% endtrans %}
+              </span>
+              {{ metadata }}
+            </div>
+          {% endif %}
+        {% endblock %}
+      </header>
+      {% block libraries %}
+      {% endblock %}
+      {% block content %}
+        {{ content }}
+      {% endblock %}
+    </div>
+    {% block node_side %}
+    {% endblock %}
+  </div>
+</article>
