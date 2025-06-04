@@ -1,8 +1,14 @@
 :root {
   --mt-text-size: 14px;
   --mt-blockquote-text-size: clamp(1rem, 1.8vw, 1rem);
+  --mt-link-border-hover: var(--mt-color-primary);
 }
-
+.region--dark-colored-background,
+.region--colored-background,
+.region--shade-background,
+.region--dark-background {
+  --mt-link-border-hover: #fff;
+}
 /* body, p tag */
 body,
 html {
