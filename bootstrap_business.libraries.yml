@@ -19,6 +19,7 @@ local-stylesheets:
     base:
       css/base/local-base.css: { weight: 100 }
     component:
+      css/components/field-taxonomy-term.css: {}
       css/components/local-components.css: { weight: 100 }
     theme:
       css/theme/button-shapes.css: { weight: 100 }
