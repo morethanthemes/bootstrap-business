@@ -39,6 +39,9 @@ a.button {
   text-transform: uppercase;
   background-color: transparent;
   color: var(--mt-link-color);
+  font-weight: 400;
+  padding-top: 15px;
+  padding-bottom: 15px;
 }
 a.mt-button.mt-button--link:hover,
 .mt-button.mt-button--link > a:hover,
@@ -49,4 +52,11 @@ a.button:hover {
   text-transform: uppercase;
   background-color: transparent;
   color: var(--mt-link-color);
+}
+a.mt-button.mt-button--outline:hover,
+.mt-button.mt-button--outline > a:hover,
+input[type='submit'].mt-button--outline:hover,
+input[type='reset'].mt-button--outline:hover,
+input[type='button'].mt-button--outline:hover {
+  background-image: none;
 }
