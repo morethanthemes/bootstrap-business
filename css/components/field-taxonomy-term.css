@@ -1,0 +1,4 @@
+.field--entity-reference-target-type-taxonomy-term.field--label-inline:before,
+.field--entity-reference-target-type-taxonomy-term.field--label-inline.field__item:before {
+  top: 1px;
+}
