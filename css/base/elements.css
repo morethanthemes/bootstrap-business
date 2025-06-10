@@ -1,5 +1,5 @@
 :root {
-  --mt-blockquote-text-size: clamp(1.125rem, 1.8vw, 1.125rem);
+  --mt-blockquote-text-size: clamp(1.5rem, 1.8vw, 2rem);
   --mt-link-border-hover: var(--mt-color-primary);
 }
 .region--dark-colored-background,
