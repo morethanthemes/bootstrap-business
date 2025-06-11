@@ -1,3 +1,21 @@
+.klaro.klaro-theme-bootstrap_business {
+  --klaro-button-bg: var(--mt-color-primary);
+  --klaro-button-border: none;
+  --klaro-button-border-radius: var(--mt-button-border-radius);
+  --klaro-button-padding: 15px 24px;
+  --klaro-button-font-size: 1rem;
+  --klaro-button-font-weight: 500;
+  --klaro-button-line-height: 1.125;
+  --klaro-button-bg-hover: var(--mt-color-primary-light);
+  --klaro-button-text-color-hover: var(--mt-color-primary-contrast);
+  --klaro-button-border-hover: none;
+  --klaro-button-focus-outline: 1px solid var(--mt-color-primary-light);
+  --klaro-button-focus-outline-offset: 1px;
+  --green1: var(--mt-color-primary);
+  --green2: var(--mt-color-primary);
+  --green3: var(--mt-color-primary);
+}
+
 a.mt-button,
 .mt-button > a,
 button.mt-button,
@@ -8,6 +26,9 @@ input[type='button'],
   padding: 15px 24px;
   text-transform: uppercase;
   font-size: inherit;
+}
+.cm-btn {
+  text-transform: uppercase;
 }
 a.mt-button:hover,
 .mt-button > a:hover,
