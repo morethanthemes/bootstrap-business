@@ -26,3 +26,26 @@
 .hero-top {
   padding: 60px 0 30px;
 }
+.main-content__section,
+.sidebar__section {
+  padding: 30px 0 70px;
+}
+.path-simple-styleguide .page-title {
+  background-color: var(--mt-color-accent);
+  padding: 1.5rem 3rem 2rem;
+  margin: 0;
+  border-radius: var(--mt-custom-element-border-radius)
+    var(--mt-custom-element-border-radius) 0 0;
+  border-width: 1px 1px 0 1px;
+  border-style: solid;
+  border-color: var(--mt-color-accent-dark);
+}
+.path-simple-styleguide .block-system-main-block .content {
+  border-width: 0 1px 1px 1px;
+  border-style: solid;
+  border-color: var(--mt-color-accent-dark);
+  background-color: var(--mt-color-accent);
+  padding-bottom: 1.5rem;
+  padding-right: 3rem;
+  padding-left: 3rem;
+}

@@ -19,3 +19,10 @@ function bootstrap_business_preprocess_html(array &$variables): void {
 function bootstrap_business_preprocess_node__card(array &$variables): void {
   $variables['#attached']['library'][] = 'bootstrap_business/node-view-mode-card';
 }
+
+/**
+ * Implements hook_preprocess_node().
+ */
+function bootstrap_business_preprocess_node(array &$variables) {
+  $variables['#attached']['library'][] = 'bootstrap_business/node';
+}
