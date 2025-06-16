@@ -1,4 +1,5 @@
-.path-node:not(.page-node-type-page) .page-title {
+.path-node:not(.page-node-type-page):not(.page-node-type-mt-landing-page)
+  .page-title {
   background-color: var(--mt-color-accent);
   padding: 1.5rem 3rem 2rem;
   margin: 0;
@@ -8,7 +9,8 @@
   border-style: solid;
   border-color: var(--mt-color-accent-dark);
 }
-.path-node:not(.page-node-type-page) .node--view-mode-full {
+.path-node:not(.page-node-type-page):not(.page-node-type-mt-landing-page)
+  .node--view-mode-full {
   border-width: 0 1px 1px 1px;
   border-style: solid;
   border-color: var(--mt-color-accent-dark);
@@ -17,6 +19,7 @@
   padding-right: 3rem;
   padding-left: 3rem;
 }
-.path-node:not(.page-node-type-page) .node__meta {
+.path-node:not(.page-node-type-page):not(.page-node-type-mt-landing-page)
+  .node__meta {
   margin: 0;
 }
