@@ -40,17 +40,11 @@ node-view-mode-card:
     component:
       css/components/node-view-mode-card.css: {}
 
-node-news:
+node:
   version: VERSION
   css:
     component:
-      css/components/node-news.css: {}
-
-node-blog:
-  version: VERSION
-  css:
-    component:
-      css/components/node-blog.css: {}
+      css/components/node.css: {}
 
 #####################
 #   Color Schemes   #
