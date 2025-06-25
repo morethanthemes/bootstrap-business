@@ -8,13 +8,6 @@
 .region--dark-background {
   --mt-link-border-hover: #fff;
 }
-.klaro.klaro-theme-bootstrap_business {
-  --klaro-primary-color: var(--mt-color-primary);
-  --klaro-link-color: var(--mt-color-primary);
-  --klaro-link-color-hover: var(--mt-color-primary);
-  --klaro-link-decoration-line-hover: underline;
-  font-size: var(--mt-text-size);
-}
 
 /* headings */
 h1,
